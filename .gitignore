@@ -1,0 +1,44 @@
+# Local configuration, properties, APIs etc.
+local.properties
+sentry.properties
+google-services.json
+proguard/
+
+# Keystore files
+keystore
+*.keystore
+*.jks
+
+# Gradle and generated files
+.gradle/
+build/*
+app/build/*
+bin/
+gen/
+out/
+*.aab
+*.apk
+*.ap_
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Log Files
+*.log
+
+# Android Studio and IntelliJ
+*.iml
+.idea/
+.navigation/
+captures/
+
+# OS specific local files/tools
+app/tools/
+*.bat
+
+# macOS
+.DS_Store
+
