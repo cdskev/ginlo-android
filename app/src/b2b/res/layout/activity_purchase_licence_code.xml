@@ -1,0 +1,125 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_terms"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="eu.ginlo_apps.ginlo.activity.register.TermsActivity"
+    tools:ignore="MergeRootFrame">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <View style="@style/Divider" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/purchase_licence_top_warning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/color9"
+                android:orientation="horizontal"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/ico_alert" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/FontP3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/enter_licence_warning_no_licence_found" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/FontH2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="@string/purchase_licence_title" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/FontP2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="@string/purchase_licence_hint" />
+
+                <ListView
+                    android:id="@+id/purchase_licence_listview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:divider="@null">
+
+                </ListView>
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/button_restore_purchases"
+                    style="@style/BorderlessColoredButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:enabled="false"
+                    android:onClick="handleRestorePurchasesClick"
+                    android:text="@string/purchse_licence_button_restore_purchases"
+                    app:styledButtonType="borderless" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/button_enter_licence_code"
+                    style="@style/BorderlessColoredButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="handleEnterLicenceCodeClick"
+                    android:text="@string/purchse_licence_button_enter_licence_code"
+                    app:styledButtonType="borderless" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/button_delete_account"
+                    style="@style/BorderlessColoredButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="handleDeleteAccountClick"
+                    android:text="@string/settings_profile_button_deleteAccount"
+                    app:styledButtonType="borderless" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/button_send_log_file"
+                    style="@style/BorderlessColoredButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="handleSendLogFileClick"
+                    android:text="@string/settings_support_logs_send"
+                    app:styledButtonType="borderless" />
+
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

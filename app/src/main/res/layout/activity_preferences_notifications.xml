@@ -1,0 +1,311 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_preferences_notifications"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main"
+    tools:context=".activity.preferences.PreferencesNotificationsActivity">
+
+    <include layout="@layout/toolbar_default" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        style="@style/Divider"
+        app:styledBackground="mainContrast50" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_notifications_header_chats"
+                style="@style/FontSettingsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:text="@string/settings_notifications_header_chats"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_notifications_switch_notifications_chats"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_notifications_show_notifications"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast" />
+
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_notifications_switch_sounds_chats"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_notifications_play_sound"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_notifications_switch_vibrations_chats"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_notifications_play_vibration"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast" />
+
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                style="@style/Divider"
+                app:styledBackground="mainContrast50" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_notifications_header_groups"
+                style="@style/FontSettingsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:text="@string/settings_notifications_header_groups"
+                app:styledTextColor="mainContrast" />
+
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_notifications_switch_notifications_groups"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_notifications_show_notifications"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_notifications_switch_sounds_groups"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_notifications_play_sound"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_notifications_switch_vibrations_groups"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_notifications_play_vibration"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast" />
+
+
+            <LinearLayout
+                android:id="@+id/preferences_notifications_layout_channels"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    style="@style/Divider"
+                    app:styledBackground="mainContrast50" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_notifications_header_channels"
+                    style="@style/FontSettingsHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingTop="@dimen/activity_vertical_margin"
+                    android:text="@string/settings_notifications_header_channels"
+                    app:styledTextColor="mainContrast" />
+
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_notifications_switch_notifications_channels"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_notifications_show_notifications"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_notifications_switch_sounds_channels"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_notifications_play_sound"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_notifications_switch_vibrations_channels"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_notifications_play_vibration"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/preferences_notifications_layout_services"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    style="@style/Divider"
+                    app:styledBackground="mainContrast50" />
+
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_notifications_header_services"
+                    style="@style/FontSettingsHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingTop="@dimen/activity_vertical_margin"
+                    android:text="@string/settings_notifications_header_services"
+                    app:styledTextColor="mainContrast" />
+
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_notifications_switch_notifications_services"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_notifications_show_notifications"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_notifications_switch_sounds_services"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_notifications_play_sound"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_notifications_switch_vibrations_services"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_notifications_play_vibration"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/preferences_notifications_layout_misc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    style="@style/Divider"
+                    app:styledBackground="mainContrast50" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_notifications_header_misc"
+                    style="@style/FontSettingsHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingTop="@dimen/activity_vertical_margin"
+                    android:text=""
+                    app:styledTextColor="mainContrast" />
+
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_notifications_switch_inapp_notifications"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_preferences_show_inapp_notifications"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_notifications_switch_show_preview"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/preferences_notification_preview_title"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_chats_textview_show_preview_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/standard_padding"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:text="@string/preferences_notification_preview_hint"
+                    app:styledTextColor="mainContrast80" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

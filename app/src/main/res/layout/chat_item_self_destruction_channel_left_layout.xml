@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
+    android:orientation="vertical"
+    android:padding="2dp"
+    android:tag="self_destruction_channel_left"
+    tools:keep="@layout/chat_item_self_destruction_channel_left_layout">
+
+    <include layout="@layout/chat_item_date_center" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:gravity="start">
+
+        <View
+            android:id="@+id/bubble_tail"
+            android:layout_width="21dp"
+            android:layout_height="14dp"
+            android:layout_gravity="end|bottom"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="-1.5dp"
+            android:background="@drawable/tail_receiver" />
+
+        <LinearLayout
+            android:id="@+id/chat_item_linear_layout_chat_bubble"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:background="@drawable/chat_box_receiver_background"
+            android:orientation="horizontal"
+            android:padding="5dp">
+
+            <RelativeLayout
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:background="#05A1EA">
+
+                <View
+                    android:id="@+id/chat_item_szf_animation_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:background="@drawable/szf_overlay_channel" />
+
+                <ProgressBar
+                    android:id="@+id/progressBar_download"
+                    style="@style/Base.Widget.AppCompat.ProgressBar"
+                    android:layout_width="@dimen/progress_dialog_circular_small"
+                    android:layout_height="@dimen/progress_dialog_circular_small"
+                    android:layout_centerInParent="true"
+                    android:indeterminate="false"
+                    android:indeterminateOnly="false"
+                    android:indeterminateTint="@color/app_accent"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/circular_progress_bar_small_white"
+                    android:tag="destruction" />
+
+            </RelativeLayout>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                style="@style/BodyTextViewBoldStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:background="@drawable/szf_overlay_button"
+                android:gravity="center_vertical|center_horizontal"
+                android:paddingEnd="5dp"
+                android:text="@string/chats_showPicture_pleaseTouchHeader"
+                android:textColor="@color/color0" />
+        </LinearLayout>
+
+    </LinearLayout>
+</LinearLayout>

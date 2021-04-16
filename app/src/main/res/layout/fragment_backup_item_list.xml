@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/backup_restore_select_item_list"
+    android:name="eu.ginlo_apps.ginlo.fragment.backup.BackupRestoreSelectBackupFragment"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+    tools:context="eu.ginlo_apps.ginlo.fragment.backup.BackupRestoreSelectBackupFragment"
+    tools:listitem="@layout/fragment_backup_restore_select_backup_item" />
+
+

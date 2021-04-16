@@ -1,0 +1,118 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main"
+    tools:ignore="MergeRootFrame">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:id="@+id/register_email_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/CaptionTextViewStyleBoldAppAccent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_info_email_title"
+                    android:textStyle="bold"
+                    app:styledTextColor="action" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/CaptionTextViewStyleBoldAppAccent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="@string/profile_info_email_address_waiting_for_confirm"
+                    android:textColor="@color/kColorSecLevelLow"
+                    app:styledTextColor="insecure" />
+
+            </RelativeLayout>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/register_email_textview_1"
+                style="@style/FontP2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:text="" />
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/register_email_edittext_1"
+                style="@style/EditTextStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:hint="@string/register_email_address_enter_firstname_hint"
+                android:singleLine="true"
+                android:text="" />
+
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/register_email_edittext_2"
+                style="@style/EditTextStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:hint="@string/register_email_address_enter_lastname_hint"
+                android:singleLine="true" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/register_email_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:onClick="handleNextClick"
+                android:text=""
+                app:styledButtonType="normal"
+                app:styledTextColor="actionContrast" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/remove_email_address_button"
+                style="@style/BorderlessColoredButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="handleRemoveEmailClick"
+                android:text="@string/delete_email_address"
+                android:textColor="@color/color_red"
+                android:visibility="gone"
+                app:styledBackgroundColorFilter="insecure"
+                app:styledButtonType="borderless"
+                app:styledTextColor="insecure" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/register_email_textview_2"
+                style="@style/CaptionTextViewStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:text="" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    tools:context=".AVCActivity"
+    android:id="@+id/linearLayout">
+
+
+    <ImageView
+        android:id="@+id/notification_icon_iv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="44dp"
+        android:layout_marginTop="48dp"
+        android:paddingStart="2pt"
+        android:paddingTop="2pt"
+        android:paddingEnd="2pt"
+        android:paddingBottom="2pt"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_ginlo48"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_conversion_absoluteHeight="65dp"
+        tools:layout_conversion_absoluteWidth="65dp" />
+
+    <TextView
+        android:id="@+id/call_title"
+        style="@style/TextAppearance.Compat.Notification.Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:ellipsize="marquee"
+        android:paddingTop="6dp"
+        android:singleLine="true"
+        android:text="Audio Video Call"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_conversion_absoluteHeight="26dp"
+        tools:layout_conversion_absoluteWidth="309dp" />
+
+    <ImageButton
+        android:id="@+id/button_dismiss"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/notification_imagebtn_bg"
+        android:contentDescription="@string/std_cancel"
+        android:minWidth="18pt"
+        android:onClick="onButtonClick"
+        android:scaleType="centerInside"
+        android:scaleX="1.1"
+        android:scaleY="1.1"
+        android:src="@drawable/delete"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_video_pickup"
+        tools:layout_conversion_absoluteHeight="32dp"
+        tools:layout_conversion_absoluteWidth="44dp" />
+
+    <ImageButton
+        android:id="@+id/button_video_pickup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/notification_imagebtn_bg"
+        android:contentDescription="@string/notification_avc_video"
+        android:minWidth="18pt"
+        android:onClick="onButtonClick"
+        android:scaleType="centerInside"
+        android:scaleX="1.1"
+        android:scaleY="1.3"
+        android:src="@drawable/ic_video_call"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_audio_pickup"
+        tools:layout_conversion_absoluteHeight="32dp"
+        tools:layout_conversion_absoluteWidth="42dp" />
+
+    <ImageButton
+        android:id="@+id/button_audio_pickup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/notification_imagebtn_bg"
+        android:contentDescription="@string/notification_avc_audio"
+        android:cropToPadding="true"
+        android:minWidth="18pt"
+        android:onClick="onButtonClick"
+        android:scaleType="centerInside"
+        android:scaleX="0.9"
+        android:scaleY="0.9"
+        android:src="@drawable/ic_phone_call2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/call_title"
+        tools:layout_conversion_absoluteHeight="32dp"
+        tools:layout_conversion_absoluteWidth="42dp" />
+
+    <Button
+        android:id="@+id/button_backtoginlo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:onClick="onButtonClick"
+        android:text="Close"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_dismiss" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

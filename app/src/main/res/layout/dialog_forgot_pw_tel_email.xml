@@ -1,0 +1,158 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/layout_padding_left_right"
+            android:paddingEnd="@dimen/layout_padding_left_right">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/dialog_forgot_pw_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_password_forgot_pw_request_rc"
+                android:textSize="28sp"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/dialog_forgot_pw_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="@string/settings_password_forgot_pw_request_rc_hint"
+                android:textSize="15sp"
+                app:styledTextColor="mainContrast80" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="35dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+
+                <LinearLayout
+                    android:id="@+id/send_recovery_code_mail_container"
+                    android:layout_width="160dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="160dp"
+                        android:layout_height="160dp">
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/send_recovery_code_mail"
+                            android:layout_width="160dp"
+                            android:layout_height="160dp"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginEnd="24dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:onClick="handleSendViaEmailClick"
+                            android:src="@drawable/gfx_mail" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/mask_selected_send_recovery_code_mail"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_gravity="center"
+                            android:layout_margin="60dp"
+                            android:background="@drawable/mask_toggle_checked"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_checked_double" />
+
+                    </RelativeLayout>
+
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/settings_password_forgot_pw_request_mail"
+                        android:textAllCaps="true"
+                        android:textSize="13sp"
+                        app:styledTextColor="mainContrast" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/send_recovery_code_sms_container"
+                    android:layout_width="160dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="160dp"
+                        android:layout_height="160dp">
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/send_recovery_code_sms"
+                            android:layout_width="160dp"
+
+                            android:layout_height="160dp"
+                            android:layout_marginStart="24dp"
+                            android:layout_marginEnd="24dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:onClick="handleSendViaSmsClick"
+                            android:src="@drawable/gfx_sms" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/mask_selected_send_recovery_code_sms"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_gravity="center"
+                            android:layout_margin="60dp"
+                            android:background="@drawable/mask_toggle_checked"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_checked_double" />
+
+                    </RelativeLayout>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/settings_password_forgot_pw_request_sms"
+                        android:textAllCaps="true"
+                        android:textSize="13sp"
+                        app:styledTextColor="mainContrast" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/forgot_pw_request_tel_sms_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/action"
+            android:onClick="handleRequestTelSmsClick"
+            android:text="@string/settings_password_forgot_pw_request_rc_request_button"
+            android:textAllCaps="false"
+            app:styledBackground="action"
+            app:styledButtonType="normal"
+            app:styledTextColor="actionContrast" />
+    </LinearLayout>
+</LinearLayout>

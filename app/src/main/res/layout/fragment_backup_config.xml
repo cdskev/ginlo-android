@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/backup_standard_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/activity_vertical_margin">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/SubheadlineTextViewStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_backup_last"
+                        app:styledTextColor="mainContrast50" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/settings_backup_last_date"
+                        style="@style/SubheadlineBoldTextViewStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:text="@string/settings_backup_last_unknown"
+                        app:styledTextColor="mainContrast" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/BodyTextViewStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/text_margin"
+                    android:layout_marginEnd="@dimen/text_margin"
+                    android:text="@string/settings_backup_config_desc"
+                    app:styledTextColor="mainContrast50" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/settings_backup_config_desc_sec"
+                    style="@style/BodyTextViewStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/text_margin"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="@dimen/text_margin"
+                    android:layout_marginBottom="@dimen/activity_vertical_margin"
+                    android:text="@string/settings_backup_config_desc_sec"
+                    app:styledTextColor="mainContrast50" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/settings_backup_config_button"
+                    style="@style/BorderlessColoredButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:onClick="onFragmentViewClick"
+                    android:text="@string/settings_backup_config_button_start_backup"
+                    app:styledButtonType="borderless" />
+
+                <ProgressBar
+                    android:id="@+id/settings_backup_config_connect_progress"
+                    style="?android:attr/progressBarStyle"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="@dimen/text_margin"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/settings_backup_config_settings_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/settings_backup_settings_label"
+                    style="@style/BodyTextViewBoldStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:layout_marginBottom="4dp"
+                    android:text="@string/settings_settingsTitle"
+                    android:textColor="@color/app_accent"
+                    app:styledTextColor="mainContrast" />
+
+                <LinearLayout
+                    android:id="@+id/settings_backup_config_password_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:onClick="onFragmentViewClick"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/BodyTextViewStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_backup_config_password"
+                        app:styledTextColor="mainContrast50" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/CaptionTextViewStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom"
+                        android:paddingTop="@dimen/half_padding"
+                        android:text="@string/settings_backup_config_password_desc"
+                        app:styledTextColor="mainContrast80" />
+                </LinearLayout>
+
+                <View style="@style/Divider" />
+
+                <LinearLayout
+                    android:id="@+id/settings_backup_config_interval_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:onClick="onFragmentViewClick"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/BodyTextViewStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_backup_config_interval"
+                        app:styledTextColor="mainContrast50" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/settings_backup_config_interval_desc"
+                        style="@style/CaptionTextViewStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="@dimen/half_padding"
+                        android:text="@string/settings_backup_config_interval_desc"
+                        app:styledTextColor="mainContrast80" />
+                </LinearLayout>
+
+                <View style="@style/Divider" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/settings_backup_config_save_media_switch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentEnd="true"
+                        android:background="@color/transparent"
+                        android:text="@string/settings_backup_config_interval_save_media"
+                        android:textAppearance="@style/SwitchStyleText"
+                        android:theme="@style/SwitchStyle"
+                        app:styledTextColor="mainContrast50" />
+                </RelativeLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

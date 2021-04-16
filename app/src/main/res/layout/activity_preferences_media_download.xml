@@ -1,0 +1,170 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_preferences_media_download"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main"
+    tools:context=".activity.preferences.PreferencesMediaDownloadActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar_default" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            style="@style/Divider"
+            app:styledBackground="mainContrast50" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="handleAutomaticDownloadPictureClick">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_config_automatic_download_picture"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_media_download_textview_fotos"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_config_automatic_download_always"
+                        app:styledTextColor="mainContrast80" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="handleAutomaticDownloadVoiceClick">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_config_automatic_download_voice"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_media_download_textview_voice"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_config_automatic_download_always"
+                        app:styledTextColor="mainContrast80" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="handleAutomaticDownloadVideoClick">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_config_automatic_download_video"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_media_download_textview_videos"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_config_automatic_download_always"
+                        app:styledTextColor="mainContrast80" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="handleAutomaticDownloadFilesClick">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_config_automatic_download_files"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_media_download_textview_files"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_config_automatic_download_always"
+                        app:styledTextColor="mainContrast80" />
+
+                </RelativeLayout>
+
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        style="@style/BorderlessColoredButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/action"
+        android:onClick="handleAutomaticDownloadResetClick"
+        android:paddingStart="@dimen/preferences_text_margin_start"
+        android:paddingEnd="@dimen/preferences_text_margin_start"
+        android:text="@string/settings_config_automatic_download_reset"
+        android:textColor="@color/actionContrast"
+        app:styledBackground="action"
+        app:styledButtonType="normal"
+        app:styledTextColor="actionContrast" />
+
+</RelativeLayout>

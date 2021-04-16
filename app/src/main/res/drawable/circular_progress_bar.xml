@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
+    <!--item android:id="@android:id/progress">
+        <shape xmlns:android="http://schemas.android.com/apk/res/android"
+               android:shape="oval">
+
+            <solid android:color="@color/color3" />
+            <stroke
+                android:color="@color/transparent"
+                android:width="8dp">
+
+            </stroke>
+        </shape>
+
+    </item-->
+
+    <item android:id="@android:id/progress">
+        <shape
+            android:innerRadiusRatio="3"
+            android:shape="ring"
+            android:thicknessRatio="12.0"
+            android:useLevel="true"
+            >
+
+        <!--shape genau auf linie
+            android:innerRadiusRatio="2.4"
+            android:shape="ring"
+            android:thicknessRatio="20.0"
+            android:useLevel="true"
+            -->
+            <gradient
+                android:startColor="@color/progressbarcolor"
+                android:endColor="@color/progressbarcolor"
+                android:centerColor="@color/progressbarcolor"
+                android:type="sweep" />
+        </shape>
+    </item>
+</layer-list>

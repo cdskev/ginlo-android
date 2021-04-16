@@ -1,0 +1,291 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_preferences_chats"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main"
+    tools:context=".activity.preferences.PreferencesChatsActivity">
+
+    <include layout="@layout/toolbar_default" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        style="@style/Divider"
+        app:styledBackground="mainContrast50" />
+
+    <RelativeLayout
+        android:id="@+id/bottom_sheet_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/FontSettingsHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingTop="@dimen/activity_vertical_margin"
+                    android:text="@string/settings_simsme_media_header"
+                    app:styledTextColor="mainContrast" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="handleImageQualityClick">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_image_quality_title"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_chats_textview_image_quality"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                        android:text="mittel"
+                        app:styledTextColor="mainContrast80" />
+                </RelativeLayout>
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="handleVideoQualityClick">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_video_quality_title"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_chats_textview_video_quality"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                        android:text="mittel"
+                        app:styledTextColor="mainContrast80" />
+                </RelativeLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_switch_save_media"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_chat_imagesInCameraRoll"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    style="@style/Divider"
+                    app:styledBackground="mainContrast50" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_chat_header_background"
+                    style="@style/FontSettingsHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingTop="@dimen/activity_vertical_margin"
+                    android:text="@string/settings_chats_header_background"
+                    app:styledTextColor="mainContrast" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:onClick="handleChatBackgroundClick">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_chats_textview_change_background"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/preferences_item_height"
+                        android:layout_alignParentStart="true"
+                        android:gravity="center_vertical"
+                        android:paddingStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_chat_background"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/chat_settings_image_view_background_thumbnail"
+                        android:layout_width="40dp"
+                        android:layout_height="@dimen/preferences_item_height"
+                        android:layout_alignParentEnd="true"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                        android:adjustViewBounds="true"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+
+                </RelativeLayout>
+
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    style="@style/Divider"
+                    app:styledBackground="mainContrast50" />
+
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_chat_header_sounds"
+                    style="@style/FontSettingsHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingTop="@dimen/activity_vertical_margin"
+                    android:text="@string/settings_chats_header_sounds"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_privacy_switch_sd_sound"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_switch_destruction_sound"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_chats_switch_send_sound"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_play_sound_sendMessage"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_pchats_switch_receive_sound"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_switch_message_read_sound"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    style="@style/Divider"
+                    app:styledBackground="mainContrast50" />
+
+                <LinearLayout
+                    android:id="@+id/preferences_chats_backup_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_chats_header_backup"
+                        style="@style/FontSettingsHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:paddingStart="@dimen/preferences_text_margin_start"
+                        android:paddingTop="@dimen/activity_vertical_margin"
+                        android:text="@string/settings_config_backup"
+                        app:styledTextColor="mainContrast" />
+
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/preferences_item_height"
+                        android:layout_marginBottom="@dimen/text_margin"
+                        android:background="?attr/selectableItemBackground"
+                        android:onClick="handleBackupClick"
+
+                        >
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/preferences_chats_textview_backup"
+                            style="@style/FontSettingsElement"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/text_margin"
+                            android:paddingStart="@dimen/preferences_text_margin_start"
+                            android:text="@string/settings_config_backup"
+                            app:styledTextColor="mainContrast" />
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/preferences_chats_textview_backup_hint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginBottom="@dimen/standard_padding"
+                            android:paddingStart="@dimen/preferences_text_margin_start"
+                            android:text="@string/settings_chats_create_backup"
+                            app:styledTextColor="mainContrast80" />
+                    </RelativeLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
+
+        <RelativeLayout
+            android:id="@+id/disable_view_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/disabled_overlay_background_color"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="handleCloseBottomSheetClick"
+            android:visibility="gone"
+            tools:ignore="OnClick" />
+
+        <LinearLayout
+            android:id="@+id/preferences_linear_layout_bottom_sheet_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical">
+
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

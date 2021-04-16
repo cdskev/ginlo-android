@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/additional_message_info"
+    android:layout_width="match_parent"
+    android:layout_height="25dp"
+    android:background="@drawable/chat_box_additional_info_background"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:layout_width="11dp"
+        android:layout_height="11dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="12dp"
+        android:contentDescription="@string/chats_overview_important_hint"
+        android:src="@drawable/ic_important_message" />
+
+</LinearLayout>

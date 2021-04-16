@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_chat_default_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="52dp">
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/chat_add_button"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/button_mtrl_flat"
+        android:src="@drawable/ic_plus"
+        app:styledIconColor="mainContrast"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/chat_emoji_button"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="?selectableItemBackground"
+        android:contentDescription="@string/content_description_chatinput_show_emojis"
+        android:src="@drawable/ic_emoji_24"
+        app:styledIconColor="mainContrast"
+        android:tag="chat_emoji_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/chat_add_button"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.454" />
+
+    <androidx.emoji.widget.EmojiAppCompatEditText
+        android:id="@+id/chat_edit_text_input"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="44dp"
+        android:layout_marginBottom="8dp"
+        android:cursorVisible="true"
+        android:ems="10"
+        android:hint="Text"
+        android:imeOptions="actionSend"
+        android:inputType="textMultiLine|textCapSentences"
+        android:maxHeight="112dp"
+        android:maxLength="4000"
+        android:maxLines="5"
+        android:minHeight="36dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:scrollbars="vertical"
+        android:text=""
+        android:textIsSelectable="true"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/chat_emoji_button"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0"
+        app:styledBackground="overlay"
+        app:styledEditTextNoLineBG="true"
+        app:styledTextColor="mainContrast"
+        app:styledTextColorHint="mainContrast50" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/chat_send_text_button"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/button_mtrl_flat"
+        android:contentDescription="@string/content_description_chatinput_send_message"
+        android:src="@drawable/ic_new_send_button"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/chat_right_button"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/button_mtrl_flat"
+        android:contentDescription="@string/content_description_chatinput_start_voice_message"
+        android:src="@drawable/ic_microphone"
+        app:styledIconColor="mainContrast"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

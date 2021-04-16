@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="key_pref_password_type" translatable="false">key_pref_password_type</string>
+    <string name="key_pref_password_delay" translatable="false">key_pref_password_delay</string>
+    <string name="key_pref_textsize" translatable="false">key_pref_textsize</string>
+
+</resources>

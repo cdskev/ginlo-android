@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/channel_disclaimer_header"
+        style="@style/SubheadlineTextViewStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:paddingStart="@dimen/layout_padding_left_right"
+        android:paddingTop="8dp"
+        android:paddingEnd="@dimen/layout_padding_left_right"
+        android:text="@string/channel_disclaimer_header"
+        android:textStyle="bold" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/channel_disclaimer_text"
+        style="@style/CaptionTextViewStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:maxLines="@integer/channel_desc_collapse_lines"
+        android:paddingStart="@dimen/layout_padding_left_right"
+        android:paddingTop="8dp"
+        android:paddingEnd="@dimen/layout_padding_left_right"
+        android:text="@string/channel_disclaimer" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/channel_disclaimer_arrow"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        android:background="@drawable/chanel_info_bck"
+        android:clickable="true"
+        android:contentDescription="@string/content_description_channeldetails_more"
+        android:focusable="true"
+        android:src="@drawable/chanel_info_open" />
+</LinearLayout>

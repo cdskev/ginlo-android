@@ -1,0 +1,305 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_profile"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <View style="@style/Divider" />
+
+    <RelativeLayout
+        android:id="@+id/main_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ScrollView
+            android:id="@+id/profile_scroll_view_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/profile_content_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/layout_padding_left_right"
+                    android:paddingEnd="@dimen/layout_padding_left_right">
+
+                    <RelativeLayout
+                        android:layout_width="150dp"
+                        android:layout_height="150dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="@dimen/activity_vertical_margin"
+                        android:layout_marginBottom="@dimen/activity_vertical_margin"
+                        android:onClick="handleChoosePictureClick">
+
+                        <eu.ginlo_apps.ginlo.view.RoundedImageView
+                            android:id="@+id/profile_mask_image_view_profile_image"
+                            android:layout_width="150dp"
+                            android:layout_height="150dp"
+                            android:maxWidth="150dp"
+                            android:maxHeight="150dp"
+                            android:minWidth="150dp"
+                            android:minHeight="150dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/gfx_profil_placeholder" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/profile_select_image_imageview"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentBottom="true"
+                            android:layout_centerHorizontal="true"
+                            android:paddingBottom="8dp"
+                            android:src="@drawable/icon_add_a_photo"
+                            android:visibility="gone" />
+                    </RelativeLayout>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/activity_vertical_margin"
+                        android:text="@string/settings_profile_nickNameLabel"
+                        android:textColor="@color/mainContrast50"
+                        app:styledTextColor="mainContrast50" />
+
+                    <LinearLayout
+                        android:id="@+id/profile_nickname_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="0dp"
+                        android:orientation="horizontal">
+
+                        <androidx.emoji.widget.EmojiAppCompatEditText
+                            android:id="@+id/profile_edit_text_nickname"
+                            style="@style/EditTextStyle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:ems="10"
+                            android:hint="@string/settings_profile_nickNameLabel_hint"
+                            android:imeOptions="actionDone"
+                            android:maxLength="@integer/profile_and_group_name_max_length"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            app:styledTextColor="mainContrast" />
+
+                        <CheckBox
+                            android:id="@+id/profile_check_box_add_emoji_nickname"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="0"
+                            android:background="@drawable/button_emoji_gray_toggle"
+                            android:baselineAlignBottom="true"
+                            android:button="@null"
+                            android:contentDescription="@string/content_description_checkbox_emojicon" />
+                    </LinearLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/profile_phone_number_label_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/activity_vertical_margin"
+                            android:text="@string/settings_profile_title_phone"
+                            android:textColor="@color/mainContrast50"
+                            app:styledTextColor="mainContrast50" />
+                    </RelativeLayout>
+
+
+                    <eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview
+                        android:id="@+id/profile_text_view_phone_number"
+                        style="@style/EditTextStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:drawableRight="@drawable/ic_keyboard_arrow_right_black_24dp"
+                        android:enabled="false"
+                        android:inputType="phone"
+                        android:paddingTop="8dp"
+                        android:singleLine="true"
+                        app:styledIconColor="mainContrast80"
+                        app:styledTextColor="mainContrast"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/activity_vertical_margin"
+                        android:text="@string/settings_profile_statusLabel"
+                        android:textColor="@color/mainContrast50"
+                        app:styledTextColor="mainContrast50" />
+
+                    <LinearLayout
+                        android:id="@+id/profile_status_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="0dp"
+                        android:orientation="horizontal"
+                        android:paddingTop="0dp">
+
+                        <eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview
+                            android:id="@+id/profile_edit_text_status"
+                            style="@style/EditTextStyle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_weight="1"
+                            android:drawableRight="@drawable/ic_keyboard_arrow_right_black_24dp"
+                            android:hint="@string/settings_profile_statusLabel"
+                            android:maxLength="@integer/profile_status_max_length"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            android:enabled="false"
+                            app:styledIconColor="mainContrast80"
+                            app:styledTextColor="mainContrast"/>
+
+                    </LinearLayout>
+
+
+                    <RelativeLayout
+                        android:id="@+id/profile_emoji_padding"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/emoji_container_size_portrait_with_padding"
+                        android:visibility="gone" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/profile_simsme_id_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/activity_vertical_margin"
+                        android:text="@string/label_simsme_id"
+                        android:textColor="@color/mainContrast50"
+                        app:styledTextColor="mainContrast50" />
+
+                    <RelativeLayout
+                        android:id="@+id/profile_simsme_id_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/profile_simsme_id"
+                            style="@style/SubheadlineBoldTextViewStyle"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:drawableStart="@drawable/fingerprint2"
+                            android:drawablePadding="@dimen/half_padding"
+                            android:textColor="@color/action"
+                            android:textSize="20sp"
+                            app:styledTextColor="action"/>
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/profile_mandant_label"
+                            style="@style/FontX1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_gravity="end"
+                            android:layout_marginEnd="4dp"
+                            android:background="@drawable/trust_level_simsme_yellow"
+                            android:paddingTop="0dp"
+                            android:paddingBottom="0dp"
+                            android:singleLine="true"
+                            android:text="@string/simsme" />
+
+                    </RelativeLayout>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/settingsQrCodeHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/activity_vertical_margin"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:text="@string/settings_profile_qr_code_header"
+                        android:textColor="@color/mainContrast50"
+                        app:styledTextColor="mainContrast50" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/settingsQrCodeDesc"
+                        style="@style/BodyTextViewStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:singleLine="false"
+                        android:text="@string/settings_profile_qr_code_desc" />
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/profile_image_view_qrcode"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="@dimen/activity_vertical_margin"
+                        android:contentDescription="@string/content_description_profile_qr_code"
+                        android:scaleType="fitXY" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/settingsQrCodeSwitchButton"
+                        style="@style/BorderlessColoredButtonStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:onClick="handleQRCodeSwitchButton"
+                        android:text="@string/settings_profile_qr_code_btn_old"
+                        android:textColor="@color/actionSecondary"
+                        app:styledTextColor="actionSecondary" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/start_delete_account_btn"
+                        style="@style/BorderlessColoredButtonStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:onClick="handleDeleteAccount"
+                        android:text="@string/settings_profile_button_deleteAccount"
+                        android:textColor="@color/insecure"
+                        app:styledTextColor="insecure"
+
+                        />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+        <RelativeLayout
+            android:id="@+id/disable_view_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/disabled_overlay_background_color"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="handleCloseBottomSheetClick"
+            android:visibility="gone"
+            tools:ignore="OnClick" />
+
+
+        <LinearLayout
+            android:id="@+id/profile_activity_fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical" />
+
+
+        <FrameLayout
+            android:id="@+id/profile_frame_layout_emoji_container"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/emoji_container_size_portrait"
+            android:layout_alignParentBottom="true"
+            android:background="@color/color_window_background" />
+    </RelativeLayout>
+</LinearLayout>

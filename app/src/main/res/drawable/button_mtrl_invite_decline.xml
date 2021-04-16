@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- disabled state -->
+    <item android:state_enabled="false" android:drawable="@drawable/button_disabled_invite_decline"/>
+    
+    <!-- pressed state -->
+    <item android:state_pressed="true" android:drawable="@drawable/button_pressed_invite_decline"/>
+
+    <!-- focused state -->
+    <item android:state_focused="true" android:drawable="@drawable/button_focused_invite_decline"/>
+
+    <!-- normal state -->
+    <item android:drawable="@drawable/button_invite_decline"/>
+
+</selector>

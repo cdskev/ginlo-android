@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/layout_padding_left_right"
+        android:layout_marginEnd="@dimen/layout_padding_left_right"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:text="@string/no_local_contact_found"
+            android:textSize="28sp"
+            app:styledTextColor="mainContrast" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/no_contact_found_textview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:text="@string/no_local_contact_found_hint"
+            android:textSize="15sp"
+            app:styledTextColor="mainContrast80" />
+
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/fragment_search_contact_search"
+            style="@style/BorderlessColoredButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:onClick="handleSearchClick"
+            android:text="@string/no_local_contact_button_search"
+            android:textColor="@color/actionSecondary"
+            app:styledTextColor="actionSecondary" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/fragment_search_contact_invite"
+            style="@style/BorderlessColoredButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:onClick="handleInviteClick"
+            android:text="@string/contact_list_invite_contact"
+            android:textColor="@color/actionSecondary"
+            app:styledTextColor="actionSecondary" />
+    </LinearLayout>
+</LinearLayout>

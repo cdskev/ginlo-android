@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        style="@style/BodyTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/text_margin"
+        android:layout_marginEnd="@dimen/text_margin"
+        android:layout_marginBottom="@dimen/text_margin"
+        android:drawableLeft="@drawable/ba_info_simsme"
+        android:drawablePadding="@dimen/text_margin"
+        android:gravity="center_vertical"
+        android:text="@string/backup_restore_no_backups_found_step1" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        style="@style/BodyTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/text_margin"
+        android:layout_marginEnd="@dimen/text_margin"
+        android:layout_marginBottom="@dimen/text_margin"
+        android:drawableLeft="@drawable/ba_info_menu"
+        android:drawablePadding="@dimen/text_margin"
+        android:gravity="center_vertical"
+        android:text="@string/backup_restore_no_backups_found_step2" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        style="@style/BodyTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/text_margin"
+        android:layout_marginEnd="@dimen/text_margin"
+        android:layout_marginBottom="@dimen/text_margin"
+        android:drawableLeft="@drawable/ba_info_backup"
+        android:drawablePadding="@dimen/text_margin"
+        android:gravity="center_vertical"
+        android:text="@string/backup_restore_no_backups_found_step3" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        style="@style/BodyTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/text_margin"
+        android:layout_marginEnd="@dimen/text_margin"
+        android:layout_marginBottom="@dimen/text_margin"
+        android:drawableLeft="@drawable/ba_info_cta"
+        android:drawablePadding="@dimen/text_margin"
+        android:gravity="center_vertical"
+        android:text="@string/backup_restore_no_backups_found_step4" />
+
+</LinearLayout>

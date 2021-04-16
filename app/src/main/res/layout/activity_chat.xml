@@ -1,0 +1,123 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/chat_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.chat.BaseChatActivity">
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar_layout" />
+
+        <View
+            android:id="@+id/trust_state_divider"
+            style="@style/Divider3dp" />
+
+        <eu.ginlo_apps.ginlo.view.SimsmeSwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/swipe_refresh_chat"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/chat_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <androidx.coordinatorlayout.widget.CoordinatorLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1">
+
+                        <include
+                            android:id="@+id/channel_chat_header"
+                            layout="@layout/channel_list_item"
+                            android:visibility="gone" />
+
+                        <ListView
+                            android:id="@+id/chat_list_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@color/transparent"
+                            android:divider="@null"
+                            android:dividerHeight="0dp"
+                            android:stackFromBottom="true" />
+
+                        <com.leinardi.android.speeddial.SpeedDialOverlayLayout
+                            android:id="@+id/chat_input_speed_dial_overlay"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="#4c3e494e"
+                            app:clickable_overlay="true"
+                            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+                        <com.leinardi.android.speeddial.SpeedDialView
+                            android:id="@+id/chat_input_speed_dial_fab"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|end"
+                            android:layout_margin="2dp"
+                            app:layout_behavior="@string/speeddial_scrolling_view_snackbar_behavior"
+                            app:sdExpansionMode="left"
+                            app:sdMainFabAnimationRotateAngle="90"
+                            app:sdMainFabClosedSrc="@drawable/set_options"
+                            app:sdMainFabOpenedSrc="@drawable/close" />
+
+                    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+                    <FrameLayout
+                        android:id="@+id/chat_input_fragment_placeholder"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <LinearLayout
+                        android:id="@+id/linear_layout_fragment_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                </LinearLayout>
+
+
+                <!-- grey layer -->
+                <RelativeLayout
+                    android:id="@+id/disable_view_overlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/disabled_overlay_background_color"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="handleCloseBottomSheetClick"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/chat_bottom_sheet_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:orientation="vertical">
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+
+        </eu.ginlo_apps.ginlo.view.SimsmeSwipeRefreshLayout>
+    </LinearLayout>
+</RelativeLayout>

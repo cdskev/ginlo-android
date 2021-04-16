@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+</head>
+<body onresize="onResize()">
+<style>
+.rot0
+{
+ -webkit-transform: rotate(0deg);
+}
+.rot90
+{
+ -webkit-transform: rotate(90deg);
+}
+.rot180
+{
+ -webkit-transform: rotate(180deg);
+}
+.rot270
+{
+ -webkit-transform: rotate(270deg);
+}
+.rot-0
+{
+ -webkit-transform: rotate(-0deg);
+}
+.rot-90
+{
+ -webkit-transform: rotate(-90deg);
+}
+.rot-180
+{
+ -webkit-transform: rotate(-180deg);
+}
+.rot-270
+{
+ -webkit-transform: rotate(-270deg);
+}
+</style>
+<script type="text/javascript">
+var angle = 0;
+function rotate()
+{
+	var container = document.getElementById("container");
+	angle = (angle - 90) % 360;
+	container.className = "rot"+angle;
+	updateBounds(angle);
+}
+function setSource(source)
+{
+	var imgContainer = document.getElementById("container");
+	imgContainer.src = source;
+}
+function onLoaded()
+{
+	Android.onPageLoaded();
+	updateBounds(angle);
+}
+
+function onResize()
+{
+	updateBounds(angle);
+}
+
+function updateBounds(rotation)
+{
+	var imgContainer = document.getElementById("container");
+	var imgWidth = (rotation == 0 || rotation == 180 ) ? imgContainer.width : imgContainer.height;
+	var imgHeight = (rotation == 0 || rotation == 180 ) ? imgContainer.height : imgContainer.width;
+	var paddingHorizontal = imgWidth * 1.5;
+	var paddingVertical = imgHeight * 1.5;
+	
+	setBoxSize(imgWidth, imgHeight);
+	setBoxPadding(paddingVertical, paddingHorizontal, paddingVertical, paddingHorizontal);
+	
+	var windowWidth = window.innerWidth;
+	var windowHeight = window.innerHeight;
+	// (1.5i + 1.5 + i) / 2 - 0.5 w
+	//
+	var posX = 2 * imgWidth - 0.5 * windowWidth;
+	var posY = 2 * imgHeight - 0.5 * windowHeight;
+	if (posX > 0 && posY > 0)
+	{
+		window.scrollTo(posX,posY);
+	}
+}
+function setBoxSize(width, height)
+{
+	var paddingBox = document.getElementById("paddingBox");
+	paddingBox.style.width = width + "px";
+	paddingBox.style.height = height + "px";
+}
+function setBoxPadding(top, right, bottom, left)
+{
+	var paddingBox = document.getElementById("paddingBox");
+	paddingBox.style.padding = top + "px" + " " + right + "px" + " " + bottom + "px" + " " + left + "px";
+}
+</script>
+<div id="paddingBox">
+<img id="container" onload="onLoaded();"/>
+</div>
+</body>
+</html>

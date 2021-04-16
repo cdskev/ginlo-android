@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+  android:shape="rectangle">
+  <corners
+    android:radius="15dip"/>
+  <solid
+    android:color="@color/kColorBadgeTimedMessages" />
+  <padding
+    android:left="5dip"
+    android:right="5dip"/>
+</shape>

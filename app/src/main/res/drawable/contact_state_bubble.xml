@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--item>
+        <shape android:shape="oval">
+            <solid
+                android:color="@color/mainContrast"/>
+        </shape>
+    </item-->
+    <item android:id="@+id/contact_state_bubble_inner">
+        <shape android:shape="ring"
+               android:innerRadiusRatio="1000"
+               android:thicknessRatio="2.3"
+               android:useLevel="false">
+            <solid
+                android:color="@color/mainContrast"/>
+        </shape>
+    </item>
+    <item android:id="@+id/contact_state_bubble_outter">
+        <shape android:shape="ring"
+               android:innerRadiusRatio="2.3529"
+               android:thicknessRatio="13.34"
+               android:useLevel="false">
+            <solid
+                android:color="@color/main"/>
+        </shape>
+    </item>
+
+</layer-list>

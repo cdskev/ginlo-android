@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/activity_vertical_margin"
+    app:styledBackground="main">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/fragment_fingerprint_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/dialog_fingerprint_title"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:styledTextColor="mainContrast" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/fragment_fingerprint_descrition"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/dialog_fingerprint_hint"
+        android:textSize="16sp"
+        app:styledTextColor="mainContrast" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_fp_40px"
+            app:styledIconColor="action" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/fragment_fingerprint_hint_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="@dimen/activity_horizontal_margin"
+            android:text="@string/dialog_fingerprint_hint2"
+            android:textSize="16sp"
+            app:styledTextColor="mainContrast50" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/fragment_fingerprint_cancel"
+        style="@style/BorderlessColoredButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:clickable="true"
+        android:focusable="true"
+        android:text="@string/std_cancel"
+        android:textColor="@color/action"
+        app:styledButtonType="borderless"
+        app:styledTextColor="action" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

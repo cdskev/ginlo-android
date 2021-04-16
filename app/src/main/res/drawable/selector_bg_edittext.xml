@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:drawable="@drawable/layer_bg_focused_edittext" />
+    <item android:state_enabled="false" android:drawable="@drawable/layer_bg_disabled_edittext" />
+    <item android:drawable="@drawable/layer_bg_edittext"/>
+
+</selector>

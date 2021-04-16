@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineLogo"
+        android:layout_width="1dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.4" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="1dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.74" />
+
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="44dp"
+        android:layout_marginEnd="80dp"
+        android:contentDescription="@string/intro_titleForFirstIntroScreen"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_ginlo_intro_logo"
+        app:layout_constraintBottom_toBottomOf="@id/guidelineLogo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:gravity="center"
+        android:letterSpacing="-0.02"
+        android:lineSpacingExtra="5sp"
+        android:text="@string/intro_2_text_1"
+        android:textSize="@dimen/intro_text"
+        android:paddingLeft="32dp"
+        android:paddingRight="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/guidelineLogo" />
+
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/intro_2_button_log_in"
+        style="@style/BorderlessColoredButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/standard_padding"
+        android:onClick="handleLoginClick"
+        android:text="@string/intro_2_button_log_in"
+        android:textAllCaps="false"
+        android:textColor="@color/action"
+        app:styledBackgroundColorFilter="medium"
+        app:styledButtonType="borderless"
+        app:layout_constraintBottom_toTopOf="@+id/intro_2_button_register"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/intro_2_button_register"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/action"
+        android:onClick="handleRegisterClick"
+        android:text="@string/intro_2_button_register"
+        android:textAllCaps="false"
+        android:textColor="@color/actionContrast"
+        app:styledButtonType="normal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

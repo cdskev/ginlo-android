@@ -1,0 +1,93 @@
+<resources>
+
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="intro_text">16sp</dimen>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="emojiSize_small">14sp</dimen>
+    <dimen name="emojiSize_normal">16sp</dimen>
+    <dimen name="emojiSize">20sp</dimen>
+    <dimen name="emojiSize_big">28sp</dimen>
+
+    <dimen name="emoji_container_size_portrait">250dp</dimen>
+    <dimen name="emoji_container_size_portrait_with_padding">266dp</dimen>
+    <dimen name="emoji_container_size_landscape">130dp</dimen>
+
+
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="fab_button_margin_bottom">8dp</dimen>
+    <dimen name="fab_button_margin_right">8dp</dimen>
+
+    <dimen name="shadow_length">5dp</dimen>
+
+    <dimen name="bottem_sheet_item_height">48dp</dimen>
+
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="toolbar_options_icon_width">36dp</dimen>
+    <dimen name="toolbar_chat_icon_width">56dp</dimen>
+    <dimen name="toolbar_title_subtraction">68dp</dimen>
+
+    <dimen name="layout_padding_left_right">16dp</dimen>
+    <dimen name="layout_padding_top_bottom">8dp</dimen>
+    <dimen name="chatoverview_item_height">95dp</dimen>
+    <dimen name="chatOverview_invite_item_height">115dp</dimen>
+    <dimen name="chatoverview_header_height">50dp</dimen>
+    <dimen name="chatoverview_divider_height">0dp</dimen>
+    <dimen name="chatoverview_slideheight">96dp</dimen>
+
+
+    <dimen name="preferences_slideheight">160dp</dimen>
+    <!-- 48 * x + 8 + 8 + 5 = itemheigth * x + padding + padding + shadow-->
+    <dimen name="channel_settings_height">95dp</dimen>
+    <dimen name="profile_slideheight">117dp</dimen>
+    <dimen name="chat_slideheight_one_line">69dp</dimen>
+    <dimen name="chat_slideheight_two_lines">117dp</dimen>
+    <dimen name="chat_slideheight_three_lines">165dp</dimen>
+    <dimen name="chat_slideheight_six_lines">309dp</dimen>
+    <dimen name="chat_slideheight_seven_lines">357dp</dimen>
+
+    <dimen name="chat_input_line_height">40dp</dimen>
+
+    <dimen name="contact_item_single_select_icon_diameter">48dp</dimen>
+    <dimen name="contact_item_multi_select_icon_diameter">48dp</dimen>
+    <dimen name="contact_details_icon_diameter">150dp</dimen>
+
+    <!-- ######## Floating Action Button Values ################## -->
+
+    <dimen name="fab_size_normal">56dp</dimen>
+    <dimen name="fab_size_mini">40dp</dimen>
+    <dimen name="fab_icon_size">24dp</dimen>
+
+    <dimen name="fab_shadow_offset">3dp</dimen>
+    <dimen name="fab_shadow_radius">9dp</dimen>
+
+    <dimen name="fab_stroke_width">1dp</dimen>
+
+    <dimen name="login_logo_top_margin">100dp</dimen>
+
+    <dimen name="text_margin">16dp</dimen>
+
+    <dimen name="progress_dialog_circular_transparent_size">50dp</dimen>
+    <dimen name="progress_dialog_circular_small">38dp</dimen>
+
+    <dimen name="small_padding">1dp</dimen>
+    <dimen name="half_padding">4dp</dimen>
+    <dimen name="standard_padding">8dp</dimen>
+
+    <dimen name="toolbar_secondary_title_height">8dp</dimen>
+
+    <dimen name="preferences_item_height">64dp</dimen>
+
+    <dimen name="preferences_divider_margin_start">70dp</dimen>
+    <dimen name="preferences_image_margin_start">16dp</dimen>
+    <dimen name="preferences_text_margin_start">28dp</dimen>
+
+    <dimen name="bottom_padding_for_overlay_buttons">56dp</dimen>
+
+    <dimen name="image_rounded_corner_radius">9dp</dimen>
+    <dimen name="chat_item_location_width">240dp</dimen>
+    <dimen name="chat_item_location_height">60dp</dimen>
+    <dimen name="chat_item_image_width">240dp</dimen>
+    <dimen name="chat_item_image_height">180dp</dimen>
+
+</resources>

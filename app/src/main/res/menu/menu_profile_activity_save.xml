@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/profile_activity_menu_apply"
+        android:contentDescription="@string/content_description_profile_appy"
+        android:icon="@drawable/ic_done_white_24dp"
+        android:title=""
+        app:showAsAction="always" />
+</menu>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/chat_input_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:styledBackground="overlay"
+    android:orientation="vertical">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/chat_input_destruction_info_container"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:background="@drawable/destruction_info_container_bg"
+        android:visibility="gone"
+        app:styledBackgroundColorFilter="insecure">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/chat_input_prio_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginStart="@dimen/standard_padding"
+            app:styledIconColor="insecureContrast"
+            app:srcCompat="@drawable/priority" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:layout_marginEnd="@dimen/standard_padding">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/chat_input_destruction_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/standard_padding"
+                app:styledIconColor="insecureContrast"
+                app:srcCompat="@drawable/szf" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/destruction_info_textview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="@dimen/half_padding"
+                android:letterSpacing="-0.01"
+                android:lineSpacingExtra="3sp"
+                android:textSize="13sp"
+                app:styledTextColor="insecureContrast" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/chat_input_timer_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/standard_padding"
+                app:styledIconColor="insecureContrast"
+                app:srcCompat="@drawable/white" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/timer_info_textview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="@dimen/half_padding"
+                android:letterSpacing="-0.01"
+                android:lineSpacingExtra="3sp"
+                android:textSize="13sp"
+                app:styledTextColor="insecureContrast" />
+
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <RelativeLayout
+        android:id="@+id/comment_root_wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:visibility="gone">
+
+        <include layout="@layout/chat_item_comment_layout_chatinput" />
+    </RelativeLayout>
+
+    <include
+        layout="@layout/fragment_chat_input_default" />
+
+    <include
+        android:visibility="gone"
+        layout="@layout/fragment_chat_input_recording" />
+
+    <include
+        android:visibility="gone"
+        layout="@layout/fragment_chat_input_preview" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>

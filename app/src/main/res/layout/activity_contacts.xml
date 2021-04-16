@@ -1,0 +1,73 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_contacts"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ContactsActivity">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:styledBackground="main">
+
+        <include layout="@layout/toolbar_layout" />
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/contacts_activity_search_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/contacts_activity_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/contacts_activity_tab_layout"
+                    style="@style/AppTabLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="visible"
+                    app:tabGravity="fill"
+                    app:tabMaxWidth="0dp">
+
+                </com.google.android.material.tabs.TabLayout>
+
+                <View style="@style/Divider" />
+
+                <androidx.viewpager.widget.ViewPager
+                    android:id="@+id/contatcs_activity_viewpager"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <eu.ginlo_apps.ginlo.view.FloatingActionButton
+        android:id="@+id/fab_image_button_contacts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="@dimen/fab_button_margin_right"
+        android:layout_marginBottom="@dimen/fab_button_margin_bottom"
+        android:contentDescription="@string/chat_overview_new_contact"
+        android:onClick="onFabPressed"
+        app:fab_colorNormal="@color/app_accent"
+        app:fab_colorPressed="@color/app_accent"
+        app:fab_icon="@drawable/fab_ic_person_add" />
+
+</RelativeLayout>

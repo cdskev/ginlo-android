@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
+    android:gravity="start"
+    android:orientation="vertical"
+    android:padding="2dp"
+    android:tag="image_text_channel"
+    tools:keep="@layout/chat_item_image_text_channel_left_layout">
+
+    <include layout="@layout/chat_item_date_center" />
+
+    <LinearLayout
+        android:id="@+id/chat_item_linear_layout_chat_bubble"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/chat_white"
+        android:baselineAligned="false"
+        android:gravity="start"
+        android:orientation="vertical"
+        android:padding="0dp">
+
+        <LinearLayout
+            android:id="@+id/chat_item_section_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="19dp"
+            android:layout_marginTop="9dp"
+            android:layout_marginEnd="9dp"
+            android:layout_marginBottom="5dp"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/chat_item_section_name"
+                style="@style/CaptionTextViewStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_weight="1"
+                android:ellipsize="start"
+                android:singleLine="true"
+                tools:text="Rubrik 1 | Rubrik 2 | Rubrik 3 | Rubrik 4 | Rubrik 5 | Rubrik 6" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/chat_item_text_view_date"
+                style="@style/CaptionTextViewStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:gravity="end"
+                android:maxLines="1"
+                tools:text="16:23"
+                android:textColor="@color/color9" />
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/chat_item_image_wrapper"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/chat_item_image_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="19dp"
+                android:layout_marginEnd="9dp"
+                android:layout_marginBottom="5dp"
+                android:adjustViewBounds="true"
+                android:src="@drawable/button_normal_grey" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/progressBar_download_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:background="@drawable/circle_download_state_bg"
+                android:src="@drawable/image_loading" />
+
+            <ProgressBar
+                android:id="@+id/progressBar_download"
+                style="@style/Base.Widget.AppCompat.ProgressBar"
+                android:layout_width="@dimen/progress_dialog_circular_transparent_size"
+                android:layout_height="@dimen/progress_dialog_circular_transparent_size"
+                android:layout_centerInParent="true"
+                android:indeterminate="false"
+                android:indeterminateOnly="false"
+                android:indeterminateTint="@color/app_accent"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/circular_progress_bar"
+                android:tag="image" />
+        </RelativeLayout>
+
+        <androidx.emoji.widget.EmojiAppCompatTextView
+            android:id="@+id/chat_item_text_view_message_header"
+            style="@style/BodyTextViewBoldStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="19dp"
+            android:layout_marginEnd="9dp"
+            android:layout_marginBottom="5dp"
+            android:autoLink="web"
+            android:lineSpacingMultiplier="1.1875"
+            android:text="" />
+
+        <androidx.emoji.widget.EmojiAppCompatTextView
+            android:id="@+id/chat_item_text_view_message"
+            style="@style/BodyTextViewStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="19dp"
+            android:layout_marginEnd="9dp"
+            android:layout_marginBottom="5dp"
+            android:lineSpacingMultiplier="1.1875"
+            android:textColor="@color/text_color"
+            android:text="" />
+    </LinearLayout>
+</LinearLayout>

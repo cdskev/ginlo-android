@@ -1,0 +1,41 @@
+<resources>
+    <string-array name="account_registration_identifier" translateable="false">
+        <item>@string/account_registration_identifier_email</item>
+        <item>@string/account_registration_identifier_phonenumber</item>
+    </string-array>
+    <string-array name="mdm_simsPasswordTries_entry_values" translateable="false">
+        <item>0</item>
+        <item>3</item>
+        <item>5</item>
+        <item>10</item>
+    </string-array>
+    <string name="mdm_disableBackup_title" translatable="false">disableBackup</string>
+    <string name="mdm_disableBiometricLogin_title" translatable="false">disableTouchID</string>
+    <string name="mdm_disableCamera_title" translatable="false">disableCamera</string>
+    <string name="mdm_disableCopyPaste_title" translatable="false">disableCopyPaste</string>
+    <string name="mdm_disableExportChat_title" translatable="false">disableExportChat</string>
+    <string name="mdm_disableLocation_title" translatable="false">disableLocation</string>
+    <string name="mdm_disableMicrophone_title" translatable="false">disableMicrophone</string>
+    <string name="mdm_disableNoPwLogin_title" translatable="false">disableNoPwLogin</string>
+    <string name="mdm_disableOpenIn_title" translatable="false">disableOpenIn</string>
+    <string name="mdm_disablePushPreview_title" translatable="false">disablePushPreview</string>
+    <string name="mdm_disableRecoveryCode_title" translatable="false">disableRecoveryCode</string>
+    <string name="mdm_disableSaveToCameraRoll_title" translatable="false">disableSaveToCameraRoll</string>
+    <string name="mdm_disableSendMedia_title" translatable="false">disableSendMedia</string>
+    <string name="mdm_disableSendVCard_title" translatable="false">disableSendVCard</string>
+    <string name="mdm_forceComplexPin_title" translatable="false">forceComplexPin</string>
+    <string name="mdm_passwordMaxDuration_title" translatable="false">passwordMaxDuration</string>
+    <string name="mdm_passwordMinClasses_title" translatable="false">passwordMinClasses</string>
+    <string name="mdm_passwordMinDigit_title" translatable="false">passwordMinDigit</string>
+    <string name="mdm_passwordMinLength_title" translatable="false">passwordMinLength</string>
+    <string name="mdm_passwordMinLowercase_title" translatable="false">passwordMinLowercase</string>
+    <string name="mdm_passwordMinSpecialChar_title" translatable="false">passwordMinSpecialChar</string>
+    <string name="mdm_passwordMinUppercase_title" translatable="false">passwordMinUppercase</string>
+    <string name="mdm_passwordReuseEntries_title" translatable="false">passwordReuseEntries</string>
+    <string name="mdm_simsLockApplicationDelay_title" translatable="false">simsLockApplicationDelay</string>
+    <string name="mdm_simsPasswordTries_title" translatable="false">simsPasswordTries</string>
+    <string name="app_label_debug" translatable="false">B2B D</string>
+    <string name="app_label_debug_stg" translatable="false">B2B DS</string>
+    <string name="app_label_release" translatable="false">ginlo Business</string>
+    <string name="app_label_release_stg" translatable="false">B2B RS</string>
+</resources>

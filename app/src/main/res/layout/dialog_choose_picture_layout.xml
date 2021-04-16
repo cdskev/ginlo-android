@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/shadow_length"
+        android:background="@drawable/shadow_up" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/profilePic_fromCamera"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bottem_sheet_item_height"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="handleTakePictureClick"
+            android:orientation="horizontal"
+            android:paddingTop="8dp">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingStart="@dimen/activity_horizontal_margin"
+                android:paddingEnd="16dp"
+                android:paddingBottom="0dp"
+                android:src="@drawable/ic_camera_alt_grey600_24dp" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                style="@style/SubheadlineTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="start"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="@string/chats_addAttachment_takePicture" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/profilePic_fromAlbum"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bottem_sheet_item_height"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="handleTakeFromGalleryClick"
+            android:orientation="horizontal"
+            android:paddingBottom="8dp">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingStart="@dimen/activity_horizontal_margin"
+                android:paddingEnd="16dp"
+                android:paddingBottom="0dp"
+                android:src="@drawable/ic_photo_library_grey600_24dp" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                style="@style/SubheadlineTextViewStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:gravity="start"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:text="@string/chats_addAttachment_fromAlbum" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

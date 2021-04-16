@@ -1,0 +1,115 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_information"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main"
+    tools:context=".activity.preferences.PreferencesInformationActivity">
+
+    <include layout="@layout/toolbar_default" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        style="@style/Divider"
+        app:styledBackground="mainContrast50" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/information_faq"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:text="@string/settings_faq"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/information_support"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:text="@string/settings_support"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/information_aboutSimsme"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:text="@string/settings_aboutSimsme"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/information_privacy"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:ellipsize="middle"
+                android:focusable="true"
+                android:padding="16dp"
+                android:singleLine="true"
+                android:text="@string/settings_privacy"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/information_termsandcondition"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:text="@string/settings_termsandcondition"
+                app:styledTextColor="mainContrast" />
+
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/information_license"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:text="@string/settings_license"
+                app:styledTextColor="mainContrast" />
+
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/information_companydetails"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:padding="16dp"
+                android:text="@string/settings_companydetails"
+                app:styledTextColor="mainContrast" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

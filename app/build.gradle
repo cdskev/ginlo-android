@@ -1,0 +1,243 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'testdroid'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'io.sentry.android.gradle'
+apply plugin: "de.mannodermaus.android-junit5"
+
+project.gradle.taskGraph.whenReady {
+    connectedAndroidTest {
+        ignoreFailures = true
+    }
+}
+
+static def getHostName() {
+    InetAddress local = InetAddress.getLocalHost()
+    return local.getHostName()
+}
+
+repositories {
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.exifinterface:exifinterface:1.2.0'
+
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
+    implementation('com.google.firebase:firebase-messaging:20.2.4') {
+        exclude group: 'com.google.firebase', module: 'firebase-core'
+        exclude group: 'com.google.firebase', module: 'firebase-analytics'
+        exclude group: 'com.google.firebase', module: 'firebase-measurement-connector'
+    }
+
+    implementation 'net.zetetic:android-database-sqlcipher:3.5.9@aar'
+
+    implementation 'androidx.emoji:emoji-appcompat:1.1.0'
+    implementation 'androidx.emoji:emoji-bundled:1.1.0'
+    implementation 'me.leolin:ShortcutBadger:1.1.22@aar'
+    implementation 'com.google.zxing:core:3.3.3'
+    implementation 'org.greenrobot:greendao:3.2.2'
+
+    implementation 'com.github.chrisbanes:PhotoView:2.1.3'
+
+    implementation('com.googlecode.ez-vcard:ez-vcard:0.10.2')
+            {
+                exclude group: 'org.jsoup'
+                exclude group: 'org.freemarker'
+                exclude group: 'com.fasterxml.jackson.core'
+            }
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.googlecode.libphonenumber:libphonenumber:8.10.11'
+
+    implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'com.github.tony19:logback-android:2.0.0'
+
+    // Jitsi Meet
+    implementation('org.jitsi.react:jitsi-meet-sdk:2.9.0') { transitive = true }
+
+    implementation 'com.google.dagger:dagger:2.24'
+    implementation 'com.google.dagger:dagger-android:2.22.1'
+    implementation 'com.google.dagger:dagger-android-support:2.22.1'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    kapt 'com.google.dagger:dagger-compiler:2.22.1'
+    kapt 'com.google.dagger:dagger-android-processor:2.22.1'
+
+    implementation 'com.leinardi.android:speed-dial:2.0.1'
+    implementation 'com.journeyapps:zxing-android-embedded:3.6.0'
+
+    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'org.mindrot:jbcrypt:0.3m'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.61'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
+
+    implementation "androidx.security:security-crypto:1.1.0-alpha02"
+
+    // sentry integration
+    implementation "io.sentry:sentry-android:$sentry_version"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_version"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_version"
+    testImplementation "io.mockk:mockk:1.9.3"
+    testImplementation 'com.flextrade.jfixture:jfixture:2.7.2'
+
+    // seems having issue updating to new version.
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.1.0"
+    implementation "androidx.lifecycle:lifecycle-extensions:2.1.0"
+
+    implementation "androidx.work:work-runtime:$work_version"
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+    androidTestImplementation "androidx.work:work-testing:$work_version"
+}
+
+android {
+    flavorDimensions "default"
+
+    def lintAbortOnError
+
+    signingConfigs {
+        debugConfig {
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+            storeFile file('keystore/debug.keystore')
+            storePassword 'android'
+        }
+        b2creleaseConfig {
+            storeFile file('keystore/ginlo-b2capp.keystore')
+            storePassword b2c_keystorePW
+            keyAlias = 'upload'
+            keyPassword b2c_uploadPW
+        }
+    }
+    compileSdkVersion 29
+    buildToolsVersion '29.0.2'
+
+    // For JitsiMeet
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 29
+        setVersionCode(generateVersionCode())
+        setVersionName(generateVersionName())
+        lintAbortOnError = true
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // App constants
+        applicationId 'eu.ginlo_apps.ginlo'
+        // TODO: Remove oldScheme in the future. It is for backward compatibility only - see also AndroidManifest.xml
+        manifestPlaceholders = [appLabel: "@string/app_label_release", appScheme: "ginlo", oldScheme: "simsme"]
+        manifestPlaceholders = [google_maps_key: ""]
+        buildConfigField("String", "APP_URL_SCHEME", '"ginlo"')
+        buildConfigField("String", "CLASS_UTIL", '".util.notobfuscate.ClassUtil"')
+        buildConfigField("String", "GINLO_APP_NAME", '"ginlo"')
+        buildConfigField("String", "APP_NAME_INTERNAL", '"ginlo"')
+        buildConfigField("String", "SIMSME_MANDANT", '"default"')
+        buildConfigField("String", "SIMSME_MANDANT_DEFAULT", '"default"')
+        buildConfigField("String", "SIMSME_MANDANT_BA", '"ba"')
+        buildConfigField("String", "DEFAULT_LIGHT_THEME", '"GinloThemeLight"')
+        buildConfigField("String", "DEFAULT_DARK_THEME", '"GinloThemeDark"')
+        buildConfigField("String", "ACTIVITY_AFTER_INTRO", '".activity.register.PasswordActivity"')
+        buildConfigField("String", "ACTIVITY_AFTER_REGISTRATION", '".ChatsOverviewActivity"')
+        buildConfigField("String", "ACTIVITY_AFTER_CONFIRM_ACCOUNT", '".activity.register.InitProfileActivity"')
+        buildConfigField("String", "ALLOWED_MANDANT_BACKUPS", '"default"')
+        buildConfigField("String", "ALLOWED_BACKUP_SALTS", '"ALLOWED_BACKUP_SALTS"')
+        buildConfigField("int", "REGISTER_NAVIGATE_BACK_WAIT_TIME_MILLIS", '300000')
+        buildConfigField("String", "RECOMMENDED_CHANNEL_GUID", 'null')
+
+        // Server and api constants and settings
+        buildConfigField("String", "GINLO_BASE_URL", '""')
+        buildConfigField("String", "GINLO_AVC_SERVER_URL", '""')
+        buildConfigField("String", "APPLICATION_KEYSTORE_DATA", '"KEYSTORE_DATA"')
+        buildConfigField("String", "APPLICATION_KEYSTORE_PASS", '"KEYSTORE_PASS"')
+        buildConfigField("String", "CERT_PINNING_CA_PW", '"PINNING_CA_PW"')
+        buildConfigField("String", "GUID_SYSTEM_CHAT", '"0:{00000000-0000-0000-0000-000000000000}"')
+        buildConfigField("String", "PUBLICKEY_SYSTEM_CHAT", '"<RSAKeyValue><Modulus>RSA_KEY_MODULUS</Modulus><Exponent>RSA_KEY_EXPONENT</Exponent></RSAKeyValue>"')
+
+        buildConfigField("String", "SERVER_SALT", '"SERVER_SALT"')
+        buildConfigField("String", "APP_PASSWORD_BCRYPT", '""')
+        buildConfigField("Boolean", "CERTIFICATE_PINNING_ENABLED", 'false')
+        buildConfigField("String", "APPLICATION_PUBLIC_KEY", 'null')
+
+        // App features
+        buildConfigField("Boolean", "MULTI_DEVICE_SUPPORT", 'true')
+        // If MULTI_DEVICE_SUPPORT is enabled SYNC_PRIVATE_INDEX_TO_SERVER must always be true
+        buildConfigField("Boolean", "SYNC_PRIVATE_INDEX_TO_SERVER", 'true')
+        buildConfigField("Boolean", "ENABLE_CREATION_OF_ANNOUNCEMENT_GROUPS", 'false')
+        buildConfigField("Boolean", "ENABLE_CHANNELS", 'true')
+        buildConfigField("Boolean", "ENABLE_SERVICES", 'false')
+        buildConfigField("Boolean", "ENABLE_INVITE_FRIENDS", 'true')
+        buildConfigField("Boolean", "ALWAYS_ALLOW_SCREENSHOTS", 'true')
+
+        // More app configs
+        buildConfigField("Boolean", "ACCOUNT_NEEDS_LICENCE", 'false')
+        buildConfigField("Boolean", "NEED_PHONENUMBER_VALIDATION", 'true')
+        buildConfigField("Boolean", "FORCE_GERMAN", 'false')
+        buildConfigField("Boolean", "HAVE_GINLO_ONGOING_SERVICE", 'false')
+        buildConfigField("Boolean", "USE_BOOT_COMPLETED_RECEIVER", 'false')
+        // Shall APP_GINLO_CONTROL messages be displayed in chats?
+        buildConfigField("Boolean", "SHOW_AGC_MESSAGES", 'true')
+        buildConfigField("int", "LICENSE_EXPIRATION_WARNING_DAYS", '7')
+        buildConfigField("int", "CHANNEL_DELETE_MESSAGE_MAXDAYS", '7')
+    }
+
+    productFlavors {
+        // ginlo Private
+        b2c {
+            signingConfig signingConfigs.b2creleaseConfig
+        }
+    }
+
+    buildTypes {
+
+        debug {
+            println("Revision:" + generateVersionCode())
+            debuggable true
+            applicationIdSuffix ".debug"
+            versionNameSuffix ".Debug"
+            signingConfig signingConfigs.debugConfig
+            manifestPlaceholders = [appLabel: "@string/app_label_debug", appSchemeSuffix: "debug"]
+            println("Hostname: " + getHostName().toString())
+        }
+        release {
+            debuggable false
+            minifyEnabled true
+            proguardFile('proguard-project.txt')
+            // (ks) Depends on build flavor
+            // signingConfig signingConfigs.releaseConfig
+            manifestPlaceholders = [appSchemeSuffix: ""]
+
+            lintOptions {
+                checkReleaseBuilds true
+                // Or, if you prefer, you can continue to check for errors in release builds,
+                // but continue the build even when errors are found:
+                abortOnError lintAbortOnError
+            }
+        }
+   }
+
+    tasks.withType(Test) {
+        testLogging {
+            exceptionFormat "full"
+            events 'failed', 'skipped', 'started', 'passed'
+            showStandardStreams true
+        }
+    }
+    sourceSets {
+        b2c {java.srcDirs = ['src/b2c/java', 'src/b2c/java/eu/ginlo_apps/ginlo'] }
+    }
+}

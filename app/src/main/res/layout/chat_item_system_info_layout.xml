@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/chat_item_selection_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="5dp"
+    android:tag="system_info"
+    tools:keep="@layout/chat_item_system_info_layout">
+
+    <androidx.emoji.widget.EmojiAppCompatTextView
+        android:id="@+id/chat_item_text_view_system_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/system_info_bubble"
+        android:gravity="center"
+        android:letterSpacing="-0.02"
+        android:lineSpacingExtra="5sp"
+        android:padding="4dp"
+        android:text="@string/chat_system_nickname"
+        android:textColor="@color/mainContrast"
+        android:textSize="16sp"
+        android:textStyle="normal"/>
+
+</LinearLayout>

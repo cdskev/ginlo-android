@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
+    android:gravity="start"
+    android:orientation="vertical"
+    android:padding="2dp"
+    android:tag="selfdestruction_text_left">
+
+    <include layout="@layout/chat_item_date_center" />
+
+    <LinearLayout
+        android:id="@+id/chat_item_content_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:gravity="start"
+        android:minHeight="40dp">
+
+        <View
+            android:id="@+id/bubble_tail"
+            android:layout_width="21dp"
+            android:layout_height="14dp"
+            android:layout_gravity="end|bottom"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="-1.5dp"
+            android:background="@drawable/tail_receiver" />
+
+        <LinearLayout
+            android:id="@+id/chat_item_linear_layout_chat_bubble"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_weight="1"
+            android:background="@drawable/chat_box_receiver_background"
+            android:orientation="vertical"
+            android:paddingStart="24dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="8dp">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/chat_item_sender_name"
+                style="@style/CaptionTextViewStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="19dp"
+                android:layout_marginTop="9dp"
+                android:layout_marginEnd="9dp"
+                android:maxLines="1"
+                android:visibility="gone"
+                tools:text="Max Mustermann" />
+
+            <androidx.emoji.widget.EmojiAppCompatTextView
+                android:id="@+id/chat_item_text_view_message"
+                style="@style/BodyTextViewStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:autoLink="web"
+                android:paddingStart="19dp"
+                android:paddingTop="9dp"
+                android:paddingEnd="9dp"
+                android:textColor="@color/text_color"
+                tools:text="test test" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/chat_item_text_view_date"
+            style="@style/style_chat_item_info_left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_weight="0"
+            android:maxLines="1"
+            tools:text="16:23" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="attachment_video_max_size">20000000</integer>
+    <integer name="attachment_file_max_size">20000000</integer>
+    <integer name="profile_and_group_name_max_length">30</integer>
+    <integer name="profile_status_max_length">140</integer>
+    <integer name="channel_delete_message_maxcount">30</integer>
+
+    <integer name="image_heigth_s">640</integer>
+    <integer name="image_width_s">480</integer>
+    <integer name="image_compression_percent_s">60</integer>
+
+    <integer name="image_heigth_m">1024</integer>
+    <integer name="image_width_m">768</integer>
+    <integer name="image_compression_percent_m">75</integer>
+
+    <integer name="image_heigth_l">1920</integer>
+    <integer name="image_width_l">1440</integer>
+    <integer name="image_compression_percent_l">80</integer>
+
+    <integer name="image_heigth_xl">2592</integer>
+    <integer name="image_width_xl">1944</integer>
+    <integer name="image_compression_percent_xl">85</integer>
+
+    <integer name="profile_image_size">200</integer>
+
+    <integer name="channel_desc_collapse_lines">2</integer>
+
+    <!--Label unter Logo auf Splash Screen(MainActivity) schaltbar machen fuer Whitelabel-->
+    <!-- 0->Visibile 1->Invisible 2->Gone -->
+    <integer name="splash_label_visibilty">0</integer>
+
+</resources>

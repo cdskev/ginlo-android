@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/menu_item_option_layout"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:onClick="onOptionsMenuClick"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/menu_item_option_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:onClick="onOptionsMenuClick"
+        android:paddingEnd="16dp"
+        android:src="@drawable/ic_settings_white_24dp" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

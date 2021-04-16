@@ -1,0 +1,99 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_preview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:configChanges="orientation">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar_layout" />
+
+        <View style="@style/Divider" />
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <androidx.viewpager.widget.ViewPager
+                android:id="@+id/preview_pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <com.leinardi.android.speeddial.SpeedDialOverlayLayout
+                android:id="@+id/chat_input_speed_dial_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#4c3e494e"
+                app:clickable_overlay="true"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+            <com.leinardi.android.speeddial.SpeedDialView
+                android:id="@+id/chat_input_speed_dial_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="2dp"
+                app:layout_behavior="@string/speeddial_scrolling_view_snackbar_behavior"
+                app:sdExpansionMode="left"
+                app:sdMainFabAnimationRotateAngle="90"
+                app:sdMainFabOpenedSrc="@drawable/close"
+                app:sdMainFabClosedSrc="@drawable/set_options" />
+
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+        <LinearLayout
+            android:id="@+id/preview_bottom_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:minHeight="60dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/preview_bottom_bar_inner_images"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/preview_thumbnail_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:padding="5dp"
+                        android:scrollbars="none" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/preview_chat_input_fragment_placeholder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:id="@+id/preview_fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+    </LinearLayout>
+</RelativeLayout>

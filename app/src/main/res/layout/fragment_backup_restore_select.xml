@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/backup_restore_select_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/text_margin"
+        android:layout_marginEnd="@dimen/text_margin"
+        android:layout_marginBottom="@dimen/text_margin"
+        android:text="@string/backup_restore_select_title"
+        android:textSize="15sp"
+        app:styledTextColor="mainContrast80" />
+
+    <FrameLayout
+        android:id="@+id/backup_restore_select_child_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/backup_restore_select_btn"
+        style="@style/BorderlessColoredButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:onClick="onFragmentViewClick"
+        android:text="@string/backup_restore_select_btn"
+        android:textAllCaps="false"
+        android:textColor="@color/actionSecondary"
+        app:styledButtonType="borderless"
+        app:styledTextColor="actionSecondary" />
+</LinearLayout>

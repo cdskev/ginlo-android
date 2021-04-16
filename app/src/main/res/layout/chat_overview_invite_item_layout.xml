@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="@dimen/chatOverview_invite_item_height"
+    android:orientation="horizontal"
+    android:tag="chatOverviewItem"
+    app:styledBackground="main">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:id="@+id/trust_state_divider"
+        android:layout_width="2dp"
+        android:layout_height="@dimen/chatOverview_invite_item_height"
+        android:background="@color/kColorSecLevelLow"
+        android:orientation="vertical" />
+
+    <eu.ginlo_apps.ginlo.view.MaskImageView
+        android:id="@+id/chat_overview_item_mask_image_view_chat_image"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="6dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/gfx_profil_placeholder"
+        app:mask="@drawable/maske_portraet" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/standard_padding"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp">
+
+            <androidx.emoji.widget.EmojiAppCompatTextView
+                android:id="@+id/chat_overview_item_text_view_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@+id/chat_overview_item_text_view_message_date"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:styledTextColor="mainContrast"
+                tools:text="This is a very long title for a conversation" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/chat_overview_item_text_view_message_date"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/chat_overview_preview_yesterday"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:styledTextColor="mainContrast80" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/chat_overview_item_invite_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="1dp"
+            android:orientation="horizontal"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/chat_overview_item_invite_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lines="1"
+                android:textSize="15sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="@string/chat_stream_GroupRequest" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/chat_overview_item_text_view_decline_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_mtrl_invite_decline"
+                android:lines="1"
+                android:maxHeight="48dp"
+                android:onClick="handleDeclineClick"
+                android:text="@string/chat_stream_blockContact"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/chat_overview_item_invite_description"
+                app:layout_constraintWidth_default="percent"
+                app:layout_constraintWidth_percent=".5"
+                app:styledBackgroundColorFilter="insecure"
+                app:styledButtonType="invite"
+                app:styledTextColor="insecureContrast" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/chat_overview_item_text_view_accept_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_mtrl_invite_accept"
+                android:gravity="center"
+                android:lines="1"
+                android:maxHeight="48dp"
+                android:onClick="handleAcceptClick"
+                android:text="@string/chat_stream_confirmContact"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/chat_overview_item_invite_description"
+                app:layout_constraintWidth_default="percent"
+                app:layout_constraintWidth_percent=".5"
+                app:styledBackgroundColorFilter="secure"
+                app:styledButtonType="invite"
+                app:styledTextColor="secureContrast" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</androidx.appcompat.widget.LinearLayoutCompat>

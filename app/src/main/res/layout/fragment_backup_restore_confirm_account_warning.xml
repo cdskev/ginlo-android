@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:styledBackground="main">
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/backup_restore_confirm_wo_button"
+        android:layout_alignParentTop="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/service_list_item_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scaleType="center"
+                android:src="@drawable/gfx_alert" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/backup_restore_confirm_wo_title_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/text_margin"
+                android:text="@string/backup_restore_confirm_wo_title"
+                android:textSize="28sp"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+
+                android:id="@+id/backup_restore_desc_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/text_margin"
+                android:layout_marginEnd="@dimen/text_margin"
+                android:layout_marginBottom="@dimen/text_margin"
+                android:text="@string/backup_restore_confirm_wo_desc"
+                android:textSize="15sp"
+                app:styledTextColor="mainContrast80" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/backup_restore_confirm_wo_button"
+        style="@style/BorderlessColoredButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/backup_restore_confirm_cancel_button"
+        android:layout_centerHorizontal="true"
+        android:onClick="onFragmentViewClick"
+        android:text="@string/backup_restore_confirm_wo_btn"
+        android:textAllCaps="false"
+        android:textColor="@color/actionSecondary"
+        app:styledButtonType="borderless"
+        app:styledTextColor="actionSecondary" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/backup_restore_confirm_cancel_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:onClick="onFragmentViewClick"
+        android:text="@string/std_cancel"
+        android:textAllCaps="false"
+        app:styledBackground="action"
+        app:styledButtonType="normal"
+        app:styledTextColor="actionContrast" />
+
+</RelativeLayout>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_list_item_main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="96dp"
+    android:gravity="center_vertical"
+    android:minHeight="96dp"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:tag="drawer_item_first">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/chat_overview_item_round_avatar_layout"
+        android:layout_width="64dp"
+        android:layout_height="64dp">
+
+        <eu.ginlo_apps.ginlo.view.RoundedImageView
+            android:id="@+id/drawer_list_item_mask_image_view"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_centerVertical="false"
+            android:maxWidth="64dp"
+            android:maxHeight="64dp"
+            android:minWidth="64dp"
+            android:minHeight="64dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/gfx_profil_placeholder" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/drawer_list_item_status_view"
+            style="@style/BodyTextViewStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|bottom"
+            android:background="@drawable/contact_state_bubble"
+            android:gravity="center"
+            android:lines="1"
+            android:maxLines="1"
+            android:minWidth="20dp"
+            android:minHeight="20dp"
+            android:text=""
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="16dp">
+
+        <eu.ginlo_apps.ginlo.view.EmojiconMediumTextView
+            android:id="@+id/drawer_list_item_text_view_title"
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:letterSpacing="-0.02"
+            android:lineSpacingExtra="5sp"
+            android:maxLines="1"
+            android:paddingEnd="16dp"
+            android:text="Florian Plewka"
+            android:textSize="17sp"
+            app:styledTextColor="overlayContrast"/>
+
+        <androidx.emoji.widget.EmojiAppCompatTextView
+            android:id="@+id/drawer_list_item_text_view_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:letterSpacing="-0.02"
+            android:lineSpacingExtra="5sp"
+            android:maxLines="2"
+            android:paddingEnd="16dp"
+            android:text="Status"
+            android:textSize="15sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/channel_filter_list_item_main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingTop="0dp"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    android:paddingBottom="0dp"
+    app:styledBackground="main"
+    android:tag="filter_list_item">
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/channel_filter_list_item_image_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:paddingStart="15dp"
+        android:paddingTop="15dp"
+        android:scaleType="center" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/channel_filter_list_item_image_view"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingStart="24dp">
+
+        <eu.ginlo_apps.ginlo.view.EmojiconMediumTextView
+            android:id="@+id/channel_filter_list_item_text_view_title"
+            style="@style/BodyTextViewStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingEnd="@dimen/activity_horizontal_margin"
+            android:text=""/>
+
+    </LinearLayout>
+
+</RelativeLayout>

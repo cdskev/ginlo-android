@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="fab_chatsoverview_new_chat" type="id" />
+    <item name="fab_chatsoverview_new_group" type="id" />
+    <item name="fab_chatsoverview_new_contact" type="id" />
+    <item name="fab_chatsoverview_new_direct_chat" type="id" />
+    <item name="fab_chatsoverview_new_channel" type="id" />
+    <item name="fab_chatsoverview_new_service" type="id" />
+    <item name="fab_chatsoverview_invite_friends" type="id" />
+
+    <item name="fab_chat_input_timed" type="id" />
+    <item name="fab_chat_input_timed_active" type="id" />
+    <item name="fab_chat_input_timed_enabled" type="id" />
+
+    <item name="fab_chat_input_bomb" type="id" />
+    <item name="fab_chat_input_bomb_active" type="id" />
+    <item name="fab_chat_input_bomb_enabled" type="id" />
+
+    <item name="fab_chat_input_prio" type="id" />
+    <item name="fab_chat_input_prio_active" type="id" />
+    <item name="fab_chat_input_prio_enabled" type="id" />
+</resources>

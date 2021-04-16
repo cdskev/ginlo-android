@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle" >
+    <!--gradient
+        android:type="radial"
+        android:gradientRadius="550dp"
+        android:startColor="#D1CAAF"
+        android:centerColor="#B1AA8F"
+        android:endColor="#B1AA8F"
+        android:angle="0"
+        android:centerX="0.25"
+        android:centerY="0.5"
+        /-->
+    <solid
+        android:color="@color/systemChatBackground"
+        />
+</shape>

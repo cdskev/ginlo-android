@@ -1,0 +1,71 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/shadow_length"
+        android:background="@drawable/shadow_up" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleOpenMessageClick"
+        android:orientation="horizontal"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_open_in_new_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_open" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleShareMessageClick"
+        android:orientation="horizontal"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_share_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_share" />
+    </LinearLayout>
+</LinearLayout>

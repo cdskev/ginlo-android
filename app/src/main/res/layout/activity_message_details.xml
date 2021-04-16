@@ -1,0 +1,290 @@
+<!-- activity enthaellt Tooltips und benoetigt daher ein umschlieszendes RelativeLayout!!! -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_message_detail"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="MergeRootFrame">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar_layout" />
+
+        <View style="@style/Divider" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ListView
+                        android:id="@+id/message_info_listview_message"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:divider="@null"
+                        android:dividerHeight="0dp"
+                        android:stackFromBottom="true" />
+
+                    <ListView
+                        android:id="@+id/message_info_listview_contacts"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:divider="@null"
+                        android:paddingStart="0dp"
+                        android:visibility="gone" />
+
+                    <ProgressBar
+                        android:id="@+id/message_info_progress"
+                        style="?android:attr/progressBarStyle"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="16dp"
+                        android:visibility="gone" />
+
+                    <RelativeLayout
+                        android:id="@+id/message_info_read_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/color0"
+
+                        android:visibility="visible">
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:paddingStart="@dimen/activity_horizontal_margin"
+                            android:src="@drawable/send_3" />
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/message_info_textview_read"
+                            style="@style/FontU1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:paddingStart="36dp"
+                            android:paddingTop="@dimen/activity_horizontal_margin"
+                            android:paddingBottom="@dimen/activity_horizontal_margin"
+                            android:text="@string/message_info_read" />
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/message_info_textview_read_time"
+                            style="@style/FontP2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:paddingTop="@dimen/activity_horizontal_margin"
+                            android:paddingEnd="@dimen/activity_horizontal_margin"
+                            android:paddingBottom="@dimen/activity_horizontal_margin"
+                            android:text="12:14" />
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/message_info_textview_read_date"
+                            style="@style/FontS1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_toStartOf="@id/message_info_textview_read_time"
+                            android:paddingTop="@dimen/activity_horizontal_margin"
+                            android:paddingEnd="@dimen/activity_horizontal_margin"
+                            android:paddingBottom="@dimen/activity_horizontal_margin"
+                            android:text="heute" />
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/message_info_downloaded_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/color0"
+                        android:visibility="visible"
+
+                        >
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:paddingStart="@dimen/activity_horizontal_margin"
+                            android:src="@drawable/send_2" />
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/message_info_textview_downloaded"
+                            style="@style/FontU1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:paddingStart="36dp"
+                            android:paddingTop="@dimen/activity_horizontal_margin"
+                            android:paddingBottom="@dimen/activity_horizontal_margin"
+                            android:text="@string/message_info_delivered" />
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/message_info_textview_downloaded_time"
+                            style="@style/FontP2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:paddingTop="@dimen/activity_horizontal_margin"
+                            android:paddingEnd="@dimen/activity_horizontal_margin"
+                            android:paddingBottom="@dimen/activity_horizontal_margin"
+                            android:text="12:14" />
+
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/message_info_textview_downloaded_date"
+                            style="@style/FontS1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_toStartOf="@id/message_info_textview_downloaded_time"
+                            android:paddingTop="@dimen/activity_horizontal_margin"
+                            android:paddingEnd="@dimen/activity_horizontal_margin"
+                            android:paddingBottom="@dimen/activity_horizontal_margin"
+                            android:text="heute" />
+
+
+                    </RelativeLayout>
+
+
+                    <RelativeLayout
+                        android:id="@+id/message_info_sent_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/color0"
+                        android:visibility="visible"
+
+                        >
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:paddingStart="@dimen/activity_horizontal_margin"
+                            android:src="@drawable/send_1" />
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/message_info_textview_sent"
+                            style="@style/FontU1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:paddingStart="36dp"
+                            android:paddingTop="@dimen/activity_horizontal_margin"
+                            android:paddingBottom="@dimen/activity_horizontal_margin"
+                            android:text="@string/message_info_sent" />
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/message_info_textview_sent_time"
+                            style="@style/FontP2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:paddingTop="@dimen/activity_horizontal_margin"
+                            android:paddingEnd="@dimen/activity_horizontal_margin"
+                            android:paddingBottom="@dimen/activity_horizontal_margin"
+                            android:text="12:14" />
+
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/message_info_textview_sent_date"
+                            style="@style/FontS1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_toStartOf="@id/message_info_textview_sent_time"
+                            android:paddingTop="@dimen/activity_horizontal_margin"
+                            android:paddingEnd="@dimen/activity_horizontal_margin"
+                            android:paddingBottom="@dimen/activity_horizontal_margin"
+                            android:text="heute" />
+
+
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/message_details_bottom_dummy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/chat_input_line_height">
+
+                    </RelativeLayout>
+                </LinearLayout>
+
+            </ScrollView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:id="@+id/message_info_chat_input_fragment_placeholder"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    ></FrameLayout>
+
+                <LinearLayout
+                    android:id="@+id/message_info_fragment_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"></LinearLayout>
+            </LinearLayout>
+
+            <!-- grey layer -->
+            <RelativeLayout
+                android:id="@+id/disable_view_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/disabled_overlay_background_color"
+                android:clickable="true"
+                android:focusable="true"
+                android:onClick="handleCloseBottomSheetClick"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/chat_bottom_sheet_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="vertical">
+
+            </LinearLayout>
+
+            <com.leinardi.android.speeddial.SpeedDialOverlayLayout
+                android:id="@+id/chat_input_speed_dial_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#4c3e494e"
+                app:clickable_overlay="true"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+            <com.leinardi.android.speeddial.SpeedDialView
+                android:id="@+id/chat_input_speed_dial_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentBottom="true"
+                android:layout_margin="2dp"
+                android:paddingBottom="84dp"
+                app:layout_behavior="@string/speeddial_scrolling_view_snackbar_behavior"
+                app:sdExpansionMode="left"
+                app:sdMainFabAnimationRotateAngle="90"
+                app:sdMainFabOpenedSrc="@drawable/close"
+                app:sdMainFabClosedSrc="@drawable/set_options" />
+        </RelativeLayout>
+    </LinearLayout>
+</RelativeLayout>

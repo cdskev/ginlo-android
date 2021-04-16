@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_attachment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_navigation_bar"
+    android:orientation="vertical"
+    tools:context=".ViewAttachmentActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar_layout" />
+
+        <View style="@style/Divider" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/please_touch_layout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <com.github.chrisbanes.photoview.PhotoView
+                    android:id="@+id/attachment_image_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
+
+                <eu.ginlo_apps.ginlo.view.VideoViewCustom
+                    android:id="@+id/attachment_video_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:adjustViewBounds="true" />
+            </LinearLayout>
+
+            <ScrollView
+                android:id="@+id/attachment_description_scrollview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <androidx.emoji.widget.EmojiAppCompatTextView
+                    android:id="@+id/view_attachment_description"
+                    style="@style/AttachmentDescriptionTextViewStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/attachment_description_gradient"
+                    android:gravity="bottom"
+                    android:lineSpacingMultiplier="1.1875"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="40dp"
+                    android:text=""
+                    android:visibility="gone"/>
+            </ScrollView>
+        </RelativeLayout>
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:tag="message_info">
+
+    <RelativeLayout
+        android:id="@+id/contact_item_section_title_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/contact_item_section_title_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:src="@drawable/send_3" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/contact_item_section_title_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingStart="36dp"
+            android:text="@string/message_info_sent"
+            android:textAllCaps="true"
+            android:textSize="16sp" />
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:styledBackground="main"
+        tools:ignore="MissingPrefix">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:minHeight="72dp"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/trust_state_divider"
+                android:layout_width="3dp"
+                android:layout_height="match_parent"
+                android:background="@color/kColorSecLevelLow" />
+
+            <eu.ginlo_apps.ginlo.view.RoundedImageView
+                android:id="@+id/contact_item_mask_image_view_image"
+                android:layout_width="50dp"
+                android:layout_height="52dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/seclevel_contact_item"
+                android:maxWidth="50dp"
+                android:maxHeight="50dp"
+                android:minWidth="50dp"
+                android:minHeight="50dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/gfx_profil_placeholder"
+                android:tag="big" />
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true">
+
+                    <androidx.emoji.widget.EmojiAppCompatTextView
+                        android:id="@+id/contact_item_text_view_name"
+                        style="@style/FontL1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_gravity="start"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="4dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:paddingEnd="90dp"
+                        android:text=""
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/contact_item_time_text"
+                        style="@style/FontP2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="8dp"
+                        android:text="00:00" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/contact_item_date_text"
+                        style="@style/FontS1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="8dp"
+                        android:layout_toStartOf="@id/contact_item_time_text"
+                        android:text="heute" />
+
+                </RelativeLayout>
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/contact_item_mandant_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/trust_level_simsme_yellow"
+                    android:letterSpacing="-0.03"
+                    android:lineSpacingExtra="10sp"
+                    android:maxLines="1"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:text="@string/simsme"
+                    android:textSize="10sp"
+                    android:visibility="gone"
+                    app:textAllCaps="true" />
+            </RelativeLayout>
+        </LinearLayout>
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider" />
+</LinearLayout>

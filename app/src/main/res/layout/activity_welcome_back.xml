@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+
+    <include layout="@layout/toolbar_default" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/layout_padding_left_right"
+                android:layout_marginEnd="@dimen/layout_padding_left_right"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_padding_left_right"
+                    android:lineSpacingExtra="4sp"
+                    android:text="@string/welcome_back_title2"
+                    android:textSize="28sp"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_padding_left_right"
+                    android:lineSpacingExtra="4sp"
+                    android:text="@string/welcome_back_text"
+                    android:textSize="15sp"
+                    app:styledTextColor="mainContrast80" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:baselineAligned="false">
+
+                    <LinearLayout
+                        android:layout_width="1dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <RelativeLayout
+                            android:layout_width="160dp"
+                            android:layout_height="160dp"
+
+                            android:layout_gravity="center_horizontal">
+
+                            <androidx.appcompat.widget.AppCompatImageView
+                                android:layout_width="160dp"
+                                android:layout_height="160dp"
+                                android:layout_gravity="center_horizontal"
+                                android:contentDescription="@string/backup_restore_select_btn"
+                                android:onClick="handleRestoreBackup"
+                                android:scaleType="centerInside"
+                                android:src="@drawable/gfx_backup" />
+
+                            <androidx.appcompat.widget.AppCompatImageView
+                                android:id="@+id/mask_selected_restore_button"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_gravity="center"
+                                android:layout_margin="60dp"
+                                android:background="@drawable/mask_toggle_checked"
+                                android:scaleType="centerInside"
+                                android:src="@drawable/ic_checked_double" />
+
+                        </RelativeLayout>
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/layout_padding_left_right"
+                            android:gravity="center"
+                            android:onClick="handleRestoreBackup"
+                            android:text="@string/backup_restore_select_btn"
+                            android:textSize="13sp"
+                            app:styledTextColor="mainContrast" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="1dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <RelativeLayout
+                            android:layout_width="160dp"
+                            android:layout_height="160dp"
+                            android:layout_gravity="center_horizontal">
+
+                            <androidx.appcompat.widget.AppCompatImageView
+                                android:layout_width="160dp"
+                                android:layout_height="160dp"
+                                android:layout_gravity="center_horizontal"
+                                android:contentDescription="@string/backup_restore_select_btn"
+                                android:onClick="handleCoupleDevice"
+                                android:scaleType="centerInside"
+                                android:src="@drawable/gfx_new_device" />
+
+                            <androidx.appcompat.widget.AppCompatImageView
+                                android:id="@+id/mask_selected_couple_device"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_gravity="center"
+                                android:layout_margin="60dp"
+                                android:background="@drawable/mask_toggle_checked"
+                                android:scaleType="centerInside"
+                                android:src="@drawable/ic_checked_double" />
+                        </RelativeLayout>
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/layout_padding_left_right"
+                            android:gravity="center_horizontal"
+                            android:onClick="handleCoupleDevice"
+                            android:text="@string/label_add_as_new_device"
+                            android:textSize="13sp"
+                            app:styledTextColor="mainContrast" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/backup_restore_select_captiom"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/text_margin"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="@dimen/text_margin"
+                    android:text="@string/backup_restore_warning"
+                    android:textSize="13sp"
+                    app:styledTextColor="mainContrast" />
+            </LinearLayout>
+        </ScrollView>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/next_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:onClick="handleNextClick"
+            android:text="@string/intro_nextButtonTitle"
+            android:textAllCaps="false"
+            app:styledBackground="action"
+            app:styledButtonType="normal"
+            app:styledTextColor="actionContrast" />
+    </LinearLayout>
+</LinearLayout>

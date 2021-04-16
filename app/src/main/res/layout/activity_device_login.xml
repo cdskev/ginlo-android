@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+
+    <include layout="@layout/toolbar_default" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:id="@+id/info_points"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/layout_padding_left_right"
+                android:layout_marginEnd="@dimen/layout_padding_left_right"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_padding_left_right"
+                    android:lineSpacingExtra="4sp"
+                    android:text="@string/device_login_description"
+                    android:textSize="13sp"
+                    app:styledTextColor="mainContrast80" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_padding_left_right"
+                    android:text="@string/device_login_label_type"
+                    android:textSize="16sp"
+                    app:styledTextColor="mainContrast50" />
+
+                <Spinner
+                    android:id="@+id/device_login_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/standard_padding"
+                    android:backgroundTint="@color/app_accent" />
+
+                <FrameLayout
+                    android:id="@+id/device_login_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_padding_left_right" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_padding_left_right"
+                    android:text="@string/device_login_label_device_name"
+                    android:textSize="13sp"
+                    app:styledTextColor="mainContrast50" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/device_login_device_name"
+                    style="@style/EditTextStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionDone"
+                    android:inputType="text"
+                    android:lines="1"
+                    android:maxLines="1"
+                    android:textCursorDrawable="@null"
+                    app:styledTextColor="mainContrast" />
+            </LinearLayout>
+        </ScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/device_login_next_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/layout_padding_left_right"
+                android:onClick="handleNextClick"
+                android:text="@string/next"
+                android:textAllCaps="false"
+                app:styledBackground="action"
+                app:styledButtonType="normal"
+                app:styledTextColor="actionContrast" />
+
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

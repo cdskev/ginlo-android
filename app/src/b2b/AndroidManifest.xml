@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="eu.ginlo_apps.ginlo">
+
+    <uses-permission android:name="com.android.vending.BILLING" />
+
+    <application
+        android:name=".context.SimsMeApplicationBusiness"
+        tools:node="merge"
+        tools:replace="android:name"
+        tools:ignore="GoogleAppIndexingWarning">
+        <meta-data
+            android:name="android.content.APP_RESTRICTIONS"
+            android:resource="@xml/app_restriction" />
+        <service android:name=".service.ConfigureCompanyService" />
+
+        <activity
+            android:name=".ChatsOverviewActivityBusiness"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="@string/chats_title_chats"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".LoginActivityBusiness"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label=""
+            android:noHistory="true"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+
+        <activity
+            android:name=".activity.register.EnterLicenceCodeActivity"
+            android:exported="false"
+            android:label="@string/enter_licence_code_title"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".activity.register.PurchaseLicenseActivity"
+            android:exported="false"
+            android:label="@string/purchase_licence_title"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".activity.register.IdentConfirmActivityBusiness"
+            android:exported="false"
+            android:label="${appLabel}"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+
+        <activity
+            android:name=".activity.register.InitProfileActivityBusiness"
+            android:exported="false"
+            android:label="@string/registration_title_init_profile"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden|adjustResize" />
+
+        <activity
+            android:name=".RegisterEmailActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="@string/register_email_address_title"
+            android:windowSoftInputMode="stateAlwaysVisible" />
+
+        <activity
+            android:name=".BusinessTrialActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="@string/business_trial_title"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+
+        <activity
+            android:name=".EnterEmailActivationCodeActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="@string/enter_email_activation_code_title"
+            android:windowSoftInputMode="stateVisible|adjustPan" />
+
+        <activity
+            android:name=".ContactsActivityBusiness"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="" />
+        <activity
+            android:name=".CompanyContactDetailActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label=""
+            android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".RestoreBackupActivityBusiness"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="@string/backup_title"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".RecoverPasswordActivityBusiness"
+            android:exported="false"
+            android:label="@string/recover_password_title"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.reregister.ConfirmPhoneActivityBusiness"
+            android:exported="false"
+            android:label="@string/confirm_phone_number_title"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden|adjustPan" />
+        <activity
+            android:name=".AbsenceActivity"
+            android:configChanges="orientation|screenSize"
+            android:exported="false"
+            android:label="@string/peferences_absence_title"
+            android:windowSoftInputMode="stateHidden|adjustPan" />
+        <activity
+            android:name=".activity.register.MdmRegisterActivity"
+            android:exported="false"
+            android:label="${appLabel}"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden" />
+    </application>
+</manifest>

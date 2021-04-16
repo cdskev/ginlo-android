@@ -1,0 +1,109 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ident_request_main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:styledBackground="main"
+    tools:context=".activity.register.IdentRequestActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar_default" />
+
+        <ScrollView
+            android:id="@+id/info_points"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/activity_horizontal_margin"
+                android:paddingEnd="@dimen/activity_horizontal_margin">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/intro_ident_request_headline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:text="@string/registration_headline_phoneAndCountryCode"
+                    android:textSize="28sp"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/intro_ident_request_spinner_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_padding_left_right"
+                    android:text="@string/device_login_label_type"
+                    android:textSize="16sp"
+                    app:styledTextColor="mainContrast50" />
+
+                <Spinner
+                    android:id="@+id/intro_ident_request_spinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/standard_padding"
+                    android:backgroundTint="@color/app_accent" />
+
+                <FrameLayout
+                    android:id="@+id/intro_ident_request_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_padding_left_right" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/intro_ident_request_registration_label_accept"
+                    style="@style/CaptionTextViewStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="8dp"
+                    android:text="@string/registration_label_accept"
+                    android:textColor="@color/mainContrast80"
+                    android:textColorLink="@color/actionSecondary"
+                    app:styledTextColor="mainContrast80" />
+
+            </LinearLayout>
+        </ScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/remove_phone_number_button"
+                style="@style/BorderlessColoredButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="handleDeletePhoneNumberClick"
+                android:text="@string/delete_phone_number"
+                android:textColor="@color/insecure"
+                android:visibility="gone"
+                app:styledBackgroundColorFilter="insecure"
+                app:styledButtonType="borderless"
+                app:styledTextColor="insecure" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/registration_continue_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="handleNextClick"
+                android:text="@string/registration_button_continue"
+                app:styledBackground="action"
+                app:styledButtonType="normal"
+                app:styledTextColor="actionContrast" />
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>

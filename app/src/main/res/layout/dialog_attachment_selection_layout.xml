@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/shadow_length"
+        android:background="@drawable/shadow_up" />
+
+
+    <LinearLayout
+        android:id="@+id/attachment_selection_video_call"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleAVCVideoClick"
+        android:orientation="horizontal"
+        android:paddingTop="8dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_video_call" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_AVC_video_call" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/attachment_selection_audio_call"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleAVCAudioClick"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_phone_call2" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_AVC_audio_call" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/attachment_selection_take_foto"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleTakePhotoClick"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_camera_alt_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_addAttachment_takePicture" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/attachment_selection_attach_foto"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleAttachPhotoClick"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_photo_library_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_addAttachment_fromAlbum" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/attachment_selection_take_video"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleTakeVideoClick"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_videocam_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_addAttachment_takeVideo" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/attachment_selection_attach_video"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleAttachVideoClick"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_video_collection_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_addAttachment_fromAlbum_video" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/attachment_selection_attach_file"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleAttachFileClick"
+        android:orientation="horizontal"
+
+        >
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_insert_drive_file_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_addAttachment_file" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/attachment_selection_attach_location"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleAttachLocationClick"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_location_city_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_addAttachment_location" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/attachment_selection_send_contact"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleAttachContactClick"
+        android:orientation="horizontal"
+        android:paddingBottom="8dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_person_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_addAttachment_contact" />
+    </LinearLayout>
+</LinearLayout>

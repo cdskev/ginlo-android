@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android" 
+     android:insetTop="@dimen/button_inset_vertical_material"
+     android:insetRight="@dimen/button_inset_horizontal_material_invite"
+     android:insetBottom="@dimen/button_inset_vertical_material">
+     <shape android:id="@+id/shape_button_pressed" android:shape="rectangle">
+         <corners android:bottomLeftRadius="5dp"
+                  android:topLeftRadius="5dp"/>
+         <solid android:color="@color/button_default_grey" />
+              />
+     </shape>
+</inset>
+	

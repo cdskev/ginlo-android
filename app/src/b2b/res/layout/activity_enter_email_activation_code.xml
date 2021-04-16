@@ -1,0 +1,85 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_terms"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main"
+
+    tools:context="EnterEmailActivationCodeActivity"
+    tools:ignore="MergeRootFrame">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <View style="@style/Divider" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/enter_email_confimation_code_hint1"
+                style="@style/FontP2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:text="@string/enter_email_activation_code_hint1"
+                app:styledTextColor="mainContrast50" />
+
+
+            <androidx.appcompat.widget.AppCompatEditText
+                android:id="@+id/enter_activation_code_edittext"
+                android:layout_width="55dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="@dimen/text_margin"
+                android:fontFamily="monospace"
+                android:hint="XXXX"
+                android:maxLength="4"
+                android:singleLine="true" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/next_button"
+                style="@style/BorderlessColoredButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:onClick="handleActivateClick"
+                android:text="@string/enter_email_activation_button_text"
+                app:styledButtonType="borderless"
+                app:styledTextColor="action" />
+
+
+            <androidx.appcompat.widget.AppCompatTextView
+                style="@style/FontP2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:layout_marginBottom="@dimen/text_margin"
+                android:text="@string/enter_email_activation_code_hint2"
+                app:styledTextColor="mainContrast50" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/profile_button_email_authenticate"
+                style="@style/BorderlessColoredButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="onRegisterNewClicked"
+                android:text="@string/profile_info_email_button_reregister_mail"
+                app:styledButtonType="borderless"
+                app:styledTextColor="action" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

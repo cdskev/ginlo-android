@@ -1,0 +1,731 @@
+// Copyright (c) 2020-2021 ginlo.net GmbH
+package eu.ginlo_apps.ginlo.service;
+
+import android.app.Application;
+import android.app.IntentService;
+import android.content.Intent;
+import androidx.annotation.NonNull;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonWriter;
+import eu.ginlo_apps.ginlo.BuildConfig;
+import eu.ginlo_apps.ginlo.context.SimsMeApplication;
+import eu.ginlo_apps.ginlo.controller.AttachmentController;
+import eu.ginlo_apps.ginlo.controller.LocalBackupHelper;
+import eu.ginlo_apps.ginlo.controller.PreferencesController;
+import eu.ginlo_apps.ginlo.controller.message.SingleChatController;
+import eu.ginlo_apps.ginlo.exception.LocalizedException;
+import eu.ginlo_apps.ginlo.greendao.Account;
+import eu.ginlo_apps.ginlo.greendao.Channel;
+import eu.ginlo_apps.ginlo.greendao.Chat;
+import eu.ginlo_apps.ginlo.greendao.Contact;
+import eu.ginlo_apps.ginlo.greendao.Message;
+import eu.ginlo_apps.ginlo.greendao.MessageDao;
+import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.backend.BackendResponse;
+import eu.ginlo_apps.ginlo.model.backend.KeyContainerModel;
+import eu.ginlo_apps.ginlo.model.backend.ToggleSettingsModel;
+import eu.ginlo_apps.ginlo.model.backend.serialization.ChatBackupSerializer;
+import eu.ginlo_apps.ginlo.model.backend.serialization.ContactBackupSerializer;
+import eu.ginlo_apps.ginlo.model.backend.serialization.KeyContainerModelSerializer;
+import eu.ginlo_apps.ginlo.model.backend.serialization.MessageSerializer;
+import eu.ginlo_apps.ginlo.model.backend.serialization.ToggleSettingsModelDeserializer;
+import eu.ginlo_apps.ginlo.model.constant.AppConstants;
+import eu.ginlo_apps.ginlo.service.BackendService;
+import eu.ginlo_apps.ginlo.service.IBackendService;
+import eu.ginlo_apps.ginlo.util.BroadcastNotifier;
+import eu.ginlo_apps.ginlo.util.ConfigUtil;
+import eu.ginlo_apps.ginlo.util.DateUtil;
+import eu.ginlo_apps.ginlo.util.FileUtil;
+import eu.ginlo_apps.ginlo.util.GuidUtil;
+import eu.ginlo_apps.ginlo.util.SecurityUtil;
+import eu.ginlo_apps.ginlo.util.StringUtil;
+import eu.ginlo_apps.ginlo.util.XMLUtil;
+import eu.ginlo_apps.ginlo.util.ZipUtils;
+import org.greenrobot.greendao.query.QueryBuilder;
+import javax.crypto.SecretKey;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+public class BackupService extends IntentService {
+    private static final String TAG = "BackupService";
+
+    private static final int LOAD_MSG_COUNT = 20;
+    private final String mBackupName;
+    // Defines and instantiates an object for handling status updates.
+    private final BroadcastNotifier mBroadcaster = new BroadcastNotifier(this, AppConstants.BROADCAST_ACTION);
+    private SimsMeApplication mApplication;
+    private FileUtil mFileUtil;
+    private File mBackupDir;
+    private SecretKey mBackUpAesKey;
+    //Error Objekt fuer Passtoken Abruf vom Server
+    private String mErrorText;
+    private String mBackupPasstoken;
+    private boolean mSaveMedia;
+
+    public BackupService() {
+        super("BackupService");
+        mBackupName = AppConstants.BACKUP_FILE_PREFIX + DateUtil.getDateStringInBackupFormat();
+    }
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        try {
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_STARTED, null, null, null);
+
+            SimsMeApplication app = getSimsMeApplication();
+
+            mSaveMedia = app.getPreferencesController().getSaveMediaInBackup();
+
+            mFileUtil = new FileUtil(this.getApplicationContext());
+
+            mBackupDir = createBackupDirectory();
+
+            loadBackupKey();
+
+            writeBackupInfo();
+
+            saveAccount();
+
+            saveChats();
+
+            if (!ConfigUtil.INSTANCE.syncPrivateIndexToServer()) {
+                saveContacts();
+            }
+
+            saveChannels();
+
+            saveServices();
+
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_SAVE_BU_FILE, null, null, null);
+
+            LocalBackupHelper helper = new LocalBackupHelper(((SimsMeApplication) getApplication()));
+            File tempBackupZip = helper.getBackupTempPath();
+            if (tempBackupZip == null)
+                throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "Unable to create the temp backup file.");
+
+            ZipUtils zu = new ZipUtils(mBackupDir.getAbsolutePath(), tempBackupZip.getAbsolutePath());
+            zu.startZip();
+
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_FINISHED, tempBackupZip.getAbsolutePath(), null, null);
+        } catch (LocalizedException e) {
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_ERROR, null, null, e);
+            LogUtil.w(TAG, "Backup failed. Error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        if (mBackupDir != null) {
+            if (mFileUtil.deleteAllFilesInDir(mBackupDir)) {
+                //noinspection ResultOfMethodCallIgnored
+                mBackupDir.delete();
+                mBackupDir = null;
+            }
+        }
+    }
+
+    private void loadBackupKey() throws LocalizedException {
+        SimsMeApplication app = getSimsMeApplication();
+
+        String base64KeyBytes = app.getPreferencesController().getBackupKey();
+
+        mBackUpAesKey = SecurityUtil.getAESKeyFromBase64String(base64KeyBytes);
+    }
+
+    private File createBackupDirectory() throws LocalizedException {
+        File buDir = mFileUtil.getBackupDirectory();
+
+        //Alle alten Dateien loeschen
+        File[] filesInBuDic = buDir.listFiles();
+        if (filesInBuDic != null && filesInBuDic.length > 0) {
+            for (File file : filesInBuDic) {
+                if (file == null) {
+                    continue;
+                }
+
+                if (file.isDirectory()) {
+                    if (mFileUtil.deleteAllFilesInDir(file)) {
+                        file.delete();
+                    }
+                } else if (file.isFile()) {
+                    file.delete();
+                }
+            }
+        }
+
+        File currentBuDir = new File(buDir, mBackupName);
+
+        if (!currentBuDir.isDirectory()) {
+            if (!currentBuDir.mkdir()) {
+                throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "backup directory: mkdir() failed");
+            }
+        } else {
+            if (!mFileUtil.deleteAllFilesInDir(currentBuDir)) {
+                throw new LocalizedException(LocalizedException.BACKUP_DELETE_FILE_FAILED, "Can't delete old backup file.");
+            }
+        }
+
+        return currentBuDir;
+    }
+
+    private void writeBackupInfo() throws LocalizedException {
+        SimsMeApplication app = getSimsMeApplication();
+
+        String salt = app.getPreferencesController().getBackupKeySalt();
+        int rounds = app.getPreferencesController().getBackupKeyRounds();
+
+        if (StringUtil.isNullOrEmpty(salt) || rounds == PreferencesController.BACKUP_KEY_ROUNDS_ERROR) {
+            throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "Backup AES Key Salt is null or Rounds < 0");
+        }
+
+        File decryptedAccountFile = new File(mBackupDir, AppConstants.BACKUP_FILE_INFO);
+
+        try (PrintWriter writer = new PrintWriter(decryptedAccountFile, "UTF-8");
+             JsonWriter jsonWriter = new JsonWriter(writer)) {
+            jsonWriter.beginArray();
+
+            jsonWriter.beginObject();
+
+            jsonWriter.name(AppConstants.BACKUP_JSON_INFO_OBJECT_KEY);
+            jsonWriter.beginObject();
+            jsonWriter.name(AppConstants.BACKUP_JSON_INFO_VERSION_KEY).value("" + AppConstants.BACKUP_VERSION);
+            jsonWriter.name(AppConstants.BACKUP_JSON_INFO_APP_KEY).value(BuildConfig.GINLO_APP_NAME);
+            jsonWriter.name(AppConstants.BACKUP_JSON_INFO_SALT_KEY).value(BuildConfig.SERVER_SALT);
+            jsonWriter.name(AppConstants.BACKUP_JSON_INFO_PBDKF_SALT_KEY).value(salt);
+            jsonWriter.name(AppConstants.BACKUP_JSON_INFO_PBDKF_ROUNDS_KEY).value("" + rounds);
+            jsonWriter.endObject();
+
+            jsonWriter.endObject();
+
+            jsonWriter.endArray();
+        } catch (IOException e) {
+            throw new LocalizedException(LocalizedException.BACKUP_WRITE_FILE_FAILED, e);
+        }
+    }
+
+    private void saveAccount() throws LocalizedException {
+        SimsMeApplication app = getSimsMeApplication();
+
+        if (!app.getAccountController().getAccountLoaded()) {
+            throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "account not loaded");
+        }
+
+        Account acc = app.getAccountController().getAccount();
+        String backupPasstoken = acc.getBackupPasstoken();
+
+        if (StringUtil.isNullOrEmpty(backupPasstoken)) {
+            backupPasstoken = getBackupPasstokenFromServer();
+            acc.setBackupPasstoken(backupPasstoken);
+        }
+
+        acc.setPublicKey(XMLUtil.getXMLFromPublicKey(app.getKeyController().getUserKeyPair().getPublic()));
+        acc.setPrivateKey(XMLUtil.getXMLFromPrivateKey(app.getKeyController().getUserKeyPair().getPrivate()));
+
+        app.getAccountController().saveOrUpdateAccount(acc);
+
+        final GsonBuilder gsonBuilder = new GsonBuilder();
+
+        Gson gson = gsonBuilder.create();
+
+        JsonElement accountInJson = app.getBackupController().accountBackup(false, false);
+
+        if (accountInJson == null || !accountInJson.isJsonObject()) {
+            throw new LocalizedException(LocalizedException.BACKUP_JSON_OBJECT_NULL, "Account JSON Object NULL");
+        }
+
+        JsonObject accountObject = accountInJson.getAsJsonObject();
+
+        app.getAccountController().doActionsBeforeAccountIsStoreInBackup(accountObject);
+
+        File decryptedAccountFile = new File(mBackupDir, "account_decrypted.json");
+
+        try (PrintWriter writer = new PrintWriter(decryptedAccountFile);
+             JsonWriter jsonWriter = new JsonWriter(writer)) {
+            jsonWriter.beginArray();
+            gson.toJson(accountObject, jsonWriter);
+            jsonWriter.endArray();
+        } catch (IOException e) {
+            throw new LocalizedException(LocalizedException.BACKUP_WRITE_FILE_FAILED, e);
+        }
+
+        File encryptedAccountFile = new File(mBackupDir, AppConstants.BACKUP_FILE_ACCOUNT);
+
+        SecurityUtil.encryptFileWithAes(mBackUpAesKey, SecurityUtil.generateIV(), true, decryptedAccountFile, encryptedAccountFile);
+
+        if (!decryptedAccountFile.delete()) {
+            throw new LocalizedException(LocalizedException.BACKUP_DELETE_FILE_FAILED, "Can't delete decrypted Accountfile");
+        }
+    }
+
+    private void saveContacts() throws LocalizedException {
+        SimsMeApplication app = getSimsMeApplication();
+
+        List<Contact> contacts = app.getContactController().getSimsMeContactsWithPubKey(true);
+
+        final GsonBuilder gsonBuilder = new GsonBuilder();
+
+        gsonBuilder.registerTypeAdapter(Contact.class, new ContactBackupSerializer());
+
+        Gson gson = gsonBuilder.create();
+
+        File decryptedContactsFile = new File(mBackupDir, "contacts_decrypted.json");
+
+        try (PrintWriter writer = new PrintWriter(decryptedContactsFile);
+             JsonWriter jsonWriter = new JsonWriter(writer)) {
+            jsonWriter.beginArray();
+
+            for (Contact contact : contacts) {
+                if (contact == null) {
+                    continue;
+                }
+
+                JsonElement jsonContact = gson.toJsonTree(contact);
+
+                if (jsonContact == null) {
+                    throw new LocalizedException(LocalizedException.BACKUP_JSON_OBJECT_NULL, "Contact JSON Object NULL");
+                }
+
+                gson.toJson(jsonContact, jsonWriter);
+            }
+
+            jsonWriter.endArray();
+        } catch (IOException e) {
+            throw new LocalizedException(LocalizedException.BACKUP_WRITE_FILE_FAILED, e);
+        }
+
+        File encryptedContactsFile = new File(mBackupDir, AppConstants.BACKUP_FILE_CONTACTS);
+
+        SecurityUtil.encryptFileWithAes(mBackUpAesKey, SecurityUtil.generateIV(), true, decryptedContactsFile, encryptedContactsFile);
+
+        if (!decryptedContactsFile.delete()) {
+            throw new LocalizedException(LocalizedException.BACKUP_DELETE_FILE_FAILED, "Can't delete decrypted Contactfile");
+        }
+    }
+
+    private void saveChannels() throws LocalizedException {
+        SimsMeApplication app = getSimsMeApplication();
+
+        List<Channel> channels = app.getChannelController().getSubscribedChannelsFromDB(Channel.TYPE_CHANNEL);
+        if (channels == null || channels.isEmpty()) {
+            return;
+        }
+
+        File decryptedChannelsFile = new File(mBackupDir, "channel_decrypted.json");
+
+        int subscribedChannelIndex = 0;
+
+        try (PrintWriter writer = new PrintWriter(decryptedChannelsFile);
+             JsonWriter jsonWriter = new JsonWriter(writer)) {
+            jsonWriter.beginArray();
+
+            for (Channel channel : channels) {
+                if (!channel.getIsSubscribedSave()) {
+                    continue;
+                }
+
+                String guid = channel.getGuid();
+                if (StringUtil.isNullOrEmpty(guid)) {
+                    continue;
+                }
+
+                subscribedChannelIndex++;
+
+                writeChannel(jsonWriter, channel);
+            }
+
+            jsonWriter.endArray();
+        } catch (IOException e) {
+            throw new LocalizedException(LocalizedException.BACKUP_WRITE_FILE_FAILED, e);
+        }
+
+        if (subscribedChannelIndex > 0) {
+            File encryptedChannelsFile = new File(mBackupDir, AppConstants.BACKUP_FILE_CHANNELS);
+
+            SecurityUtil.encryptFileWithAes(mBackUpAesKey, SecurityUtil.generateIV(), true, decryptedChannelsFile, encryptedChannelsFile);
+        }
+
+        if (!decryptedChannelsFile.delete()) {
+            throw new LocalizedException(LocalizedException.BACKUP_DELETE_FILE_FAILED, "Can't delete decrypted Contactfile");
+        }
+    }
+
+    private void writeChannel(JsonWriter jsonWriter, Channel channel) throws IOException, LocalizedException {
+        SimsMeApplication app = getSimsMeApplication();
+
+        jsonWriter.beginObject();
+        jsonWriter.name("ChannelBackup");
+        jsonWriter.beginObject();
+        jsonWriter.name("guid").value(channel.getGuid());
+
+        Boolean isNotificationDisabled = channel.getDisableNotification();
+
+        if (isNotificationDisabled != null) {
+            jsonWriter.name("notification").value(isNotificationDisabled ? "disabled" : "enabled");
+        }
+
+        List<String> idents = getChannelOnToggleIdents(channel);
+
+        if (idents != null && !idents.isEmpty()) {
+            jsonWriter.name("@ident");
+            jsonWriter.beginArray();
+
+            for (String ident : idents) {
+                jsonWriter.value(ident);
+            }
+            jsonWriter.endArray();
+        }
+
+        Chat channelChat = app.getChannelChatController().getChatByGuid(channel.getGuid());
+
+        if (channelChat != null) {
+            Long lastModifiedDate = channelChat.getLastChatModifiedDate();
+
+            if (lastModifiedDate != null && lastModifiedDate > 0) {
+                jsonWriter.name("lastModifiedDate").value(DateUtil.utcStringFromMillis(lastModifiedDate));
+            }
+        }
+
+        jsonWriter.endObject();
+        jsonWriter.endObject();
+    }
+
+    private void saveServices() throws LocalizedException {
+        SimsMeApplication app = getSimsMeApplication();
+
+        List<Channel> services = app.getChannelController().getSubscribedChannelsFromDB(Channel.TYPE_SERVICE);
+        if (services == null || services.isEmpty()) {
+            return;
+        }
+
+        mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_START_SAVE_SERVICES, null, null, null);
+
+        final GsonBuilder gsonBuilder = new GsonBuilder();
+
+        gsonBuilder.registerTypeAdapter(KeyContainerModel.class, new KeyContainerModelSerializer());
+        gsonBuilder.registerTypeAdapter(Message.class, new MessageSerializer());
+        Gson gson = gsonBuilder.create();
+
+        for (Channel service : services) {
+            String guid = service.getGuid();
+
+            if (StringUtil.isNullOrEmpty(guid)) {
+                continue;
+            }
+
+            if (!service.getIsSubscribedSave()) {
+                continue;
+            }
+
+            String fileName = guid.replace(':', '_');
+
+            File decryptedServiceFile = new File(mBackupDir, fileName + "_decrypted");
+
+            try (PrintWriter writer = new PrintWriter(decryptedServiceFile);
+                 JsonWriter jsonWriter = new JsonWriter(writer)) {
+
+                jsonWriter.beginArray();
+
+                writeChannel(jsonWriter, service);
+
+                Chat chat = app.getChannelChatController().getChatByGuid(guid);
+
+                if (chat != null) {
+                    saveMessagesForChat(chat, -1, jsonWriter, gson);
+                }
+
+                jsonWriter.endArray();
+            } catch (IOException e) {
+                throw new LocalizedException(LocalizedException.BACKUP_WRITE_FILE_FAILED, e);
+            }
+            File encryptedServiceFile = new File(mBackupDir, fileName + "." + AppConstants.JSON_FILE_EXTENSION);
+
+            SecurityUtil.encryptFileWithAes(mBackUpAesKey, SecurityUtil.generateIV(), true, decryptedServiceFile, encryptedServiceFile);
+
+            if (!decryptedServiceFile.delete()) {
+                throw new LocalizedException(LocalizedException.BACKUP_DELETE_FILE_FAILED, "Can't delete decrypted Servicefile");
+            }
+        }
+    }
+
+    private void saveChats() throws LocalizedException {
+        SimsMeApplication app = getSimsMeApplication();
+
+        List<Chat> allChats = app.getSingleChatController().loadAll();
+
+        if (allChats == null || allChats.isEmpty()) {
+            return;
+        }
+
+        mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_START_SAVE_CHATS, null, allChats.size(), null);
+
+        final GsonBuilder gsonBuilder = new GsonBuilder();
+
+        gsonBuilder.registerTypeAdapter(KeyContainerModel.class, new KeyContainerModelSerializer());
+        gsonBuilder.registerTypeAdapter(Message.class, new MessageSerializer());
+        gsonBuilder.registerTypeAdapter(Chat.class, new ChatBackupSerializer());
+
+        Gson gson = gsonBuilder.create();
+        int i = 0;
+
+        for (Chat chat : allChats) {
+            i++;
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_UPDATE_SAVE_CHATS, null, i, null);
+
+            if (chat == null || chat.getType() == null) {
+                continue;
+            }
+
+            String guid = chat.getChatGuid();
+
+            if (StringUtil.isNullOrEmpty(guid) || !(guid.startsWith(AppConstants.GUID_GROUP_PREFIX) || guid.startsWith(AppConstants.GUID_ACCOUNT_PREFIX))) {
+                continue;
+            }
+
+            String fileName = guid.replace(':', '_');
+
+            File decryptedChatFile = new File(mBackupDir, fileName + "_decrypted");
+
+            try (PrintWriter writer = new PrintWriter(decryptedChatFile);
+                 JsonWriter jsonWriter = new JsonWriter(writer)) {
+                jsonWriter.beginArray();
+
+                if (chat.getType() == Chat.TYPE_GROUP_CHAT || chat.getType() == Chat.TYPE_GROUP_CHAT_INVITATION) {
+                    byte[] groupImage = app.getChatImageController().loadImage(guid);
+                    if (groupImage != null) {
+                        chat.setGroupChatImage(groupImage);
+                    }
+                }
+
+                JsonElement jsonChat = gson.toJsonTree(chat);
+
+                if (jsonChat == null) {
+                    throw new LocalizedException(LocalizedException.BACKUP_JSON_OBJECT_NULL, "Chat JSON Object NULL");
+                }
+
+                gson.toJson(jsonChat, jsonWriter);
+
+                saveMessagesForChat(chat, -1, jsonWriter, gson);
+
+                jsonWriter.endArray();
+            } catch (IOException e) {
+                throw new LocalizedException(LocalizedException.BACKUP_WRITE_FILE_FAILED, e);
+            }
+
+            File encryptedChatFile = new File(mBackupDir, fileName + "." + AppConstants.JSON_FILE_EXTENSION);
+
+            SecurityUtil.encryptFileWithAes(mBackUpAesKey, SecurityUtil.generateIV(), true, decryptedChatFile, encryptedChatFile);
+
+            if (!decryptedChatFile.delete()) {
+                throw new LocalizedException(LocalizedException.BACKUP_DELETE_FILE_FAILED, "Can't delete decrypted Chatfile");
+            }
+        }
+    }
+
+    private String getBackupPasstokenFromServer() throws LocalizedException {
+
+        IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
+            @Override
+            public void onBackendResponse(BackendResponse response) {
+                if (response.isError) {
+                    mErrorText = response.errorMessage;
+                } else {
+                    if (response.jsonArray == null || response.jsonArray.size() < 1) {
+                        mErrorText = "JSON Object is not an array or empty";
+                        return;
+                    }
+
+                    JsonElement element = response.jsonArray.get(0);
+                    if (element != null && !element.isJsonNull()) {
+                        String passtoken = element.getAsString();
+                        if (!StringUtil.isNullOrEmpty(passtoken)) {
+                            mBackupPasstoken = passtoken;
+                        } else {
+                            mErrorText = "Passtoken is empty";
+                        }
+                    } else {
+                        mErrorText = "Wrong JSON Element";
+                    }
+                }
+            }
+        };
+        BackendService.withSyncConnection(mApplication)
+                .createBackupPassToken(listener);
+
+        if (!StringUtil.isNullOrEmpty(mErrorText)) {
+            throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, mErrorText);
+        }
+
+        return mBackupPasstoken;
+    }
+
+    private void saveMessagesForChat(Chat chat, long lastMsgId, JsonWriter writer, Gson gson) throws LocalizedException, IOException {
+        SimsMeApplication app = getSimsMeApplication();
+        SingleChatController chatController = app.getSingleChatController();
+
+        List<Message> msgList = loadNextMessages(chat, lastMsgId);
+        boolean checkSignature = !GuidUtil.isChatService(chat.getChatGuid());
+
+        if (msgList == null || msgList.isEmpty()) {
+            return;
+        }
+
+        for (Message msg : msgList) {
+            msg.setIsBackUp(true);
+
+            if (checkSignature && msg.getIsSignatureValid() == null && chatController != null) {
+                try {
+                    //check signature und added das Ergebnis an der Message
+                    if (msg.getSignatureSha256() != null) {
+                        chatController.checkSignatureSha256(msg);
+                    } else {
+                        chatController.checkSignature(msg);
+                    }
+                } catch (LocalizedException e) {
+                    //Wenn es ein Ausnahme bei der Signaturpruefung gibt, nicht Backuperstellung fehlschlagen lassen
+                    // TODO check why we can ignore the check of the signature.
+                }
+            }
+
+            JsonElement msgJson = gson.toJsonTree(msg);
+
+            msg.setIsBackUp(false);
+
+            gson.toJson(msgJson, writer);
+
+            //Attachment kopieren
+            if (mSaveMedia && !StringUtil.isNullOrEmpty(msg.getAttachment())) {
+                copyMsgAttachmentToBackupDir(msg.getAttachment());
+            }
+        }
+
+        if (msgList.size() == LOAD_MSG_COUNT) {
+            Message msg = msgList.get(msgList.size() - 1);
+            saveMessagesForChat(chat, msg.getId(), writer, gson);
+        }
+    }
+
+    private void copyMsgAttachmentToBackupDir(String attachmentGuid)
+            throws LocalizedException {
+        File backupDir = new File(mBackupDir, AppConstants.BACKUP_ATTACHMENT_DIR);
+
+        if (!backupDir.isDirectory()) {
+            if (backupDir.exists()) {
+                if (backupDir.delete()) {
+                    throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "Attachment File.class is no Directory and can not be deleted");
+                }
+            }
+
+            if (!backupDir.mkdir()) {
+                throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "Attachment Directory: mkdir() failed.");
+            }
+        }
+
+        String fileName = attachmentGuid.replace(':', '_');
+        File attachmentBuFile = new File(backupDir, fileName);
+
+        AttachmentController.saveEncryptedAttachmentFileAsBase64File(attachmentGuid, attachmentBuFile.getAbsolutePath());
+    }
+
+    private List<Message> loadNextMessages(Chat chat, long maxLoadedMessagedId) throws LocalizedException {
+        List<Message> msgList;
+
+        SimsMeApplication app = getSimsMeApplication();
+
+        final MessageDao dao = app.getMessageController().getDao();
+        int type = getMsgTypeForChat(chat);
+
+        synchronized (dao) {
+            final QueryBuilder<Message> queryBuilder = dao.queryBuilder();
+
+            queryBuilder.where(MessageDao.Properties.Type.eq(type)).whereOr(MessageDao.Properties.From.eq(chat.getChatGuid()), MessageDao.Properties.To.eq(chat.getChatGuid()))
+                    .orderAsc(MessageDao.Properties.Id).limit(LOAD_MSG_COUNT);
+
+            if (maxLoadedMessagedId != -1) {
+                queryBuilder.where(MessageDao.Properties.Id.gt(maxLoadedMessagedId));
+            }
+            msgList = queryBuilder.build().forCurrentThread().list();
+        }
+
+        return msgList;
+    }
+
+    private int getMsgTypeForChat(final Chat chat) {
+        final int type;
+        switch (chat.getType()) {
+            case Chat.TYPE_SINGLE_CHAT:
+            case Chat.TYPE_SINGLE_CHAT_INVITATION:
+                type = Message.TYPE_PRIVATE;
+                break;
+            case Chat.TYPE_GROUP_CHAT:
+            case Chat.TYPE_GROUP_CHAT_INVITATION:
+                type = Message.TYPE_GROUP;
+                break;
+            case Chat.TYPE_CHANNEL:
+                type = Message.TYPE_CHANNEL;
+                break;
+            default:
+                type = -1;
+        }
+        return type;
+    }
+
+    private List<String> getChannelOnToggleIdents(Channel channel) {
+        String filter = channel.getFilterJsonObject();
+
+        if (StringUtil.isNullOrEmpty(filter)) {
+            return null;
+        }
+
+        final GsonBuilder gsonBuilder = new GsonBuilder();
+
+        gsonBuilder.registerTypeAdapter(ToggleSettingsModel.class, new ToggleSettingsModelDeserializer());
+
+        Gson gson = gsonBuilder.create();
+
+        Type stringToggleSettingsMap = new TypeToken<Map<String, ToggleSettingsModel>>() {
+        }
+                .getType();
+
+        Map<String, ToggleSettingsModel> map = gson.fromJson(channel.getFilterJsonObject(),
+                stringToggleSettingsMap);
+
+        List<String> onIdents = new ArrayList<>();
+
+        for (String ident : map.keySet()) {
+            ToggleSettingsModel model = map.get(ident);
+
+            if (model != null && StringUtil.isEqual(model.value, "on")) {
+                onIdents.add(ident);
+            }
+        }
+
+        return onIdents;
+    }
+
+    private @NonNull
+    SimsMeApplication getSimsMeApplication()
+            throws LocalizedException {
+        if (mApplication != null) {
+            return mApplication;
+        }
+
+        Application app = this.getApplication();
+        if (app instanceof SimsMeApplication) {
+            mApplication = (SimsMeApplication) app;
+            return mApplication;
+        }
+
+        throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "application == null");
+    }
+}

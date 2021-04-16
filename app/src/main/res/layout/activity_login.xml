@@ -1,0 +1,104 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_login"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/login_forgot_pw_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <include layout="@layout/dialog_forgot_pw_company" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/login_forgot_pw_tel_email_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <include layout="@layout/dialog_forgot_pw_tel_email" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/login_main_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <include layout="@layout/toolbar_default" />
+
+        <ScrollView
+            android:id="@+id/activity_login_scrollview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:id="@+id/activity_login_logocontainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/activity_login_logo"
+                    android:layout_width="200dp"
+                    android:layout_height="134dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="65dp"
+                    android:layout_marginBottom="@dimen/activity_vertical_margin"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/ic_ginlo_splash" />
+
+                <FrameLayout
+                    android:id="@+id/login_frame_layout_password_fragment_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/layout_padding_left_right"
+                    android:layout_marginEnd="@dimen/layout_padding_left_right"></FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:orientation="horizontal"
+                    android:layout_marginStart="@dimen/layout_padding_left_right"
+                    android:layout_marginEnd="@dimen/layout_padding_left_right"
+                    android:paddingBottom="@dimen/bottom_padding_for_overlay_buttons">
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/login_forgot_pw_textview"
+                        style="@style/BorderlessColoredButtonStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:onClick="handleForgotPwClick"
+                        android:text="@string/settings_password_forgot_pw"
+                        android:textColor="@color/mainContrast"
+                        android:visibility="gone"
+                        app:styledButtonType="borderless"
+                        app:styledTextColor="mainContrast" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/login_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:onClick="handleLoginClick"
+        android:text="@string/login_loginButton"
+        android:textColor="@color/actionContrast"
+        app:styledBackground="action"
+        app:styledButtonType="normal"
+        app:styledTextColor="actionContrast" />
+
+</RelativeLayout>

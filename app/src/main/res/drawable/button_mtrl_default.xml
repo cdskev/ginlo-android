@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- disabled state -->
+    <item android:state_enabled="false" android:drawable="@drawable/button_disabled"/>
+    
+    <!-- pressed state -->
+    <item android:state_pressed="true" android:drawable="@drawable/button_pressed"/>
+
+    <!-- focused state -->
+    <item android:state_focused="true" android:drawable="@drawable/button_focused"/>
+
+    <!-- normal state -->
+    <item android:drawable="@drawable/button_normal"/>
+
+</selector>

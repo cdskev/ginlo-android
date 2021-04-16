@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
+    android:orientation="vertical"
+    android:padding="2dp"
+    android:tag="location_right"
+    tools:keep="@layout/chat_item_location_right_layout">
+
+    <include layout="@layout/chat_item_date_center" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end">
+
+        <LinearLayout
+            style="@style/style_chat_item_info_right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:id="@+id/chat_item_frame_layout_message_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/message_status" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/chat_item_text_view_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textSize="13sp"
+                tools:text="16:23" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/chat_item_linear_layout_chat_bubble"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_weight="1"
+            android:background="@drawable/chat_box_sender_background"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+            <include
+                layout="@layout/chat_item_comment_layout_right"
+                android:visibility="gone" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#00000000"
+                app:cardCornerRadius="@dimen/image_rounded_corner_radius"
+                app:cardElevation="0dp">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/chat_item_data_placeholder_bg"
+                        android:layout_width="@dimen/chat_item_location_width"
+                        android:layout_height="@dimen/chat_item_location_height"
+                        android:cropToPadding="true"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/intro_1" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/chat_item_text_view_message"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:background="@drawable/main_contrast_transparent_bubble"
+                        android:padding="@dimen/half_padding"
+                        android:text="@string/chat_location_cell_info_text"
+                        android:textColor="@color/mainContrast"
+                        android:textSize="13sp" />
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+
+        <View
+            android:id="@+id/bubble_tail"
+            android:layout_width="21dp"
+            android:layout_height="14dp"
+            android:layout_gravity="end|bottom"
+            android:layout_marginStart="-1.5dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/tail_sender" />
+    </LinearLayout>
+</LinearLayout>

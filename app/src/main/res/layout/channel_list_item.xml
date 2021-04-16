@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/chatoverview_item_height"
+    android:minHeight="@dimen/channel_settings_height"
+    android:orientation="vertical"
+    android:tag="channel">
+
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/channel_item_background"
+        android:layout_width="match_parent"
+        android:layout_height="95dp"
+        android:scaleType="centerCrop" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/channel_text_label"
+        style="@style/TitleTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/channel_item_label"
+        android:layout_width="match_parent"
+        android:layout_height="95dp"
+        android:scaleType="center" />
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/channel_item_subscribed_icon"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:scaleType="fitEnd"
+        android:src="@drawable/channel_abonniert"
+        android:visibility="gone" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/chat_overview_item_text_view_message_counter"
+        style="@style/BodyTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="10dp"
+        android:background="@drawable/message_counter_bubble"
+        android:gravity="center"
+        android:lines="1"
+        android:maxLines="1"
+        android:minWidth="20dp"
+        android:minHeight="20dp"
+        android:text=""
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/chat_overview_item_text_view_message_date"
+        style="@style/CaptionTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="10dp"
+        android:text="@string/chat_overview_preview_yesterday"
+        android:visibility="gone" />
+
+    <View
+        android:id="@+id/channel_item_divider"
+        style="@style/DividerWithPadding"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="0dp" />
+</RelativeLayout>

@@ -1,0 +1,123 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_test_business"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:ignore="MergeRootFrame"
+    android:background="@color/main">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_above="@+id/business_trial_button_container">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/business_trial_background"
+                    android:orientation="vertical"
+                    android:paddingTop="@dimen/layout_padding_top_bottom"
+                    android:paddingBottom="@dimen/layout_padding_top_bottom">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/business_trial_days30"
+                        android:textColor="@color/business_trial_text_color"
+                        android:textSize="250sp"
+                        android:lines="1"
+                        android:textStyle="bold"
+                        android:includeFontPadding="false"/>
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/business_trial_days"
+                        android:textColor="@color/business_trial_text_color"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:paddingBottom="32dp"
+                       />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin">
+
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/activity_vertical_margin"
+                        android:text="@string/enter_licence_code_header"
+                        android:textColor="@color/mainContrast"
+                        app:styledTextColor="mainContrast"
+                        android:textSize="28sp" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/activity_vertical_margin"
+                        android:paddingBottom="@dimen/activity_vertical_margin"
+                        android:text="@string/business_trial_text"
+                        android:textColor="@color/mainContrast80"
+                        app:styledTextColor="mainContrast80"
+                        android:textSize="15sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/business_trial_button_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/business_trial_button_enter_code"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="onEnterCodeClicked"
+                android:text="@string/business_trial_button_enter_code"
+                style="@style/BorderlessColoredButtonStyle"
+                app:styledTextColor="action"
+                app:styledBackgroundColorFilter="action"
+                app:styledButtonType="borderless" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/business_trial_button_test_now"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="onTestNowClicked"
+                android:text="@string/business_trial_button_test_now"
+                app:styledBackground="action"
+                app:styledTextColor="actionContrast"
+                app:styledBackgroundColorFilter="action"
+                app:styledButtonType="normal" />
+
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

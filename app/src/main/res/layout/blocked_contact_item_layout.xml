@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:focusable="false"
+    android:minHeight="72dp"
+    android:orientation="horizontal">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/blocked_contact_item_text_view_name"
+        style="@style/BodyTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:text="" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/blocked_contact_item_text_view_unblock"
+        style="@style/CaptionTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_weight="0"
+        android:text="@string/contacts_button_unblockContactShort"
+        android:textColor="@color/color_trusted_red" />
+
+</LinearLayout>

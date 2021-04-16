@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- disabled state -->
+    <item android:state_enabled="false" android:drawable="@drawable/button_disabled"/>
+    
+    <item>
+		<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+	        android:color="?attr/colorControlHighlight">
+	    	<item android:drawable="@drawable/button_invite_decline" />
+		</ripple>        
+    </item>
+    
+</selector>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/forward_pager_contacts_no_contacts_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:text="@string/forward_filter_chats_noChatsFound"
+        android:visibility="gone" />
+
+    <eu.ginlo_apps.ginlo.view.SimsmeSwipeRefreshLayout
+        android:id="@+id/swipe_refresh_contacts"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ListView
+            android:id="@+id/contacts_list_view"
+            style="@style/ContactListView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:visibility="visible" />
+
+
+    </eu.ginlo_apps.ginlo.view.SimsmeSwipeRefreshLayout>
+
+    <include
+        android:id="@+id/fragment_no_local_contact_found"
+        layout="@layout/fragment_no_local_contact_found"
+        android:visibility="gone" />
+
+</RelativeLayout>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+
+    <include layout="@layout/toolbar_default" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/layout_padding_left_right"
+                android:layout_marginEnd="@dimen/layout_padding_left_right"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_padding_left_right"
+                    android:lineSpacingExtra="4sp"
+                    android:text="@string/device_couple_finish_descr"
+                    android:textSize="15sp"
+                    app:styledTextColor="mainContrast80" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/device_couple_device_img"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="32dp"
+                    android:contentDescription="@string/device_couple_confirm_btn"
+                    android:src="@drawable/device_computer"
+                    app:styledIconColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/device_couple_device_name"
+                    style="@style/SubheadlineBoldTextViewStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/standard_padding"
+                    android:gravity="center_horizontal"
+                    android:textSize="17sp"
+                    app:styledTextColor="mainContrast80" />
+            </LinearLayout>
+
+        </ScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/layout_padding_left_right"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/device_couple_finish_device_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="handleConfirmClick"
+                android:text="@string/device_couple_finish_btn"
+                android:textAllCaps="false"
+                app:styledBackgroundColorFilter="action"
+                app:styledButtonType="normal"
+                app:styledTextColor="actionContrast" />
+
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

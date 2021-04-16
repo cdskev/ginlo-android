@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <View style="@style/Divider" />
+
+    <RelativeLayout
+        android:id="@+id/channel_details_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/channel_detail_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/background" />
+
+        <include
+            android:id="@+id/channel_detail_header"
+            layout="@layout/channel_list_item"
+            android:paddingStart="@dimen/layout_padding_left_right"
+            android:paddingEnd="@dimen/layout_padding_left_right" />
+
+        <ListView
+            android:id="@+id/channel_detail_toogle_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/channel_detail_subsrcibe_button"
+            android:layout_below="@+id/channel_detail_header"
+            android:layout_marginBottom="8dp"
+            android:divider="@null" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/channel_detail_subsrcibe_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:onClick="handleSubscribeClick"
+            android:text="@string/channel_subscribe_button" />
+
+    </RelativeLayout>
+
+</LinearLayout>

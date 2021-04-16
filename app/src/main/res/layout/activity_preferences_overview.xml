@@ -1,0 +1,277 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_preferences_overview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main"
+    tools:context=".activity.preferences.PreferencesOverviewActivity">
+
+    <include layout="@layout/toolbar_default" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        style="@style/Divider"
+        app:styledBackground="mainContrast50" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:onClick="handlePasswordClick">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/preferences_overview_icon_password"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_image_margin_start"
+                    android:src="@drawable/ic_lock_black_24dp"
+                    app:styledIconColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_overview_text_password"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_password_title"
+                    app:styledTextColor="mainContrast" />
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                style="@style/Divider"
+                android:layout_marginStart="@dimen/preferences_divider_margin_start"
+                app:styledBackground="mainContrast50" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:onClick="handlePrivacyClick">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/preferences_overview_icon_privacy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_image_margin_start"
+                    android:src="@drawable/ic_privacy_black_24"
+                    app:styledIconColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_overview_text_privacy"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_privacy_title"
+                    app:styledTextColor="mainContrast" />
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                style="@style/Divider"
+                android:layout_marginStart="@dimen/preferences_divider_margin_start"
+                app:styledBackground="mainContrast50" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:onClick="handleChatsClick">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/preferences_overview_icon_chats"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_image_margin_start"
+                    android:src="@drawable/ic_chat_black_24dp"
+                    app:styledIconColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_overview_text_chats"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_chats_title"
+                    app:styledTextColor="mainContrast" />
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                style="@style/Divider"
+                android:layout_marginStart="@dimen/preferences_divider_margin_start"
+                app:styledBackground="mainContrast50" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:onClick="handleMediaDownloadClick">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/preferences_overview_icon_download"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_image_margin_start"
+                    android:src="@drawable/ic_file_download_black_24dp"
+                    app:styledIconColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_overview_text_download"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_media_download_title"
+                    app:styledTextColor="mainContrast" />
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                style="@style/Divider"
+                android:layout_marginStart="@dimen/preferences_divider_margin_start"
+                app:styledBackground="mainContrast50" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:onClick="handleNotificationsClick">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/preferences_overview_icon_notifications"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_image_margin_start"
+                    android:src="@drawable/ic_notifications_black_24dp"
+                    app:styledIconColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_overview_text_notifications"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_notifications_title"
+                    app:styledTextColor="mainContrast" />
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                style="@style/Divider"
+                android:layout_marginStart="@dimen/preferences_divider_margin_start"
+                app:styledBackground="mainContrast50" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:onClick="handleAppearanceClick">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/preferences_overview_icon_appearance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_image_margin_start"
+                    android:src="@drawable/ic_symbols"
+                    app:styledIconColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_overview_text_appearance"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_appearance_title"
+                    app:styledTextColor="mainContrast" />
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                style="@style/Divider"
+                android:layout_marginStart="@dimen/preferences_divider_margin_start"
+                app:styledBackground="mainContrast50" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:onClick="handleHelpClick">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/preferences_overview_icon_help"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_image_margin_start"
+                    android:src="@drawable/ic_help_outline_black_24dp"
+                    app:styledIconColor="mainContrast" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingEnd="16dp">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_overview_text_help"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/preferences_text_margin_start"
+                        android:layout_weight="1"
+                        android:text="@string/settings_help_title"
+                        app:styledTextColor="mainContrast" />
+
+                </LinearLayout>
+            </LinearLayout>
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/information_version"
+                style="@style/CaptionTextViewStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp"
+                android:text="@string/settings_version"
+                app:styledTextColor="mainContrast" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

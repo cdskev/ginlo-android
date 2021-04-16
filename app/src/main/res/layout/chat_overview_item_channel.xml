@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/chatoverview_item_height"
+    android:minHeight="@dimen/chatoverview_item_height"
+    android:orientation="horizontal"
+    android:tag="chatOverviewItem"
+    app:styledBackground="main">
+
+
+    <ImageView
+        android:id="@+id/chat_overview_item_channel_avatar"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="8dp"
+        android:scaleType="fitXY"
+        android:padding="8dp"
+        android:background="@drawable/channel_avatar_drawable"
+        tools:src="@drawable/ba_signet" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/standard_padding"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp">
+
+            <androidx.emoji.widget.EmojiAppCompatTextView
+                android:id="@+id/chat_overview_item_text_view_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@+id/chat_overview_item_text_view_message_counter"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:styledTextColor="mainContrast"
+                tools:text="This is a very long title for a conversation" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/chat_overview_item_text_view_message_counter"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/message_counter_bubble"
+                android:gravity="center"
+                android:lines="1"
+                android:maxLines="1"
+                android:minWidth="20dp"
+                android:minHeight="20dp"
+                android:textColor="@color/insecureContrast"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/chat_overview_item_text_view_message_date"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="10" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/chat_overview_item_text_view_message_date"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="end"
+                android:text="@string/chat_overview_preview_yesterday"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:styledTextColor="mainContrast80" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:id="@+id/chat_overview_item_preview_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/chat_overview_item_media_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="12dp"
+                android:layout_gravity="start|top"
+                android:layout_marginEnd="@dimen/half_padding"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/media_photo" />
+
+            <androidx.emoji.widget.EmojiAppCompatTextView
+                android:id="@+id/chat_overview_item_text_view_message_preview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|top"
+                android:ellipsize="end"
+                android:letterSpacing="0.0"
+                android:lineSpacingExtra="5sp"
+                android:maxLines="2"
+                android:textSize="15sp"
+                android:textStyle="normal"
+                android:visibility="visible"
+                app:styledTextColor="mainContrast80" />
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</androidx.appcompat.widget.LinearLayoutCompat>

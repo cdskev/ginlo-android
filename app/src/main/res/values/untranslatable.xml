@@ -1,0 +1,16 @@
+<resources>
+    <string-array name="account_identifier" translatable="false">
+        <item>@string/account_identifier_email</item>
+        <item>@string/account_identifier_phonenumber</item>
+        <item>@string/account_identifier_simsmeid</item>
+    </string-array>
+    <string-array name="account_registration_identifier">
+      <item>@string/account_registration_identifier_phonenumber</item>
+    </string-array>
+    <string name="app_label_debug" translatable="false">B2C D</string>
+    <string name="app_label_debug_stg" translatable="false">B2C DS</string>
+    <string name="app_label_release" translatable="false">ginlo</string>
+    <string name="app_label_release_stg" translatable="false">B2C RS</string>
+    <string name="html_anchor_format" translatable="false">&lt;a href=&quot;%s&quot;&gt;%s&lt;/a&gt;</string>
+    <string name="sentry_dsn" translatable="false">THIS SHOULD NOT BE USED. SEE FLAVOUR/BUILD_TYPE FILE</string>
+</resources>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    app:styledBackground="main">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/header_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="25dp"
+        android:letterSpacing="0.01"
+        android:lineSpacingExtra="6sp"
+        android:text="@string/contacts_fragment_header_title"
+        android:textSize="28sp"
+        app:styledTextColor="mainContrast" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/header_sub_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="8dp"
+        android:letterSpacing="-0.02"
+        android:lineSpacingExtra="10sp"
+        android:text="@string/contacts_fragment_header_subtitle"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:styledTextColor="mainContrast" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/header_desc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center_horizontal"
+        android:letterSpacing="-0.02"
+        android:lineSpacingExtra="5sp"
+        android:text="@string/contacts_fragment_search_desc"
+        android:textSize="15sp"
+        android:visibility="visible"
+        app:styledTextColor="mainContrast80" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/header_button"
+        style="@style/BorderlessColoredButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="handleHeaderSearchButtonClick"
+        android:text="@string/contacts_fragment_start_search"
+        android:visibility="visible"
+        app:styledTextColor="action" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/header_last_contacts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:letterSpacing="-0.01"
+        android:lineSpacingExtra="3sp"
+        android:text="@string/contacts_fragment_header_last_contacts"
+        android:textAllCaps="true"
+        android:textSize="13sp"
+        android:visibility="visible"
+        app:styledTextColor="mainContrast" />
+
+</LinearLayout>

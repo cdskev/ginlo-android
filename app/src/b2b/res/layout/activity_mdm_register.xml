@@ -1,0 +1,289 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ident_request_main_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main"
+    tools:context=".activity.register.MdmRegisterActivity">
+
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="@dimen/activity_horizontal_margin">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:gravity="center_vertical">
+
+                <ProgressBar
+                    android:id="@+id/mdm_register_progressbar_0"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="4dp" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/mdm_register_check_icon_0"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/icon_process_upcoming"
+                    android:visibility="gone" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/mdm_register_textview_0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="-0.02"
+                    android:lineSpacingExtra="3sp"
+                    android:text="@string/mdm_register_0"
+                    android:textColor="@color/mainContrast50"
+                    android:textSize="17sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:gravity="center_vertical">
+
+                <ProgressBar
+                    android:id="@+id/mdm_register_progressbar_1"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="4dp" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/mdm_register_check_icon_1"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/icon_process_upcoming"
+                    android:visibility="gone" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/mdm_register_textview_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="-0.02"
+                    android:lineSpacingExtra="3sp"
+                    android:text="@string/mdm_register_1"
+                    android:textColor="@color/mainContrast50"
+                    android:textSize="17sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:gravity="center_vertical">
+
+                <ProgressBar
+                    android:id="@+id/mdm_register_progressbar_2"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="4dp" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/mdm_register_check_icon_2"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/icon_process_upcoming"
+                    android:visibility="gone" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/mdm_register_textview_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="-0.02"
+                    android:lineSpacingExtra="3sp"
+                    android:text="@string/mdm_register_2"
+                    android:textColor="@color/mainContrast50"
+                    android:textSize="17sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:gravity="center_vertical">
+
+                <ProgressBar
+                    android:id="@+id/mdm_register_progressbar_3"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="4dp" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/mdm_register_check_icon_3"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/icon_process_upcoming"
+                    android:visibility="gone" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/mdm_register_textview_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="-0.02"
+                    android:lineSpacingExtra="3sp"
+                    android:text="@string/mdm_register_3"
+                    android:textColor="@color/mainContrast50"
+                    android:textSize="17sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:gravity="center_vertical">
+
+                <ProgressBar
+                    android:id="@+id/mdm_register_progressbar_4"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="4dp" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/mdm_register_check_icon_4"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/icon_process_upcoming"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/mdm_register_textview_4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="-0.02"
+                        android:lineSpacingExtra="3sp"
+                        android:text="@string/mdm_register_4"
+                        android:textColor="@color/mainContrast50"
+                        android:textSize="17sp" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/mdm_register_textview_4_sublabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/half_padding"
+                        android:letterSpacing="-0.02"
+                        android:lineSpacingExtra="3sp"
+                        android:text="@string/backup_restore_progress_secondary"
+                        android:textColor="@color/mainContrast50"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:gravity="center_vertical">
+
+                <ProgressBar
+                    android:id="@+id/mdm_register_progressbar_5"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="4dp" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/mdm_register_check_icon_5"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/icon_process_upcoming"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/mdm_register_textview_5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="-0.02"
+                        android:lineSpacingExtra="3sp"
+                        android:text="@string/mdm_register_5"
+                        android:textColor="@color/mainContrast50"
+                        android:textSize="17sp" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/mdm_register_textview_5_sublabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/half_padding"
+                        android:letterSpacing="-0.02"
+                        android:lineSpacingExtra="3sp"
+                        android:text="@string/backup_restore_progress_secondary"
+                        android:textColor="@color/mainContrast50"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:gravity="center_vertical">
+
+                <ProgressBar
+                    android:id="@+id/mdm_register_progressbar_6"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="4dp" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/mdm_register_check_icon_6"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:src="@drawable/icon_process_upcoming"
+                    android:visibility="gone" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/mdm_register_textview_6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="-0.02"
+                    android:lineSpacingExtra="3sp"
+                    android:text="@string/mdm_register_6"
+                    android:textColor="@color/mainContrast50"
+                    android:textSize="17sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/mdm_register_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="@dimen/layout_padding_left_right"
+        android:enabled="false"
+        android:onClick="handleNextClick"
+        android:text="@string/registration_button_continue"
+        android:textColor="@color/actionContrast"
+        app:styledBackground="action"
+        app:styledButtonType="normal"
+        app:styledTextColor="actionContrast" />
+</LinearLayout>

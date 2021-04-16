@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="79dp"
+        android:orientation="horizontal"
+        app:styledBackground="main">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/device_list_item_device_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginTop="28dp"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginBottom="28dp"
+            android:contentDescription="@string/devices_title"
+            android:scaleType="centerInside"
+            android:src="@drawable/device_smartphone"
+            app:styledIconColor="mainContrast" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/device_list_item_device_name_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/standard_padding"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textSize="17sp"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/device_list_item_version_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:lineSpacingExtra="3sp"
+                android:singleLine="true"
+                android:textSize="13sp"
+                app:styledTextColor="mainContrast50" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/device_list_item_info_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="3sp"
+                android:textColor="@color/secure"
+                android:textSize="13sp"
+                app:styledTextColor="secure" />
+        </LinearLayout>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <View style="@style/Divider" />
+</LinearLayout>

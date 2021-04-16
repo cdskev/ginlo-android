@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+
+    <include layout="@layout/toolbar_default" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/device_detail_device_type"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/standard_padding"
+                        android:gravity="center"
+                        android:letterSpacing="-0.01"
+                        android:text="@string/device_couple_guest_device"
+                        android:textSize="15sp"
+                        app:styledTextColor="mainContrast80" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/device_detail_device_type_descr"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/standard_padding"
+                        android:gravity="center"
+                        android:letterSpacing="-0.01"
+                        android:lineSpacingExtra="4sp"
+                        android:text="@string/device_couple_guest_descr"
+                        android:textSize="12sp"
+                        app:styledTextColor="mainContrast80" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/device_detail_device_icon_iv"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="@dimen/layout_padding_left_right"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:layout_marginEnd="@dimen/layout_padding_left_right"
+                    android:contentDescription="@string/devices_title"
+                    android:src="@drawable/device_android"
+                    app:styledIconColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/device_detail_version_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="@dimen/layout_padding_left_right"
+                    android:layout_marginTop="@dimen/layout_padding_top_bottom"
+                    android:layout_marginEnd="@dimen/layout_padding_left_right"
+                    android:lineSpacingExtra="3sp"
+                    android:textColor="@color/mainContrast50"
+                    android:textSize="13sp"
+                    app:styledTextColor="mainContrast50" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/device_detail_info_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="@dimen/layout_padding_left_right"
+                    android:layout_marginEnd="@dimen/layout_padding_left_right"
+                    android:lineSpacingExtra="3sp"
+                    android:textColor="@color/secure"
+                    android:textSize="13sp"
+                    app:styledTextColor="secure" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/CaptionTextViewStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/layout_padding_left_right"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginEnd="@dimen/layout_padding_left_right"
+                    android:labelFor="@+id/device_detail_device_name_tv"
+                    android:text="@string/device_device_name"
+                    android:textSize="13sp"
+                    app:styledTextColor="mainContrast50" />
+
+                <androidx.emoji.widget.EmojiAppCompatEditText
+                    android:id="@+id/device_detail_device_name_tv"
+                    style="@style/EditTextStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="@dimen/layout_padding_left_right"
+                    android:layout_marginEnd="@dimen/layout_padding_left_right"
+                    android:layout_weight="1"
+                    android:hint="@string/device_device_name"
+                    android:imeOptions="actionDone"
+                    android:maxLines="1"
+                    app:styledBackgroundColorFilter="mainContrast"
+                    app:styledTextColor="mainContrast" />
+            </LinearLayout>
+
+        </ScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/device_detail_delete_btn"
+                style="@style/BorderlessColoredButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="handleDeleteDevice"
+                android:text="@string/device_delete_device_btn"
+                android:textColor="@color/insecure"
+                app:styledBackgroundColorFilter="insecure"
+                app:styledButtonType="borderless"
+                app:styledTextColor="insecure" />
+
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/device_detail_apply_changes_btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:onClick="handleApplyChanges"
+                android:text="@string/apply_changes"
+                android:textAllCaps="false"
+                app:styledBackgroundColorFilter="action"
+                app:styledButtonType="normal"
+                app:styledTextColor="actionContrast" />
+
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/shadow_length"
+        android:background="@drawable/shadow_up" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleBackgroundFromStockClick"
+        android:orientation="horizontal"
+        android:paddingTop="8dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_photo_album_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/settings_preferences_changeBackground_chooseBackgroundPresets" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleBackgroundFromAlbumClick"
+        android:orientation="horizontal">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_photo_library_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/chats_addAttachment_fromAlbum" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/resetButton"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bottem_sheet_item_height"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="handleBackgroundResetClick"
+        android:orientation="horizontal"
+        android:paddingBottom="8dp">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:paddingEnd="16dp"
+            android:paddingBottom="0dp"
+            android:src="@drawable/ic_undo_grey600_24dp" />
+
+        <eu.ginlo_apps.ginlo.view.CustomTextView
+            android:id="@+id/context_menu_background_linear_layout_reset_button_container"
+            style="@style/SubheadlineTextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="@string/settings_preferences_changeBackground_reset" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,282 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_preferences_privacy"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+    <include layout="@layout/toolbar_default" />
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        style="@style/Divider"
+        app:styledBackground="mainContrast50" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_privacy_absence_header"
+                style="@style/FontSettingsHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_profile_statusLabel"
+                app:styledTextColor="mainContrast"
+                android:gravity="center_vertical"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_privacy_absence_header_value"
+                style="@style/FontSettingsHeader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_profile_statusLabel"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:gravity="center_vertical"
+                android:paddingTop="@dimen/activity_vertical_margin"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_privacy_absence_text"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:drawableEnd="@drawable/ic_keyboard_arrow_right_black_24dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:onClick="handleAbsenceStateClick"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/peferences_absence_present"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_absence_header"
+                app:layout_constraintStart_toStartOf="parent"/>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/preferences_privacy_sync_contacts_divider"
+                style="@style/Divider"
+                app:styledBackground="mainContrast50"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_absence_text"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_privacy_contacts_header"
+                style="@style/FontSettingsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:paddingTop="@dimen/standard_padding"
+                android:text="@string/settings_contacts"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_sync_contacts_divider"/>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/preferences_privacy_blocked_contacts_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:onClick="handleBlockedContactsClick"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_contacts_header">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/FontSettingsElement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:layout_marginStart="@dimen/preferences_text_margin_start"
+                    android:layout_weight="1"
+                    android:gravity="center_vertical"
+                    android:text="@string/settings_chat_blockedContacts"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_privacy_blocked_contacts_counter"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                    android:gravity="center_vertical"
+                    app:styledTextColor="mainContrast80" />
+            </androidx.appcompat.widget.LinearLayoutCompat>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/preferences_privacy_sync_chats_divider"
+                style="@style/Divider"
+                app:styledBackground="mainContrast50"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_blocked_contacts_view"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_privacy_chat_header"
+                style="@style/FontSettingsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:text="@string/settings_privacy_header_chat"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_blocked_contacts_view"/>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_privacy_read_confirmation_switch"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_disable_read_confirm_title"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_chat_header"/>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_privacy_online_state_switch"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_privacy_online_state"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_read_confirmation_switch"/>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/preferences_privacy_sync_notification_divider"
+                style="@style/Divider"
+                app:styledBackground="mainContrast50"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_online_state_switch"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_privacy_notification_header"
+                style="@style/FontSettingsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:text="@string/settings_notifications_title"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_online_state_switch"/>
+
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_privacy_load_in_background_switch"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_preferences_fetch_in_background_name"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_notification_header"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_privacy_persist_msg_header"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:gravity="center_vertical"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="@dimen/preferences_text_margin_start"
+                android:layout_marginEnd="112dp"
+                android:text="@string/settings_chat_persistmessages_title"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_load_in_background_switch"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_privacy_persist_msg_text"
+                style="@style/FontSettingsElement"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/preferences_item_height"
+                android:gravity="center_vertical"
+                android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                app:styledTextColor="mainContrast80"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_load_in_background_switch"/>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_privacy_profile_name_switch"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_preferences_send_profile_name"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_persist_msg_text"/>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:id="@+id/preferences_privacy_sync_support_divider"
+                style="@style/Divider"
+                app:styledBackground="mainContrast50"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_profile_name_switch"/>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/preferences_privacy_get_support_header"
+                style="@style/FontSettingsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:text="@string/settings_privacy_helpusgetbetter_header"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_sync_support_divider"/>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/preferences_privacy_send_crash_log_switch"
+                style="@style/FontSettingsElement"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:paddingStart="@dimen/preferences_text_margin_start"
+                android:paddingEnd="@dimen/preferences_text_margin_start"
+                android:text="@string/settings_privacy_helpusgetbetter_sendcrashlog_label"
+                android:theme="@style/SwitchStyle"
+                app:styledTextColor="mainContrast"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/preferences_privacy_get_support_header"/>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+</LinearLayout>

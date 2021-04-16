@@ -1,0 +1,190 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_enter_4x4_code"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main"
+    tools:ignore="MergeRootFrame">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:overScrollMode="never">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/enter_4x4_code_top_warning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/color9"
+                android:orientation="horizontal"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/ico_alert" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/enter_4x4_code_top_warning_text"
+                    style="@style/FontP3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/enter_licence_warning_no_licence_found" />
+
+            </LinearLayout>
+
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/enter_4x4_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:text="@string/enter_licence_code_title"
+                android:textSize="28sp"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/enter_4x4_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                android:text="@string/enter_licence_code_hint"
+                android:textSize="15sp"
+                app:styledTextColor="mainContrast80" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/enter_4x4_code_edittext_1"
+                    android:layout_width="65dp"
+                    android:layout_height="match_parent"
+                    android:fontFamily="monospace"
+                    android:gravity="center"
+                    android:hint="A1A1"
+                    android:inputType="textNoSuggestions"
+                    android:maxLength="4"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="@dimen/activity_vertical_margin"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="-"
+                    android:textStyle="bold"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/enter_4x4_code_edittext_2"
+                    android:layout_width="65dp"
+                    android:layout_height="match_parent"
+                    android:fontFamily="monospace"
+                    android:gravity="center"
+                    android:hint="B2B2"
+                    android:inputType="textNoSuggestions"
+                    android:maxLength="4"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="@dimen/activity_vertical_margin"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="-"
+                    android:textStyle="bold"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/enter_4x4_code_edittext_3"
+                    android:layout_width="65dp"
+                    android:layout_height="match_parent"
+                    android:fontFamily="monospace"
+                    android:gravity="center"
+                    android:hint="C3C3"
+                    android:inputType="textNoSuggestions"
+                    android:maxLength="4"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="@dimen/activity_vertical_margin"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="-"
+                    android:textStyle="bold"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/enter_4x4_code_edittext_4"
+                    android:layout_width="65dp"
+                    android:layout_height="match_parent"
+                    android:fontFamily="monospace"
+                    android:gravity="center"
+                    android:hint="D4D4"
+                    android:inputType="textNoSuggestions"
+                    android:maxLength="4"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="@dimen/activity_vertical_margin"
+                    app:styledTextColor="mainContrast" />
+
+            </LinearLayout>
+
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/next_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="0dp"
+            android:layout_marginEnd="0dp"
+            android:background="@color/action"
+            android:onClick="handleNextClick"
+            android:text="@string/enter_licence_button_activate_licence"
+            android:textAllCaps="false"
+            android:textColor="@color/actionContrast"
+            app:styledBackground="action"
+            app:styledBackgroundColorFilter="action"
+            app:styledButtonType="normal"
+            app:styledTextColor="actionContrast" />
+    </LinearLayout>
+</LinearLayout>

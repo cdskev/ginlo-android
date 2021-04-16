@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <View
+        android:id="@+id/channel_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="72dp"
+        android:layout_marginBottom="8dp" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="88dp">
+
+        <TextView
+            android:id="@+id/channel_initial_text"
+            style="@style/style_channel_list_item_group_char"
+            android:layout_width="24dp"
+            android:layout_height="28dp"
+            android:layout_marginStart="16dp"
+            android:gravity="center"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="A" />
+
+        <ImageView
+            android:id="@+id/channel_avatar"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:layout_marginStart="32dp"
+            android:scaleType="fitXY"
+            android:padding="8dp"
+            android:background="@drawable/channel_avatar_drawable"
+            tools:src="@drawable/ba_signet"
+            app:layout_constraintStart_toEndOf="@+id/channel_initial_text"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="@dimen/chatoverview_item_height"
+            android:layout_marginStart="16dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toStartOf="@+id/channel_item_subscribed"
+            app:layout_constraintStart_toEndOf="@+id/channel_avatar"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/channel_title"
+                style="@style/style_channel_list_item_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:lines="1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/channel_avatar"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="TONIGHT.de" />
+
+            <TextView
+                android:id="@+id/channel_description"
+                style="@style/style_channel_list_item_description"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
+                android:lines="2"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@+id/channel_avatar"
+                app:layout_constraintTop_toBottomOf="@+id/channel_title"
+                tools:text="This is a sample message that crosses over in two lines and go…" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/channel_item_subscribed"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="16dp"
+            android:src="@drawable/check_mint"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:visibility="visible" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
+

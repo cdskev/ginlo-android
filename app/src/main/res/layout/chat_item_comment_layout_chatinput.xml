@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/comment_root"
+    android:layout_width="wrap_content"
+    android:layout_height="48dp"
+    android:layout_marginTop="0dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:onClick="scrollToOriginalMessage"
+    android:orientation="horizontal"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:tag="comment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/comment_name"
+            style="@style/FontT2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:text="" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/comment_date"
+            style="@style/FontF1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="0"
+            android:singleLine="true"
+            android:text=""
+            android:textStyle="italic" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/comment_image"
+            android:layout_width="@dimen/chat_input_line_height"
+            android:layout_height="@dimen/chat_input_line_height"
+            android:layout_marginEnd="4dp"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/comment_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="cancelMessageComment"
+            android:src="@drawable/ic_cancel_grey600_36dp"
+            android:visibility="visible" />
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/comment_text"
+        style="@style/FontF1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="90dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:text=""
+        android:textStyle="italic"
+        android:visibility="visible" />
+</RelativeLayout>

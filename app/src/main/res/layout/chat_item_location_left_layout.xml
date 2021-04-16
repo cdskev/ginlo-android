@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants"
+    android:orientation="vertical"
+    android:padding="2dp"
+    android:tag="location_left"
+    tools:keep="@layout/chat_item_location_left_layout">
+
+    <include layout="@layout/chat_item_date_center" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:gravity="start"
+        android:padding="0dp">
+
+        <View
+            android:id="@+id/bubble_tail"
+            android:layout_width="21dp"
+            android:layout_height="14dp"
+            android:layout_gravity="end|bottom"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="-1.5dp"
+            android:background="@drawable/tail_receiver" />
+
+        <LinearLayout
+            android:id="@+id/chat_item_linear_layout_chat_bubble"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|bottom"
+            android:layout_weight="1"
+            android:background="@drawable/chat_box_receiver_background"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+            <include
+                layout="@layout/chat_item_comment_layout_left"
+                android:visibility="gone" />
+
+            <androidx.emoji.widget.EmojiAppCompatTextView
+                android:id="@+id/chat_item_sender_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/standard_padding"
+                android:maxLines="1"
+                android:textColor="#43ad7f"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="Max Mustermann"
+                tools:visibility="visible" />
+
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#00000000"
+                app:cardCornerRadius="@dimen/image_rounded_corner_radius"
+                app:cardElevation="0dp">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/chat_item_data_placeholder_bg"
+                        android:layout_width="@dimen/chat_item_location_width"
+                        android:layout_height="@dimen/chat_item_location_height"
+                        android:cropToPadding="true"
+                        android:scaleType="fitXY"
+                        android:src="@drawable/intro_1" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/chat_item_text_view_message"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:background="@drawable/main_contrast_transparent_bubble"
+                        android:padding="@dimen/half_padding"
+                        android:text="@string/chat_location_cell_info_text"
+                        android:textColor="@color/text_color"
+                        android:textSize="13sp" />
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/chat_item_text_view_date"
+            style="@style/style_chat_item_info_left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:maxLines="1"
+            android:textSize="13sp"
+            tools:text="16:23" />
+
+    </LinearLayout>
+</LinearLayout>

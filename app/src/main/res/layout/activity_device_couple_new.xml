@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+
+    <include layout="@layout/toolbar_default" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/device_couple_new_timer_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/insecure"
+            android:gravity="center_horizontal"
+            android:lineSpacingExtra="4sp"
+            android:paddingTop="@dimen/layout_padding_top_bottom"
+            android:paddingBottom="@dimen/layout_padding_top_bottom"
+            android:text="@string/device_couple_new_timer_text"
+            android:textSize="15sp"
+            app:styledBackground="insecure"
+            app:styledTextColor="insecureContrast" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/layout_padding_left_right"
+                android:layout_marginEnd="@dimen/layout_padding_left_right"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/layout_padding_left_right"
+                    android:lineSpacingExtra="4sp"
+                    android:text="@string/device_couple_new_desc_text"
+                    android:textSize="15sp"
+                    app:styledTextColor="mainContrast80" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/device_couple_new_qr_img"
+                    android:layout_width="225dp"
+                    android:layout_height="225dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="32dp"
+                    android:contentDescription="@string/device_request_tan_scan_code"
+                    android:scaleType="centerInside" />
+
+
+            </LinearLayout>
+        </ScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="@dimen/activity_vertical_margin"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/device_couple_new_tan_1_tv"
+                    android:layout_width="109dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:letterSpacing="0.02"
+                    android:lineSpacingExtra="26sp"
+                    android:textSize="34sp"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/device_couple_new_tan_2_tv"
+                    android:layout_width="109dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:letterSpacing="0.02"
+                    android:lineSpacingExtra="26sp"
+                    android:textSize="34sp"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/device_couple_new_tan_3_tv"
+                    android:layout_width="109dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:letterSpacing="0.02"
+                    android:lineSpacingExtra="26sp"
+                    android:textSize="34sp"
+                    app:styledTextColor="mainContrast" />
+
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/device_couple_new_cancel_btn"
+                style="@style/BorderlessColoredButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="handleCancelClick"
+                android:text="@string/std_cancel"
+                app:styledButtonType="borderless"
+                app:styledTextColor="action" />
+
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

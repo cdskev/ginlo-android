@@ -1,0 +1,379 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_chat_room_info"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    app:styledBackground="main"
+
+    tools:context=".ChatRoomInfoActivity">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <View style="@style/Divider" />
+
+    <RelativeLayout
+        android:id="@+id/main_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ScrollView
+            android:id="@+id/main_scrollview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <View
+                    android:id="@+id/trust_state_divider"
+                    style="@style/Divider3dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <RelativeLayout
+                        android:id="@+id/image_container"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/activity_vertical_margin"
+                        android:layout_marginBottom="@dimen/activity_vertical_margin"
+                        android:onClick="handleChoosePictureClick">
+
+                        <eu.ginlo_apps.ginlo.view.RoundedImageView
+                            android:id="@+id/chat_room_info_mask_image_view_group_image"
+                            android:layout_width="150dp"
+                            android:layout_height="150dp"
+                            android:contentDescription="@string/content_description_groupinfo_image"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/gfx_group_placeholder" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/chat_room_info_image_view_image_overlay"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentBottom="true"
+                            android:layout_centerHorizontal="true"
+                            android:paddingBottom="8dp"
+                            android:src="@drawable/icon_add_a_photo"
+                            android:visibility="gone" />
+
+                    </RelativeLayout>
+                </LinearLayout>
+
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/chatroom_info_topic_label"
+                    style="@style/FontF1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:text="@string/chats_group_label_topic"
+                    app:styledTextColor="mainContrast80" />
+
+                <LinearLayout
+                    android:id="@+id/profile_linear_layout_status_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:orientation="horizontal">
+
+                    <androidx.emoji.widget.EmojiAppCompatEditText
+                        android:id="@+id/chat_room_info_edit_text_room_name"
+                        style="@style/EditTextStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:hint="@string/chat_group_topicInputPlaceholder"
+                        android:imeOptions="actionDone"
+                        android:maxLength="@integer/profile_and_group_name_max_length"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        app:styledTextColor="mainContrast"
+                        app:styledTextColorHint="mainContrast50"/>
+
+
+                    <CheckBox
+                        android:id="@+id/chat_room_info_check_box_add_emoji_nickname"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="0"
+                        android:baselineAlignBottom="true"
+                        android:button="@drawable/button_emoji_gray_toggle"
+                        android:contentDescription="@string/content_description_checkbox_emojicon" />
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:id="@+id/chat_room_info_announcement_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="onAnnouncementGroupClicked"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/activity_horizontal_margin"
+                    android:paddingTop="@dimen/activity_vertical_margin"
+                    android:paddingEnd="@dimen/activity_horizontal_margin"
+                    android:paddingBottom="@dimen/activity_vertical_margin">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/Font16sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/chat_announcement_group_title"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/chat_room_info_announcement_group_status"
+                        style="@style/Font16sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="@string/chat_announcement_group_off"
+                        app:styledTextColor="mainContrast" />
+
+
+                </RelativeLayout>
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/chat_room_info_text_view_member_count"
+                    style="@style/FontF1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/chat_group_label_membersCount"
+                    app:styledTextColor="mainContrast80" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/chat_room_info_linear_layout_add_button_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="0dp"
+                        android:layout_marginBottom="0dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:onClick="handleAddMemberClick"
+                        android:orientation="vertical">
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/chat_room_info_linear_layout_add_button_text_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawablePadding="8dp"
+                            android:gravity="center_vertical"
+                            android:paddingStart="@dimen/activity_horizontal_margin"
+                            android:paddingTop="@dimen/activity_vertical_margin"
+                            android:paddingBottom="@dimen/activity_vertical_margin"
+                            android:text="@string/chat_group_label_addMember"
+                            android:textColor="@color/action"
+                            android:textSize="17sp"
+                            android:textStyle="bold"
+                            app:styledTextColor="action" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/chat_room_info_linear_layout_remove_button_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="0dp"
+                        android:layout_marginBottom="0dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:onClick="handleRemoveMemberClick"
+                        android:orientation="vertical">
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/chat_room_info_linear_layout_remove_button_text_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawablePadding="8dp"
+                            android:gravity="center_vertical"
+                            android:paddingStart="@dimen/activity_horizontal_margin"
+                            android:paddingTop="@dimen/activity_vertical_margin"
+                            android:paddingBottom="@dimen/activity_vertical_margin"
+                            android:text="@string/chat_group_remove_member"
+                            android:textColor="@color/insecure"
+                            android:textSize="17sp"
+                            android:textStyle="bold"
+                            app:styledTextColor="insecure" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/chat_room_info_linear_layout_list_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:id="@+id/chat_room_info_linear_layout_list_item_container"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/chat_room_info_text_view_admin"
+                    style="@style/FontF1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin"
+                    android:layout_marginTop="@dimen/activity_vertical_margin"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/chat_group_label_admin"
+                    app:styledTextColor="mainContrast80" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/chat_room_info_linear_layout_admin_list_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:id="@+id/chat_room_info_linear_layout_admin_list_item_container"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/chat_room_info_linear_layout_add_admin_button_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="0dp"
+                        android:layout_marginBottom="0dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:onClick="handleAddAdminClick"
+                        android:orientation="vertical">
+
+                        <androidx.appcompat.widget.AppCompatTextView
+                            android:id="@+id/chat_room_info_linear_layout_add_admin_button_text_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:drawablePadding="8dp"
+                            android:gravity="center_vertical"
+                            android:paddingStart="@dimen/activity_horizontal_margin"
+                            android:paddingTop="@dimen/activity_vertical_margin"
+                            android:paddingBottom="@dimen/activity_vertical_margin"
+                            android:text="@string/chat_group_label_addAdmin"
+                            android:textColor="@color/action"
+                            android:textSize="17sp"
+                            android:textStyle="bold"
+                            app:styledTextColor="action" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:id="@+id/chat_room_info_relativeLayout_silent_till"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="onMuteClicked"
+                    android:orientation="horizontal"
+                    android:paddingStart="@dimen/activity_horizontal_margin"
+                    android:paddingTop="@dimen/activity_vertical_margin"
+                    android:paddingEnd="@dimen/activity_horizontal_margin"
+                    android:paddingBottom="@dimen/activity_vertical_margin">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/Font16sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/chat_mute_title"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/chat_room_info_silent_till_textview"
+                        style="@style/Font16sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:drawableRight="@drawable/ic_keyboard_arrow_right_black_24dp"
+                        android:text="@string/chat_mute_off"
+                        app:styledIconColor="mainContrast80"
+                        app:styledTextColor="mainContrast50" />
+
+
+                </RelativeLayout>
+
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/chat_room_info_button_remove"
+                    style="@style/BorderlessColoredButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:onClick="handleRemoveClick"
+                    android:text="@string/chat_group_button_leave"
+                    app:styledTextColor="insecure" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/chat_room_info_button_clear"
+                    style="@style/BorderlessColoredButtonStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:onClick="handleClearChatClick"
+                    android:text="@string/chats_clear_chat"
+                    app:styledTextColor="insecure" />
+
+
+            </LinearLayout>
+        </ScrollView>
+
+        <RelativeLayout
+            android:id="@+id/disable_view_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/disabled_overlay_background_color"
+            android:clickable="true"
+            android:focusable="true"
+            android:onClick="handleCloseBottomSheetClick"
+            android:visibility="gone"
+            tools:ignore="OnClick" />
+
+
+        <LinearLayout
+            android:id="@+id/chat_room_info_linear_layout_fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical" />
+
+
+        <FrameLayout
+            android:id="@+id/chat_room_info_frame_layout_emoji_container"
+            android:layout_width="wrap_content"
+            android:layout_height="250dp"
+            android:layout_alignParentBottom="true" />
+
+    </RelativeLayout>
+
+</LinearLayout>

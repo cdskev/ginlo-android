@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<restrictions xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Passwortabfrage beim Start erzwingen -->
+    <restriction
+        android:key="disableNoPwLogin"
+        android:title="@string/mdm_disableNoPwLogin_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableNoPwLogin_description"
+        android:defaultValue="true" />
+
+    <!-- Kamera deaktivieren -->
+    <restriction
+        android:key="disableCamera"
+        android:title="@string/mdm_disableCamera_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableCamera_description"
+        android:defaultValue="false" />
+
+    <!-- die Copy-Paste Funktion unterbinden -->
+    <restriction
+        android:key="disableCopyPaste"
+        android:title="@string/mdm_disableCopyPaste_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableCopyPaste_description"
+        android:defaultValue="false" />
+
+    <!-- deaktivieren der Geodaten -->
+    <restriction
+        android:key="disableLocation"
+        android:title="@string/mdm_disableLocation_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableLocation_description"
+        android:defaultValue="false" />
+
+    <!-- Mikrofon deaktivieren -->
+    <restriction
+        android:key="disableMicrophone"
+        android:title="@string/mdm_disableMicrophone_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableMicrophone_description"
+        android:defaultValue="false" />
+
+    <!-- Das Empfangen und senden von Kontakten unterbinden -->
+    <restriction
+        android:key="disableSendVCard"
+        android:title="@string/mdm_disableSendVCard_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableSendVCard_description"
+        android:defaultValue="false" />
+
+    <!-- Inhalte von Nachrichten nicht in der Push-Vorschau anzeigen -->
+    <restriction
+        android:key="disablePushPreview"
+        android:title="@string/mdm_disablePushPreview_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disablePushPreview_description"
+        android:defaultValue="false" />
+
+    <!-- Passwortabfrage nach X Minuten -->
+    <restriction
+        android:key="simsLockApplicationDelay"
+        android:title="@string/mdm_simsLockApplicationDelay_title"
+        android:restrictionType="integer"
+        android:description="@string/mdm_simsLockApplicationDelay_description"
+        android:defaultValue="0" />
+
+    <!-- Passwortabfrage beim Start erzwingen -->
+    <restriction
+        android:key="forceComplexPin"
+        android:title="@string/mdm_forceComplexPin_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_forceComplexPin_description"
+        android:defaultValue="true" />
+
+    <!-- nzahl Versuche Passworteingabe -->
+    <restriction
+        android:key="simsPasswordTries"
+        android:title="@string/mdm_simsPasswordTries_title"
+        android:restrictionType="choice"
+        android:description="@string/mdm_simsPasswordTries_description"
+        android:entries="@array/mdm_simsPasswordTries_entry_values"
+        android:entryValues="@array/mdm_simsPasswordTries_entry_values"
+        />
+
+    <!-- Medien sichern -->
+    <restriction
+        android:key="disableSaveToCameraRoll"
+        android:title="@string/mdm_disableSaveToCameraRoll_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableSaveToCameraRoll_description"
+        android:defaultValue="true" />
+
+    <!-- Medien senden -->
+    <restriction
+        android:key="disableSendMedia"
+        android:title="@string/mdm_disableSendMedia_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableSendMedia_description"
+        android:defaultValue="false" />
+
+    <!-- Medien senden -->
+    <restriction
+        android:key="disableOpenIn"
+        android:title="@string/mdm_disableOpenIn_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableOpenIn_description"
+        android:defaultValue="false" />
+
+    <!-- Passwort mindest Laenge -->
+    <restriction
+        android:key="passwordMinLength"
+        android:title="@string/mdm_passwordMinLength_title"
+        android:restrictionType="integer"
+        android:description="@string/mdm_passwordMinLength_description"
+        android:defaultValue="5" />
+
+    <!-- Anzahl der Spezialzeichen im Passwort -->
+    <restriction
+        android:key="passwordMinSpecialChar"
+        android:title="@string/mdm_passwordMinSpecialChar_title"
+        android:restrictionType="integer"
+        android:description="@string/mdm_passwordMinSpecialChar_description"
+        android:defaultValue="1" />
+
+    <!--  Anzahl der Zahlen im Passwort -->
+    <restriction
+        android:key="passwordMinDigit"
+        android:title="@string/mdm_passwordMinDigit_title"
+        android:restrictionType="integer"
+        android:description="@string/mdm_passwordMinDigit_description"
+        android:defaultValue="1" />
+
+    <!--  Anzahl der Kleinbuchstaben im Passwort -->
+    <restriction
+        android:key="passwordMinLowercase"
+        android:title="@string/mdm_passwordMinLowercase_title"
+        android:restrictionType="integer"
+        android:description="@string/mdm_passwordMinLowercase_description"
+        android:defaultValue="1" />
+
+    <!--  Anzahl der Großbuchstaben im Passwort -->
+    <restriction
+        android:key="passwordMinUppercase"
+        android:title="@string/mdm_passwordMinUppercase_title"
+        android:restrictionType="integer"
+        android:description="@string/mdm_passwordMinUppercase_description"
+        android:defaultValue="1" />
+
+    <!--  Anzahl der Passwortklassen -->
+    <restriction
+        android:key="passwordMinClasses"
+        android:title="@string/mdm_passwordMinClasses_title"
+        android:restrictionType="integer"
+        android:description="@string/mdm_passwordMinClasses_description"
+        android:defaultValue="1" />
+
+    <!--  Gültigkeit des Passworts in Tagen -->
+    <restriction
+        android:key="passwordMaxDuration"
+        android:title="@string/mdm_passwordMaxDuration_title"
+        android:restrictionType="integer"
+        android:description="@string/mdm_passwordMaxDuration_description"
+        android:defaultValue="365" />
+
+    <!--  Wiederverwendung alter Passwörter -->
+    <restriction
+        android:key="passwordReuseEntries"
+        android:title="@string/mdm_passwordReuseEntries_title"
+        android:restrictionType="integer"
+        android:description="@string/mdm_passwordReuseEntries_description"
+        android:defaultValue="5" />
+
+    <!-- Export Chat in Textdatei -->
+    <restriction
+        android:key="disableExportChat"
+        android:title="@string/mdm_disableExportChat_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableExportChat_description"
+        android:defaultValue="true" />
+
+    <!-- Passwort-Vergessen funktion deaktivieren -->
+    <restriction
+        android:key="disableRecoveryCode"
+        android:title="@string/mdm_disableRecoveryCode_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableRecoveryCode_description"
+        android:defaultValue="true" />
+
+    <!-- Unterbinden der Backup-Funktion -->
+    <restriction
+        android:key="disableBackup"
+        android:title="@string/mdm_disableBackup_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableBackup_description"
+        android:defaultValue="true" />
+
+    <!-- vorausgefüllter Vorname -->
+    <restriction
+        android:key="firstName"
+        android:title="@string/mdm_firstName_title"
+        android:restrictionType="string"
+        android:description="@string/mdm_firstName_description"
+        android:defaultValue="" />
+
+    <!-- vorausgefüllter Nachname -->
+    <restriction
+        android:key="lastName"
+        android:title="@string/mdm_lastName_title"
+        android:restrictionType="string"
+        android:description="@string/mdm_lastName_description"
+        android:defaultValue="" />
+
+
+    <!-- vorausgefüllte E-Mail-Adresse -->
+    <restriction
+        android:key="emailAddress"
+        android:title="@string/mdm_emailAddress_title"
+        android:restrictionType="string"
+        android:description="@string/mdm_emailAddress_description"
+        android:defaultValue="" />
+
+    <!-- loginCode -->
+    <restriction
+        android:key="loginCode"
+        android:title="@string/mdm_loginCode_title"
+        android:restrictionType="string"
+        android:description="@string/mdm_loginCode_description"
+        android:defaultValue="" />
+
+
+    <!-- Biometrisches Login -->
+    <restriction
+        android:key="disableFaceAndTouchID"
+        android:title="@string/mdm_disableBiometricLogin_title"
+        android:restrictionType="bool"
+        android:description="@string/mdm_disableBiometricLogin_description"
+        android:defaultValue="true" />
+
+</restrictions>

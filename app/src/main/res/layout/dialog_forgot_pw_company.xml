@@ -1,0 +1,111 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    app:styledBackground="main">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/layout_padding_left_right"
+            android:paddingEnd="@dimen/layout_padding_left_right">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/dialog_forgot_pw_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="@string/settings_password_forgot_pw"
+                android:textSize="28sp"
+                app:styledTextColor="mainContrast" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/dialog_forgot_pw_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="@string/settings_password_forgot_pw_message"
+                android:textSize="15sp"
+                app:styledTextColor="mainContrast80" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/dialog_forgot_pw_top_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="32dp"
+                android:src="@drawable/gfx_admin"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/dialog_forgot_pw_description2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+
+                android:text="@string/settings_password_forgot_pw_message"
+                android:visibility="gone"
+                app:styledTextColor="mainContrastColor50" />
+
+            <LinearLayout
+                android:id="@+id/dialog_forgot_pw_warning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:orientation="horizontal">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:src="@drawable/ico_alert_content" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/FontP4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:text="@string/settings_password_forgot_pw_warning" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/forgot_pw_cancel_button"
+            style="@style/BorderlessColoredButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="handleCancelResetClick"
+            android:text="@string/settings_password_forgot_pw_cancel_reset"
+            android:textAllCaps="false"
+            app:styledButtonType="borderless"
+            app:styledTextColor="action"
+
+            />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/forgot_pw_reset_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="handleConfirmResetClick"
+            android:text="@string/settings_password_forgot_pw_confirm_reset"
+            android:textAllCaps="false"
+            app:styledBackground="action"
+            app:styledButtonType="normal"
+            app:styledTextColor="actionContrast" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:minHeight="36dp"
+    android:paddingStart="@dimen/layout_padding_left_right"
+    android:paddingEnd="@dimen/layout_padding_left_right">
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/channel_toggle_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_gravity="center_vertical"
+        android:background="@color/transparent"
+        android:minLines="1"
+        android:textAppearance="@style/SwitchStyleText"
+        android:theme="@style/SwitchStyle" />
+</RelativeLayout>
