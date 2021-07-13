@@ -220,58 +220,6 @@
 
             </LinearLayout>
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                style="@style/Divider"
-                android:layout_marginStart="@dimen/preferences_divider_margin_start"
-                app:styledBackground="mainContrast50" />
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/preferences_item_height"
-                android:background="?attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:onClick="handleHelpClick">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:id="@+id/preferences_overview_icon_help"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/preferences_image_margin_start"
-                    android:src="@drawable/ic_help_outline_black_24dp"
-                    app:styledIconColor="mainContrast" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingEnd="16dp">
-
-                    <androidx.appcompat.widget.AppCompatTextView
-                        android:id="@+id/preferences_overview_text_help"
-                        style="@style/FontSettingsElement"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/preferences_text_margin_start"
-                        android:layout_weight="1"
-                        android:text="@string/settings_help_title"
-                        app:styledTextColor="mainContrast" />
-
-                </LinearLayout>
-            </LinearLayout>
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/information_version"
-                style="@style/CaptionTextViewStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingTop="8dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="8dp"
-                android:text="@string/settings_version"
-                app:styledTextColor="mainContrast" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

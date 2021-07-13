@@ -13,6 +13,7 @@ import android.widget.CompoundButton
 import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import eu.ginlo_apps.ginlo.BaseActivity
 import eu.ginlo_apps.ginlo.ChatBackgroundActivity
 import eu.ginlo_apps.ginlo.ConfigureBackupActivity
@@ -25,13 +26,7 @@ import eu.ginlo_apps.ginlo.controller.contracts.BackupUploadListener
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.router.Router
-import eu.ginlo_apps.ginlo.util.ColorUtil
-import eu.ginlo_apps.ginlo.util.DateUtil
-import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
-import eu.ginlo_apps.ginlo.util.FileUtil
-import eu.ginlo_apps.ginlo.util.PermissionUtil
-import eu.ginlo_apps.ginlo.util.StringUtil
-import eu.ginlo_apps.ginlo.util.SystemUtil
+import eu.ginlo_apps.ginlo.util.*
 import eu.ginlo_apps.ginlo.view.CameraView
 import kotlinx.android.synthetic.main.activity_preferences_chats.chat_settings_image_view_background_thumbnail
 import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_chats_switch_send_sound
@@ -178,9 +173,9 @@ class PreferencesChatsActivity : PreferencesBaseActivity(), BackupUploadListener
             val pictureUri = data?.data
 
             if (pictureUri != null) {
-                val fileUtil = FileUtil(this)
+                val mimeUtil = MimeUtil(this)
 
-                if (fileUtil.allowedImageMimeTypes?.contains(fileUtil.getMimeType(pictureUri).orEmpty().toLowerCase()) == false) {
+                if (mimeUtil.allowedImageMimeTypes?.contains(mimeUtil.getMimeType(pictureUri).orEmpty().toLowerCase()) == false) {
                     Toast.makeText(
                         this@PreferencesChatsActivity,
                         getString(R.string.chats_addAttachment_wrong_format_or_error),
@@ -388,7 +383,8 @@ class PreferencesChatsActivity : PreferencesBaseActivity(), BackupUploadListener
 
                 preferences_chats_textview_backup_hint.text = text
             }
-            preferences_chats_textview_backup_hint.setTextColor(resources.getColor(R.color.kColorSecLevelHigh))
+            //preferences_chats_textview_backup_hint.setTextColor(resources.getColor(R.color.kColorSecLevelHigh))
+            preferences_chats_textview_backup_hint.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelHigh))
         } else {
             preferences_chats_textview_backup_hint.text =
                 getString(R.string.settings_chats_create_backup)
