@@ -3,7 +3,6 @@
 package eu.ginlo_apps.ginlo.util;
 
 import android.content.ClipData;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -11,7 +10,6 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
-import android.webkit.MimeTypeMap;
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 import eu.ginlo_apps.ginlo.BuildConfig;
@@ -19,9 +17,6 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.param.SendActionContainer;
-import eu.ginlo_apps.ginlo.util.StreamUtil;
-import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,32 +31,13 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Locale;
 import java.util.UUID;
+import java.util.zip.GZIPOutputStream;
 
 import static eu.ginlo_apps.ginlo.model.constant.NumberConstants.INT_1024;
 
 public class FileUtil {
-    public static final int MIMETYPE_NOT_FOUND = -1;
-    private static final String MIME_TYPE_PDF = "application/pdf";
-    private static final String MIME_TYPE_MSPOWERPOINT = "application/mspowerpoint";
-    private static final String MIME_TYPE_MSPOWERPOINT2 = "application/vnd.ms-powerpoint";
-    private static final String MIME_TYPE_MSPOWERPOINT_MACRO = "application/vnd.ms-powerpoint.presentation.macroenabled.12";
-    private static final String MIME_TYPE_OOPOWERPOINT = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-    private static final String MIME_TYPE_APPLE_KEYNOTE = "application/x-iwork-keynote-sffkey";
-    private static final String MIME_TYPE_MSWORD = "application/msword";
-    private static final String MIME_TYPE_OOWORD = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-    private static final String MIME_TYPE_APPLE_PAGES = "application/x-iwork-pages-sffpages";
-    private static final String MIME_TYPE_ZIP = "application/zip";
-    private static final String MIME_TYPE_GZIP = "application/gzipp";
-    private static final String MIME_TYPE_7ZIP = "application/x-7z-compressed";
-    private static final String MIME_TYPE_RAR = "application/x-rar-compressed";
-    private static final String MIME_TYPE_MSEXCEL = "application/msexcel";
-    private static final String MIME_TYPE_VND_MSEXCEL = "application/vnd.ms-excel";
-    private static final String MIME_TYPE_OOEXCEL = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-    private static final String MIME_TYPE_CSV = "text/csv";
-    private static final String MIME_TYPE_CSV2 = "text/comma-separated-values";
-    private static final String MIME_TYPE_APPLE_NUMBERS = "application/x-iwork-numbers-sffnumbers";
+    private final static String TAG = FileUtil.class.getSimpleName();
     private static final String BACKUP_ROOT_DIR = "Backup";
     private static final String TMP_FILES_FOLDER = "tmp_files";
     private static final String META_DIR = "meta_files";
@@ -69,12 +45,13 @@ public class FileUtil {
     private static final String FILE = "file";
 
     private final Context context;
-
     private final String mediaDir;
-
     private final File mInternalMediaDir;
-
     private final File mTmpFilesDir;
+    private final MimeUtil mMimeUtil;
+
+    //public static long MAX_RAM_PROCESSING_SIZE = 262144; // 256 KBytes
+    public static long MAX_RAM_PROCESSING_SIZE = 5242880; // 5 MBytes
 
     private File mMetaFilesDir;
 
@@ -99,105 +76,78 @@ public class FileUtil {
         if (!mTmpFilesDir.isDirectory()) {
             mTmpFilesDir.mkdirs();
         }
+
+        mMimeUtil = new MimeUtil(context);
     }
 
-    public static int getIconForMimeType(String mimeType) {
-        int resID;
-
-        switch (mimeType) {
-            case FileUtil.MIME_TYPE_PDF:
-                resID = R.drawable.data_pdf;
-                break;
-
-            case FileUtil.MIME_TYPE_MSPOWERPOINT:
-            case FileUtil.MIME_TYPE_MSPOWERPOINT2:
-            case FileUtil.MIME_TYPE_MSPOWERPOINT_MACRO:
-            case FileUtil.MIME_TYPE_OOPOWERPOINT:
-            case FileUtil.MIME_TYPE_APPLE_KEYNOTE:
-                resID = R.drawable.data_praesent;
-                break;
-
-            case FileUtil.MIME_TYPE_MSWORD:
-            case FileUtil.MIME_TYPE_OOWORD:
-            case FileUtil.MIME_TYPE_APPLE_PAGES:
-                resID = R.drawable.data_doc;
-                break;
-
-            case FileUtil.MIME_TYPE_MSEXCEL:
-            case FileUtil.MIME_TYPE_VND_MSEXCEL:
-            case FileUtil.MIME_TYPE_OOEXCEL:
-            case FileUtil.MIME_TYPE_CSV:
-            case FileUtil.MIME_TYPE_CSV2:
-            case FileUtil.MIME_TYPE_APPLE_NUMBERS:
-                resID = R.drawable.data_xls;
-                break;
-
-            case FileUtil.MIME_TYPE_ZIP:
-            case FileUtil.MIME_TYPE_GZIP:
-            case FileUtil.MIME_TYPE_7ZIP:
-            case FileUtil.MIME_TYPE_RAR:
-                resID = R.drawable.data_zip;
-                break;
-
-            default:
-                resID = MIMETYPE_NOT_FOUND;
+    /**
+     * Simple helper I to delete a (mostly temp) file.
+     * @param fileToDelete
+     */
+    public static void deleteFile(final File fileToDelete) {
+        if(fileToDelete != null) {
+            if(!fileToDelete.delete()) {
+                LogUtil.w(TAG, "Failed to delete " + fileToDelete.getPath() + "!");
+            }
         }
-        return resID;
     }
 
-    public static void saveToFile(File file,
-                                  byte[] content) {
+    /**
+     * Simple helper II to delete a (mostly temp) file.
+     * @param filepathToDelete
+     */
+    public static void deleteFile(final String filepathToDelete) {
+
+        if(StringUtil.isNullOrEmpty(filepathToDelete)) {
+            return;
+        }
+        deleteFile(new File(filepathToDelete));
+    }
+
+    /**
+     * Gzip a file's contents and write to same directory as "file.gzip".
+     * Silently overwrite existing "file.gzip".
+     * @param fileToGzip Name of file to gzip
+     * @return File gzipFile
+     */
+    public static File gzipFile(@NonNull final File fileToGzip) {
+        File gzipFile = new File(fileToGzip.getPath() + ".gzip");
+        if(gzipFile.exists()) {
+            gzipFile.delete();
+        }
+
+        try {
+            FileInputStream fis = new FileInputStream(fileToGzip);
+            FileOutputStream fos = new FileOutputStream(gzipFile);
+            GZIPOutputStream gzip = new GZIPOutputStream(fos);
+
+            int read = 0;
+            byte[] data = new byte[StreamUtil.STREAM_BUFFER_SIZE];
+            while ((read = fis.read(data, 0, StreamUtil.STREAM_BUFFER_SIZE)) != -1) {
+                gzip.write(data, 0, read);
+            }
+            gzip.close();
+            fos.close();
+            fis.close();
+        } catch (IOException e) {
+            LogUtil.e(TAG, e.getMessage(), e);
+            return null;
+        }
+
+        return gzipFile;
+    }
+
+    public static void saveToFile(File file, byte[] content) {
         OutputStream outputStream = null;
 
         try {
             outputStream = new BufferedOutputStream(new FileOutputStream(file));
             outputStream.write(content);
         } catch (IOException e) {
-            LogUtil.e(FileUtil.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         } finally {
             StreamUtil.closeStream(outputStream);
         }
-    }
-
-    public static String getMimeTypeFromPath(String path) {
-        if (path == null) {
-            return null;
-        }
-        String type = null;
-        String extension = MimeTypeMap.getFileExtensionFromUrl(path.replace(" ", ""));
-
-        if (StringUtil.isNullOrEmpty(extension)) {
-            int dotIndex = path.lastIndexOf('.');
-
-            if (dotIndex > -1) {
-                extension = path.substring(dotIndex + 1);
-            }
-        }
-
-        if (extension != null) {
-            // apple typen werden nicht erkannt...
-            // .key wird als pgp-datei erkannt...
-            switch (extension.toLowerCase(Locale.US)) {
-                case "keynote":
-                case "key":
-                    return MIME_TYPE_APPLE_KEYNOTE;
-                case "numbers":
-                    return MIME_TYPE_APPLE_NUMBERS;
-                case "pages":
-                    return MIME_TYPE_APPLE_PAGES;
-                case "odt":
-                    return MIME_TYPE_OOWORD;
-                case "ods":
-                    return MIME_TYPE_OOEXCEL;
-                case "odp":
-                    return MIME_TYPE_OOPOWERPOINT;
-                default:
-                    break;
-            }
-            MimeTypeMap mime = MimeTypeMap.getSingleton();
-            type = mime.getMimeTypeFromExtension(extension.toLowerCase(Locale.US));
-        }
-        return type;
     }
 
     public static String checkPath(String path) {
@@ -326,7 +276,7 @@ public class FileUtil {
             StreamUtil.copyStreams(in, out);
             return Uri.fromFile(dest);
         } catch (Exception e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
             throw new LocalizedException(LocalizedException.FILE_NOT_FOUND, "copyFileToInternalDir", e);
         } finally {
             StreamUtil.closeStream(in);
@@ -360,7 +310,7 @@ public class FileUtil {
         }
 
         if (!fileToDelete.delete()) {
-            LogUtil.w(this.getClass().getSimpleName(), "Delete File fails: " + fileToDelete.getName());
+            LogUtil.w(TAG, "Delete File fails: " + fileToDelete.getName());
         }
     }
 
@@ -430,7 +380,7 @@ public class FileUtil {
             StreamUtil.copyStreams(in, out);
             return true;
         } catch (IOException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         } finally {
             StreamUtil.closeStream(in);
             StreamUtil.closeStream(out);
@@ -444,97 +394,6 @@ public class FileUtil {
         context.sendBroadcast(scanFileIntent);
     }
 
-    private String getMimeTypeFromURI(Uri path) {
-        ContentResolver cR = context.getContentResolver();
-        return cR.getType(path);
-    }
-
-    public String getMimeType(Uri contentUri) {
-        String type;
-        if (contentUri == null) {
-            return null;
-        } else if (CONTENT.equalsIgnoreCase(contentUri.getScheme())) {
-            type = getMimeTypeFromURI(contentUri);
-        }
-        // File
-        else if (FILE.equalsIgnoreCase(contentUri.getScheme())) {
-            type = getMimeTypeFromPath(contentUri.getPath());
-        } else {
-            return null;
-        }
-
-        if (type == null) {
-            String path = getFileName(contentUri);
-
-            type = getMimeTypeFromPath(path);
-        }
-
-        return type;
-    }
-
-    public String getExtensionForUri(final Uri uri) {
-        String extension = null;
-        String mimetype = getMimeType(uri);
-
-        if (!StringUtil.isNullOrEmpty(mimetype)) {
-            MimeTypeMap mime = MimeTypeMap.getSingleton();
-
-            extension = mime.getExtensionFromMimeType(mimetype);
-        }
-
-        return extension;
-    }
-
-    public boolean checkImageUriMimetype(Context context,
-                                         Uri contentUri) {
-        if ((context == null) || (contentUri == null)) {
-            return false;
-        }
-
-        String mimeType = getMimeType(contentUri);
-        ArrayList<String> allowedMimeTypesPhoto = getAllowedImageMimeTypes();
-
-        return StringUtil.isInList(mimeType, allowedMimeTypesPhoto, true);
-    }
-
-    private boolean checkUriMimeType(Context context,
-                                     Uri contentUri,
-                                     ArrayList<String> allowedMimeTypes) {
-        if ((context == null) || (contentUri == null)) {
-            return false;
-        }
-
-        String mimeType = getMimeType(contentUri);
-
-        return StringUtil.isInList(mimeType, allowedMimeTypes, true);
-    }
-
-    public ArrayList<String> getAllowedImageMimeTypes() {
-        ArrayList<String> l = new ArrayList<>();
-
-        l.add("image/jpeg");
-        l.add("jpeg");
-        l.add("image/jpg");
-        l.add("jpg");
-        l.add("image/png");
-        l.add("png");
-        l.add("image/bmp");
-        l.add("bmp");
-        return l;
-    }
-
-    private ArrayList<String> getAllowedVideoMimeTypes() {
-        ArrayList<String> l = new ArrayList<>();
-
-        l.add("video/mpeg");
-        l.add("mpeg");
-        l.add("video/mp4");
-        l.add("mp4");
-        l.add("video/3gpp");
-        l.add("3gpp");
-        return l;
-    }
-
     public UrisResultContainer getUrisFromVideoActionIntent(Intent intent) {
         UrisResultContainer result = new UrisResultContainer();
         ArrayList<String> uris = new ArrayList<>();
@@ -543,7 +402,7 @@ public class FileUtil {
 
         if ((intentUris != null) && (intentUris.size() > 0)) {
             for (Uri uri : intentUris) {
-                if (!checkUriMimeType(context, uri, getAllowedVideoMimeTypes())) {
+                if (!mMimeUtil.checkUriMimeType(context, uri, mMimeUtil.getAllowedVideoMimeTypes())) {
                     result.mHasImportError = true;
                     continue;
                 }
@@ -552,7 +411,7 @@ public class FileUtil {
                 try {
                     fileSize = getFileSize(uri);
                 } catch (LocalizedException e) {
-                    LogUtil.e(this.getClass().getSimpleName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                     continue;
                 }
 
@@ -562,6 +421,7 @@ public class FileUtil {
                 }
 
                 uris.add(uri.toString());
+                LogUtil.d(TAG, "getUrisFromVideoActionIntent(): Add " + uri.toString());
             }
         }
 
@@ -578,11 +438,12 @@ public class FileUtil {
 
         if ((intentUris != null) && (intentUris.size() > 0)) {
             for (Uri uri : intentUris) {
-                if (!checkImageUriMimetype(context, uri)) {
+                if (!mMimeUtil.checkImageUriMimetype(context, uri)) {
                     result.mHasImportError = true;
                     continue;
                 }
                 imgUris.add(uri.toString());
+                LogUtil.d(TAG, "getUrisFromImageActionIntent(): Add " + uri.toString());
             }
         }
 
@@ -607,7 +468,7 @@ public class FileUtil {
         long fileSize = 0;
 
         if (uri == null) {
-            return -1;
+            throw new LocalizedException(LocalizedException.OBJECT_NULL);
         } else if (CONTENT.equalsIgnoreCase(uri.getScheme())) {
             fileSize = getSizeForUri(uri);
         } else if (FILE.equalsIgnoreCase(uri.getScheme())) {
@@ -644,7 +505,7 @@ public class FileUtil {
 
             return bytes;
         } catch (IOException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         } finally {
             StreamUtil.closeStream(in);
             StreamUtil.closeStream(bos);
@@ -732,7 +593,7 @@ public class FileUtil {
             } else if (type.startsWith("image/")) {
                 checkSendImages(intent, actionContainer);
             } else if (type.startsWith("video/")) {
-                checkVideo(intent, actionContainer);
+                checkSendVideo(intent, actionContainer);
             } else {
                 checkSendFile(intent, actionContainer);
             }
@@ -780,7 +641,7 @@ public class FileUtil {
                 Uri imageUri = uris.get(0);
                 if (imageUri != null) {
                     //pruefen ob es ein MIME type ist, denn wir als Bild nicht unterstuetzen
-                    if (!checkImageUriMimetype(context, imageUri)) {
+                    if (!mMimeUtil.checkImageUriMimetype(context, imageUri)) {
                         //dann als normales File verwenden
                         checkSendFile(intent, actionContainer);
                         return;
@@ -817,7 +678,7 @@ public class FileUtil {
         }
     }
 
-    private void checkVideo(Intent intent, SendActionContainer actionContainer)
+    private void checkSendVideo(Intent intent, SendActionContainer actionContainer)
             throws LocalizedException {
         ArrayList<Uri> uris = getUrisFromIntent(intent);
         Uri videoUri = null;
@@ -828,7 +689,7 @@ public class FileUtil {
 
         if (videoUri != null) {
             //pruefen ob es ein MIME type ist, denn wir als Video nicht unterstuetzen
-            if (!checkUriMimeType(context, videoUri, getAllowedVideoMimeTypes())) {
+            if (!mMimeUtil.checkUriMimeType(context, videoUri, mMimeUtil.getAllowedVideoMimeTypes())) {
                 //dann als normales File verwenden
                 checkSendFile(intent, actionContainer);
                 return;
@@ -870,7 +731,7 @@ public class FileUtil {
                 fileSize = getFileSize(fileUri);
             } catch (LocalizedException e) {
                 fileSize = 0;
-                LogUtil.e(this.getClass().getSimpleName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
 
             if (fileSize > context.getResources().getInteger(R.integer.attachment_file_max_size)) {
@@ -905,7 +766,7 @@ public class FileUtil {
             try {
                 returnValue = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
             } catch (Exception e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
         }
 
@@ -915,7 +776,7 @@ public class FileUtil {
             try {
                 uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
             } catch (Exception e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
 
             if (uri == null) {
@@ -1036,7 +897,7 @@ public class FileUtil {
 
             return true;
         } catch (Exception e) {
-            LogUtil.w(this.getClass().getSimpleName(), "saveObjectToFile()", e);
+            LogUtil.w(TAG, "saveObjectToFile()", e);
             return false;
         }
     }
