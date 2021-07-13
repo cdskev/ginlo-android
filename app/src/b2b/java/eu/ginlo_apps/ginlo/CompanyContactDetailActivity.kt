@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
+import androidx.core.content.ContextCompat
 import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity
 import eu.ginlo_apps.ginlo.controller.ChatImageController
 import eu.ginlo_apps.ginlo.controller.ContactController
@@ -45,7 +46,8 @@ class CompanyContactDetailActivity : BaseActivity() {
                 return
             }
 
-            trust_state_divider.setBackgroundColor(resources.getColor(R.color.kColorSecLevelHigh))
+            //trust_state_divider.setBackgroundColor(resources.getColor(R.color.kColorSecLevelHigh))
+            trust_state_divider.setBackgroundColor(ContextCompat.getColor(this, R.color.kColorSecLevelHigh))
 
             contactGuid = intent.getStringExtra(ContactDetailActivity.EXTRA_CONTACT_GUID)
 

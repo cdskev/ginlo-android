@@ -153,35 +153,26 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
     open fun getTabSelectedListener(): TabLayout.OnTabSelectedListener {
         return object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                if (tab != null && tab.icon != null) {
+                if (tab != null) {
                     val colorUtil = ColorUtil.getInstance()
-
-                    tab.icon!!.setColorFilter(
-                        colorUtil.getAppAccentColor(SimsMeApplication.getInstance()),
-                        PorterDuff.Mode.SRC_ATOP
-                    )
+                    ColorUtil.setColorFilter(tab.icon,
+                            colorUtil.getAppAccentColor(SimsMeApplication.getInstance()))
                 }
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {
-                if (tab != null && tab.icon != null) {
+                if (tab != null) {
                     val colorUtil = ColorUtil.getInstance()
-
-                    tab.icon!!.setColorFilter(
-                        colorUtil.getMainContrast80Color(SimsMeApplication.getInstance()),
-                        PorterDuff.Mode.SRC_ATOP
-                    )
+                    ColorUtil.setColorFilter(tab.icon,
+                            colorUtil.getMainContrast80Color(SimsMeApplication.getInstance()))
                 }
             }
 
             override fun onTabReselected(tab: TabLayout.Tab?) {
-                if (tab != null && tab.icon != null) {
+                if (tab != null) {
                     val colorUtil = ColorUtil.getInstance()
-
-                    tab.icon!!.setColorFilter(
-                        colorUtil.getAppAccentColor(SimsMeApplication.getInstance()),
-                        PorterDuff.Mode.SRC_ATOP
-                    )
+                    ColorUtil.setColorFilter(tab.icon,
+                            colorUtil.getAppAccentColor(SimsMeApplication.getInstance()))
                 }
             }
         }
@@ -288,7 +279,7 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
                 mMessageId = getIntent().getLongExtra(EXTRA_MESSAGE_ID, -1)
             }//<----------- Oeffnen In -----------
 
-            if (!mIsSendAction && (mMessageId == null || mMessageId == -1L)) {
+            if (!mIsSendAction && mMessageId == -1L) {
                 Toast.makeText(
                     this,
                     getString(R.string.chats_forward_message_error),
@@ -312,21 +303,19 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
 
         initializeTabLayout(pagerAdapter, colorUtil)
 
-        if (mChatOverviewController != null) {
-            //FIXME aussortieren
-            mChatOverviewController.setListRefreshedListener(null)
-            mChatOverviewController.addListener(this)
+        //FIXME aussortieren
+        mChatOverviewController.setListRefreshedListener(null)
+        mChatOverviewController.addListener(this)
 
-            if (mStartedInternally) {
-                mChatOverviewController.filterMessages()
+        if (mStartedInternally) {
+            mChatOverviewController.filterMessages()
+        } else {
+            if (mChatOverviewController.hasChatOverviewItems()) {
+                mForwardChatListSingleFragment.refresh()
+                mForwardChatListGroupFragment.refresh()
             } else {
-                if (mChatOverviewController.hasChatOverviewItems()) {
-                    mForwardChatListSingleFragment.refresh()
-                    mForwardChatListGroupFragment.refresh()
-                } else {
-                    mChatOverviewController.loadChatOverviewItems()
-                    showIdleDialog(-1)
-                }
+                mChatOverviewController.loadChatOverviewItems()
+                showIdleDialog(-1)
             }
         }
 
@@ -336,10 +325,10 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
         val selectedTabIndex = mTabLayout.selectedTabPosition
         if (selectedTabIndex > -1) {
             val tab = mTabLayout.getTabAt(selectedTabIndex)
-            tab?.icon?.setColorFilter(
-                colorUtil.getAppAccentColor(SimsMeApplication.getInstance()),
-                PorterDuff.Mode.SRC_ATOP
-            )
+            if(tab != null) {
+                ColorUtil.setColorFilter(tab.icon,
+                        colorUtil.getAppAccentColor(SimsMeApplication.getInstance()))
+            }
         }
     }
 
@@ -395,10 +384,8 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
     ) {
         tab.setIcon(resId)
         tab.tag = tag
-        tab.icon?.setColorFilter(
-            colorUtil.getMainContrast80Color(SimsMeApplication.getInstance()),
-            PorterDuff.Mode.SRC_ATOP
-        )
+        ColorUtil.setColorFilter(tab.icon,
+                colorUtil.getMainContrast80Color(SimsMeApplication.getInstance()))
     }
 
     override fun onClick(item: BaseChatOverviewItemVO) {
@@ -418,10 +405,8 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
                 return
 
             val lAdapter = currentFragment.contactsAdapter
-
-            val contact =
-                lAdapter!!.getItem(position - currentFragment.getListView().headerViewsCount)
-            if (contact != null && contact.accountGuid != null) {
+            val contact = lAdapter?.getItem(position - currentFragment.getListView().headerViewsCount)
+            if (contact?.accountGuid != null) {
                 startChat(contact)
             }
         } catch (e: LocalizedException) {

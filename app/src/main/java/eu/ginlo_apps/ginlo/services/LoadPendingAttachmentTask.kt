@@ -18,6 +18,7 @@ import eu.ginlo_apps.ginlo.model.constant.BackendError
 import eu.ginlo_apps.ginlo.model.constant.MimeType
 import eu.ginlo_apps.ginlo.service.BackendService
 import eu.ginlo_apps.ginlo.service.IBackendService
+import eu.ginlo_apps.ginlo.util.FileUtil
 import java.util.concurrent.CountDownLatch
 
 class LoadPendingAttachmentTask : JobIntentService() {
@@ -75,28 +76,38 @@ class LoadPendingAttachmentTask : JobIntentService() {
                         application.messageController.dao.update(message)
                     }
                 } else {
-                    response.jsonArray?.get(0)?.let {
-                        val content = Base64.decode(it.asString, Base64.NO_WRAP)
+                    if (response.responseFilename != null) {
+                        val base64file = AttachmentController.
+                        convertJsonArrayFileToEncryptedAttachmentBase64File(response.responseFilename, message.attachment).toString()
+                        // TODO: Separate (expensive!) file conversion calls right now. Must be combined later.
+                        AttachmentController.saveBase64FileAsEncryptedAttachment(message.attachment, base64file)
+                        LogUtil.d(LoadPendingAttachmentTask::javaClass.name, "Saved attachment from file for: " + message.attachment)
+                        FileUtil.deleteFile(base64file)
 
+                        // TODO: Don't forget to delete intermediate files after testing!
+                    } else if (response.jsonArray?.get(0) != null) {
+                        val content = Base64.decode(response.jsonArray.get(0).asString, Base64.NO_WRAP)
                         AttachmentController.saveEncryptedMessageAttachment(content, message.attachment)
-
-                        val jsonArray = JsonArray().apply { add(JsonPrimitive(message.guid)) }
-
-                        BackendService.withSyncConnection(application)
-                                .setMessageState(
-                                        jsonArray,
-                                        AppConstants.MESSAGE_STATE_ATTACHMENT_DOWNLOADED,
-                                        null,
-                                        false
-                                )
-
-                        application.messageController.sendMessageChangedNotification(listOf(message))
+                        LogUtil.d(LoadPendingAttachmentTask::javaClass.name, "Saved attachment from memory for: " + message.attachment)
                     }
+
+                    val jsonArray = JsonArray().apply { add(JsonPrimitive(message.guid)) }
+
+                    BackendService.withSyncConnection(application)
+                            .setMessageState(
+                                    jsonArray,
+                                    AppConstants.MESSAGE_STATE_ATTACHMENT_DOWNLOADED,
+                                    null,
+                                    false
+                            )
+
+                    application.messageController.sendMessageChangedNotification(listOf(message))
                 }
             } finally {
                 latch.countDown()
             }
         }
+
         BackendService.withSyncConnection(application)
                 .getAttachment(message.attachment, onBackendResponseListener, null)
 
@@ -172,6 +183,8 @@ class LoadPendingAttachmentTask : JobIntentService() {
 
     companion object {
         fun start() {
+            LogUtil.d(LoadPendingAttachmentTask::javaClass.name, "start() called.")
+
             val intent = Intent(SimsMeApplication.getInstance(), LoadPendingAttachmentTask::class.java)
             enqueueWork(SimsMeApplication.getInstance(), LoadPendingAttachmentTask::class.java, 1, intent)
         }

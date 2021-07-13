@@ -5,11 +5,16 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import org.greenrobot.greendao.query.QueryBuilder;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -139,7 +144,7 @@ public class GetMessagesTask
 
             complete();
         } catch (Exception e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             error();
         }
     }
@@ -177,8 +182,7 @@ public class GetMessagesTask
 
     private void logSentry(BackendResponse response) {
         String msg = String.format("[%s] Error @getNewMessages: %s  ", Thread.currentThread().getName(), response.errorMessage);
-        LogUtil.i(
-            this.getClass().getName(), msg);
+        LogUtil.i(TAG, msg);
         Exception ex = new Exception(msg);
         Sentry.capture(ex);
     }
@@ -233,21 +237,32 @@ public class GetMessagesTask
                 if(messageType != null) {
                     LogUtil.i(TAG, "Message with messageType " + messageType + " received.");
 
-                    // KS: if SHOW_AGC_MESSAGES is set we process APP_GINLO_CONTROL (AGC) messages
-                    // and allow for saving them to the database for further processing, even if
-                    // they are control messages.
-                    if(messageType.equals(MimeType.APP_GINLO_CONTROL)) {
+                    switch(messageType) {
+                        case MimeType.APP_GINLO_CONTROL:
+                            // KS: if SHOW_AGC_MESSAGES is set we process APP_GINLO_CONTROL (AGC) messages
+                            // and allow for saving them to the database for further processing, even if
+                            // they are control messages.
                             LogUtil.i(TAG, "APP_GINLO_CONTROL - dismiss call notification.");
-                            mNotificationController.dismissNotification(NotificationController.AVC_NOTIFICATION_ID, false);
+                            mNotificationController.dismissNotification(NotificationController.AVC_NOTIFICATION_ID);
 
-                        if(BuildConfig.SHOW_AGC_MESSAGES) {
-                            // Prevent this message from being pushed
-                            message.setPushInfo("nopush");
-                            message.setRead(true);
-                        } else {
-                            // Don't do further message processing
-                            message = null;
-                        }
+                            if(BuildConfig.SHOW_AGC_MESSAGES) {
+                                // Prevent this message from being pushed
+                                message.setPushInfo("nopush");
+                                message.setRead(true);
+                            } else {
+                                // Don't do further message processing
+                                message = null;
+                            }
+                            break;
+                        case MimeType.TEXT_V_CALL:
+                            // Don't push old AVC messages
+                            final long now = new Date().getTime();
+                            if(message.getDateSend() + NotificationController.DISMISS_NOTIFICATION_TIMEOUT < now) {
+                                LogUtil.i(TAG, "Older AVC message - no notification!");
+                                message.setPushInfo("nopush");
+                                //message.setRead(true);
+                            }
+                            break;
                     }
                 }
 
@@ -331,10 +346,7 @@ public class GetMessagesTask
                 mMsgController.saveMessage(oldMessage);
             }
         } else {
-            LogUtil.i(
-                this.getClass().getName(),
-                "Adding Message to Database:" + message.getGuid() + " " + message.getTo()
-            );
+            LogUtil.i(TAG, "Adding Message to Database:" + message.getGuid() + " " + message.getTo());
 
             mMsgController.saveMessage(message);
 
@@ -346,13 +358,17 @@ public class GetMessagesTask
             }
 
             String guid = null;
-
-            if (message.getType() == Message.TYPE_PRIVATE) {
-                guid = message.getFrom();
-            } else if (message.getType() == Message.TYPE_GROUP
-                || message.getType() == Message.TYPE_GROUP_INVITATION
-                || message.getType() == Message.TYPE_CHANNEL) {
-                guid = message.getTo();
+            switch (message.getType()) {
+                case Message.TYPE_PRIVATE:
+                    guid = message.getFrom();
+                    break;
+                case Message.TYPE_GROUP:
+                case Message.TYPE_GROUP_INVITATION:
+                case Message.TYPE_CHANNEL:
+                    guid = message.getTo();
+                    break;
+                default:
+                    // LogUtil.i(TAG, "Message.getType() returned: " + message.getType());
             }
 
             if (guid != null) {

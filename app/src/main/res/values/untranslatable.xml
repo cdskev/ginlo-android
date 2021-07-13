@@ -1,8 +1,8 @@
 <resources>
     <string-array name="account_identifier" translatable="false">
+        <item>@string/account_identifier_simsmeid</item>
         <item>@string/account_identifier_email</item>
         <item>@string/account_identifier_phonenumber</item>
-        <item>@string/account_identifier_simsmeid</item>
     </string-array>
     <string-array name="account_registration_identifier">
       <item>@string/account_registration_identifier_phonenumber</item>

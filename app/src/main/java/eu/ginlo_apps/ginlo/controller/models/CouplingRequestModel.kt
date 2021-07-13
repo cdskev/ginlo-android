@@ -25,7 +25,7 @@ class CouplingRequestModel constructor(couplingRequestJson: JsonObject, private 
     private val signature: String? = getStringFromJson(JsonConstants.SIG, couplingRequestJson)
     val publicKey: String? = getStringFromJson("pubKey", couplingRequestJson)
     val appData: String? = getStringFromJson(JsonConstants.APP_DATA, couplingRequestJson)
-    val publicKeySha: String = ChecksumUtil.getSHA256ChecksumForString(publicKey!!).toUpperCase()
+    val publicKeySha: String = ChecksumUtil.getSHA256ChecksumForString(publicKey).toUpperCase()
 
     init {
         if (!checkSignature()) {
@@ -40,7 +40,7 @@ class CouplingRequestModel constructor(couplingRequestJson: JsonObject, private 
             if (StringUtil.isNullOrEmpty(appData)) {
                 return null
             } else {
-                val appDataJson = parser.parse(appData!!).asJsonObject
+                val appDataJson = parser.parse(appData).asJsonObject
                 if (appDataJson.has("deviceName")) {
                     val deviceNameEnc = appDataJson.get("deviceName").asString
                     try {
@@ -61,7 +61,7 @@ class CouplingRequestModel constructor(couplingRequestJson: JsonObject, private 
             if (StringUtil.isNullOrEmpty(appData)) {
                 return null
             } else {
-                val appDataJson = parser.parse(appData!!).asJsonObject
+                val appDataJson = parser.parse(appData).asJsonObject
                 if (appDataJson.has("deviceGuid")) {
                     return appDataJson.get("deviceGuid").asString
                 }
@@ -80,7 +80,7 @@ class CouplingRequestModel constructor(couplingRequestJson: JsonObject, private 
             if (StringUtil.isNullOrEmpty(appData)) {
                 return R.drawable.device_smartphone
             } else {
-                val appdataJson = parser.parse(appData!!).asJsonObject
+                val appdataJson = parser.parse(appData).asJsonObject
                 if (appdataJson.has("deviceOs")) {
                     val deviceOs = appdataJson.get("deviceOs").asString
                     return DeviceModel.getDeviceImageRessource(deviceOs)

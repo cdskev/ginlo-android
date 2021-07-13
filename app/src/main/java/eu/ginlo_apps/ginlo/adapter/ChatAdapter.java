@@ -70,6 +70,7 @@ import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.MetricsUtil;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.view.MaskImageView;
@@ -973,15 +974,15 @@ public class ChatAdapter
                 if (StringUtil.isNullOrEmpty(filename)) {
                     mimeType = "";
                 } else {
-                    mimeType = FileUtil.getMimeTypeFromPath(filename);
+                    mimeType = MimeUtil.getMimeTypeFromPath(filename);
                 }
                 if (mimeType == null) {
                     mimeType = "";
                 }
 
-                int resID = FileUtil.getIconForMimeType(mimeType);
+                int resID = MimeUtil.getIconForMimeType(mimeType);
 
-                if (resID != FileUtil.MIMETYPE_NOT_FOUND) {
+                if (resID != MimeUtil.MIMETYPE_NOT_FOUND) {
                     final Bitmap placeholder = BitmapFactory.decodeResource(getContext().getResources(), resID);
                     foreground.setImageBitmap(placeholder);
                 } else {

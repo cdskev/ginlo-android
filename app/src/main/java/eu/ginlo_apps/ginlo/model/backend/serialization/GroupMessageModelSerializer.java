@@ -4,7 +4,6 @@ package eu.ginlo_apps.ginlo.model.backend.serialization;
 
 import com.google.gson.*;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
-import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.model.backend.GroupMessageModel;
 import eu.ginlo_apps.ginlo.model.backend.KeyContainerModel;
 import eu.ginlo_apps.ginlo.model.constant.Encoding;
@@ -57,28 +56,29 @@ public class GroupMessageModelSerializer
         if (groupMessageModel.features != null) {
             groupMessageJsonObject.addProperty("features", groupMessageModel.features);
         }
+
         if (groupMessageModel.attachment != null) {
-            try {
-                JsonArray jsonArray = new JsonArray();
+            JsonArray jsonArray = new JsonArray();
+            if (GuidUtil.isRequestGuid(groupMessageModel.attachment)) {
+                // KS: Optimized this code to work with file streams instead of RAM.
+                // That allows bigger attachments which would otherwise result in oom.
+                // Return link to file instead of attachment contents. Must be processed
+                // by the caller.
 
-                if (GuidUtil.isRequestGuid(groupMessageModel.attachment)) {
-                    byte[] encryptedDataFromAttachment = AttachmentController.loadEncryptedBase64AttachmentFile(groupMessageModel.attachment);
+                //groupMessageJsonObject.add("attachment",
+                //        AttachmentController.loadEncryptedBase64AttachmentAsJsonElementFromFile(groupMessageModel.attachment));
 
-                    if ((encryptedDataFromAttachment != null) && (encryptedDataFromAttachment.length > 0)) {
-                        String attachment = new String(encryptedDataFromAttachment, "US-ASCII");//Base64.encodeToString(encryptedDataFromAttachment, Base64.DEFAULT);
-                        jsonArray.add(new JsonPrimitive(attachment));
-                    }
-                } else {
-                    jsonArray.add(new JsonPrimitive(groupMessageModel.attachment));
-                }
+                jsonArray.add(new JsonPrimitive("@" + AttachmentController.convertEncryptedAttachmentBase64FileToJsonArrayFile(groupMessageModel.attachment)));
+                groupMessageJsonObject.add("attachment", jsonArray);
 
+            } else {
+                jsonArray.add(new JsonPrimitive(groupMessageModel.attachment));
                 if (jsonArray.size() > 0) {
                     groupMessageJsonObject.add("attachment", jsonArray);
                 }
-            } catch (LocalizedException | UnsupportedEncodingException e) {
-                return null;
             }
         }
+
         //    if (groupMessageModel.signature != null)
         //       groupMessageJsonObject.add("signature",
         //             context.serialize(groupMessageModel.signature, SignatureModel.class));

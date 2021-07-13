@@ -561,7 +561,7 @@
     <string name="delete_contact_title">Delete contact</string>
     <string name="delete_email_address">Remove email address</string>
     <string name="delete_phone_number">Remove phone number</string>
-    <string name="delete_timed_message_error">The message could not be removed from the server</string>
+    <string name="delete_message_error">The message could not be removed from the server</string>
     <string name="delete_timed_messages_error">The time-delayed messages could not be removed from the server</string>
     <string name="device_apply_changes_error">An error occurred when applying the changes.</string>
     <string name="device_cancel_coupling_device">You are about to cancel the device pairing.</string>
@@ -1172,8 +1172,8 @@
     <string name="settings_dontAskForPassword_alert">The password prompt that appears whenever SIMSme is started serves to further improve the security of your communication. Do you really want to disable the prompt?</string>
     <string name="settings_dontAskForPassword_alert_title">Important note:</string>
     <string name="settings_enable_fingerprint">Fingerprint unlock</string>
-    <string name="settings_faq">FAQ</string>
-    <string name="settings_faq_url">https://app-help.ginlo.net/consumer/en/support/</string>
+    <string name="settings_faq">Manual</string>
+    <string name="settings_faq_url">https://app-help.ginlo.net/docs/en/</string>
     <string name="settings_fingerprint_not_set">No fingerprint stored</string>
     <string name="settings_help_title">Help</string>
     <string name="settings_image_quality_hint">Set the image quality for photos sent.</string>
@@ -1317,7 +1317,6 @@
     <string name="settings_simsme_media">SIMSme media</string>
     <string name="settings_simsme_media_description">Show all sent and received SIMSme media</string>
     <string name="settings_simsme_media_header">Media</string>
-    <string name="settings_statusWorker_firstMessage">Hi! I\'m using SIMSme!</string>
     <string name="settings_switch_destruction_sound">Play sound when self-destructing</string>
     <string name="settings_switch_destruction_sound_hint">Set whether a sound should be played when a message self-destructs.</string>
     <string name="settings_switch_message_read_sound">Play sound when receiving</string>
@@ -1384,7 +1383,6 @@
     <string name="settings_support_logs_send_emailSubjectPrivate">SIMSme log file</string>
     <string name="notification_avc_audio">Audio only</string>
     <string name="notification_avc_video">Video call</string>
-    <string name="jitsimeet" translatable="false">"Jitsi Meet started out as a sample conferencing application using Jitsi Videobridge. It was originally developed by ESTOS' developer Philipp Hancke who then contributed it to the community where development continues with joint forces! jitsi/jitsi-meet is licensed under the "</string>
     <string name="notification_gos_running">ginlo service is running</string>
     <string name="settings_appearance_run_darkmode">Activate Darkmode</string>
     <string name="settings_appearance_allow_screenshots">Allow Screenshots (Caution: also exposes contents to app previews)</string>
@@ -1392,4 +1390,5 @@
     <string name="chats_AVC_call_answered">Joining the audio/video call ...</string>
     <string name="chats_AVC_call_rejected">Cannot join the audio/video call</string>
     <string name="preferences_privacy_edit_status_in_profile">(can only be changed in profile settings)</string>
+    <string name="settings_statusWorker_firstMessage">Ready for secure messaging with ginlo</string>
 </resources>

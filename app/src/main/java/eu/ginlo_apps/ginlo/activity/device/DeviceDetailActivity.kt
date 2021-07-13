@@ -146,7 +146,7 @@ class DeviceDetailActivity : NewBaseActivity() {
     private fun deleteDevice() {
         try {
             showIdleDialog()
-            deviceController.deleteDeviceFromBackend(deviceGuid!!, deleteDeviceListener)
+            deviceController.deleteDeviceFromBackend(deviceGuid, deleteDeviceListener)
         } catch (e: LocalizedException) {
             dismissIdleDialog()
             DialogBuilderUtil.buildErrorDialog(
@@ -162,7 +162,7 @@ class DeviceDetailActivity : NewBaseActivity() {
         try {
             showIdleDialog()
             deviceController.changeDeviceNameAtBackend(
-                deviceGuid!!,
+                deviceGuid,
                 deviceName,
                 object : GenericActionListener<Void> {
                     override fun onSuccess(nothing: Void?) {

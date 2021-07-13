@@ -29,7 +29,7 @@ class ThemedLayoutInflater(
         private val parentFactory2: LayoutInflater.Factory2
 ) : LayoutInflater.Factory, LayoutInflater.Factory2 {
 
-    override fun onCreateView(s: String, context: Context, attributeSet: AttributeSet): View {
+    override fun onCreateView(s: String, context: Context, attributeSet: AttributeSet): View? {
         return parentFactory.onCreateView(s, context, attributeSet)
     }
 

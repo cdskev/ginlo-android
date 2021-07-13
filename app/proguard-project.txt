@@ -78,6 +78,9 @@
 
 -dontobfuscate # REMOVE ME ON develop master
 
+# KS: Exoplayer
+-dontwarn com.google.android.exoplayer2.**
+
 # KS: AVC dependent stuff
 # Recommended settings by jitsi meet
 #

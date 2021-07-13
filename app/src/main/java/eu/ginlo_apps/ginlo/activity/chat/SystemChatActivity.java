@@ -15,6 +15,7 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.activity.chat.BaseChatActivity;
 import eu.ginlo_apps.ginlo.controller.LoginController;
+import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.controller.message.SingleChatController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -76,7 +77,7 @@ public class SystemChatActivity
             if (mTargetGuid != null) {
                 LogUtil.i(TAG, "Open ChatStream " + mTargetGuid);
                 notificationController.ignoreGuid(mTargetGuid);
-                notificationController.dismissNotification(mTargetGuid);
+                notificationController.dismissNotification(NotificationController.MESSAGE_NOTIFICATION_ID);
 
                 if (mChatAdapter == null) {
                     mChatAdapter = getChatController().getChatAdapter(this, mTargetGuid);

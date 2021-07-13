@@ -48,8 +48,8 @@ class SendMessageToBackendTask internal constructor(
                         }
                     }
                     // Delete this base64 attachment only on success
-                    if (message != null && message!!.attachment?.isNotBlank() == true) {
-                        AttachmentController.deleteBase64AttachmentFile(message!!.attachment)
+                    if (message != null && message?.attachment?.isNotBlank() == true) {
+                        AttachmentController.deleteBase64AttachmentFile(message?.attachment)
                     }
                 } else {
                     result = toAsyncTaskError()

@@ -555,7 +555,7 @@
     <string name="delete_contact_title">Elimina contatto</string>
     <string name="delete_email_address">Rimuovi indirizzo e-mail</string>
     <string name="delete_phone_number">Rimuovi numero di cellulare</string>
-    <string name="delete_timed_message_error">Non è stato possibile rimuovere il messaggio dal server</string>
+    <string name="delete_message_error">Non è stato possibile rimuovere il messaggio dal server</string>
     <string name="delete_timed_messages_error">Non è stato possibile rimuovere i messaggi a invio programmato dal server.</string>
     <string name="device_apply_changes_error">Spiacenti, si è verificato un errore durante il salvataggio delle modifiche. Riprova.</string>
     <string name="device_cancel_coupling_device">Vuoi annullare l\'attivazione del tuo nuovo dispositivo?</string>
@@ -1158,8 +1158,8 @@
     <string name="settings_dontAskForPassword_alert">La richiesta della password all’avvio di ginlo serve per garantire la sicurezza delle Sue comunicazioni. Desidera davvero disattivare la richiesta?</string>
     <string name="settings_dontAskForPassword_alert_title">Avvertenza importante</string>
     <string name="settings_enable_fingerprint">Sblocca tramite impronta digitale</string>
-    <string name="settings_faq">FAQ</string>
-	<string name="settings_faq_url">https://app-help.ginlo.net/consumer/en/support/</string>
+    <string name="settings_faq">Manuale</string>
+	<string name="settings_faq_url">https://app-help.ginlo.net/docs/en/</string>
     <string name="settings_fingerprint_not_set">Impronta digitale non impostata</string>
     <string name="settings_help_title">Aiuto</string>
     <string name="settings_image_quality_hint">Stabilisce la qualità dell’immagine per le foto inviate.</string>
@@ -1300,7 +1300,7 @@
     <string name="settings_simsme_media">Media di ginlo</string>
     <string name="settings_simsme_media_description">Visualizzazione di tutti i media di ginlo inviati e ricevuti</string>
     <string name="settings_simsme_media_header">File multimediali</string>
-    <string name="settings_statusWorker_firstMessage">I buoni della messaggistica :-)</string>
+    <string name="settings_statusWorker_firstMessage">Pronto per la messaggistica sicura con ginlo</string>
     <string name="settings_switch_destruction_sound">Riprodurre la suoneria in caso di autodistruzione</string>
     <string name="settings_switch_destruction_sound_hint">Stabilisce se durante l’autodistruzione di un messaggio debba essere riprodotta una suoneria.</string>
     <string name="settings_switch_message_read_sound">Riprodurre la suoneria in caso di ricezione</string>

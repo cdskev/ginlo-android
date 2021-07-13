@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
@@ -20,6 +21,11 @@ import org.greenrobot.greendao.query.QueryBuilder;
 import org.greenrobot.greendao.query.WhereCondition;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +33,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.concurrent.listener.ConcurrentTaskListener;
@@ -102,10 +110,12 @@ import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.services.LoadPendingTimedMessagesTask;
 import eu.ginlo_apps.ginlo.util.DateUtil;
+import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.MessageDaoHelper;
+import eu.ginlo_apps.ginlo.util.StreamUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import me.leolin.shortcutbadger.ShortcutBadgeException;
 import me.leolin.shortcutbadger.ShortcutBadger;
@@ -393,19 +403,25 @@ public class MessageController
     }
 
     public void deleteMessage(final Message message) {
+        if(message == null) {
+            LogUtil.w(TAG, "deleteMessage called with message = null!");
+            return;
+        }
+
         synchronized (messageDao) {
             messageDao.delete(message);
         }
-        if (message != null) {
-            if (message.getType() == Message.TYPE_GROUP
-                    || message.getType() == Message.TYPE_CHANNEL
-                    || message.getType() == Message.TYPE_PRIVATE
-                    || message.getType() == Message.TYPE_GROUP_INVITATION) {
+
+        switch (message.getType()) {
+            case Message.TYPE_GROUP:
+            case Message.TYPE_CHANNEL:
+            case Message.TYPE_PRIVATE:
+            case Message.TYPE_GROUP_INVITATION:
                 final String guid = message.getGuid();
                 if (!StringUtil.isNullOrEmpty(guid)) {
                     mApplication.getNotificationController().deleteNotification(guid);
                 }
-            }
+                break;
         }
     }
 
@@ -1438,7 +1454,15 @@ public class MessageController
 
     public boolean sendMessageToBackend(final BaseMessageModel messageModel,
                                         final IBackendService.OnBackendResponseListener onBackendResponseListener) throws LocalizedException {
-        final String messageJson = gson.toJson(messageModel);
+
+        String messageJson = gson.toJson(messageModel);
+
+        if(!StringUtil.isNullOrEmpty(messageModel.attachment)) {
+            // KS: Message with file attachment. These can be *very* big so the serializer only returned
+            // a filename marker instead of the full attachment contents as "attachment".
+            // This must be processed now (before MD5 checksum building).
+            messageJson = loadFileWithFullMessageIncludingAttachment(messageJson, true);
+        }
 
         if (messageJson == null) {
             return false;
@@ -1471,6 +1495,59 @@ public class MessageController
         }
 
         return true;
+    }
+
+    /**
+     * Get a message string and look for a pattern that points to an attachment file.
+     * If no pattern is found, create the new message file with the contents of message.
+     * @param message String with message
+     * @param deleteAttachmentFile Delete file which the attachment pattern points to?
+     * @return Pathname of the newly created message file
+     */
+    private String loadFileWithFullMessageIncludingAttachment(final String message,
+                                                             final Boolean deleteAttachmentFile) {
+        FileUtil fu = new FileUtil(mApplication);
+        File messageFile = null;
+        try {
+            messageFile = fu.getTempFile();
+            FileWriter fw = new FileWriter(messageFile);
+            int read = 0;
+            byte[] data = new byte[StreamUtil.STREAM_BUFFER_SIZE];
+            String dataString = null;
+
+            Pattern p = Pattern.compile("(@\\/.*-json)");
+            Matcher m = p.matcher(message);
+            if (m.find()) {
+                String firstPart = message.substring(0, m.start() - 2);
+                String jsonFilename = m.group().substring(1);
+                String secondPart = message.substring(m.end() + 2);
+                LogUtil.d(TAG, "Attachment file location (" + m.group() + ") found at " + m.start());
+
+                fw.append(firstPart);
+
+                // Replace filename with attachment json file contents
+                FileInputStream afi = new FileInputStream(jsonFilename);
+                while ((read = afi.read(data, 0, StreamUtil.STREAM_BUFFER_SIZE)) > 0) {
+                    dataString = new String(data, StandardCharsets.UTF_8).substring(0, read);
+                    fw.append(dataString);
+                }
+                fw.append(secondPart);
+                afi.close();
+                if(deleteAttachmentFile) {
+                    FileUtil.deleteFile(new File(jsonFilename));
+                }
+            } else {
+                // No attachment pattern found - build "normal" message
+                fw.append(message);
+            }
+            fw.close();
+
+        } catch (IOException | JsonIOException e) {
+            LogUtil.e(TAG, "Could not create/build message file: " + messageFile.getPath(), e);
+            return null;
+        }
+
+        return messageFile.getPath();
     }
 
     public void registerChatOverviewActivityAsListener(OnSendMessageListener listener) {

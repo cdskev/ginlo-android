@@ -79,18 +79,14 @@ import eu.ginlo_apps.ginlo.util.StringUtil;
 public class ChannelController
         implements LowMemoryCallback,
         PreferencesController.OnServerVersionChangedListener {
+
+    public static final String TAG = ChannelController.class.getSimpleName();
     public static final String IMAGE_TYPE_PROVIDER_LABEL = "pl";
-
     public static final String IMAGE_TYPE_ITEM_BACKGROUND = "ib";
-
     public static final String IMAGE_TYPE_CHANNEL_BACKGROUND = "cb";
-
     public static final String IMAGE_TYPE_PROVIDER_ICON = "ic";
-
     public static final String IMAGE_TYPE_PROMOTION_BACKGROUND = "prb";
-
     public static final String IMAGE_TYPE_PROMOTION_LOGO = "prl";
-
     private static final String CHANNEL_IMAGE_DIR = "/channelsImages";
 
     private static Semaphore gSubscribeSemaphore;
@@ -141,8 +137,13 @@ public class ChannelController
         return mChannelDao;
     }
 
-    public void loadChannelList(@NonNull final ChannelAsyncLoaderCallback<ChannelListModel[]> callback)
+    public void loadChannelList(final ChannelAsyncLoaderCallback<ChannelListModel[]> callback)
             throws LocalizedException {
+        
+        if(callback == null) {
+            throw new LocalizedException(TAG + "Callback is null!");
+        }
+        
         final List<Channel> channels = getChannelsFromDB(Channel.TYPE_CHANNEL);
 
         boolean bLoadFromServer = (channels == null || channels.size() < 1);
@@ -224,7 +225,7 @@ public class ChannelController
                         try {
                             channelListArray = ChannelController.this.gson.fromJson(jsonArray, ChannelListModel[].class);
                         } catch (JsonSyntaxException e) {
-                            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                            LogUtil.e(TAG, e.getMessage(), e);
                             final int resourceId = mContext.getResources().getIdentifier("service_tryAgainLater", "string",
                                     BuildConfig.APPLICATION_ID);
 
@@ -309,7 +310,7 @@ public class ChannelController
                     toogles.put(toggleModel.ident, new ToggleSettingsModel(toggleModel.filterOn, toggleModel.defaultValue));
                 }
             } catch (LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
                 return;
             }
         } else {
@@ -346,7 +347,7 @@ public class ChannelController
                                 newChat.setChatAESKey(new SecretKeySpec(aesKeyBytes, 0, aesKeyBytes.length, "AES"));
                                 newChat.setLastChatModifiedDate(new Date().getTime());
                             } catch (LocalizedException e) {
-                                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                                LogUtil.e(TAG, e.getMessage(), e);
                                 gSubscribeSemaphore.release();
                                 return;
                             }
@@ -398,7 +399,7 @@ public class ChannelController
                 }
             }
         } catch (InterruptedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
         gSubscribeSemaphore.release();
     }
@@ -439,14 +440,14 @@ public class ChannelController
                     if (existsOnServer != null && !existsOnServer && !isLocallyDeleted) {
                         channel.setIsDeleted(true);
                         mChannelDao.update(channel);
-                        LogUtil.i(ChannelController.class.getSimpleName(), "Channel with GUID: " + channel.getGuid() + " is set to 'deleted'");
+                        LogUtil.i(TAG, "Channel with GUID: " + channel.getGuid() + " is set to 'deleted'");
                     }
                     //channel ist am Server nicht (mehr) geloescht aber lokal als geloescht markiert
                     //sollte nicht vorkommen
                     else if (existsOnServer != null && existsOnServer && isLocallyDeleted) {
                         channel.setIsDeleted(false);
                         mChannelDao.update(channel);
-                        LogUtil.i(ChannelController.class.getSimpleName(), "Channel with GUID: " + channel.getGuid() + " is set to 'undeleted'");
+                        LogUtil.i(TAG, "Channel with GUID: " + channel.getGuid() + " is set to 'undeleted'");
                     }
                 }
             }
@@ -577,7 +578,7 @@ public class ChannelController
                 mChannelModelCache.clear();
             }
         } catch (Exception e) {
-            LogUtil.w(ChannelController.class.getSimpleName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
 
             if (mLoadChannelDataListerners != null) {
                 final int resourceId = mContext.getResources().getIdentifier("service_tryAgainLater", "string",
@@ -920,7 +921,7 @@ public class ChannelController
                 return gson.fromJson(json, ChannelModel.class);
             }
         } catch (JsonSyntaxException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             final int resourceId = mContext.getResources().getIdentifier("service_tryAgainLater", "string",
                     BuildConfig.APPLICATION_ID);
 
@@ -1192,14 +1193,14 @@ public class ChannelController
                                     loadImage(object, IMAGE_TYPE_PROMOTION_LOGO);
                                 }
                             } catch (LocalizedException e) {
-                                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                                LogUtil.e(TAG, e.getMessage(), e);
                             }
                             return null;
                         }
 
                         @Override
                         public void asyncMultiFinished() {
-                            LogUtil.i(ChannelController.class.getSimpleName(), "Channel assets preloaded: ");
+                            LogUtil.i(TAG, "Channel assets preloaded: ");
                             mContext.getPreferencesController().serverVersionIsUpToDate(ConfigUtil.SERVER_VERSION_GET_CHANNELS, newServerVersion);
                         }
                     };
@@ -1207,7 +1208,7 @@ public class ChannelController
 
                     async.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } catch (LocalizedException e) {
-                    LogUtil.w(ChannelController.class.getSimpleName(), e.getLocalizedMessage(), e);
+                    LogUtil.w(TAG, e.getLocalizedMessage(), e);
                 }
             }
 
@@ -1265,7 +1266,7 @@ public class ChannelController
 
             loadChannelListInternally(loadChannelListCallback, executor);
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             mIsChannelDataLoading = false;
 
             for (ChannelAsyncLoaderCallback<ChannelListModel[]> dataListener : mLoadChannelDataListerners) {

@@ -34,22 +34,20 @@ class AudioManager(
 
         if (textView != null) {
             timeDisplay = TimeDisplayUtil(textView, OnClockStoppedHandler { stop() })
-            timeDisplay!!.start(player!!.duration)
+            timeDisplay?.start(player?.duration ?: 0)
         }
         if (button != null) {
             button.visibility = View.VISIBLE
         }
 
-        player!!.play()
+        player?.play()
     }
 
     fun stop() {
         isPlaying = false
-        if (player != null) {
-            player!!.pause()
-            player!!.release()
-            player = null
-        }
+        player?.pause()
+        player?.release()
+        player = null
         timeDisplay?.stop()
         timeDisplay = null
         textView?.text = activity.resources.getString(R.string.chats_voiceMessage_play)

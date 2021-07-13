@@ -206,7 +206,7 @@ class ChannelListActivity : BaseActivity(), OnChannelItemClickListener,
         }
 
         try {
-            channelController.loadChannelList(loadChannelDataListener!!)
+            channelController.loadChannelList(loadChannelDataListener)
         } catch (e: LocalizedException) {
             LogUtil.e(this.javaClass.name, e.message, e)
         }
@@ -238,8 +238,8 @@ class ChannelListActivity : BaseActivity(), OnChannelItemClickListener,
 
         searchView =
             ThemedSearchView(supportActionBar.themedContext, ColorUtil.getInstance().getMainContrastColor(simsMeApplication))
-        searchView!!.queryHint = getString(R.string.android_search_placeholder_channels)
-        searchView!!.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        (searchView as ThemedSearchView).queryHint = getString(R.string.android_search_placeholder_channels)
+        (searchView as ThemedSearchView).setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 return false
             }

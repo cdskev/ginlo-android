@@ -37,7 +37,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import org.jetbrains.annotations.NotNull;
 
-import eu.ginlo_apps.ginlo.BaseActivity;
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.CameraActivity;
 import eu.ginlo_apps.ginlo.ContactsActivity;
@@ -102,6 +101,7 @@ import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.MetricsUtil;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -138,7 +138,7 @@ public abstract class BaseChatActivity
 
     private static final String TAG = BaseChatActivity.class.getSimpleName();
     private static final int LAST_MESSAGE_COUNT = 20;
-    private static final int FORWARD_REQEUST_CODE = 111;
+    private static final int FORWARD_REQUEST_CODE = 111;
     private static final int ACTIONBAR_RIGHT_SIDE_PROFILE = R.id.action_bar_image_view_profile_picture;
     private static final int ACTIONBAR_RIGHT_SIDE_CONTAINER = R.id.action_bar_right_image_view_container;
     private static final int ACTIONBAR_RIGHT_SIDE = R.id.action_bar_right_image_view;
@@ -817,7 +817,7 @@ public abstract class BaseChatActivity
             if (mOnlyShowTimed) {
                 toggleTimedMessages();
             }
-            startActivityForResult(intent, FORWARD_REQEUST_CODE);
+            startActivityForResult(intent, FORWARD_REQUEST_CODE);
         }
     }
 
@@ -831,7 +831,7 @@ public abstract class BaseChatActivity
         if (mOnlyShowTimed) {
             toggleTimedMessages();
         }
-        startActivityForResult(intent, FORWARD_REQEUST_CODE);
+        startActivityForResult(intent, FORWARD_REQUEST_CODE);
     }
 
     @Deprecated
@@ -1592,8 +1592,8 @@ public abstract class BaseChatActivity
                         mActionContainer = null;
 
                         final Uri fileUri = returnIntent.getData();
-                        final FileUtil fu = new FileUtil(this);
-                        final String mimeType = fu.getMimeType(fileUri);
+                        final MimeUtil mu = new MimeUtil(this);
+                        final String mimeType = mu.getMimeType(fileUri);
 
                         //Simulieren einer SendAction
                         final Intent actionIntent = new Intent(Intent.ACTION_SEND);
@@ -1746,8 +1746,8 @@ public abstract class BaseChatActivity
                             } else if (StringUtil.isEqual(returnType, MimeType.APP_OCTET_STREAM)) {
                                 final Uri fileUri = returnIntent.getData();
 
-                                final FileUtil fu = new FileUtil(this);
-                                final String mimeType = fu.getMimeType(fileUri);
+                                final MimeUtil mu = new MimeUtil(this);
+                                final String mimeType = mu.getMimeType(fileUri);
 
                                 //Simulieren einer SendAction
                                 final Intent actionIntent = new Intent(Intent.ACTION_SEND);
@@ -1760,7 +1760,7 @@ public abstract class BaseChatActivity
                         }
                         break;
                     }
-                    case FORWARD_REQEUST_CODE: {
+                    case FORWARD_REQUEST_CODE: {
                         if (mOnlyShowTimed && getChatController() != null && mChat != null) {
                             getChatController().clearAdapter(mChat.getChatGuid());
                         }
@@ -2307,6 +2307,10 @@ public abstract class BaseChatActivity
             mSendSoundPlayer.release();
             mSendSoundPlayer = null;
         }
+
+        // KS: Re-enable notifications which were set to be ignored in subclass instances to avoid
+        // sending notifications to a chat the user currently visits.
+        // (SingleChatActivity, GroupChatActivity, ChannelChatActivity, SystemChatActivity).
         notificationController.ignoreGuid(null);
     }
 
@@ -2487,7 +2491,7 @@ public abstract class BaseChatActivity
 
     @Override
     public void onBackPressed() {
-        // Achtung, Reihenfolge beachten !!!
+        // Achtung, Reihenfolge beachten!
 
         //FAB-Menue offen
         if (mSpeedDialView != null && mSpeedDialView.isOpen()) {
@@ -2675,6 +2679,7 @@ public abstract class BaseChatActivity
                                 };
 
                                 final FileUtil fu = new FileUtil(this);
+                                final MimeUtil mu = new MimeUtil(this);
                                 final String filename = fu.getFileName(fileUri);
                                 long fileSize;
                                 try {
@@ -2684,7 +2689,7 @@ public abstract class BaseChatActivity
                                     LogUtil.w(TAG, "Failed to get file size.", e);
                                 }
 
-                                showSendFileDialog(filename, fu.getExtensionForUri(fileUri), fileSize, positiveListener, negativeListener);
+                                showSendFileDialog(filename, mu.getExtensionForUri(fileUri), fileSize, positiveListener, negativeListener);
                             }
                             break;
                         }

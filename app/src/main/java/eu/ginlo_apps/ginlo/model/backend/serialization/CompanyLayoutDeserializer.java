@@ -17,7 +17,6 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.backend.CompanyLayoutModel;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
 
 /**
  * Created by SGA on 06.03.2017.

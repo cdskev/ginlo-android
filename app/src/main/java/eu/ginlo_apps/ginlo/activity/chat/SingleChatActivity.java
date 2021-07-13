@@ -20,6 +20,7 @@ import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.ContactController.OnLoadPublicKeyListener;
 import eu.ginlo_apps.ginlo.controller.LoginController;
+import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.controller.message.SingleChatController;
 import eu.ginlo_apps.ginlo.controller.message.contracts.OnAcceptInvitationListener;
@@ -61,39 +62,40 @@ public class SingleChatActivity
     protected void onCreateActivity(final Bundle savedInstanceState) {
         try {
             super.onCreateActivity(savedInstanceState);
-            LogUtil.i(this.getClass().getName(), "onCreate: " + this + "");
-
-            // Dismiss all notifications when entering SingleChatActivity
-            notificationController.dismissNotification(-1, true);
+            LogUtil.i(TAG, "onCreate: " + this + "");
 
             if (getSimsMeApplication().getPreferencesController().getPublicOnlineState()) {
                 mSecondaryTitle = findViewById(R.id.toolbar_secondary_title);
             }
 
             mOnSendMessageListener = createOnSendMessageListener(mTargetGuid);
-
             getChatController().addListener(this);
+
+            if (mChat == null) {
+                LogUtil.w(TAG, "Load Chat failed: " + mTargetGuid);
+                finish();
+                return;
+            }
 
             mContact = mContactController.getContactByGuid(mTargetGuid);
             if (mContact == null) {
-                LogUtil.i(this.getClass().getName(), "Load Contact failed " + mTargetGuid);
+                LogUtil.w(TAG, "Load Contact failed for " + mTargetGuid);
                 finish();
                 return;
-            } else {
-                mProfileClickListener = new OnClickListener() {
-                    @Override
-                    public void onClick(final View v) {
-                        final Intent intent = new Intent(SingleChatActivity.this, ContactDetailActivity.class);
-
-                        intent.putExtra(ContactDetailActivity.EXTRA_CONTACT, mContact);
-                        intent.putExtra(ContactDetailActivity.EXTRA_MODE, ContactDetailActivity.MODE_NO_SEND_BUTTON);
-                        startActivity(intent);
-                    }
-                };
-
-                final View titleContainer = getToolbar().findViewById(R.id.toolbar_title_container);
-                titleContainer.setOnClickListener(mProfileClickListener);
             }
+
+            mProfileClickListener = new OnClickListener() {
+                @Override
+                public void onClick(final View v) {
+                    final Intent intent = new Intent(SingleChatActivity.this, ContactDetailActivity.class);
+
+                    intent.putExtra(ContactDetailActivity.EXTRA_CONTACT, mContact);
+                    intent.putExtra(ContactDetailActivity.EXTRA_MODE, ContactDetailActivity.MODE_NO_SEND_BUTTON);
+                    startActivity(intent);
+                }
+            };
+            final View titleContainer = getToolbar().findViewById(R.id.toolbar_title_container);
+                titleContainer.setOnClickListener(mProfileClickListener);
 
             final OnClickListener rightClickListener = new OnClickListener() {
                 @Override
@@ -101,47 +103,45 @@ public class SingleChatActivity
                     toggleTimedMessages();
                 }
             };
-
             setRightActionBarImage(R.drawable.chat_timed_white, rightClickListener, getResources().getString(R.string.content_description_chat_timed), -1);
+
             setRightActionBarImageVisibility(View.GONE);
             mTimedCounterView.setVisibility(View.GONE);
             createOnDeleteTimedMessageListener();
             createOnTimedMessagesDeliveredListener();
             preventSelfConversation();
 
-            if (mTargetGuid.equals(AppConstants.GUID_SYSTEM_CHAT)
-                    || isChatReadOnly()) {
-                disableChatinput();
-            }  // do nothing, ie. don't add the chat input fragment
-            else {
-                if (savedInstanceState != null) {
-                    try {
-                        mChatInputFragment = (ChatInputFragment) getSupportFragmentManager().getFragment(savedInstanceState,
-                                "chatInputFragment");
-                        mEmojiconsFragment = (EmojiPickerFragment) getSupportFragmentManager().getFragment(savedInstanceState,
-                                "mEmojiconsFragment");
-                    } catch (Exception e) {
-                        LogUtil.w(this.getClass().getName(), e.getMessage(), e);
-                    }
+            if (savedInstanceState != null) {
+                try {
+                    mChatInputFragment = (ChatInputFragment) getSupportFragmentManager().getFragment(savedInstanceState,
+                            "chatInputFragment");
+                    mEmojiconsFragment = (EmojiPickerFragment) getSupportFragmentManager().getFragment(savedInstanceState,
+                            "mEmojiconsFragment");
+                } catch (Exception e) {
+                    LogUtil.w(TAG, "onCreateActivity: " + e.getMessage(), e);
                 }
-                if (mChatInputFragment == null) {
-                    mChatInputFragment = new ChatInputFragment();
-                    mChatInputFragment.setShowKeyboardAfterClosingDestructionPicker(true);
-                    getSupportFragmentManager().beginTransaction()
-                            .add(mChatInputContainerId, mChatInputFragment).commit();
-                }
-                if (mEmojiconsFragment == null) {
-                    mEmojiconsFragment = new EmojiPickerFragment();
-                    getSupportFragmentManager().beginTransaction()
-                            .add(mFragmentContainerId, mEmojiconsFragment).commit();
-                }
-
-                hideOrShowFragment(mEmojiconsFragment, false, false);
-                hideOrShowFragment(mSelfdestructionFragment, false, false);
             }
+            if (mChatInputFragment == null) {
+                mChatInputFragment = new ChatInputFragment();
+                mChatInputFragment.setShowKeyboardAfterClosingDestructionPicker(true);
+                getSupportFragmentManager().beginTransaction()
+                        .add(mChatInputContainerId, mChatInputFragment).commit();
+            }
+            if (mEmojiconsFragment == null) {
+                mEmojiconsFragment = new EmojiPickerFragment();
+                getSupportFragmentManager().beginTransaction()
+                        .add(mFragmentContainerId, mEmojiconsFragment).commit();
+            }
+
+            hideOrShowFragment(mEmojiconsFragment, false, false);
+            hideOrShowFragment(mSelfdestructionFragment, false, false);
 
             mLoadMoreView = (LinearLayout) getLayoutInflater().inflate(R.layout.chat_item_load_more_layout, null);
             mLoadMoreView.setOnClickListener(onLoadMoreClickListener);
+
+            if (mTargetGuid.equals(AppConstants.GUID_SYSTEM_CHAT) || isChatReadOnly()) {
+                disableChatinput();
+            }
 
             mContactController.registerOnContactProfileInfoChangeNotification(this);
             createOnChatDataChangedListener();
@@ -170,7 +170,7 @@ public class SingleChatActivity
                 }
             }
         } catch (final LocalizedException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
             finish();
         }
     }
@@ -191,7 +191,7 @@ public class SingleChatActivity
                             try {
                                 setMuteIcon();
                             } catch (final LocalizedException le) {
-                                LogUtil.w(MuteChatActivity.class.getSimpleName(), le.getMessage(), le);
+                                LogUtil.w(TAG, "MuteActivity: " + le.getMessage(), le);
                             }
                         }
                     });
@@ -199,7 +199,7 @@ public class SingleChatActivity
             };
             mRefreshTimer.scheduleAtFixedRate(refreshTask, 0, 5000);
 
-            LogUtil.i(this.getClass().getName(), "onResume: " + this + "");
+            LogUtil.i(TAG, "onResume: " + this + "");
 
             if (loginController.getState().equals(LoginController.STATE_LOGGED_OUT)) {
                 return;
@@ -210,9 +210,9 @@ public class SingleChatActivity
                 // BUG 36403 contact wird nicht refreshed
                 mContact = mContactController.getContactByGuid(mTargetGuid);
 
-                LogUtil.i(this.getClass().getName(), "Open ChatStream " + mTargetGuid);
+                LogUtil.i(TAG, "Open ChatStream " + mTargetGuid);
                 notificationController.ignoreGuid(mTargetGuid);
-                notificationController.dismissNotification(mTargetGuid);
+                notificationController.dismissNotification(NotificationController.MESSAGE_NOTIFICATION_ID);
 
                 if (mChatAdapter == null) {
                     mChatAdapter = getChatController().getChatAdapter(this, mTargetGuid);
@@ -247,47 +247,46 @@ public class SingleChatActivity
 
                 setMuteIcon();
 
-                if (mTargetGuid != null) {
-                    getSimsMeApplication().getChatOverviewController().clearNameCache();
+                getSimsMeApplication().getChatOverviewController().clearNameCache();
 
-                    Chat chat = getSimsMeApplication().getSingleChatController().getChatByGuid(mTargetGuid);
-                    if (chat != null) {
-                        getSimsMeApplication().getChatOverviewController().chatChanged(null, chat.getChatGuid(), null, ChatOverviewController.CHAT_CHANGED_REFRESH_CHAT);
-                        getSimsMeApplication().getChatOverviewController().chatChanged(null, chat.getChatGuid(), null, ChatOverviewController.CHAT_CHANGED_IMAGE);
-                    }
-                }
-            }
 
-            if (loginController.getState().equals(LoginController.STATE_LOGGED_IN)) {
-                // Chatverlauf laden
-                if (!mOnlyShowTimed && getChatController().loadNewestMessagesByGuid()) {
-                    showProgressIndicator();
-                } else if (mOnlyShowTimed) {
-                    mChatAdapter.clear();
-                    if (mChatAdapter != null) {
-                        mChatAdapter.setShowTimedMessages(mOnlyShowTimed);
-                    }
-                    showProgressIndicator();
-                    getChatController().getTimedMessages();
-                }
-
-                getChatController().countTimedMessages(mOnTimedMessagesListener);
-                getChatController().markAllUnreadChatMessagesAsRead(mTargetGuid);
-
-                if ((mChatInputFragment != null) && (mChatInputFragment.getEditText() != null)) {
-                    try {
-                        final String clipBoardText = clipBoardController.get(mTargetGuid);
-
-                        if (!StringUtil.isNullOrEmpty(clipBoardText)) {
-                            mChatInputFragment.setChatInputText(clipBoardText, false);
+                if (loginController.getState().equals(LoginController.STATE_LOGGED_IN)) {
+                    // Chatverlauf laden
+                    if (!mOnlyShowTimed && getChatController().loadNewestMessagesByGuid()) {
+                        showProgressIndicator();
+                    } else if (mOnlyShowTimed) {
+                        mChatAdapter.clear();
+                        if (mChatAdapter != null) {
+                            mChatAdapter.setShowTimedMessages(mOnlyShowTimed);
                         }
-                    } catch (final LocalizedException e) {
-                        /*bad padding exception beim ersten versuch einer direktnachricht mit unbekanntem kontakt
-                         * (es gab kein put vor dem get)
-                         * SGA
-                         */
-                        ;// NOPMD
+                        showProgressIndicator();
+                        getChatController().getTimedMessages();
                     }
+
+                    getChatController().countTimedMessages(mOnTimedMessagesListener);
+                    getChatController().markAllUnreadChatMessagesAsRead(mTargetGuid);
+
+                    if ((mChatInputFragment != null) && (mChatInputFragment.getEditText() != null)) {
+                        try {
+                            final String clipBoardText = clipBoardController.get(mTargetGuid);
+
+                            if (!StringUtil.isNullOrEmpty(clipBoardText)) {
+                                mChatInputFragment.setChatInputText(clipBoardText, false);
+                            }
+                        } catch (final LocalizedException e) {
+                            /*bad padding exception beim ersten versuch einer direktnachricht mit unbekanntem kontakt
+                             * (es gab kein put vor dem get)
+                             * SGA
+                             */
+                            ;// NOPMD
+                        }
+                    }
+                }
+
+                Chat chat = getSimsMeApplication().getSingleChatController().getChatByGuid(mTargetGuid);
+                if (chat != null) {
+                    getSimsMeApplication().getChatOverviewController().chatChanged(null, chat.getChatGuid(), null, ChatOverviewController.CHAT_CHANGED_REFRESH_CHAT);
+                    getSimsMeApplication().getChatOverviewController().chatChanged(null, chat.getChatGuid(), null, ChatOverviewController.CHAT_CHANGED_IMAGE);
                 }
             }
 
@@ -387,7 +386,7 @@ public class SingleChatActivity
                 setTrustColor(mContact.getState());
             }
         } catch (final LocalizedException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
         }
     }
 
@@ -400,13 +399,14 @@ public class SingleChatActivity
             mRefreshTimer = null;
         }
 
+        super.onPauseActivity();
+
         try {
-            super.onPauseActivity();
             if ((mChatInputFragment != null) && (mChatInputFragment.getEditText() != null)) {
                 clipBoardController.put(mTargetGuid, mChatInputFragment.getEditText().getText().toString());
             }
         } catch (final LocalizedException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
         }
     }
 
@@ -470,7 +470,7 @@ public class SingleChatActivity
                     final OnLoadPublicKeyListener onLoadPublicKeyListener = new OnLoadPublicKeyListener() {
                         @Override
                         public void onLoadPublicKeyComplete(final Contact contact) {
-                            LogUtil.d(SingleChatActivity.class.getSimpleName(), "Contact exists!");
+                            LogUtil.d(TAG, "Contact exists!");
                             mTempDeviceGuid = contact.getTempDeviceGuid();
                             mTempDevicePublicKeyXML = contact.getTempDevicePublicKeyXML();
                             if (contact.getTempReadonly()) {
@@ -480,7 +480,7 @@ public class SingleChatActivity
                             try {
                                 setMuteIcon();
                             } catch (final LocalizedException le) {
-                                LogUtil.w(SingleChatActivity.TAG, le.getMessage(), le);
+                                LogUtil.w(TAG, le.getMessage(), le);
                             }
                         }
 
@@ -633,7 +633,7 @@ public class SingleChatActivity
                 setTitle(mContact.getName());
             }
         } catch (final LocalizedException e) {
-            LogUtil.w(SingleChatActivity.class.getSimpleName(), "onContactProfilInfoHasChanged()", e);
+            LogUtil.w(TAG, "onContactProfilInfoHasChanged()", e);
         }
     }
 
@@ -652,7 +652,7 @@ public class SingleChatActivity
                 super.onActivityPostLoginResult(requestCode, resultCode, returnIntent);
             }
         } catch (final LocalizedException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
         }
     }
 

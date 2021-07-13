@@ -115,27 +115,27 @@ public class AVCallMenuActivity extends AppCompatActivity {
                     Runnable dismissRunner = new Runnable() {
                         public void run() {
                             LogUtil.i(TAG, "AvcallActivity Timeout - dismissed!");
-                            notificationController.dismissNotification(mFromNotification,false);
+                            notificationController.dismissNotification(mFromNotification);
                             finish();
                         }
                     };
-                    dismissHandler.postDelayed(dismissRunner, notificationController.getDismissNotificationTimeout());
+                    dismissHandler.postDelayed(dismissRunner, NotificationController.DISMISS_NOTIFICATION_TIMEOUT);
                     LogUtil.d(TAG, "Runner for fullscreen notification cancellation initialized!");
                 }
                 return;
             case ACTION_AUDIO_CALL:
                 avChatController.setCallType(AVChatController.CALL_TYPE_AUDIO_ONLY);
-                notificationController.dismissNotification(mFromNotification, false);
+                notificationController.dismissNotification(mFromNotification);
                 avChatController.sendCallAcceptMessage(mSenderGuid, null);
                 break;
             case ACTION_VIDEO_CALL:
                 avChatController.setCallType(AVChatController.CALL_TYPE_AUDIO_VIDEO);
-                notificationController.dismissNotification(mFromNotification, false);
+                notificationController.dismissNotification(mFromNotification);
                 avChatController.sendCallAcceptMessage(mSenderGuid, null);
                 break;
             case ACTION_DISMISS:
                 // We don't want a call. Finish this and exit
-                notificationController.dismissNotification(mFromNotification, false);
+                notificationController.dismissNotification(mFromNotification);
                 avChatController.sendCallRejectMessage(mSenderGuid, null);
                 finish();
                 return;
@@ -160,7 +160,7 @@ public class AVCallMenuActivity extends AppCompatActivity {
 
     public void onButtonClick(View view) {
         boolean doCall = false;
-        notificationController.dismissNotification(mFromNotification,false);
+        notificationController.dismissNotification(mFromNotification);
 
         // Make sure to turn screen on if device is sleeping/locked
         activateAndUnlockScreen();

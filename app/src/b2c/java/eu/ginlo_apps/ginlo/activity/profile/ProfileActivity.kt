@@ -31,7 +31,8 @@ class ProfileActivity : ProfileActivityBase() {
     }
 
     override val onEmojiCheckChangeListener: CompoundButton.OnCheckedChangeListener
-        get() = CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
+        //get() = CompoundButton.OnCheckedChangeListener { buttonView, isChecked ->
+        get() = CompoundButton.OnCheckedChangeListener { _, _ ->
             if (addEmojiNicknameButton.isChecked ) {
                 if (!emojiFragmentVisible) {
                     val handler = Handler()

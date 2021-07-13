@@ -1,13 +1,16 @@
 // Copyright (c) 2020-2021 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.register.device;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.widget.TextView;
 import eu.ginlo_apps.ginlo.MainActivity;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity;
+import eu.ginlo_apps.ginlo.concurrent.task.HttpBaseTask;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.util.ChecksumUtil;
@@ -18,8 +21,20 @@ import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.XMLUtil;
 
 public class DeviceVerifyActivity extends NewBaseActivity {
+
+    private final static String TAG = DeviceVerifyActivity.class.getSimpleName();
+    private final static String WAKELOCK_TAG = "ginlo:" + TAG;
+    private final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
+
     @Override
     protected void onCreateActivity(Bundle savedInstanceState) {
+
+        PowerManager pm = (PowerManager) getSimsMeApplication().getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wl = pm.newWakeLock(WAKELOCK_FLAGS, WAKELOCK_TAG);
+        wl.acquire(60*60*1000L /*60 minutes to be sure*/);
+
+        LogUtil.d(TAG, "onCreateActivity()");
+
         try {
             String publicKeyString = XMLUtil.getXMLFromPublicKey(getSimsMeApplication().getKeyController().getDeviceKeyPair().getPublic());
             String checksum = ChecksumUtil.getSHA256ChecksumForString(publicKeyString);
@@ -45,16 +60,21 @@ public class DeviceVerifyActivity extends NewBaseActivity {
 
             setTextToTextViews(splitPK);
 
-            LogUtil.d("CHECK", "DeviceVerifyActivity onCreateActivity()");
             getSimsMeApplication().getAccountController().coupleDeviceGetCouplingResponse(new GenericActionListener<Void>() {
                 @Override
                 public void onSuccess(Void object) {
+                    LogUtil.d(TAG, "coupleDeviceGetCouplingResponse onSuccess called.");
                     showIdleDialog(R.string.device_create_device_sync_data);
 
                     getSimsMeApplication().getAccountController().coupleDeviceCreateDevice(new GenericActionListener<Void>() {
                         @Override
                         public void onSuccess(Void object) {
+                            LogUtil.d(TAG, "coupleDeviceCreateDevice onSuccess called.");
                             dismissIdleDialog();
+                            wl.release();
+                            if (wl.isHeld()) {
+                                LogUtil.w(TAG, "handleConfirmClick: onSuccess: Wakelock held!");
+                            }
 
                             Intent intent = new Intent(DeviceVerifyActivity.this, RuntimeConfig.getClassUtil().getLoginActivityClass());
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -63,7 +83,12 @@ public class DeviceVerifyActivity extends NewBaseActivity {
 
                         @Override
                         public void onFail(String message, String errorIdent) {
+                            LogUtil.w(TAG, "coupleDeviceCreateDevice onFail called: " + message + "(" + errorIdent + ")");
                             dismissIdleDialog();
+                            wl.release();
+                            if (wl.isHeld()) {
+                                LogUtil.w(TAG, "handleConfirmClick: onFail: Wakelock held!");
+                            }
 
                             String error = getString(R.string.error_couple_device);
                             if (StringUtil.isNullOrEmpty(errorIdent)) {
@@ -76,7 +101,13 @@ public class DeviceVerifyActivity extends NewBaseActivity {
 
                 @Override
                 public void onFail(String message, String errorIdent) {
+                    LogUtil.w(TAG, "coupleDeviceGetCouplingResponse onFail called." + message + "(" + errorIdent + ")");
                     dismissIdleDialog();
+                    wl.release();
+                    if (wl.isHeld()) {
+                        LogUtil.w(TAG, "handleConfirmClick: onFail: Wakelock held!");
+                    }
+
                     String error = getString(R.string.error_couple_device);
                     if (StringUtil.isNullOrEmpty(errorIdent)) {
                         error = error + getString(R.string.error_couple_device_error_ident);
@@ -90,6 +121,7 @@ public class DeviceVerifyActivity extends NewBaseActivity {
                 }
             });
         } catch (LocalizedException e) {
+            LogUtil.w(TAG, "LocalizedException: " + e.getMessage(), e);
             if (StringUtil.isEqual(e.getIdentifier(), LocalizedException.KEY_NOT_AVAILABLE)) {
                 DialogBuilderUtil.buildErrorDialog(this, getString(R.string.error_couple_device) + LocalizedException.KEY_NOT_AVAILABLE, 0, new DialogBuilderUtil.OnCloseListener() {
                     @Override
@@ -99,6 +131,11 @@ public class DeviceVerifyActivity extends NewBaseActivity {
                 }).show();
             } else {
                 finish();
+            }
+
+            wl.release();
+            if (wl.isHeld()) {
+                LogUtil.w(TAG, "LocalizedException: Wakelock held!");
             }
         }
     }

@@ -44,6 +44,7 @@ import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.GinloAppLifecycle;
 import eu.ginlo_apps.ginlo.controller.GinloAppLifecycleImpl;
 import eu.ginlo_apps.ginlo.controller.LoginController;
+import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.message.ChannelChatController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -76,26 +77,18 @@ import java.util.List;
 public class ChannelChatActivity
         extends eu.ginlo_apps.ginlo.activity.chat.BaseChatActivity {
 
+    private final static String TAG = ChannelChatActivity.class.getSimpleName();
     private static final long LAST_MESSAGE_ID_INITIAL_VALUE = -2;
 
     private ImageLoader mImageLoader;
-
     private ChannelController mChannelController;
-
     private View mHeader;
-
     private ImageView mHeaderBgImageView;
-
     private ImageView mHeaderLabelImageView;
-
     private ChannelModel mChannelModel;
-
     private Channel mChannel;
-
     private ChannelChatController mChatController;
-
     private ChannelColorUtil mChannelColorUtil;
-
     private Contact mTempContact;
 
     @Override
@@ -108,10 +101,6 @@ public class ChannelChatActivity
             getChatController().addListener(this);
 
             mChannelController = ((SimsMeApplication) this.getApplication()).getChannelController();
-
-            // Dismiss all notifications when entering ChannelChatActivity
-            notificationController.dismissNotification(-1, true);
-
             mChannel = mChannelController.getChannelFromDB(mTargetGuid);
 
             setTitle(mChannel.getShortDesc());
@@ -164,7 +153,7 @@ public class ChannelChatActivity
                 fab.setVisibility(View.VISIBLE);
             }
         } catch (final LocalizedException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
             finish();
         }
         mLastMessageId = LAST_MESSAGE_ID_INITIAL_VALUE;
@@ -204,16 +193,16 @@ public class ChannelChatActivity
         // bilder aus Kanal weiterleiten - idle-Dioalog schliesst nicht - workarround
         dismissIdleDialog();
 
-        LogUtil.i(this.getClass().getName(), "onResume: " + this);
+        LogUtil.i(TAG, "onResume: " + this);
 
         if (loginController.getState().equals(LoginController.STATE_LOGGED_OUT)) {
             return;
         }
 
         if (mTargetGuid != null) {
-            LogUtil.i(this.getClass().getName(), "Open ChatStream " + mTargetGuid);
+            LogUtil.i(TAG, "Open ChatStream " + mTargetGuid);
             notificationController.ignoreGuid(mTargetGuid);
-            notificationController.dismissNotification(mTargetGuid);
+            notificationController.dismissNotification(NotificationController.MESSAGE_NOTIFICATION_ID);
 
             if (mChatAdapter == null) {
                 mChatAdapter = getChatController().getChatAdapter(this, mTargetGuid);
@@ -290,7 +279,7 @@ public class ChannelChatActivity
                             contact.setDisplayName(mTempContact.getDisplayName());
                             contact.setNickname(mTempContact.getNickname());
                         } catch (final LocalizedException le) {
-                            LogUtil.w(ChannelChatActivity.this.getClass().getSimpleName(), le.getMessage(), le);
+                            LogUtil.w(TAG, le.getMessage(), le);
                             hideProgressIndicator();
                             v.setVisibility(View.VISIBLE);
                         }
@@ -345,7 +334,7 @@ public class ChannelChatActivity
             intent.setData(Uri.parse(text));
             startActivity(intent);
         } catch (final UnsupportedEncodingException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         } finally {
             closeSettings();
         }
@@ -494,7 +483,7 @@ public class ChannelChatActivity
             }
             mTempContact.setIsHidden(false);
         } catch (final LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
     }
 
@@ -558,7 +547,7 @@ public class ChannelChatActivity
 
                     return channelController.loadImage(ci.getClModel(), ci.getType());
                 } catch (final LocalizedException e) {
-                    LogUtil.w(ChannelChatActivity.this.getClass().getName(), "Image can't be loaded.", e);
+                    LogUtil.w(TAG, "Image can't be loaded.", e);
                     return null;
                 }
             }
@@ -577,7 +566,7 @@ public class ChannelChatActivity
                         mHeaderLabelImageView.setVisibility(View.VISIBLE);
                     }
                 } catch (NullPointerException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                 }
             }
         };
@@ -795,7 +784,7 @@ public class ChannelChatActivity
             }
             mOverflowMenuDialog.show();
         } catch (final LocalizedException le) {
-            LogUtil.w(ChannelChatActivity.this.getClass().getSimpleName(), le.getMessage(), le);
+            LogUtil.w(TAG, le.getMessage(), le);
         }
     }
 }
