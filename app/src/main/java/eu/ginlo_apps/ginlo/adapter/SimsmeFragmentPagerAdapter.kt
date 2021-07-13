@@ -6,7 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
 
-class SimsmeFragmentPagerAdapter(fm: FragmentManager) : FragmentStatePagerAdapter(fm) {
+class SimsmeFragmentPagerAdapter(fm: FragmentManager) : FragmentStatePagerAdapter(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
    private var mFragments : MutableList<PageAdapterItemInfo> = mutableListOf<PageAdapterItemInfo>()
 

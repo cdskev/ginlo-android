@@ -71,7 +71,6 @@ import eu.ginlo_apps.ginlo.model.backend.action.CompanyEncryptInfoAction;
 import eu.ginlo_apps.ginlo.model.backend.action.RequestConfirmEmailAction;
 import eu.ginlo_apps.ginlo.model.backend.action.RequestConfirmPhoneAction;
 import eu.ginlo_apps.ginlo.model.backend.serialization.AccountModelSerializer;
-import eu.ginlo_apps.ginlo.model.backend.serialization.CompanyLayoutDeserializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.DeviceModelSerializer;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
@@ -107,8 +106,6 @@ import static eu.ginlo_apps.ginlo.model.constant.JsonConstants.VALID;
 
 public class AccountController extends AccountControllerBase implements PreferencesController.OnServerVersionChangedListener {
     private static final String TAG = AccountController.class.getSimpleName();
-
-    private static final String COMPANY_LAYOUT_JSON = "AccountControllerBusiness.companyLayoutJson";
 
     private static final String EMAIL_ATTRIBUTES_ADDRESS_INFO_V1 = "AdressInformation-v1";
 
@@ -200,7 +197,6 @@ public class AccountController extends AccountControllerBase implements Preferen
 
         gsonBuilder.registerTypeAdapter(AccountModel.class, new AccountModelSerializer());
         gsonBuilder.registerTypeAdapter(DeviceModel.class, new DeviceModelSerializer());
-        gsonBuilder.registerTypeAdapter(CompanyLayoutModel.class, new CompanyLayoutDeserializer());
         gson = gsonBuilder.create();
     }
 
@@ -724,7 +720,7 @@ public class AccountController extends AccountControllerBase implements Preferen
                             if (!StringUtil.isNullOrEmpty(companyJson)) {
                                 // einmal parsen, um das JsonObjekt zu validieren
                                 gson.fromJson(companyJson, CompanyLayoutModel.class);
-                                mApplication.getPreferencesController().getSharedPreferences().edit().putString(COMPANY_LAYOUT_JSON, companyJson).apply();
+                                mApplication.getPreferencesController().getSharedPreferences().edit().putString(ColorUtil.COMPANY_LAYOUT_JSON, companyJson).apply();
                             }
                         } catch (final JsonParseException je) {
                             LogUtil.e(TAG, je.getMessage(), je);
@@ -817,15 +813,6 @@ public class AccountController extends AccountControllerBase implements Preferen
         } else {
             task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
-    }
-
-    public CompanyLayoutModel getCompanyLayoutModel() {
-        final String layoutString = mApplication.getPreferencesController().getSharedPreferences().getString(COMPANY_LAYOUT_JSON, null);
-
-        if (!StringUtil.isNullOrEmpty(layoutString)) {
-            return gson.fromJson(layoutString, CompanyLayoutModel.class);
-        }
-        return null;
     }
 
     public void registerOnCompanyLayoutChangeListener(@NonNull final OnCompanyLayoutChangeListener listener) {
@@ -2750,7 +2737,7 @@ public class AccountController extends AccountControllerBase implements Preferen
     }
 
     public void deleteAccount() {
-        mApplication.getPreferencesController().getSharedPreferences().edit().remove(COMPANY_LAYOUT_JSON).apply();
+        mApplication.getPreferencesController().getSharedPreferences().edit().remove(ColorUtil.COMPANY_LAYOUT_JSON).apply();
         deleteCompanyLogo();
         resetColorLayoutAndCallListener();
         if (mLogoChangeListener != null) {
@@ -2776,7 +2763,7 @@ public class AccountController extends AccountControllerBase implements Preferen
     }
 
     private void resetLayoutInternally() {
-        mApplication.getPreferencesController().getSharedPreferences().edit().remove(COMPANY_LAYOUT_JSON).apply();
+        mApplication.getPreferencesController().getSharedPreferences().edit().remove(ColorUtil.COMPANY_LAYOUT_JSON).apply();
         deleteCompanyLogo();
         resetColorLayoutAndCallListener();
         if (mLogoChangeListener != null) {

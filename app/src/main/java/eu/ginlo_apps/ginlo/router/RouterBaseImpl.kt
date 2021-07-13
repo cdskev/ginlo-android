@@ -2,6 +2,7 @@
 package eu.ginlo_apps.ginlo.router
 
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
 import eu.ginlo_apps.ginlo.R
@@ -33,9 +34,10 @@ abstract class RouterBaseImpl(protected val appLifecycle: GinloAppLifecycle) : R
             type = "application/octet-stream"
         }.putFileExtra(file).let { sendIntent ->
             val activitiesThatCanHandleRequest =
-                appLifecycle.topActivity!!.packageManager.queryIntentActivities(sendIntent, 0)
-            if (activitiesThatCanHandleRequest.count() <= 0)
+                appLifecycle.topActivity?.packageManager?.queryIntentActivities(sendIntent, 0)
+            if (activitiesThatCanHandleRequest != null && activitiesThatCanHandleRequest.count() <= 0) {
                 return false
+            }
 
             startExternalActivity(Intent.createChooser(sendIntent, chooserTitle))
 
@@ -115,8 +117,8 @@ abstract class RouterBaseImpl(protected val appLifecycle: GinloAppLifecycle) : R
         this.putExtra(
             Intent.EXTRA_STREAM,
             FileProvider.getUriForFile(
-                appLifecycle.topActivity!!.applicationContext,
-                "${appLifecycle.topActivity!!.packageName}.fileprovider",
+                appLifecycle.topActivity?.applicationContext as Context,
+                "${appLifecycle.topActivity?.packageName}.fileprovider",
                 file
             )
         )

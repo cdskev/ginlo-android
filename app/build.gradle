@@ -63,6 +63,10 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.25'
     implementation 'com.github.tony19:logback-android:2.0.0'
 
+    // Exoplayer
+    implementation 'com.google.android.exoplayer:exoplayer-core:2.14.1'
+    implementation 'com.google.android.exoplayer:exoplayer-ui:2.14.1'
+
     // Jitsi Meet
     implementation('org.jitsi.react:jitsi-meet-sdk:2.9.0') { transitive = true }
 
@@ -140,8 +144,10 @@ android {
         // App constants
         applicationId 'eu.ginlo_apps.ginlo'
         // TODO: Remove oldScheme in the future. It is for backward compatibility only - see also AndroidManifest.xml
-        manifestPlaceholders = [appLabel: "@string/app_label_release", appScheme: "ginlo", oldScheme: "simsme"]
-        manifestPlaceholders = [google_maps_key: ""]
+        manifestPlaceholders = [appLabel: "@string/app_label_release",
+                                appScheme: "ginlo",
+                                oldScheme: "simsme",
+                                google_maps_key: ""]
         buildConfigField("String", "APP_URL_SCHEME", '"ginlo"')
         buildConfigField("String", "CLASS_UTIL", '".util.notobfuscate.ClassUtil"')
         buildConfigField("String", "GINLO_APP_NAME", '"ginlo"')

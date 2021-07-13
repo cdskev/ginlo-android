@@ -13,5 +13,5 @@ class ExceptionHandlerModule {
     @Provides
     @Singleton
     fun provideUncaughtExceptionHandler(logger: Logger) =
-        GinloUncaughtExceptionHandler(Thread.getDefaultUncaughtExceptionHandler(), logger)
+        GinloUncaughtExceptionHandler(Thread.getDefaultUncaughtExceptionHandler() as Thread.UncaughtExceptionHandler, logger)
 }

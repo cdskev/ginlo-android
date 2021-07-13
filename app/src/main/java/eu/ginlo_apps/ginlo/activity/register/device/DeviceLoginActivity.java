@@ -92,29 +92,29 @@ public class DeviceLoginActivity extends NewBaseActivity implements AdapterView.
         Fragment nextFragment;
 
         switch (position) {
-            //Phone - 1
-            case 1: {
-                if (mPhoneFragment == null) {
-                    mPhoneFragment = new RegisterPhoneFragment();
-                }
-                nextFragment = mPhoneFragment;
-                break;
-            }
-            //SIMSME ID - 2
-            case 2: {
+            //SIMSME ID - 0
+            case 0: {
                 if (mSIMSmeIdFragment == null) {
                     mSIMSmeIdFragment = new RegisterSIMSmeIdFragment();
                 }
                 nextFragment = mSIMSmeIdFragment;
                 break;
             }
-            //Email - 0
-            case 0:
+            //Email - 1
+            case 1:
             default: {
                 if (mEmailFragment == null) {
                     mEmailFragment = new RegisterEmailAddressFragment();
                 }
                 nextFragment = mEmailFragment;
+                break;
+            }
+            //Phone - 2
+            case 2: {
+                if (mPhoneFragment == null) {
+                    mPhoneFragment = new RegisterPhoneFragment();
+                }
+                nextFragment = mPhoneFragment;
                 break;
             }
         }

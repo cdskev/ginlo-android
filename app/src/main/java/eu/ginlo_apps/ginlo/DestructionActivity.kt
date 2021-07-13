@@ -3,6 +3,7 @@ package eu.ginlo_apps.ginlo
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.graphics.Point
 import android.media.MediaPlayer.OnPreparedListener
 import android.net.Uri
 import android.os.Bundle
@@ -24,81 +25,40 @@ import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.chat.SelfDestructionChatItemVO
 import eu.ginlo_apps.ginlo.model.constant.MimeType
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams
-import eu.ginlo_apps.ginlo.util.AudioPlayer
-import eu.ginlo_apps.ginlo.util.AudioUtil
-import eu.ginlo_apps.ginlo.util.BitmapUtil
-import eu.ginlo_apps.ginlo.util.ColorUtil
-import eu.ginlo_apps.ginlo.util.DateUtil
-import eu.ginlo_apps.ginlo.util.SystemUtil
-import eu.ginlo_apps.ginlo.util.ToolbarColorizeHelper
-import eu.ginlo_apps.ginlo.util.VideoProvider
-import kotlinx.android.synthetic.main.activity_destruction.destructionContent
-import kotlinx.android.synthetic.main.activity_destruction.destructionScrollView
-import kotlinx.android.synthetic.main.activity_destruction.destruction_attachment_description
-import kotlinx.android.synthetic.main.activity_destruction.destruction_image_view
-import kotlinx.android.synthetic.main.activity_destruction.destruction_text_view
-import kotlinx.android.synthetic.main.activity_destruction.destruction_video_view
-import kotlinx.android.synthetic.main.activity_destruction.please_touch_layout
-import kotlinx.android.synthetic.main.activity_destruction.please_touch_textView
-import kotlinx.android.synthetic.main.activity_destruction.timer_layout
-import kotlinx.android.synthetic.main.activity_destruction.timer_text_view
-import java.util.Date
-import java.util.Timer
-import java.util.TimerTask
+import eu.ginlo_apps.ginlo.util.*
+import kotlinx.android.synthetic.main.activity_destruction.*
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class DestructionActivity : BaseActivity() {
 
     companion object {
         const val EXTRA_CHAT_ITEM = "ChatActivity.messageChatItem"
-
         const val EXTRA_MESSAGE = "ChatActivity.message"
-
         const val EXTRA_MESSAGE_TYPE = "ChatActivity.messageType"
-
         const val EXTRA_MESSAGE_GUID = "ChatActivity.messageGuid"
-
         const val EXTRA_BITMAP_URI = "DestructionActivity.extraBitmapData"
-
         const val EXTRA_VIDEO_URI = "DestructionActivity.VideoUri"
-
         const val EXTRA_VOICE_URI = "DestructionActivity.VoiceUri"
-
         const val EXTRA_ATTACHMENT_DESCRIPTION = "DestructionActivity.AttachmentDescription"
-
         const val EXTRA_DESTRUCTION_PARAMS = "DestructionActivity.destructionParams"
     }
 
     private var countdownTimer: Timer? = null
-
     private val accountController: AccountController by lazy { simsMeApplication.accountController }
-
     private lateinit var chatController: ChatController
-
     private val messageController: MessageController by lazy { simsMeApplication.messageController }
-
     private var destructionParams: MessageDestructionParams? = null
-
     private var daysLeft: Int = 0
-
     private var hoursLeft: Int = 0
-
     private var minutesLeft: Int = 0
-
     private var secondsLeft: Int = 0
-
     private var hundredthLeft: Int = 0
-
     private var timerStarted: Boolean = false
-
     private var messageShown: Boolean = false
-
     private var contentType: String? = null
-
     private var messageGuid: String? = null
-
     private var audioPlayer: AudioPlayer? = null
-
     private var attachmentDescription: String? = null
 
     private fun contentTouchListener(): OnTouchListener {
@@ -151,12 +111,10 @@ class DestructionActivity : BaseActivity() {
                             }
                         }
                         MimeType.AUDIO_MPEG -> {
-                            if (audioPlayer != null) {
-                                try {
-                                    audioPlayer!!.play()
-                                } catch (e: LocalizedException) {
-                                    LogUtil.e(this.javaClass.name, e.message, e)
-                                }
+                            try {
+                                audioPlayer?.play()
+                            } catch (e: LocalizedException) {
+                                LogUtil.e(this.javaClass.name, e.message, e)
                             }
                             destruction_image_view.visibility = View.VISIBLE
                         }
@@ -175,9 +133,7 @@ class DestructionActivity : BaseActivity() {
                             destruction_attachment_description.visibility = View.GONE
                         }
                         MimeType.AUDIO_MPEG -> {
-                            if (audioPlayer != null) {
-                                audioPlayer!!.pause()
-                            }
+                            audioPlayer?.pause()
                             destruction_image_view.visibility = View.INVISIBLE
                         }
                         else -> destruction_text_view.visibility = View.INVISIBLE
@@ -351,15 +307,15 @@ class DestructionActivity : BaseActivity() {
     }
 
     public override fun onPauseActivity() {
-        if (contentType == MimeType.AUDIO_MPEG && audioPlayer != null) {
-            audioPlayer!!.pause()
+        if (contentType == MimeType.AUDIO_MPEG) {
+            audioPlayer?.pause()
         }
         super.onPauseActivity()
     }
 
     override fun onDestroy() {
-        if (contentType == MimeType.AUDIO_MPEG && audioPlayer != null) {
-            audioPlayer!!.release()
+        if (contentType == MimeType.AUDIO_MPEG) {
+            audioPlayer?.release()
         }
         super.onDestroy()
     }
@@ -411,14 +367,19 @@ class DestructionActivity : BaseActivity() {
                 contentType = MimeType.IMAGE_JPEG
 
                 val imageUri = Uri.parse(imageUriString)
-                val bitmap = BitmapUtil.decodeUri(this, imageUri, 0, true)
+                //val bitmap = BitmapUtil.decodeUri(this, imageUri, 0, true)
+
+                val screenSize = Point()
+                windowManager.defaultDisplay.getSize(screenSize)
+                //bitmap = BitmapUtil.decodeUri(this, imageUri, 0, true);
+                val bitmap = BitmapUtil.decodeUri(this, imageUri, screenSize.x, screenSize.y, true)
 
                 setUpImage(bitmap)
             } else if (videoUriString != null) {
                 contentType = MimeType.VIDEO_MPEG
 
                 val fileUri = Uri.parse(videoUriString)
-                val videoUri = Uri.parse(VideoProvider.CONTENT_URI_BASE.toString() + fileUri.path!!)
+                val videoUri = Uri.parse(VideoProvider.CONTENT_URI_BASE.toString() + fileUri.path)
 
                 destruction_video_view.setVideoURI(videoUri)
             } else if (voiceUriString != null) {
@@ -435,7 +396,7 @@ class DestructionActivity : BaseActivity() {
                         SystemUtil.dynamicDownCast(
                             intent.getSerializableExtra(EXTRA_CHAT_ITEM),
                             SelfDestructionChatItemVO::class.java
-                        )!!
+                        ) as SelfDestructionChatItemVO
                     )
                 }
             }
@@ -462,12 +423,10 @@ class DestructionActivity : BaseActivity() {
                         }
                     }
                     MimeType.AUDIO_MPEG -> {
-                        if (audioPlayer != null) {
-                            try {
-                                audioPlayer!!.play()
-                            } catch (e: LocalizedException) {
-                                LogUtil.e(DestructionActivity::class.java.simpleName, e.message, e)
-                            }
+                        try {
+                            audioPlayer?.play()
+                        } catch (e: LocalizedException) {
+                            LogUtil.e(DestructionActivity::class.java.simpleName, e.message, e)
                         }
                         destruction_image_view.visibility = View.VISIBLE
                     }

@@ -4,7 +4,6 @@ package eu.ginlo_apps.ginlo.model.backend.serialization;
 
 import com.google.gson.*;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
-import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.model.backend.KeyContainerModel;
 import eu.ginlo_apps.ginlo.model.backend.PrivateMessageModel;
 import eu.ginlo_apps.ginlo.model.constant.Encoding;
@@ -60,28 +59,29 @@ public class PrivateMessageModelSerializer
         if (privateMessageModel.features != null) {
             privateMessageJsonObject.addProperty("features", privateMessageModel.features);
         }
+
         if (privateMessageModel.attachment != null) {
-            try {
-                JsonArray jsonArray = new JsonArray();
+            JsonArray jsonArray = new JsonArray();
+            if (GuidUtil.isRequestGuid(privateMessageModel.attachment)) {
+                // KS: Optimized this code to work with file streams instead of RAM.
+                // That allows bigger attachments which would otherwise result in oom.
+                // Return link to file instead of attachment contents. Must be processed
+                // by the caller.
 
-                if (GuidUtil.isRequestGuid(privateMessageModel.attachment)) {
-                    byte[] encryptedDataFromAttachment = AttachmentController.loadEncryptedBase64AttachmentFile(privateMessageModel.attachment);
+                //privateMessageJsonObject.add("attachment",
+                //        AttachmentController.loadEncryptedBase64AttachmentAsJsonElementFromFile(privateMessageModel.attachment));
 
-                    if ((encryptedDataFromAttachment != null) && (encryptedDataFromAttachment.length > 0)) {
-                        String attachment = new String(encryptedDataFromAttachment, "US-ASCII");
-                        jsonArray.add(new JsonPrimitive(attachment));
-                    }
-                } else {
-                    jsonArray.add(new JsonPrimitive(privateMessageModel.attachment));
-                }
+                jsonArray.add(new JsonPrimitive("@" + AttachmentController.convertEncryptedAttachmentBase64FileToJsonArrayFile(privateMessageModel.attachment)));
+                privateMessageJsonObject.add("attachment", jsonArray);
 
+            } else {
+                jsonArray.add(new JsonPrimitive(privateMessageModel.attachment));
                 if (jsonArray.size() > 0) {
                     privateMessageJsonObject.add("attachment", jsonArray);
                 }
-            } catch (LocalizedException | UnsupportedEncodingException e) {
-                return null;
             }
         }
+
         //    if (privateMessageModel.signature != null)
         //        {
         //       privateMessageJsonObject.add("signature",

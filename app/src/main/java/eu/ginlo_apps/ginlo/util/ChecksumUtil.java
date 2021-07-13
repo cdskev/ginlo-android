@@ -243,6 +243,58 @@ public class ChecksumUtil {
     }
 
     /**
+     *
+     * @param file
+     * @return
+     */
+    public static String getMD5HashFromFile(@NonNull File file) {
+        if (!file.exists()) {
+            return null;
+        }
+
+        FileInputStream fis = null;
+        FileChannel inChannel = null;
+        try {
+            fis = new FileInputStream(file);
+
+            inChannel = fis.getChannel();
+
+            MappedByteBuffer byteBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
+
+            MessageDigest digester = SecurityUtil.getMessageDigestInstance("MD5");
+            digester.update(byteBuffer);
+
+            byte[] array = digester.digest();
+
+            final StringBuilder sb = new StringBuilder();
+
+            for (byte value : array) {
+                final int b = value & 0xFF;
+
+                if (b < 0x10) {
+                    sb.append('0');
+                }
+                sb.append(Integer.toHexString(b));
+            }
+
+            return sb.toString();
+        } catch (NoSuchAlgorithmException | IOException e) {
+            LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+            return null;
+            //throw new LocalizedException(LocalizedException.GENERATE_CHECKSUM_FAILED, e);
+        } finally {
+            if (inChannel != null) {
+                try {
+                    inChannel.close();
+                } catch (IOException e) {
+                    LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+                }
+            }
+            StreamUtil.closeStream(fis);
+        }
+    }
+
+    /**
      * @throws IOException [!EXC_DESCRIPTION!]
      */
     private static String getMD5Hash(final String inputData)

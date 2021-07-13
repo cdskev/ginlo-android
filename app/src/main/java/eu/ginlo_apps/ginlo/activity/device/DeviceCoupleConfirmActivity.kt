@@ -1,45 +1,32 @@
 // Copyright (c) 2020-2021 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.device
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
+import android.os.PowerManager
 import android.view.View
 import android.widget.TextView
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity
+import eu.ginlo_apps.ginlo.concurrent.task.HttpBaseTask
 import eu.ginlo_apps.ginlo.controller.AccountController
 import eu.ginlo_apps.ginlo.greendao.Account
+import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.util.ColorUtil
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_confirm_couple_btn
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_confirm_device_btn
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_device_img
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_device_name
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_device_type
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_device_type_descr
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_0
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_1
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_10
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_11
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_12
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_13
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_14
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_15
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_2
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_3
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_4
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_5
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_6
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_7
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_8
-import kotlinx.android.synthetic.main.activity_device_couple_confirm.device_couple_sn_9
+import kotlinx.android.synthetic.main.activity_device_couple_confirm.*
 
 class DeviceCoupleConfirmActivity : NewBaseActivity() {
     companion object {
         const val EXTRA_TAN = "x_tan"
     }
+
+    private val TAG = DeviceCoupleConfirmActivity::class.java.simpleName
+    private val WAKELOCK_TAG = "ginlo:" + TAG
+    private val WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK
 
     private val accountController: AccountController by lazy { simsMeApplication.accountController }
     private lateinit var account: Account
@@ -121,6 +108,10 @@ class DeviceCoupleConfirmActivity : NewBaseActivity() {
     fun handleConfirmClick(@Suppress("UNUSED_PARAMETER") v: View?) {
         if (mTan != null) {
             showIdleDialog()
+            val pm = simsMeApplication.getSystemService(Context.POWER_SERVICE) as PowerManager
+            val wl = pm.newWakeLock(WAKELOCK_FLAGS, WAKELOCK_TAG)
+            wl.acquire(10 * 60 * 1000L /*10 minutes*/)
+
             val tan = mTan.orEmpty()
             mTan = null
             simsMeApplication.accountController.coupleResponseCoupling(
@@ -128,14 +119,23 @@ class DeviceCoupleConfirmActivity : NewBaseActivity() {
                 account,
                 object : GenericActionListener<Void> {
                     override fun onSuccess(noting: Void?) {
+                        wl.release()
                         dismissIdleDialog()
+                        if (wl.isHeld) {
+                            LogUtil.w(TAG, "handleConfirmClick: onSuccess: Wakelock held!")
+                        }
+
                         val intent = Intent(this@DeviceCoupleConfirmActivity, DeviceCoupleFinishActivity::class.java)
                         startActivity(intent)
                         finish()
                     }
 
                     override fun onFail(message: String?, errorIdent: String?) {
+                        wl.release()
                         dismissIdleDialog()
+                        if (wl.isHeld) {
+                            LogUtil.w(TAG, "handleConfirmClick: onFail: Wakelock held!")
+                        }
                         finish()
                     }
                 })

@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import android.widget.CompoundButton
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProviders
 import dagger.android.AndroidInjection
 import eu.ginlo_apps.ginlo.AbsenceActivity
@@ -148,7 +149,8 @@ class ProfileActivity : ProfileActivityBase() {
             } else {
                 if (AccountController.PENDING_PHONE_STATUS_WAIT_CONFIRM == accountController.pendingPhoneStatus) {
                     profile_phoneNumberState.visibility = View.VISIBLE
-                    profile_phoneNumberState.setTextColor(resources.getColor(R.color.kColorSecLevelLow))
+                    //profile_phoneNumberState.setTextColor(resources.getColor(R.color.kColorSecLevelLow))
+                    profile_phoneNumberState.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelLow))
                     profile_phoneNumberState.text = getString(R.string.profile_info_email_address_waiting_for_confirm)
 
                     profile_top_warning.visibility = View.VISIBLE
@@ -194,7 +196,7 @@ class ProfileActivity : ProfileActivityBase() {
                 val mainContrast80Color = colorUtil.getMainContrast80Color(simsMeApplication)
 
                 getDrawable(R.drawable.ic_lock_black_24dp)?.apply {
-                    setColorFilter(mainContrast80Color, PorterDuff.Mode.SRC_ATOP)
+                    ColorUtil.setColorFilter(this, mainContrast80Color)
                 }?.let {
                     profile_text_view_first_name.setCompoundDrawablesWithIntrinsicBounds(null, null, it, null)
                     profile_text_view_last_name.setCompoundDrawablesWithIntrinsicBounds(null, null, it, null)
@@ -224,14 +226,16 @@ class ProfileActivity : ProfileActivityBase() {
                 if (isWaitingForEmailConfirmation) {
                     emailAddress = accountController.pendingEmailAddress
                     profile_emailAddressState.visibility = View.VISIBLE
-                    profile_emailAddressState.setTextColor(resources.getColor(R.color.kColorSecLevelLow))
+                    //profile_emailAddressState.setTextColor(resources.getColor(R.color.kColorSecLevelLow))
+                    profile_emailAddressState.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelLow))
                     profile_emailAddressState.text =
                         resources.getString(R.string.profile_info_email_address_waiting_for_confirm)
                     profile_top_warning.visibility = View.VISIBLE
                     profile_top_warning_text.text = resources.getText(R.string.profile_email_waiting_for_confirmation)
                 } else {
                     profile_emailAddressState.visibility = View.VISIBLE
-                    profile_emailAddressState.setTextColor(resources.getColor(R.color.kColorSecLevelHigh))
+                    //profile_emailAddressState.setTextColor(resources.getColor(R.color.kColorSecLevelHigh))
+                    profile_emailAddressState.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelHigh))
                     profile_emailAddressState.text = resources.getString(R.string.profile_info_email_address_confirmed)
                 }
                 profile_email_address_edittext.setText(emailAddress)
@@ -248,11 +252,13 @@ class ProfileActivity : ProfileActivityBase() {
             } else {
                 if (!isWaitingForPhoneConfirmation) {
                     profile_phoneNumberState.visibility = View.VISIBLE
-                    profile_phoneNumberState.setTextColor(resources.getColor(R.color.kColorSecLevelHigh))
+                    //profile_phoneNumberState.setTextColor(resources.getColor(R.color.kColorSecLevelHigh))
+                    profile_phoneNumberState.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelHigh))
                     profile_phoneNumberState.text = resources.getString(R.string.profile_info_email_address_confirmed)
                 } else {
                     profile_phoneNumberState.visibility = View.VISIBLE
-                    profile_phoneNumberState.setTextColor(resources.getColor(R.color.kColorSecLevelLow))
+                    //profile_phoneNumberState.setTextColor(resources.getColor(R.color.kColorSecLevelLow))
+                    profile_phoneNumberState.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelLow))
                     profile_phoneNumberState.text =
                         resources.getString(R.string.profile_info_email_address_waiting_for_confirm)
                     phone = accountController.pendingPhoneNumber

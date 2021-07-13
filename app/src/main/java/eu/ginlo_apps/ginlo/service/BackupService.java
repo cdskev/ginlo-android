@@ -3,7 +3,10 @@ package eu.ginlo_apps.ginlo.service;
 
 import android.app.Application;
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
+import android.os.PowerManager;
+
 import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -56,13 +59,16 @@ import java.util.List;
 import java.util.Map;
 
 public class BackupService extends IntentService {
-    private static final String TAG = "BackupService";
+
+    private static final String TAG = BackupService.class.getSimpleName();
+    private final static String WAKELOCK_TAG = "ginlo:" + TAG;
+    private final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
 
     private static final int LOAD_MSG_COUNT = 20;
     private final String mBackupName;
     // Defines and instantiates an object for handling status updates.
     private final BroadcastNotifier mBroadcaster = new BroadcastNotifier(this, AppConstants.BROADCAST_ACTION);
-    private SimsMeApplication mApplication;
+    private SimsMeApplication mApplication = null;
     private FileUtil mFileUtil;
     private File mBackupDir;
     private SecretKey mBackUpAesKey;
@@ -74,51 +80,16 @@ public class BackupService extends IntentService {
     public BackupService() {
         super("BackupService");
         mBackupName = AppConstants.BACKUP_FILE_PREFIX + DateUtil.getDateStringInBackupFormat();
+
     }
 
     @Override
-    protected void onHandleIntent(Intent intent) {
-        try {
-            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_STARTED, null, null, null);
+    public void onCreate() {
+        super.onCreate();
 
-            SimsMeApplication app = getSimsMeApplication();
-
-            mSaveMedia = app.getPreferencesController().getSaveMediaInBackup();
-
-            mFileUtil = new FileUtil(this.getApplicationContext());
-
-            mBackupDir = createBackupDirectory();
-
-            loadBackupKey();
-
-            writeBackupInfo();
-
-            saveAccount();
-
-            saveChats();
-
-            if (!ConfigUtil.INSTANCE.syncPrivateIndexToServer()) {
-                saveContacts();
-            }
-
-            saveChannels();
-
-            saveServices();
-
-            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_SAVE_BU_FILE, null, null, null);
-
-            LocalBackupHelper helper = new LocalBackupHelper(((SimsMeApplication) getApplication()));
-            File tempBackupZip = helper.getBackupTempPath();
-            if (tempBackupZip == null)
-                throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "Unable to create the temp backup file.");
-
-            ZipUtils zu = new ZipUtils(mBackupDir.getAbsolutePath(), tempBackupZip.getAbsolutePath());
-            zu.startZip();
-
-            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_FINISHED, tempBackupZip.getAbsolutePath(), null, null);
-        } catch (LocalizedException e) {
-            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_ERROR, null, null, e);
-            LogUtil.w(TAG, "Backup failed. Error: " + e.getMessage(), e);
+        Application app = this.getApplication();
+        if (app instanceof SimsMeApplication) {
+            mApplication = (SimsMeApplication) app;
         }
     }
 
@@ -135,10 +106,83 @@ public class BackupService extends IntentService {
         }
     }
 
-    private void loadBackupKey() throws LocalizedException {
-        SimsMeApplication app = getSimsMeApplication();
 
-        String base64KeyBytes = app.getPreferencesController().getBackupKey();
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_STARTED, null, null, null);
+
+        if(mApplication == null) {
+            try {
+                throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "mApplication == null");
+            } catch (LocalizedException e) {
+                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_ERROR, null, null, e);
+                LogUtil.w(TAG, "Could not initialize backup. Error: " + e.getMessage(), e);
+            }
+        }
+
+        PowerManager pm = (PowerManager) mApplication.getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wl = pm.newWakeLock(WAKELOCK_FLAGS, WAKELOCK_TAG);
+        wl.acquire(30*60*1000L /*30 minutes to be sure*/);
+
+        try {
+            mSaveMedia = mApplication.getPreferencesController().getSaveMediaInBackup();
+            LogUtil.i(TAG, "Starting backup service intent with mSaveMedia = " + mSaveMedia);
+
+            mFileUtil = new FileUtil(mApplication);
+            mBackupDir = createBackupDirectory();
+
+            LogUtil.i(TAG, "Load backup key ...");
+            loadBackupKey();
+
+            LogUtil.i(TAG, "Write backup info ...");
+            writeBackupInfo();
+
+            LogUtil.i(TAG, "Save account ...");
+            saveAccount();
+
+            LogUtil.i(TAG, "Save chats ...");
+            saveChats();
+
+            if (!ConfigUtil.INSTANCE.syncPrivateIndexToServer()) {
+                LogUtil.i(TAG, "Save contacts ...");
+                saveContacts();
+            }
+
+            LogUtil.i(TAG, "Save channels ...");
+            saveChannels();
+
+            LogUtil.i(TAG, "Save services ...");
+            saveServices();
+
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_SAVE_BU_FILE, null, null, null);
+
+            LocalBackupHelper helper = new LocalBackupHelper(((SimsMeApplication) getApplication()));
+            File tempBackupZip = helper.getBackupTempPath();
+            if (tempBackupZip == null)
+                throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "Unable to create the temp backup file.");
+
+            final String zipDestination = tempBackupZip.getAbsolutePath();
+            ZipUtils zu = new ZipUtils(mBackupDir.getAbsolutePath(), zipDestination);
+            LogUtil.i(TAG, "Zipping files ...");
+            zu.startZip();
+
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_FINISHED, zipDestination, null, null);
+            LogUtil.i(TAG, "Backup done. Saved to " + zipDestination);
+        } catch (LocalizedException e) {
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_ERROR, null, null, e);
+            LogUtil.e(TAG, "Backup failed. Error: " + e.getMessage(), e);
+        }
+        finally {
+            wl.release();
+            if (wl.isHeld()) {
+                LogUtil.w(TAG, "BackupService: Wakelock held!");
+            }
+        }
+    }
+
+    private void loadBackupKey() throws LocalizedException {
+        String base64KeyBytes = mApplication.getPreferencesController().getBackupKey();
 
         mBackUpAesKey = SecurityUtil.getAESKeyFromBase64String(base64KeyBytes);
     }
@@ -180,10 +224,8 @@ public class BackupService extends IntentService {
     }
 
     private void writeBackupInfo() throws LocalizedException {
-        SimsMeApplication app = getSimsMeApplication();
-
-        String salt = app.getPreferencesController().getBackupKeySalt();
-        int rounds = app.getPreferencesController().getBackupKeyRounds();
+        String salt = mApplication.getPreferencesController().getBackupKeySalt();
+        int rounds = mApplication.getPreferencesController().getBackupKeyRounds();
 
         if (StringUtil.isNullOrEmpty(salt) || rounds == PreferencesController.BACKUP_KEY_ROUNDS_ERROR) {
             throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "Backup AES Key Salt is null or Rounds < 0");
@@ -215,13 +257,11 @@ public class BackupService extends IntentService {
     }
 
     private void saveAccount() throws LocalizedException {
-        SimsMeApplication app = getSimsMeApplication();
-
-        if (!app.getAccountController().getAccountLoaded()) {
+        if (!mApplication.getAccountController().getAccountLoaded()) {
             throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "account not loaded");
         }
 
-        Account acc = app.getAccountController().getAccount();
+        Account acc = mApplication.getAccountController().getAccount();
         String backupPasstoken = acc.getBackupPasstoken();
 
         if (StringUtil.isNullOrEmpty(backupPasstoken)) {
@@ -229,16 +269,16 @@ public class BackupService extends IntentService {
             acc.setBackupPasstoken(backupPasstoken);
         }
 
-        acc.setPublicKey(XMLUtil.getXMLFromPublicKey(app.getKeyController().getUserKeyPair().getPublic()));
-        acc.setPrivateKey(XMLUtil.getXMLFromPrivateKey(app.getKeyController().getUserKeyPair().getPrivate()));
+        acc.setPublicKey(XMLUtil.getXMLFromPublicKey(mApplication.getKeyController().getUserKeyPair().getPublic()));
+        acc.setPrivateKey(XMLUtil.getXMLFromPrivateKey(mApplication.getKeyController().getUserKeyPair().getPrivate()));
 
-        app.getAccountController().saveOrUpdateAccount(acc);
+        mApplication.getAccountController().saveOrUpdateAccount(acc);
 
         final GsonBuilder gsonBuilder = new GsonBuilder();
 
         Gson gson = gsonBuilder.create();
 
-        JsonElement accountInJson = app.getBackupController().accountBackup(false, false);
+        JsonElement accountInJson = mApplication.getBackupController().accountBackup(false, false);
 
         if (accountInJson == null || !accountInJson.isJsonObject()) {
             throw new LocalizedException(LocalizedException.BACKUP_JSON_OBJECT_NULL, "Account JSON Object NULL");
@@ -246,7 +286,7 @@ public class BackupService extends IntentService {
 
         JsonObject accountObject = accountInJson.getAsJsonObject();
 
-        app.getAccountController().doActionsBeforeAccountIsStoreInBackup(accountObject);
+        mApplication.getAccountController().doActionsBeforeAccountIsStoreInBackup(accountObject);
 
         File decryptedAccountFile = new File(mBackupDir, "account_decrypted.json");
 
@@ -269,9 +309,7 @@ public class BackupService extends IntentService {
     }
 
     private void saveContacts() throws LocalizedException {
-        SimsMeApplication app = getSimsMeApplication();
-
-        List<Contact> contacts = app.getContactController().getSimsMeContactsWithPubKey(true);
+        List<Contact> contacts = mApplication.getContactController().getSimsMeContactsWithPubKey(true);
 
         final GsonBuilder gsonBuilder = new GsonBuilder();
 
@@ -314,9 +352,7 @@ public class BackupService extends IntentService {
     }
 
     private void saveChannels() throws LocalizedException {
-        SimsMeApplication app = getSimsMeApplication();
-
-        List<Channel> channels = app.getChannelController().getSubscribedChannelsFromDB(Channel.TYPE_CHANNEL);
+        List<Channel> channels = mApplication.getChannelController().getSubscribedChannelsFromDB(Channel.TYPE_CHANNEL);
         if (channels == null || channels.isEmpty()) {
             return;
         }
@@ -361,8 +397,6 @@ public class BackupService extends IntentService {
     }
 
     private void writeChannel(JsonWriter jsonWriter, Channel channel) throws IOException, LocalizedException {
-        SimsMeApplication app = getSimsMeApplication();
-
         jsonWriter.beginObject();
         jsonWriter.name("ChannelBackup");
         jsonWriter.beginObject();
@@ -386,7 +420,7 @@ public class BackupService extends IntentService {
             jsonWriter.endArray();
         }
 
-        Chat channelChat = app.getChannelChatController().getChatByGuid(channel.getGuid());
+        Chat channelChat = mApplication.getChannelChatController().getChatByGuid(channel.getGuid());
 
         if (channelChat != null) {
             Long lastModifiedDate = channelChat.getLastChatModifiedDate();
@@ -401,9 +435,7 @@ public class BackupService extends IntentService {
     }
 
     private void saveServices() throws LocalizedException {
-        SimsMeApplication app = getSimsMeApplication();
-
-        List<Channel> services = app.getChannelController().getSubscribedChannelsFromDB(Channel.TYPE_SERVICE);
+        List<Channel> services = mApplication.getChannelController().getSubscribedChannelsFromDB(Channel.TYPE_SERVICE);
         if (services == null || services.isEmpty()) {
             return;
         }
@@ -438,7 +470,7 @@ public class BackupService extends IntentService {
 
                 writeChannel(jsonWriter, service);
 
-                Chat chat = app.getChannelChatController().getChatByGuid(guid);
+                Chat chat = mApplication.getChannelChatController().getChatByGuid(guid);
 
                 if (chat != null) {
                     saveMessagesForChat(chat, -1, jsonWriter, gson);
@@ -459,9 +491,7 @@ public class BackupService extends IntentService {
     }
 
     private void saveChats() throws LocalizedException {
-        SimsMeApplication app = getSimsMeApplication();
-
-        List<Chat> allChats = app.getSingleChatController().loadAll();
+        List<Chat> allChats = mApplication.getSingleChatController().loadAll();
 
         if (allChats == null || allChats.isEmpty()) {
             return;
@@ -501,7 +531,7 @@ public class BackupService extends IntentService {
                 jsonWriter.beginArray();
 
                 if (chat.getType() == Chat.TYPE_GROUP_CHAT || chat.getType() == Chat.TYPE_GROUP_CHAT_INVITATION) {
-                    byte[] groupImage = app.getChatImageController().loadImage(guid);
+                    byte[] groupImage = mApplication.getChatImageController().loadImage(guid);
                     if (groupImage != null) {
                         chat.setGroupChatImage(groupImage);
                     }
@@ -570,8 +600,7 @@ public class BackupService extends IntentService {
     }
 
     private void saveMessagesForChat(Chat chat, long lastMsgId, JsonWriter writer, Gson gson) throws LocalizedException, IOException {
-        SimsMeApplication app = getSimsMeApplication();
-        SingleChatController chatController = app.getSingleChatController();
+        SingleChatController chatController = mApplication.getSingleChatController();
 
         List<Message> msgList = loadNextMessages(chat, lastMsgId);
         boolean checkSignature = !GuidUtil.isChatService(chat.getChatGuid());
@@ -639,10 +668,7 @@ public class BackupService extends IntentService {
 
     private List<Message> loadNextMessages(Chat chat, long maxLoadedMessagedId) throws LocalizedException {
         List<Message> msgList;
-
-        SimsMeApplication app = getSimsMeApplication();
-
-        final MessageDao dao = app.getMessageController().getDao();
+        final MessageDao dao = mApplication.getMessageController().getDao();
         int type = getMsgTypeForChat(chat);
 
         synchronized (dao) {
@@ -711,21 +737,5 @@ public class BackupService extends IntentService {
         }
 
         return onIdents;
-    }
-
-    private @NonNull
-    SimsMeApplication getSimsMeApplication()
-            throws LocalizedException {
-        if (mApplication != null) {
-            return mApplication;
-        }
-
-        Application app = this.getApplication();
-        if (app instanceof SimsMeApplication) {
-            mApplication = (SimsMeApplication) app;
-            return mApplication;
-        }
-
-        throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "application == null");
     }
 }

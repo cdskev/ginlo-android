@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import eu.ginlo_apps.ginlo.context.SimsMeApplication
 import eu.ginlo_apps.ginlo.theme.ThemedLayoutInflater
 import eu.ginlo_apps.ginlo.util.ColorUtil
 
@@ -54,9 +55,7 @@ private fun getInflatedView(
     baseInflater.themedInflater(context).inflate(layoutId, rootView, attachToParent)
 
 internal fun MenuItem.applyColorFilter(application: Application) {
-    this.icon?.setColorFilter(
-        ColorUtil.getInstance().getMainContrast80Color(
-            application
-        ), PorterDuff.Mode.SRC_ATOP
-    )
+    if(this.icon != null) {
+        ColorUtil.setColorFilter(this.icon, ColorUtil.getInstance().getMainContrast80Color(application))
+    }
 }

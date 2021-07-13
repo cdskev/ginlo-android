@@ -1994,8 +1994,12 @@ public class ContactController
     public Bitmap getFallbackImageByContact(Context context,
                                             Contact contact)
             throws LocalizedException {
-        String text = "";
 
+        if(context == null) {
+            return null;
+        }
+
+        String text = "";
         String name;
 
         if (contact != null) {

@@ -42,14 +42,7 @@ import eu.ginlo_apps.ginlo.greendao.Contact
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.router.Router
 import eu.ginlo_apps.ginlo.router.RouterConstants
-import eu.ginlo_apps.ginlo.util.BitmapUtil
-import eu.ginlo_apps.ginlo.util.ColorUtil
-import eu.ginlo_apps.ginlo.util.FileUtil
-import eu.ginlo_apps.ginlo.util.FragmentUtil
-import eu.ginlo_apps.ginlo.util.MetricsUtil
-import eu.ginlo_apps.ginlo.util.PermissionUtil
-import eu.ginlo_apps.ginlo.util.RuntimeConfig
-import eu.ginlo_apps.ginlo.util.SystemUtil
+import eu.ginlo_apps.ginlo.util.*
 import eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview
 import eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview.DrawableClickListener
 import eu.ginlo_apps.ginlo.view.RoundedImageView
@@ -152,8 +145,9 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                 RouterConstants.SELECT_GALLARY_RESULT_CODE -> {
                     val selectedGalleryItem = returnIntent?.data
                     val fileUtil = FileUtil(this)
+                    val mimeUtil = MimeUtil(this)
 
-                    if (!fileUtil.checkImageUriMimetype(application, selectedGalleryItem)) {
+                    if (!mimeUtil.checkImageUriMimetype(application, selectedGalleryItem)) {
                         Toast.makeText(
                             this,
                             R.string.chats_addAttachment_wrong_format_or_error, Toast.LENGTH_LONG
@@ -234,7 +228,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                 editData()
                 true
             }
-            else -> super.onOptionsItemSelected(item)
+            else -> super.onOptionsItemSelected(item as MenuItem)
         }
     }
 
@@ -440,7 +434,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
 
     override fun onSaveInstanceState(bundle: Bundle) {
         if (takenPhotoFile != null) {
-            bundle.putString(EXTRA_FILE_URI, takenPhotoFile!!.path)
+            bundle.putString(EXTRA_FILE_URI, takenPhotoFile?.path)
         }
 
         super.onSaveInstanceState(bundle)

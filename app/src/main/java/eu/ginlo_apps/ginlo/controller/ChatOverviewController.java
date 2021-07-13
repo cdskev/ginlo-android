@@ -68,10 +68,11 @@ public class ChatOverviewController
         extends MessageDataResolver
         implements MessageControllerListener,
         OnImageDataChangedListener {
+
+    private static final String TAG = ChatOverviewController.class.getSimpleName();
+
     public static final int MODE_OVERVIEW = 0;
-
     public static final int MODE_FORWARD_SINGLE = 1;
-
     public static final int MODE_FORWARD_GROUP = 2;
 
     public static final int CHAT_CHANGED_IMAGE = 0x1;
@@ -93,15 +94,10 @@ public class ChatOverviewController
     private List<List<Message>> mChangedMessages;
     private ConcurrentTask mChatOverviewTask;
     private boolean mStartChatOverviewTaskAgain;
-
     private ChatsOverviewActivity.ListRefreshedListener mListRefreshedListener;
-
     private int mMode;
-
     private Comparator<BaseChatOverviewItemVO> mComparator;
-
     private ArrayList<String> mChatsToRefresh;
-
     private AsyncHttpTask<ArrayMap<String, Boolean>> mCheckContactsOnlineTask;
 
     public ChatOverviewController(final SimsMeApplication application) {
@@ -134,7 +130,7 @@ public class ChatOverviewController
             @Override
             public void run() {
                 for (final OnChatDataChangedListener listener : listeners) {
-                    LogUtil.d(getClass().toString(), "notifyListener clear: " + clearImageLoader + ";  Listener: " + listener.toString());
+                    LogUtil.d(TAG, "notifyListener clear: " + clearImageLoader + ";  Listener: " + listener.toString());
                     listener.onChatDataChanged(clearImageLoader);
                 }
             }
@@ -145,7 +141,7 @@ public class ChatOverviewController
     private void notifyListenerLoaded() {
         for (final OnChatDataChangedListener listener : listeners) {
             if (listener != null) {
-                LogUtil.d(getClass().toString(), "notifyListenerLoaded Listener: " + listener.toString());
+                LogUtil.d(TAG, "notifyListenerLoaded Listener: " + listener.toString());
                 listener.onChatDataLoaded(ChatController.NO_MESSAGE_ID_FOUND);
             }
         }
@@ -226,7 +222,7 @@ public class ChatOverviewController
     }
 
     private void changeOverviewItems(final List<Message> messages) {
-        LogUtil.i(this.getClass().getName(), "onMessagesChanged");
+        LogUtil.i(TAG, "onMessagesChanged");
 
         if ((mItemMap == null) || (chatsAdapter == null)) {
             return;
@@ -292,11 +288,11 @@ public class ChatOverviewController
             public void onStateChanged(final ConcurrentTask task,
                                        final int state) {
                 if (chatsAdapter == null) {
-                    LogUtil.w(this.getClass().getName(), "refreshView:adapter is null");
+                    LogUtil.w(TAG, "refreshView:adapter is null");
                 }
 
                 if (state == ConcurrentTask.STATE_COMPLETE) {
-                    LogUtil.i(this.getClass().getName(), "refreshView:complete");
+                    LogUtil.i(TAG, "refreshView:complete");
 
                     boolean changeItems = true;
 
@@ -359,7 +355,7 @@ public class ChatOverviewController
                                     break;
                             }
                         } catch (LocalizedException e) {
-                            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                            LogUtil.e(TAG, e.getMessage(), e);
                         }
 
                         if (mListRefreshedListener != null) {
@@ -421,7 +417,7 @@ public class ChatOverviewController
                     chatsToRefresh = null;
                 }
 
-                LogUtil.i(this.getClass().getName(), "refreshView:start with guids" + (chatsToRefresh != null ? StringUtil.getStringFromList(",", chatsToRefresh) : ""));
+                LogUtil.i(TAG, "refreshView:start with guids" + (chatsToRefresh != null ? StringUtil.getStringFromList(",", chatsToRefresh) : ""));
 
                 boolean refresh = isRefresh && mOverviewMessages.size() > 0;
                 mChatOverviewTask = chatOverviewTaskManager.executeRefreshChatOverviewTask(mApplication, listener, chatsToRefresh, refresh);
@@ -559,7 +555,7 @@ public class ChatOverviewController
                 try {
                     return refreshChatTitle(foundItem);
                 } catch (LocalizedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                 }
             }
         }
@@ -814,7 +810,7 @@ public class ChatOverviewController
                     listener.onChatExportFail(context.getResources().getString(R.string.action_failed));
                 }
             } catch (IOException e) {
-                LogUtil.e(e);
+                LogUtil.e(TAG, e.getMessage(), e);
                 listener.onChatExportFail(context.getResources().getString(R.string.action_failed));
             }
 
@@ -878,7 +874,7 @@ public class ChatOverviewController
                                         fout.write(byteArray, 0, byteArray.length);
                                     }
                                 } catch (LocalizedException e) {
-                                    LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                                    LogUtil.w(TAG, e.getMessage(), e);
                                 }
                             }
                         }
@@ -917,7 +913,7 @@ public class ChatOverviewController
                 nickName = ownContact.getNickname();
             }
         } catch (LocalizedException ex) {
-            LogUtil.w(this.getClass().getName(), "Failed to get own contact's nickname");
+            LogUtil.w(TAG, "Failed to get own contact's nickname");
         }
         return nickName;
     }
@@ -927,7 +923,7 @@ public class ChatOverviewController
             for (File file : shareDir.listFiles()) {
                 if (file.isFile()) {
                     if (!file.delete()) {
-                        LogUtil.w(this.getClass().getName(), "deleteShareFiles() -> delete file failed");
+                        LogUtil.w(TAG, "deleteShareFiles() -> delete file failed");
                     }
                 }
             }
@@ -957,7 +953,7 @@ public class ChatOverviewController
                 }
             }
         } catch (LocalizedException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
         }
 
         if (mListRefreshedListener != null) {

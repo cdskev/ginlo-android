@@ -57,7 +57,7 @@ public class GinloOngoingService extends Service {
         super.onCreate();
         Notification notification = notificationController.buildOngoingServiceNotification();
         if (notification != null && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
-                startForeground(NotificationController.getInfoNotificationId(), notification);
+                startForeground(NotificationController.INFO_NOTIFICATION_ID, notification);
         }
         LogUtil.i(TAG, "onCreate: OngoingServiceNotification generated");
     }
@@ -88,7 +88,7 @@ public class GinloOngoingService extends Service {
                 stopSelf();
             } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForeground(NotificationController.getInfoNotificationId(), notification);
+                    startForeground(NotificationController.INFO_NOTIFICATION_ID, notification);
                 }
                 LogUtil.i(TAG, "GinloOngoingService started.");
             }

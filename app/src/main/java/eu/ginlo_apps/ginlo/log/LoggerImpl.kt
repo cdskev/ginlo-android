@@ -141,8 +141,8 @@ class LoggerImpl @Inject constructor(application: SimsMeApplication) : Logger {
             name?.startsWith(LOG_FILE_PREFIX) ?: false
         }
 
-        files.sortBy { it.lastModified() }
-        files.forEach { file ->
+        files?.sortBy { it.lastModified() }
+        files?.forEach { file ->
             outputLogFile?.appendText(file.readText())
         }
 

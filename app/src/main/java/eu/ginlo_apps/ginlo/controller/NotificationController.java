@@ -53,8 +53,11 @@ import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.query.QueryBuilder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class NotificationController {
+    private final static String TAG = NotificationController.class.getSimpleName();
+
     public static final int NEW_PRIVATE_MESSAGE = 1;
     public static final int NEW_PRIVATE_MESSAGE_AVC = 1366;
     public static final int NEW_CHANNEL_MESSAGE = 2;
@@ -67,7 +70,7 @@ public class NotificationController {
     public static final int GROUP_NOTIFICATION_ID = 199089;
     public static final int INFO_NOTIFICATION_ID = 199090;
 
-    private static int DISMISS_NOTIFICATION_TIMEOUT = 30000; //Millis
+    public static final int DISMISS_NOTIFICATION_TIMEOUT = 30000; //Millis
 
     private static final String MESSAGE_NOTIFICATION_CHANNEL_ID = "nc_pm";
     private static final String AVC_NOTIFICATION_CHANNEL_ID = "nc_avc";
@@ -88,8 +91,6 @@ public class NotificationController {
     private SparseArray<NotificationInfoContainer> infoContainerArray;
     private String ignoredGuid;
     private boolean ignoreAll;
-
-    private static final String TAG = NotificationController.class.getSimpleName();
 
     public NotificationController(final SimsMeApplication application) {
         this.mApplication = application;
@@ -246,71 +247,9 @@ public class NotificationController {
                     notificationManager.createNotificationChannel(channelAVC);
                 }
             } catch (Exception e) {
-                LogUtil.e(this.getClass().getSimpleName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
         }
-    }
-
-    public void toggleIgnoreAll(boolean ignoreAll) {
-        this.ignoreAll = ignoreAll;
-
-        if (ignoreAll) {
-            this.ignoredGuid = null;
-        } else {
-            if (infoContainerArray != null) {
-                infoContainerArray.clear();
-            }
-        }
-    }
-
-    public void ignoreGuid(String guid) {
-        this.ignoredGuid = guid;
-    }
-
-    public static int getInfoNotificationId() {
-        return INFO_NOTIFICATION_ID;
-    }
-
-    public void showOngoingServiceNotification() {
-        final Notification notification = buildOngoingServiceNotification();
-        if(notification != null) {
-            notificationManager.notify(INFO_NOTIFICATION_ID, notification);
-        }
-    }
-
-    // Create an ongoing notification to keep ginlo alive
-    public Notification buildOngoingServiceNotification() {
-        Context context = mApplication;
-        if (context == null) {
-            LogUtil.w(TAG, " Cannot create notification: no current context");
-            return null;
-        }
-
-        Intent notificationIntent = new Intent(context, context.getClass());
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-
-        NotificationCompat.Builder builder;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder = new NotificationCompat.Builder(context, INFO_NOTIFICATION_CHANNEL_ID);
-        } else {
-            builder = new NotificationCompat.Builder(context);
-        }
-
-        builder
-                .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                .setContentTitle(mApplication.getString(R.string.notification_gos_running))
-                //.setContentText("")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent)
-                .setOngoing(true)
-                .setAutoCancel(false)
-                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
-                .setSmallIcon(R.drawable.ginlo_avatar)
-                .setColor(context.getResources().getColor(R.color.business_trial_background))
-                .setUsesChronometer(true)
-                .setOnlyAlertOnce(true);
-
-        return builder.build();
     }
 
     public void buildExternalNotification(final String senderGuid,
@@ -375,7 +314,7 @@ public class NotificationController {
                             title = mApplication.getString(R.string.android_notification_new_group_msg_title);
                         }
                     } catch (final LocalizedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.e(TAG, e.getMessage(), e);
                         title = mApplication.getString(R.string.android_notification_new_private_msg_title);
                     }
                 }
@@ -457,93 +396,8 @@ public class NotificationController {
             mApplication.getNotificationController().setNotificationWasShown(messageGuid);
 
         } catch (SecurityException e) {
-            LogUtil.i(TAG, "buildExternalNotification: error");
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "buildExternalNotification: " + e.getMessage(), e);
         }
-    }
-
-    public void dismissAll() {
-        dismissNotification(-1, true);
-    }
-
-    public void dismissNotification(String guid) {
-        int id = guid.hashCode();
-
-        LogUtil.d(TAG, "Got dismiss notification request for guid " + guid);
-
-        if (infoContainerArray != null) {
-            infoContainerArray.remove(id);
-            dismissNotification(id, false);
-        }
-    }
-
-    public void dismissNotification(int notificationId, boolean all) {
-          if (all) {
-                if (infoContainerArray != null) {
-                    infoContainerArray.clear();
-                } else {
-                    infoContainerArray = new SparseArray<>();
-                }
-              LogUtil.d(TAG, "Got dismiss all notifications request.");
-              notificationManager.cancelAll();
-            } else if (notificationId >= 0) {
-                  if (infoContainerArray != null) {
-                      infoContainerArray.remove(notificationId);
-                  }
-                  LogUtil.d(TAG, "Got dismiss notification request for id " + notificationId);
-                  notificationManager.cancel(notificationId);
-            }
-    }
-
-    public void dismissOngoingNotification() {
-        dismissNotification(getInfoNotificationId(), false);
-    }
-
-    public int getDismissNotificationTimeout() {
-        return DISMISS_NOTIFICATION_TIMEOUT;
-    }
-
-    // Some notifications should be discarded after a while
-    // Builder.setTimeoutAfter() doesn't work on old devices (before Oreo, API 26).
-    public void createDismissRunner(int notificationId, int timeout, boolean all) {
-        final Handler dismissHandler = new Handler(Looper.getMainLooper());
-        Runnable dismissRunner = new Runnable() {
-            public void run() {
-                dismissNotification(notificationId, all);
-                LogUtil.d(TAG, "Notification " + notificationId + " cancelled.");
-            }
-        };
-        dismissHandler.postDelayed(dismissRunner, timeout);
-        LogUtil.d(TAG, "Runner for notification cancellation initialized!");
-    }
-
-    void showInfoNotification(String title, String message) {
-        Intent intent = new Intent(mApplication, eu.ginlo_apps.ginlo.ConfigureBackupActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(mApplication, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(mApplication, INFO_NOTIFICATION_CHANNEL_ID);
-        NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle(builder);
-
-        builder.setContentIntent(pendingIntent);
-
-        if (!StringUtil.isNullOrEmpty(title)) {
-            builder.setContentTitle(title);
-            bigTextStyle.setBigContentTitle(title);
-        }
-
-        if (!StringUtil.isNullOrEmpty(message)) {
-            builder.setContentText(message);
-            bigTextStyle.bigText(message);
-        }
-
-        builder.setSmallIcon(R.drawable.ic_notification_logo);
-        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        builder.setAutoCancel(true);
-
-        Notification notification = builder.build();
-
-        notificationManager.notify(INFO_NOTIFICATION_ID, notification);
     }
 
     /**
@@ -566,33 +420,6 @@ public class NotificationController {
             isLocked = !powerManager.isInteractive();
         }
         return isLocked;
-    }
-
-    // KS: Push avc invitation
-    public void showAVCInvitationNotification(final String sender, final String senderGuid, final String messageGuid, final String notificationText, Bitmap notificationImage, boolean fullscreen) {
-        try {
-            if (mPreferencesController.getShowInAppNotifications()) {
-
-                // No fullscreen if not on lockscreen
-                Notification avcNoti = null;
-                if(isDeviceLocked(mApplication)) {
-                    avcNoti = buildAVCInvitationNotification(sender, senderGuid, notificationText, notificationImage, true);
-                } else {
-                    avcNoti = buildAVCInvitationNotification(sender, senderGuid, notificationText, notificationImage, false);
-                }
-                if (avcNoti == null) {
-                    // No AVChatController available or avc already busy
-                    return;
-                }
-
-                notificationManager.notify(AVC_NOTIFICATION_ID, avcNoti);
-                // Dont need dismissRunner because AVC is only available since Oreo (which has .setTimeoutAfter())
-                // createDismissRunner(AVC_NOTIFICATION_ID, DISMISS_NOTIFICATION_TIMEOUT, false);
-                mApplication.getNotificationController().setNotificationWasShown(messageGuid);
-            }
-        } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-        }
     }
 
     // KS: Build AVC notification
@@ -686,159 +513,34 @@ public class NotificationController {
         return builder.build();
     }
 
-    public void showInternalNotification(List<NotificationInfoContainer> infoContainers, final boolean isPriority) {
-        int id;
+    private Notification buildGroupInvitationNotification(final String notificationText) {
+        Intent intent = new Intent(mApplication, RuntimeConfig.getClassUtil().getChatOverviewActivityClass());
+        PendingIntent pendingIntent = PendingIntent.getActivity(mApplication, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
 
-        if (infoContainers.size() == 0) {
-            return;
-        }
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(mApplication, MESSAGE_NOTIFICATION_CHANNEL_ID);
 
-        NotificationInfoContainer infoContainer;
+        builder.setSmallIcon(R.drawable.ic_notification_logo);
+        String content = "";
 
-        Pattern pattern = Pattern.compile("https?:\\/\\/\\S*");
+        builder.setContentTitle(notificationText);
+        builder.setContentText(content);
+        builder.setTicker(notificationText);
+        builder.setAutoCancel(true);
+        builder.setContentIntent(pendingIntent);
 
-        boolean newMessage = false;
-
-        boolean singleVibrateEnabled = mPreferencesController.getVibrationForSingleChatsEnabled();
         boolean groupVibrateEnabled = mPreferencesController.getVibrationForGroupsEnabled();
-        boolean channelVibrateEnabled = mPreferencesController.getVibrationForChannelsEnabled();
-        boolean serviceVibrateEnabled = mPreferencesController.getVibrationForServicesEnabled();
 
-        boolean vibrate = false;
-
-        // Build/update new global list of notification infos
-        for (int i = 0; i < infoContainers.size(); i++) {
-            id = infoContainers.get(i).getSenderGuid().hashCode();
-            infoContainer = infoContainerArray.get(id);
-
-            if (infoContainer != null) {
-                // A notification info for the given sender GUID is already in global list
-                // No more entries to prevent multiple notifications
-                continue;
-            } else {
-                // No info for given sender GUID in global list - prepare a new one
-                infoContainer = infoContainers.get(i);
-
-                String shortLinkText = infoContainer.getShortLinkText();
-                String text = infoContainer.getLastMessage(); // "preview" text in CreateNotificationTask
-
-                SpannableString ss = StringUtil.replaceUrlNew(text, shortLinkText, pattern, true);
-                infoContainer.setLastMessage(ss != null ? ss.toString() : "");
-
-                // Put new info to global list
-                infoContainerArray.put(id, infoContainer);
-
-                // Find out whether it's time to send notification, e.g. we have at least one new message to signal
-                // Then set newMessage true
-                try {
-                    final Chat chat;
-
-                    if (GuidUtil.isChatSingle(infoContainer.getSenderGuid())) {
-                        chat = mApplication.getSingleChatController().getChatByGuid(infoContainer.getSenderGuid());
-                    } else if (GuidUtil.isChatRoom(infoContainer.getSenderGuid())) {
-                        chat = mApplication.getGroupChatController().getChatByGuid(infoContainer.getSenderGuid());
-                    } else {
-                        chat = null;
-                    }
-
-                    if (chat != null) {
-                        final long now = new Date().getTime();
-                        final long silentTill = chat.getSilentTill();
-                        if (now > silentTill) {
-                            newMessage = true;
-                        }
-                    } else {
-                        //kein chat vorhanden -> neu
-                        newMessage = true;
-                    }
-                } catch (final LocalizedException e) {
-                    LogUtil.w(this.getClass().getName(), e.getMessage(), e);
-                }
-            }
-
-            // If only one notification info, activate haptic features
-            if (i == 0) {
-                if (GuidUtil.isChatSingle(infoContainer.getSenderGuid())) {
-                    if (singleVibrateEnabled) {
-                        vibrate = true;
-                    }
-                } else if (GuidUtil.isChatRoom(infoContainer.getSenderGuid())) {
-                    if (groupVibrateEnabled) {
-                        vibrate = true;
-                    }
-                } else if (GuidUtil.isChatChannel(infoContainer.getSenderGuid())) {
-                    if (channelVibrateEnabled) {
-                        vibrate = true;
-                    }
-                } else if (GuidUtil.isChatService(infoContainer.getSenderGuid())) {
-                    if (serviceVibrateEnabled) {
-                        vibrate = true;
-                    }
-                }
-            }
+        //damit eine heads-up notification angezeigt wird, muss das noch gesetzt werden
+        builder.setPriority(NotificationCompat.PRIORITY_MAX);
+        if (groupVibrateEnabled) {
+            builder.setDefaults(Notification.DEFAULT_VIBRATE);
+        } else {
+            long[] pattern = {0};
+            builder.setVibrate(pattern);
         }
 
-        if (newMessage) {
-            showInternalNotification(isPriority, vibrate);
-        }
-    }
-
-    private void showInternalNotification(final boolean isPriority, final boolean vibrate) {
-        try {
-            if (mPreferencesController.getShowInAppNotifications()) {
-
-                // AVC available?
-                if (mAVChatController != null) {
-                    if (infoContainerArray.size() == 0) {
-                        return;
-                    }
-
-                    NotificationInfoContainer infoContainer = infoContainerArray.valueAt(infoContainerArray.size() - 1);
-                    if (infoContainer == null || (infoContainer.getSenderGuid().equals(ignoredGuid))) {
-                        return;
-                    }
-
-                    // Now look what kind of notification we must build
-                    if (!"AVC!".equals(infoContainer.getShortLinkText())) {
-                        // Regular notification
-                        // Only these are ignored if ignoreAll is set.
-                        if(ignoreAll) {
-                            return;
-                        }
-                        Notification notification = buildInternalNotification(isPriority, vibrate);
-                        if (notification != null) {
-                            notificationManager.notify(MESSAGE_NOTIFICATION_ID, notification);
-                            infoContainerArray.clear();
-                        }
-                    } else {
-                        // AVC!
-                        // Call notifications are not affected by ignoreAll.
-                        String name = infoContainer.getName();
-                        String roomInfo = infoContainer.getLastMessage();
-
-                        Notification avcNoti = buildAVCInvitationNotification(name, infoContainer.getSenderGuid(), roomInfo, infoContainer.getImage(), false);
-                        if (avcNoti == null) {
-                            // No AVChatController available or avc already busy
-                            return;
-                        }
-                        notificationManager.notify(AVC_NOTIFICATION_ID, avcNoti);
-                        //createDismissRunner(AVC_NOTIFICATION_ID, DISMISS_NOTIFICATION_TIMEOUT, false);
-                        infoContainerArray.clear();
-                    }
-
-                } else {
-                    Notification notification = buildInternalNotification(isPriority, vibrate);
-                    if (notification != null) {
-                        notificationManager.notify(MESSAGE_NOTIFICATION_ID, notification);
-                        infoContainerArray.clear();
-                    }
-
-                }
-
-            }
-        } catch (LocalizedException e) {
-            LogUtil.w(TAG, "showInternalNotification ", e);
-        }
+        return builder.build();
     }
 
     private Notification buildInternalNotification(final boolean isPriority, final boolean vibrate) {
@@ -886,7 +588,7 @@ public class NotificationController {
                             title = mApplication.getString(R.string.android_notification_new_group_msg_title);
                         }
                     } catch (final LocalizedException e) {
-                        LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.w(TAG, e.getMessage(), e);
                         title = mApplication.getString(R.string.android_notification_new_channel_msg_title);
                     }
                 }
@@ -897,7 +599,7 @@ public class NotificationController {
                 try {
                     chatMembers = chat.getMembers();
                 } catch (LocalizedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                 }
             }
             if ((chatMembers != null && chatMembers.size() == 0) || isInvitation) {
@@ -972,6 +674,68 @@ public class NotificationController {
         return builder.build();
     }
 
+    // Create an ongoing notification to keep ginlo alive
+    public Notification buildOngoingServiceNotification() {
+        Context context = mApplication;
+        if (context == null) {
+            LogUtil.w(TAG, " Cannot create notification: no current context");
+            return null;
+        }
+
+        Intent notificationIntent = new Intent(context, context.getClass());
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+
+        NotificationCompat.Builder builder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder = new NotificationCompat.Builder(context, INFO_NOTIFICATION_CHANNEL_ID);
+        } else {
+            builder = new NotificationCompat.Builder(context);
+        }
+
+        builder
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .setContentTitle(mApplication.getString(R.string.notification_gos_running))
+                //.setContentText("")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent)
+                .setOngoing(true)
+                .setAutoCancel(false)
+                .setVisibility(NotificationCompat.VISIBILITY_SECRET)
+                .setSmallIcon(R.drawable.ginlo_avatar)
+                .setColor(context.getResources().getColor(R.color.business_trial_background))
+                .setUsesChronometer(true)
+                .setOnlyAlertOnce(true);
+
+        return builder.build();
+    }
+
+    // KS: Push avc invitation
+    public void showAVCInvitationNotification(final String sender, final String senderGuid, final String messageGuid, final String notificationText, Bitmap notificationImage, boolean fullscreen) {
+        try {
+            if (mPreferencesController.getShowInAppNotifications()) {
+
+                // No fullscreen if not on lockscreen
+                Notification avcNoti = null;
+                if(isDeviceLocked(mApplication)) {
+                    avcNoti = buildAVCInvitationNotification(sender, senderGuid, notificationText, notificationImage, true);
+                } else {
+                    avcNoti = buildAVCInvitationNotification(sender, senderGuid, notificationText, notificationImage, false);
+                }
+                if (avcNoti == null) {
+                    // No AVChatController available or avc already busy
+                    return;
+                }
+
+                notificationManager.notify(AVC_NOTIFICATION_ID, avcNoti);
+                // Dont need dismissRunner because AVC is only available since Oreo (which has .setTimeoutAfter())
+                // createDismissRunner(AVC_NOTIFICATION_ID, DISMISS_NOTIFICATION_TIMEOUT, false);
+                mApplication.getNotificationController().setNotificationWasShown(messageGuid);
+            }
+        } catch (LocalizedException e) {
+            LogUtil.e(TAG, e.getMessage(), e);
+        }
+    }
+
     public void showGroupInvitationNotification(final String notificationText) {
         try {
             if (!ignoreAll && mPreferencesController.getShowInAppNotifications() &&
@@ -979,38 +743,190 @@ public class NotificationController {
                 notificationManager.notify(GROUP_NOTIFICATION_ID, buildGroupInvitationNotification(notificationText));
             }
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
     }
 
-    private Notification buildGroupInvitationNotification(final String notificationText) {
-        Intent intent = new Intent(mApplication, RuntimeConfig.getClassUtil().getChatOverviewActivityClass());
+    void showInfoNotification(String title, String message) {
+        Intent intent = new Intent(mApplication, eu.ginlo_apps.ginlo.ConfigureBackupActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(mApplication, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(mApplication, MESSAGE_NOTIFICATION_CHANNEL_ID);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(mApplication, INFO_NOTIFICATION_CHANNEL_ID);
+        NotificationCompat.BigTextStyle bigTextStyle = new NotificationCompat.BigTextStyle(builder);
 
-        builder.setSmallIcon(R.drawable.ic_notification_logo);
-        String content = "";
-
-        builder.setContentTitle(notificationText);
-        builder.setContentText(content);
-        builder.setTicker(notificationText);
-        builder.setAutoCancel(true);
         builder.setContentIntent(pendingIntent);
 
-        boolean groupVibrateEnabled = mPreferencesController.getVibrationForGroupsEnabled();
-
-        //damit eine heads-up notification angezeigt wird, muss das noch gesetzt werden
-        builder.setPriority(NotificationCompat.PRIORITY_MAX);
-        if (groupVibrateEnabled) {
-            builder.setDefaults(Notification.DEFAULT_VIBRATE);
-        } else {
-            long[] pattern = {0};
-            builder.setVibrate(pattern);
+        if (!StringUtil.isNullOrEmpty(title)) {
+            builder.setContentTitle(title);
+            bigTextStyle.setBigContentTitle(title);
         }
 
-        return builder.build();
+        if (!StringUtil.isNullOrEmpty(message)) {
+            builder.setContentText(message);
+            bigTextStyle.bigText(message);
+        }
+
+        builder.setSmallIcon(R.drawable.ic_notification_logo);
+        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        builder.setAutoCancel(true);
+
+        Notification notification = builder.build();
+
+        notificationManager.notify(INFO_NOTIFICATION_ID, notification);
+    }
+
+    public void showInternalNotification(List<NotificationInfoContainer> infoContainers, final boolean isPriority) {
+        int id;
+
+        if (infoContainers.size() == 0) {
+            return;
+        }
+
+        NotificationInfoContainer infoContainer;
+
+        Pattern pattern = Pattern.compile("https?:\\/\\/\\S*");
+
+        boolean newMessage = false;
+
+        boolean singleVibrateEnabled = mPreferencesController.getVibrationForSingleChatsEnabled();
+        boolean groupVibrateEnabled = mPreferencesController.getVibrationForGroupsEnabled();
+        boolean channelVibrateEnabled = mPreferencesController.getVibrationForChannelsEnabled();
+        boolean serviceVibrateEnabled = mPreferencesController.getVibrationForServicesEnabled();
+
+        boolean vibrate = false;
+
+        // Build/update new global list of notification infos
+        for (int i = 0; i < infoContainers.size(); i++) {
+            id = infoContainers.get(i).getSenderGuid().hashCode();
+            infoContainer = infoContainerArray.get(id);
+
+            if (infoContainer != null) {
+                // A notification info for the given sender GUID is already in global list
+                // No more entries to prevent multiple notifications
+                continue;
+            } else {
+                // No info for given sender GUID in global list - prepare a new one
+                infoContainer = infoContainers.get(i);
+
+                String shortLinkText = infoContainer.getShortLinkText();
+                String text = infoContainer.getLastMessage(); // "preview" text in CreateNotificationTask
+
+                SpannableString ss = StringUtil.replaceUrlNew(text, shortLinkText, pattern, true);
+                infoContainer.setLastMessage(ss != null ? ss.toString() : "");
+
+                // Put new info to global list
+                infoContainerArray.put(id, infoContainer);
+
+                // Find out whether it's time to send notification, e.g. we have at least one new message to signal
+                // Then set newMessage true
+                try {
+                    final Chat chat;
+
+                    if (GuidUtil.isChatSingle(infoContainer.getSenderGuid())) {
+                        chat = mApplication.getSingleChatController().getChatByGuid(infoContainer.getSenderGuid());
+                    } else if (GuidUtil.isChatRoom(infoContainer.getSenderGuid())) {
+                        chat = mApplication.getGroupChatController().getChatByGuid(infoContainer.getSenderGuid());
+                    } else {
+                        chat = null;
+                    }
+
+                    if (chat != null) {
+                        final long now = new Date().getTime();
+                        final long silentTill = chat.getSilentTill();
+                        if (now > silentTill) {
+                            newMessage = true;
+                        }
+                    } else {
+                        //kein chat vorhanden -> neu
+                        newMessage = true;
+                    }
+                } catch (final LocalizedException e) {
+                    LogUtil.w(TAG, e.getMessage(), e);
+                }
+            }
+
+            // If only one notification info, activate haptic features
+            if (i == 0) {
+                if (GuidUtil.isChatSingle(infoContainer.getSenderGuid())) {
+                    if (singleVibrateEnabled) {
+                        vibrate = true;
+                    }
+                } else if (GuidUtil.isChatRoom(infoContainer.getSenderGuid())) {
+                    if (groupVibrateEnabled) {
+                        vibrate = true;
+                    }
+                } else if (GuidUtil.isChatChannel(infoContainer.getSenderGuid())) {
+                    if (channelVibrateEnabled) {
+                        vibrate = true;
+                    }
+                } else if (GuidUtil.isChatService(infoContainer.getSenderGuid())) {
+                    if (serviceVibrateEnabled) {
+                        vibrate = true;
+                    }
+                }
+            }
+        }
+
+        if (newMessage) {
+            showInternalNotification(isPriority, vibrate);
+        }
+    }
+
+    private void showInternalNotification(final boolean isPriority, final boolean vibrate) {
+        try {
+            if (mPreferencesController.getShowInAppNotifications()) {
+                if (infoContainerArray.size() == 0) {
+                    return;
+                }
+
+                NotificationInfoContainer infoContainer = infoContainerArray.valueAt(infoContainerArray.size() - 1);
+                if (infoContainer == null) {
+                    return;
+                }
+
+                final String senderGuid = infoContainer.getSenderGuid();
+                if (senderGuid.equals(ignoredGuid)) {
+                    return;
+                }
+
+                Notification notification = null;
+                int notificationID = MESSAGE_NOTIFICATION_ID;
+
+                if ("AVC!".equals(infoContainer.getShortLinkText())) {
+                    if(mAVChatController != null) {
+                        // AVC notification and AVC is available!
+                        // Call notifications are not affected by ignoreAll.
+                        String name = infoContainer.getName();
+                        String roomInfo = infoContainer.getLastMessage();
+                        notification = buildAVCInvitationNotification(name, senderGuid, roomInfo, infoContainer.getImage(), false);
+                        notificationID = AVC_NOTIFICATION_ID;
+                        //createDismissRunner(AVC_NOTIFICATION_ID, DISMISS_NOTIFICATION_TIMEOUT, false);
+                    }
+                } else {
+                    // Regular notification
+                    // Only these are ignored if ignoreAll is set.
+                    if(ignoreAll) {
+                        return;
+                    }
+                    notification = buildInternalNotification(isPriority, vibrate);
+                }
+
+                if (notification != null) {
+                    notificationManager.notify(notificationID, notification);
+                }
+                infoContainerArray.clear();
+            }
+        } catch (LocalizedException e) {
+            LogUtil.w(TAG, "showInternalNotification ", e);
+        }
+    }
+
+    public void showOngoingServiceNotification() {
+        final Notification notification = buildOngoingServiceNotification();
+        if(notification != null) {
+            notificationManager.notify(INFO_NOTIFICATION_ID, notification);
+        }
     }
 
     private boolean isSingleChatInvitation(String chatGuid) {
@@ -1038,6 +954,37 @@ public class NotificationController {
         }
     }
 
+    /**
+     * Remove an entry from infoContainerArray or reset array, if given id
+     * is -1.
+     * @param id Id to remove or -1 for complete reset
+     */
+    private void refreshInfoContainerArray(int id) {
+        if (id == -1) {
+            if (infoContainerArray != null) {
+                infoContainerArray.clear();
+            } else {
+                infoContainerArray = new SparseArray<>();
+            }
+        } else {
+            infoContainerArray.remove(id);
+        }
+    }
+
+    public void toggleIgnoreAll(boolean ignoreAll) {
+        this.ignoreAll = ignoreAll;
+
+        if (ignoreAll) {
+            this.ignoredGuid = null;
+        } else {
+            refreshInfoContainerArray(-1);
+        }
+    }
+
+    public void ignoreGuid(String guid) {
+        this.ignoredGuid = guid;
+    }
+
     public void deleteNotification(final String messageGuid) {
         final QueryBuilder<eu.ginlo_apps.ginlo.greendao.Notification> queryBuilder = mNotificationDao.queryBuilder();
         final List<eu.ginlo_apps.ginlo.greendao.Notification> notifications = queryBuilder.where(NotificationDao.Properties.MessageGuid.eq(messageGuid)).list();
@@ -1047,5 +994,44 @@ public class NotificationController {
                 mNotificationDao.delete(notifications.get(0));
             }
         }
+    }
+
+    /**
+     * This is an alias for dismissNotification(-1).
+     */
+    public void dismissAll() {
+        dismissNotification(-1);
+    }
+
+    /**
+     * Cancel a pending notification for a given notificationId
+     * @param notificationId Notification ID or -1 for all notifications
+     */
+    public void dismissNotification(int notificationId) {
+        if (notificationId == -1) {
+            LogUtil.d(TAG, "Got dismiss all notifications request.");
+            notificationManager.cancelAll();
+        } else if (notificationId >= 0) {
+            LogUtil.d(TAG, "Got dismiss notification request for id " + notificationId);
+            notificationManager.cancel(notificationId);
+        }
+    }
+
+    public void dismissOngoingNotification() {
+        dismissNotification(INFO_NOTIFICATION_ID);
+    }
+
+    // Some notifications should be discarded after a while
+    // Builder.setTimeoutAfter() doesn't work on old devices (before Oreo, API 26).
+    public void createDismissRunner(int notificationId, int timeout, boolean all) {
+        final Handler dismissHandler = new Handler(Looper.getMainLooper());
+        Runnable dismissRunner = new Runnable() {
+            public void run() {
+                dismissNotification(notificationId);
+                LogUtil.d(TAG, "Notification " + notificationId + " cancelled.");
+            }
+        };
+        dismissHandler.postDelayed(dismissRunner, timeout);
+        LogUtil.d(TAG, "Runner for notification cancellation initialized!");
     }
 }

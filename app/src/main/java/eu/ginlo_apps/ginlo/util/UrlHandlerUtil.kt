@@ -10,9 +10,11 @@ object UrlHandlerUtil {
     @Throws(UnsupportedEncodingException::class)
     fun getStringFromIntent(intent: Intent?, stringToDelete: String): String? {
 
-        if (intent == null || intent.data == null) return null
+        var query = intent?.data.toString()
+        if(query.isBlank()) {
+            return null
+        }
 
-        var query = intent.data!!.toString()
         if (query.contains("?")) {
             val idx = query.indexOf('?')
             query = query.substring(idx + 1)

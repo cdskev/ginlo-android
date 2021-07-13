@@ -14,8 +14,10 @@ import eu.ginlo_apps.ginlo.ChatRoomInfoActivity;
 import eu.ginlo_apps.ginlo.MuteChatActivity;
 import eu.ginlo_apps.ginlo.OnLinkClickListener;
 import eu.ginlo_apps.ginlo.R;
+import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.LoginController;
+import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.controller.message.GroupChatController;
 import eu.ginlo_apps.ginlo.controller.message.contracts.GroupInfoChangedListener;
@@ -36,10 +38,11 @@ import java.util.TimerTask;
 public class GroupChatActivity
         extends BaseChatActivity
         implements OnLinkClickListener, ContactController.OnContactProfileInfoChangeNotification {
+
+    private final static String TAG = GroupChatActivity.class.getSimpleName();
+
     private OnClickListener mOnRightActionBarClickListener;
-
     private GroupChatController mGroupChatController;
-
     private Timer mRefreshTimer;
 
     @Override
@@ -49,74 +52,16 @@ public class GroupChatActivity
 
             mClearChatQuestionText = R.string.chat_button_clear_confirm_group;
 
-            LogUtil.i(this.getClass().getName(), "onCreate: " + this);
-
-            // Dismiss all notifications when entering GroupChatActivity
-            notificationController.dismissNotification(-1, true);
+            LogUtil.i(TAG, "onCreate: " + this);
 
             mOnSendMessageListener = createOnSendMessageListener(mTargetGuid);
-
             getChatController().addListener(this);
 
             if (mChat == null) {
-                LogUtil.i(this.getClass().getName(), "Load Chat failed " + mTargetGuid);
-                onBackPressed();
+                LogUtil.w(TAG, "Load Chat failed " + mTargetGuid);
+                finish();
                 return;
             }
-
-            final OnClickListener rightClickListener = new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    toggleTimedMessages();
-                }
-            };
-
-            setRightActionBarImage(R.drawable.chat_timed_white, rightClickListener, getResources().getString(R.string.content_description_chat_timed), -1);
-            setRightActionBarImageVisibility(View.GONE);
-            mTimedCounterView.setVisibility(View.GONE);
-            createOnDeleteTimedMessageListener();
-            createOnTimedMessagesDeliveredListener();
-            preventSelfConversation();
-
-            if (savedInstanceState == null) {
-                mChatInputFragment = new ChatInputFragment();
-                mChatInputFragment.setShowKeyboardAfterClosingDestructionPicker(true);
-                mEmojiconsFragment = new EmojiPickerFragment();
-
-                getSupportFragmentManager().beginTransaction().add(mChatInputContainerId, mChatInputFragment)
-                        .commit();
-                getSupportFragmentManager().beginTransaction()
-                        .add(mFragmentContainerId, mEmojiconsFragment).commit();
-            } else {
-                //fixme catch muesste raus koennen (nullpointer, weil fruehe rnicht auf getSupportFragmentManager().getFragments() != null geprueft wurde)
-                try {
-                    mChatInputFragment = (ChatInputFragment) getSupportFragmentManager().getFragment(savedInstanceState,
-                            "chatInputFragment");
-                    if(mChatInputFragment == null ) {
-                        mChatInputFragment = new ChatInputFragment();
-                    }
-                    mEmojiconsFragment = (EmojiPickerFragment) getSupportFragmentManager().getFragment(savedInstanceState,
-                            "mEmojiconsFragment");
-                    if(mEmojiconsFragment == null) {
-                        mEmojiconsFragment = new EmojiPickerFragment();
-                    }
-                } catch (Exception e) {
-                    LogUtil.w(this.getClass().getName(), e.getMessage(), e);
-                    mChatInputFragment = new ChatInputFragment();
-                    mChatInputFragment.setShowKeyboardAfterClosingDestructionPicker(true);
-                    mEmojiconsFragment = new EmojiPickerFragment();
-
-                    getSupportFragmentManager().beginTransaction().add(mChatInputContainerId, mChatInputFragment)
-                            .commit();
-                    getSupportFragmentManager().beginTransaction()
-                            .add(mFragmentContainerId, mEmojiconsFragment).commit();
-                }
-            }
-            hideOrShowFragment(mEmojiconsFragment, false, false);
-            hideOrShowFragment(mSelfdestructionFragment, false, false);
-
-            mLoadMoreView = (LinearLayout) getLayoutInflater().inflate(R.layout.chat_item_load_more_layout, null);
-            mLoadMoreView.setOnClickListener(onLoadMoreClickListener);
 
             mOnRightActionBarClickListener = new OnClickListener() {
                 @Override
@@ -149,10 +94,56 @@ public class GroupChatActivity
 
                         startActivity(intent);
                     } catch (LocalizedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.e(TAG, e.getMessage(), e);
                     }
                 }
             };
+            final View titleContainer = getToolbar().findViewById(R.id.toolbar_title_container);
+            titleContainer.setOnClickListener(mOnRightActionBarClickListener);
+
+            final OnClickListener rightClickListener = new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    toggleTimedMessages();
+                }
+            };
+            setRightActionBarImage(R.drawable.chat_timed_white, rightClickListener, getResources().getString(R.string.content_description_chat_timed), -1);
+
+            setRightActionBarImageVisibility(View.GONE);
+            mTimedCounterView.setVisibility(View.GONE);
+            createOnDeleteTimedMessageListener();
+            createOnTimedMessagesDeliveredListener();
+            preventSelfConversation();
+
+            if (savedInstanceState != null) {
+                try {
+                    mChatInputFragment = (ChatInputFragment) getSupportFragmentManager().getFragment(savedInstanceState,
+                            "chatInputFragment");
+                    mEmojiconsFragment = (EmojiPickerFragment) getSupportFragmentManager().getFragment(savedInstanceState,
+                            "mEmojiconsFragment");
+                } catch (Exception e) {
+                    LogUtil.w(TAG, "onCreateActivity: " + e.getMessage(), e);
+                }
+            }
+
+            if (mChatInputFragment == null) {
+                mChatInputFragment = new ChatInputFragment();
+                mChatInputFragment.setShowKeyboardAfterClosingDestructionPicker(true);
+                getSupportFragmentManager().beginTransaction()
+                        .add(mChatInputContainerId, mChatInputFragment).commit();
+            }
+
+            if (mEmojiconsFragment == null) {
+                mEmojiconsFragment = new EmojiPickerFragment();
+                getSupportFragmentManager().beginTransaction()
+                        .add(mFragmentContainerId, mEmojiconsFragment).commit();
+            }
+
+            hideOrShowFragment(mEmojiconsFragment, false, false);
+            hideOrShowFragment(mSelfdestructionFragment, false, false);
+
+            mLoadMoreView = (LinearLayout) getLayoutInflater().inflate(R.layout.chat_item_load_more_layout, null);
+            mLoadMoreView.setOnClickListener(onLoadMoreClickListener);
 
             if (isChatReadOnly()) {
                 disableChatinput();
@@ -171,10 +162,8 @@ public class GroupChatActivity
                 mGroupChatController.getAndUpdateRoomInfo(mChat.getChatGuid());
             }
 
-            final View titleContainer = getToolbar().findViewById(R.id.toolbar_title_container);
-            titleContainer.setOnClickListener(mOnRightActionBarClickListener);
         } catch (LocalizedException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
             finish();
         }
     }
@@ -197,7 +186,7 @@ public class GroupChatActivity
                                     setMuteIcon();
                                 }
                             } catch (final LocalizedException le) {
-                                LogUtil.w(GroupChatActivity.class.getSimpleName(), le.getMessage(), le);
+                                LogUtil.w(TAG, le.getMessage(), le);
                             }
                         }
                     });
@@ -205,7 +194,7 @@ public class GroupChatActivity
             };
             mRefreshTimer.scheduleAtFixedRate(refreshTask, 0, 5000);
 
-            LogUtil.i(this.getClass().getName(), "onResume: " + this + "");
+            LogUtil.i(TAG, "onResume: " + this + "");
             if (mChat != null) {
                 if (!mChat.getIsRemoved()) {
                     setMuteIcon();
@@ -218,9 +207,9 @@ public class GroupChatActivity
             init();
 
             if (mTargetGuid != null) {
-                LogUtil.i(this.getClass().getName(), "Open ChatStream " + mTargetGuid);
+                LogUtil.i(TAG, "Open ChatStream " + mTargetGuid);
                 notificationController.ignoreGuid(mTargetGuid);
-                notificationController.dismissNotification(mTargetGuid);
+                notificationController.dismissNotification(NotificationController.MESSAGE_NOTIFICATION_ID);
 
                 if (mChatAdapter == null) {
                     mChatAdapter = getChatController().getChatAdapter(this, mTargetGuid);
@@ -274,7 +263,7 @@ public class GroupChatActivity
                     } catch (LocalizedException e) {
                         //FIXME nach dme Backupherstellen kann hier eventuell eine badpaddingexception auftreten
                         // Quickfix fuer 1.8.1: try catch
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.e(TAG, e.getMessage(), e);
                     }
                 }
             }
@@ -283,11 +272,16 @@ public class GroupChatActivity
                 closeBottomSheet(null);
             }
 
+            Chat chat = getSimsMeApplication().getGroupChatController().getChatByGuid(mTargetGuid);
+            if (chat != null) {
+                getSimsMeApplication().getChatOverviewController().chatChanged(null, chat.getChatGuid(), null, ChatOverviewController.CHAT_CHANGED_REFRESH_CHAT);
+                getSimsMeApplication().getChatOverviewController().chatChanged(null, chat.getChatGuid(), null, ChatOverviewController.CHAT_CHANGED_IMAGE);
+            }
+
             checkActionContainer();
             setActionbarColorFromTrustState();
 
             GroupInfoChangedListener groupInfoChangedListener = new GroupInfoChangedListener() {
-
                 @Override
                 public void onGroupInfoChanged() {
                     try {
@@ -304,13 +298,13 @@ public class GroupChatActivity
                             }
                         }
                     } catch (LocalizedException e) {
-                        LogUtil.e(this.getClass().getSimpleName(), e.getMessage(), e);
+                        LogUtil.e(TAG, e.getMessage(), e);
                     }
                 }
             };
             mGroupChatController.addGroupInfoChangedListener(groupInfoChangedListener);
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             finish();
         }
     }
@@ -326,7 +320,7 @@ public class GroupChatActivity
             }
         } catch (final LocalizedException e) {
             //do nothing
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
     }
 
@@ -372,13 +366,13 @@ public class GroupChatActivity
                             setProfilePictureVisibility(View.GONE);
                         }
                     } catch (final LocalizedException le) {
-                        LogUtil.e(this.getClass().getName(), le.getMessage(), le);
+                        LogUtil.e(TAG, le.getMessage(), le);
                     }
                 }
             }
         } else {
             //SIMSME-3572
-            LogUtil.i(this.getClass().getName(), "Load Chat failed " + mTargetGuid);
+            LogUtil.i(TAG, "Load Chat failed " + mTargetGuid);
             onBackPressed();
         }
     }
@@ -393,14 +387,14 @@ public class GroupChatActivity
             mRefreshTimer = null;
         }
 
-        try {
-            super.onPauseActivity();
+        super.onPauseActivity();
 
+        try {
             if (mChatInputFragment != null && mChatInputFragment.getEditText() != null && mTargetGuid != null) {
                 clipBoardController.put(mTargetGuid, mChatInputFragment.getEditText().getText().toString());
             }
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
     }
 
@@ -433,12 +427,12 @@ public class GroupChatActivity
         try {
             if ((mChat.getIsRemoved() != null && mChat.getIsRemoved())
                     || (mChat.getIsReadOnly() != null && mChat.getIsReadOnly())) {
-                LogUtil.w(this.getClass().getSimpleName(), String.format("Chat IsRemoved (%b) or Chat IsReadonly (%b). The Group Chat %s will be set to readonly.",
+                LogUtil.w(TAG, String.format("Chat IsRemoved (%b) or Chat IsReadonly (%b). The Group Chat %s will be set to readonly.",
                         (mChat.getIsRemoved() != null && mChat.getIsRemoved()), (mChat.getIsReadOnly() != null && mChat.getIsReadOnly()), mChat.getChatGuid()));
                 return true;
             }
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
         return false;
     }
@@ -498,7 +492,7 @@ public class GroupChatActivity
         try {
             setTrustColor(((GroupChatController) getChatController()).getStateForGroupChat(mChat.getChatGuid()));
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
     }
 
@@ -514,7 +508,7 @@ public class GroupChatActivity
                 }
             }
         } catch (LocalizedException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
         }
     }
 
@@ -530,7 +524,7 @@ public class GroupChatActivity
                 }
             }
         } catch (LocalizedException e) {
-            LogUtil.w(GroupChatActivity.class.getSimpleName(), "onContactProfilInfoHasChanged()", e);
+            LogUtil.w(TAG, "onContactProfilInfoHasChanged()", e);
         }
     }
 
@@ -543,7 +537,7 @@ public class GroupChatActivity
             try {
                 result = mChat.getTitle();
             } catch (LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
                 result = "";
             }
         }

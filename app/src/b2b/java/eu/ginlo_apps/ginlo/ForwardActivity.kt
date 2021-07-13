@@ -291,11 +291,8 @@ class ForwardActivity : ForwardActivityBase(), SearchView.OnQueryTextListener {
 
             private fun adjustTabColor(tab: TabLayout.Tab?) =
                 tab?.icon?.apply {
-                    setColorFilter(
-                        ColorUtil.getInstance().getAppAccentColor(this@ForwardActivity.simsMeApplication),
-                        PorterDuff.Mode.SRC_ATOP
-                    )
-
+                    ColorUtil.setColorFilter(this,
+                        ColorUtil.getInstance().getAppAccentColor(this@ForwardActivity.simsMeApplication))
                 }
         }
     }
