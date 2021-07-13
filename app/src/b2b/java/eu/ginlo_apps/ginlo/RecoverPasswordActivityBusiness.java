@@ -164,7 +164,7 @@ public class RecoverPasswordActivityBusiness extends BaseActivity {
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 //alten recoverykey löschen und neuen erstellen
-                // TODO Async!!
+                // TODO: Async
                 mAccountController.unsetRecoveryCode();
                 getSimsMeApplication().getPreferencesController().getSharedPreferences().edit().putBoolean(MC_RECOVERY_CODE_REQUESTED, false).apply();
                 // der recovery-code wird spaeter beim Setzen des Passwortes neu generiert

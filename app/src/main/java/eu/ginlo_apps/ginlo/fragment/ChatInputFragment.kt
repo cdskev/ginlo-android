@@ -20,6 +20,7 @@ import eu.ginlo_apps.ginlo.insertText
 import eu.ginlo_apps.ginlo.model.chat.*
 import eu.ginlo_apps.ginlo.themedInflater
 import eu.ginlo_apps.ginlo.util.*
+import eu.ginlo_apps.ginlo.util.MimeUtil.MIMETYPE_NOT_FOUND
 import eu.ginlo_apps.ginlo.util.TimeDisplayUtil.OnClockStoppedHandler
 import kotlinx.android.synthetic.main.chat_item_comment_layout_chatinput.*
 import kotlinx.android.synthetic.main.fragment_chat_input.*
@@ -98,6 +99,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
             chat_add_button.visibility = View.GONE
             chat_right_button.visibility = View.GONE
             chat_send_text_button.visibility = View.VISIBLE
+            chat_send_text_button.isEnabled = true
         } else {
             chat_add_button.visibility = View.VISIBLE
             chat_right_button.visibility = View.VISIBLE
@@ -118,7 +120,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
                 if (permission == PermissionUtil.PERMISSION_FOR_RECORD_AUDIO) {
                     hasAudioPermission = permissionGranted
                     if (!permissionGranted)
-                        Snackbar.make(view!!, R.string.permission_rationale_rec_audio_phone_settings, Snackbar.LENGTH_SHORT).show()
+                        view?.let { Snackbar.make(it, R.string.permission_rationale_rec_audio_phone_settings, Snackbar.LENGTH_SHORT).show() }
                 }
             }
         }
@@ -203,6 +205,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
                     activity.showChatInputFabButton()
                     activity.scrollIfLastChatItemIsNotShown()
                     chat_send_text_button.visibility = View.VISIBLE
+                    chat_send_text_button.isEnabled = true
                     chat_right_button.visibility = View.GONE
 
                     if (!emojiEnabled)
@@ -262,7 +265,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
                         showAudioPreviewUI()
                 }
             } catch (e: LocalizedException) {
-                Snackbar.make(view!!, e.localizedMessage, Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(view as View, e.localizedMessage as CharSequence, Snackbar.LENGTH_SHORT).show()
             }
         } else {
             checkMicrophonePermission()
@@ -314,6 +317,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
 
     private fun sendTextMessage() {
         val msg = chat_edit_text_input.text.toString()
+        chat_send_text_button.isEnabled = false
 
         if ((allowSendWithEmptyMessage || chat_edit_text_input.text?.isBlank() == false) &&
             activity.handleSendMessageClick(msg)
@@ -556,9 +560,9 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
                 comment_text.text = item.fileName
 
                 comment_image.setBackgroundResource(R.drawable.data_placeholder)
-                val resID = FileUtil.getIconForMimeType(item.fileMimeType)
+                val resID = MimeUtil.getIconForMimeType(item.fileMimeType)
 
-                if (resID != FileUtil.MIMETYPE_NOT_FOUND) comment_image.setImageResource(resID)
+                if (resID != MimeUtil.MIMETYPE_NOT_FOUND) comment_image.setImageResource(resID)
                 else comment_image.setImageResource(R.drawable.data_placeholder)
 
                 comment_image.visibility = View.VISIBLE

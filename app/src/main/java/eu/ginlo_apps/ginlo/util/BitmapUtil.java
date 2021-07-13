@@ -26,8 +26,6 @@ import androidx.exifinterface.media.ExifInterface;
 import com.google.zxing.common.BitMatrix;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.util.StreamUtil;
-import eu.ginlo_apps.ginlo.util.StringUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -38,6 +36,8 @@ import java.io.InputStream;
  * @version $Revision$, $Date$, $Author$
  */
 public class BitmapUtil {
+
+    private final static String TAG = BitmapUtil.class.getSimpleName();
 
     public static byte[] compress(Bitmap bitmap,
                                   int quality) {
@@ -76,54 +76,6 @@ public class BitmapUtil {
 
         bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
         return bitmap;
-    }
-
-    public static Bitmap decodeUri(Activity context,
-                                   Uri imageUri,
-                                   int scaleSize,
-                                   boolean rotateToRightOrientation) {
-        InputStream inputStream = null;
-        InputStream inputSizeStream = null;
-
-        try {
-            inputSizeStream = context.getContentResolver().openInputStream(imageUri);
-
-            int sampleSize = 0;
-
-            if (scaleSize > 0) {
-                sampleSize = getSampleSize(inputSizeStream, scaleSize, scaleSize);
-            }
-
-            StreamUtil.closeStream(inputSizeStream);
-            inputSizeStream = null;
-
-            inputStream = context.getContentResolver().openInputStream(imageUri);
-            Bitmap bitmap = decodeStream(inputStream, sampleSize);
-            Bitmap adjustedBitmap = null;
-
-            if (rotateToRightOrientation) {
-                int rotationInDegrees = getRotationInDegreesFromImg(imageUri, context);
-
-                if (rotationInDegrees != -1) {
-                    Matrix matrix = new Matrix();
-
-                    matrix.preRotate(rotationInDegrees);
-
-                    adjustedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-                }
-            }
-
-            return (adjustedBitmap != null) ? adjustedBitmap : bitmap;
-        } catch (FileNotFoundException e) {
-            LogUtil.e(BitmapUtil.class.getName(), e.getMessage(), e);
-            return null;
-        } catch (SecurityException e) {
-            LogUtil.w(BitmapUtil.class.getSimpleName(), "SecurityException uri:" + imageUri.toString(), e);
-            return null;
-        } finally {
-            StreamUtil.closeStream(inputStream);
-            StreamUtil.closeStream(inputSizeStream);
-        }
     }
 
     private static String getRealPathFromURI(Context context,
@@ -242,6 +194,56 @@ public class BitmapUtil {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
+    public static Bitmap decodeUri(Activity context,
+                                   Uri imageUri,
+                                   int scaleSize,
+                                   boolean rotateToRightOrientation) {
+
+        InputStream inputSizeStream = null;
+        InputStream inputStream = null;
+
+        try {
+            inputSizeStream = context.getContentResolver().openInputStream(imageUri);
+
+            int sampleSize = 0;
+
+            if (scaleSize > 0) {
+                sampleSize = getSampleSize(inputSizeStream, scaleSize, scaleSize);
+            }
+
+            StreamUtil.closeStream(inputSizeStream);
+            inputSizeStream = null;
+
+            inputStream = context.getContentResolver().openInputStream(imageUri);
+            Bitmap bitmap = decodeStream(inputStream, sampleSize);
+            Bitmap adjustedBitmap = null;
+
+            if (rotateToRightOrientation) {
+                int rotationInDegrees = getRotationInDegreesFromImg(imageUri, context);
+
+                if (rotationInDegrees != -1) {
+                    Matrix matrix = new Matrix();
+
+                    matrix.preRotate(rotationInDegrees);
+
+                    adjustedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                }
+            }
+
+            return (adjustedBitmap != null) ? adjustedBitmap : bitmap;
+        } catch (FileNotFoundException e) {
+            LogUtil.e(TAG, e.getMessage(), e);
+            return null;
+        } catch (SecurityException e) {
+            LogUtil.w(TAG, "SecurityException uri:" + imageUri.toString(), e);
+            return null;
+        } finally {
+            StreamUtil.closeStream(inputStream);
+            StreamUtil.closeStream(inputSizeStream);
+        }
+    }
+
+
     /**
      * Laedt ein Bitmap. Es wird in die richtige Orientierung gebracht. Falls das
      * Bitmap groesser als die angegebene maximal Hoehe oder Breite ist wird es
@@ -263,11 +265,10 @@ public class BitmapUtil {
         InputStream inputSizeStream = null;
 
         try {
-            inputStream = context.getContentResolver().openInputStream(imageUri);
             inputSizeStream = context.getContentResolver().openInputStream(imageUri);
+            inputStream = context.getContentResolver().openInputStream(imageUri);
 
             BitmapFactory.Options options = new BitmapFactory.Options();
-
             options.inJustDecodeBounds = true;
 
             BitmapFactory.decodeStream(inputSizeStream, null, options);
@@ -275,18 +276,10 @@ public class BitmapUtil {
             int orgImgHeight = options.outHeight;
             int orgImgWidth = options.outWidth;
 
-            int inSampleSize = 1;
+            LogUtil.i(TAG, "Load Image from (" + imageUri.getPath() + ") with orgImgWidth = " + orgImgWidth + ", orgImgHeight = " + orgImgHeight);
 
-            //Damit nicht unbedingt das Bild in Orginalgroesse geladen wird, wird es mit samplesize geladen
-            //--> Speicher sparen
-            if ((orgImgHeight > maxHeight) || (orgImgWidth > maxWidth)) {
-                inSampleSize = getSampleSize(options, maxWidth, maxHeight);
-
-                //es wurde ein verkleinerung berechnet, die kleiner als die max werte sind, daher wird eine verkleinerung wieder ab gezogen
-                inSampleSize /= 2;
-            }
-
-            options.inSampleSize = inSampleSize;
+            int imageSampleSize = calculateSampleSize(options, maxWidth, maxHeight);
+            options.inSampleSize = imageSampleSize;
             options.inJustDecodeBounds = false;
 
             Bitmap bitmap;
@@ -294,7 +287,7 @@ public class BitmapUtil {
             try {
                 bitmap = BitmapFactory.decodeStream(inputStream, null, options);
             } catch (final OutOfMemoryError e) {
-                LogUtil.w(BitmapUtil.class.getSimpleName(), e.getMessage(), e);
+                LogUtil.w(TAG, e.getMessage(), e);
                 bitmap = null;
             }
 
@@ -340,12 +333,14 @@ public class BitmapUtil {
                 matrix.postScale(sx, sy);
 
                 returnBitmap = Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
+                LogUtil.d(TAG, "Built bitmap with width = " + width + ", height = " + height);
             }
             return returnBitmap;
+
         } catch (FileNotFoundException e) {
-            LogUtil.w(BitmapUtil.class.getSimpleName(), "", e);
+            LogUtil.w(TAG, e.getMessage(), e);
         } catch (SecurityException e) {
-            LogUtil.w(BitmapUtil.class.getSimpleName(), "SecurityException uri:" + imageUri.toString(), e);
+            LogUtil.w(TAG, "SecurityException uri:" + imageUri.toString(), e);
         } finally {
             StreamUtil.closeStream(inputStream);
             StreamUtil.closeStream(inputSizeStream);
@@ -377,7 +372,7 @@ public class BitmapUtil {
                 }
             }
         } catch (Exception e) {
-            LogUtil.e("BitmapUtil", e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
 
         return rotationInDegrees;
@@ -424,6 +419,51 @@ public class BitmapUtil {
         return options;
     }
 
+    public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
+                                                         int reqWidth, int reqHeight) {
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeResource(res, resId, options);
+        options.inSampleSize = calculateSampleSize(options, reqWidth, reqHeight);
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeResource(res, resId, options);
+    }
+
+    private static int calculateSampleSize(BitmapFactory.Options options,
+                                           int reqWidth,
+                                           int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int imageSampleSize = 1;
+
+        if ((height > reqHeight) || (width > reqWidth)) {
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while (((halfHeight / imageSampleSize) > reqHeight) || ((halfWidth / imageSampleSize) > reqWidth)) {
+                imageSampleSize *= 2;
+            }
+        }
+
+        LogUtil.i(TAG, "Calculated image samplesize of " + imageSampleSize);
+        return imageSampleSize;
+    }
+
+    public static int getSampleSize(InputStream inputStream,
+                                    int reqWidth,
+                                    int reqHeight) {
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeStream(inputStream, null, options);
+
+        return calculateSampleSize(options, reqWidth, reqHeight);
+    }
+
     public static int getSampleSize(Resources res,
                                     int resourceId,
                                     int reqWidth,
@@ -433,50 +473,7 @@ public class BitmapUtil {
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeResource(res, resourceId, options);
 
-        return getSampleSize(options, reqWidth, reqHeight);
-    }
-
-    public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
-                                                         int reqWidth, int reqHeight) {
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeResource(res, resId, options);
-        options.inSampleSize = getSampleSize(options, reqWidth, reqHeight);
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeResource(res, resId, options);
-    }
-
-    private static int getSampleSize(BitmapFactory.Options options,
-                                     int reqWidth,
-                                     int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if ((height > reqHeight) || (width > reqWidth)) {
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while (((halfHeight / inSampleSize) > reqHeight) || ((halfWidth / inSampleSize) > reqWidth)) {
-                inSampleSize *= 2;
-            }
-        }
-
-        return inSampleSize;
-    }
-
-    public static int getSampleSize(InputStream inputStream,
-                                    int reqWidth,
-                                    int reqHeight) {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(inputStream, null, options);
-
-        return getSampleSize(options, reqWidth, reqHeight);
+        return calculateSampleSize(options, reqWidth, reqHeight);
     }
 
     public static Drawable getConfiguredStateDrawable(@NonNull final Application context,

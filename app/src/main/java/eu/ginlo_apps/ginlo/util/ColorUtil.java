@@ -4,42 +4,48 @@ package eu.ginlo_apps.ginlo.util;
 import android.app.Application;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
+import android.graphics.BlendMode;
+import android.graphics.BlendModeColorFilter;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.os.Build;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.NumberPicker;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.tabs.TabLayout;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.AccountController;
-import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.model.backend.CompanyLayoutModel;
+import eu.ginlo_apps.ginlo.model.backend.serialization.CompanyLayoutDeserializer;
+
+import static eu.ginlo_apps.ginlo.util.RuntimeConfig.isBAMandant;
 
 public class ColorUtil {
     private static ColorUtil instance;
     private static Resources.Theme currentTheme;
     private static Map<String, String> tenantColorMap;
     private CompanyLayoutModel companyLayoutModel;
+
+    public static final String COMPANY_LAYOUT_JSON = "AccountControllerBusiness.companyLayoutJson";
 
     private ColorUtil() {
         tenantColorMap = new HashMap<>();
@@ -54,6 +60,19 @@ public class ColorUtil {
             instance = new ColorUtil();
         }
         return instance;
+    }
+
+    // KS: setColorFilter is deprecated/has changed since API29
+    public static void setColorFilter(Drawable drawable, @ColorInt int color) {
+        if(drawable == null) {
+            return;
+        }
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            drawable.setColorFilter(new BlendModeColorFilter(color, BlendMode.SRC_ATOP));
+        } else {
+            drawable.setColorFilter(color, PorterDuff.Mode.SRC_ATOP);
+        }
     }
 
     // KS
@@ -124,12 +143,31 @@ public class ColorUtil {
         }
     }
 
+    /**
+     * Check if we have a mandatory company layout.
+     * If yes, set up colors accordingly, if not yet done, and return 'true'
+     * 'false' if we use client defaults
+     * @param context
+     * @return
+     */
     public boolean hasLayoutModel(final Application context) {
+        if(!isBAMandant()) {
+            return false;
+        }
+
         if (companyLayoutModel == null) {
             final SimsMeApplication simsMeApplication = (SimsMeApplication) context;
-            final AccountController accountControllerBusiness = simsMeApplication.getAccountController();
 
-            companyLayoutModel = accountControllerBusiness.getCompanyLayoutModel();
+            final String layoutString = simsMeApplication.getPreferencesController().getSharedPreferences().getString(COMPANY_LAYOUT_JSON, null);
+
+            if (!StringUtil.isNullOrEmpty(layoutString)) {
+                final GsonBuilder gsonBuilder = new GsonBuilder();
+                gsonBuilder.registerTypeAdapter(CompanyLayoutModel.class, new CompanyLayoutDeserializer());
+                Gson gson = gsonBuilder.create();
+
+                companyLayoutModel = gson.fromJson(layoutString, CompanyLayoutModel.class);
+            }
+
             if(companyLayoutModel == null) {
                 return false;
             }
@@ -146,7 +184,7 @@ public class ColorUtil {
                                         boolean isPrivateIndexContact) {
         mandantTextView.setAllCaps(true);
         if (isPrivateIndexContact) {
-            if (RuntimeConfig.isBAMandant() && StringUtil.isEqual(BuildConfig.SIMSME_MANDANT_DEFAULT, mandant.ident)) {
+            if (isBAMandant() && StringUtil.isEqual(BuildConfig.SIMSME_MANDANT_DEFAULT, mandant.ident)) {
                 mandantTextView.setText(context.getResources().getText(R.string.private_contact_label_text));
             } else {
                 mandantTextView.setText(mandant.label);
@@ -424,6 +462,10 @@ public class ColorUtil {
     }
 
     public void colorizeSwitch(final SwitchCompat switchCompat, final Application context) {
+        if(!isBAMandant()) {
+            return;
+        }
+
         if (switchCompat == null) return;
 
         int colorEnabled = getAppAccentColor(context);
@@ -464,6 +506,10 @@ public class ColorUtil {
     }
 
     public void colorizeTabLayoutHeader(final Application context, final TabLayout tabLayout) {
+        if(!isBAMandant()) {
+            return;
+        }
+
         if (tabLayout == null) return;
 
         final int mainColor = getMainColor(context);

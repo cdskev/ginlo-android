@@ -48,9 +48,9 @@ class MuteChatActivity : BaseActivity() {
     private fun silentTillWithNoContact(): Long {
         return try {
             val contactByGuid = simsMeApplication.contactController.getContactByGuid(chatGuid)
-                ?: simsMeApplication.contactController.createContactIfNotExists(chatGuid, null)!!
+                ?: simsMeApplication.contactController.createContactIfNotExists(chatGuid, null)
 
-            contactByGuid.silentTill
+            contactByGuid?.silentTill ?: 0L
         } catch (le: LocalizedException) {
             LogUtil.w(MuteChatActivity::class.java.simpleName, le.message, le)
             finish()
@@ -65,9 +65,7 @@ class MuteChatActivity : BaseActivity() {
             return
         }
 
-        if (intent.hasExtra(EXTRA_CHAT_GUID)) {
-            chatGuid = intent.getStringExtra(EXTRA_CHAT_GUID)
-        }
+        chatGuid = intent.getStringExtra(EXTRA_CHAT_GUID) as String
 
         if (!GuidUtil.isChatSingle(chatGuid) && !GuidUtil.isChatRoom(chatGuid)) {
             throw UnsupportedOperationException("Mute not supported for this type of chat. $chatGuid")
@@ -163,11 +161,9 @@ class MuteChatActivity : BaseActivity() {
 
     public override fun onPauseActivity() {
         super.onPauseActivity()
-        if (refreshTimer != null) {
-            refreshTimer!!.cancel()
-            refreshTimer!!.purge()
-            refreshTimer = null
-        }
+        refreshTimer?.cancel()
+        refreshTimer?.purge()
+        refreshTimer = null
     }
 
     private fun setState(muteDelay: MuteDelay) {

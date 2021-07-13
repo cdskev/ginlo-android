@@ -555,7 +555,7 @@
     <string name="delete_contact_title">Kontakt löschen</string>
     <string name="delete_email_address">E-Mail-Adresse entfernen</string>
     <string name="delete_phone_number">Handynummer entfernen</string>
-    <string name="delete_timed_message_error">Die Nachricht konnte nicht vom Server entfernt werden</string>
+    <string name="delete_message_error">Die Nachricht konnte nicht vom Server entfernt werden</string>
     <string name="delete_timed_messages_error">Die zeitverzögerten Nachrichten konnten nicht vom Server entfernt werden</string>
     <string name="device_apply_changes_error">Beim Speichern Ihrer Änderungen ist leider etwas schiefgelaufen. Bitte versuchen Sie es nochmal.</string>
     <string name="device_cancel_coupling_device">Wollen Sie die Aktivierung Ihres neuen Geräts abbrechen?</string>
@@ -1160,8 +1160,8 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="settings_dontAskForPassword_alert">Die Passwortabfrage zum Start von ginlo dient der Sicherheit Ihrer Kommunikation. Wollen Sie die Abfrage abschalten?</string>
     <string name="settings_dontAskForPassword_alert_title">Wichtiger Hinweis</string>
     <string name="settings_enable_fingerprint">Entsperren per Fingerabdruck</string>
-    <string name="settings_faq">FAQ</string>
-	<string name="settings_faq_url">https://app-help.ginlo.net/consumer/de/support/</string>
+    <string name="settings_faq">Handbuch</string>
+	<string name="settings_faq_url">https://app-help.ginlo.net/docs/de/</string>
     <string name="settings_fingerprint_not_set">Kein Fingerabdruck gesetzt</string>
     <string name="settings_help_title">Hilfe</string>
     <string name="settings_image_quality_hint">Legt die Bildqualität für versendete Fotos fest.</string>
@@ -1302,7 +1302,7 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="settings_simsme_media">ginlo Medien</string>
     <string name="settings_simsme_media_description">Anzeige aller gesendeten und empfangenen ginlo Medien</string>
     <string name="settings_simsme_media_header">Medien</string>
-    <string name="settings_statusWorker_firstMessage">Auf der guten Seite des Messagings :-)</string>
+    <string name="settings_statusWorker_firstMessage">Bereit für sicheres Messaging mit ginlo</string>
     <string name="settings_switch_destruction_sound">Ton bei Selbstzerstörung abspielen</string>
     <string name="settings_switch_destruction_sound_hint">Legt fest, ob bei der Selbstzerstörung einer Nachricht ein Ton abgespielt werden soll.</string>
     <string name="settings_switch_message_read_sound">Ton beim Empfangen abspielen</string>

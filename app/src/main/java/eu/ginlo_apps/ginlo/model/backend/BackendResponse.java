@@ -11,10 +11,10 @@ public class BackendResponse {
     public boolean isError = true;
 
     public JsonObject jsonObject;
-
     public JsonArray jsonArray;
 
-    public String errorMessage;
+    public String responseFilename = null;
 
+    public String errorMessage;
     public MsgExceptionModel msgException;
 }

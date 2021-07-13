@@ -4,19 +4,23 @@ package eu.ginlo_apps.ginlo.theme
 import android.app.Application
 import android.content.res.ColorStateList
 import android.content.res.TypedArray
+import android.graphics.BlendMode
+import android.graphics.BlendModeColorFilter
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.RippleDrawable
 import android.graphics.drawable.StateListDrawable
+import android.os.Build
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import eu.ginlo_apps.ginlo.R
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.*
 
 object Style {
     fun setStyledTextColor(textView: TextView?, styledAttributes: TypedArray) {
@@ -46,7 +50,8 @@ object Style {
                 textView.getApplication()
             ).let { colorFilter ->
                 textView.compoundDrawables.forEach { drawable ->
-                    drawable?.setColorFilter(colorFilter, PorterDuff.Mode.SRC_ATOP)
+                    //drawable?.setColorFilter(colorFilter, PorterDuff.Mode.SRC_ATOP)
+                    ColorUtil.setColorFilter(drawable, colorFilter)
                 }
             }
         }
@@ -76,7 +81,8 @@ object Style {
                 view.getApplication()
             )?.let { color ->
                 val background = view.background
-                background?.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+                //background?.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+                ColorUtil.setColorFilter(background, color)
             }
         }
     }
@@ -122,7 +128,8 @@ object Style {
                     if (styledBackground.isNotBlank()) {
                         if (color != null) {
                             val background = button.background
-                            background?.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+                            //background?.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+                            ColorUtil.setColorFilter(background, color)
                         }
                     }
                     return
@@ -164,7 +171,8 @@ object Style {
                 val c = ColorUtil.getInstance().getNamedColor(styledBackground, button.getApplication())
                 if (c != null) {
                     val background = button.background
-                    background?.setColorFilter(c, PorterDuff.Mode.SRC_ATOP)
+                    //background?.setColorFilter(c, PorterDuff.Mode.SRC_ATOP)
+                    ColorUtil.setColorFilter(background, c)
                 }
             }
         }
@@ -212,6 +220,7 @@ object Style {
         styledAttributes.getString(R.styleable.StyledView_styledIconColor)?.let { styledIconColor ->
             ColorUtil.getInstance().getNamedColor(styledIconColor, imageView.getApplication())?.let { color ->
                 imageView.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
+
             }
         }
     }

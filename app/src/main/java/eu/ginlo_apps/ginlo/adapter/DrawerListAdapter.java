@@ -81,6 +81,8 @@ public class DrawerListAdapter
         if ((relativeLayout == null) || (relativeLayout.getTag() == null)) {
             if (drawerListItemVO.getImage() == -1) {
                 relativeLayout = inflater.inflate(R.layout.drawer_list_item_first, null, false);
+            } else if (drawerListItemVO.getImage() == -2) {
+                    relativeLayout = inflater.inflate(R.layout.drawer_list_item_version, null, false);
             } else {
                 relativeLayout = inflater.inflate(R.layout.drawer_list_item, null, false);
             }
@@ -132,6 +134,8 @@ public class DrawerListAdapter
             } catch (LocalizedException e) {
                 LogUtil.w(this.getClass().getName(), e.getMessage(), e);
             }
+        } else if (drawerListItemVO.getImage() == -2) {
+            // No image for version info
         } else {
             ImageView imageView = relativeLayout.findViewById(R.id.drawer_list_item_image_view);
 

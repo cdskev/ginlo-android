@@ -90,7 +90,7 @@ class PreferencesPasswordActivity : PreferencesBaseActivity(), FingerprintFragme
             } else {
                 setCompoundButtonWithoutTriggeringListener(
                     preferences_password_enable_switch,
-                    preferencesController.passwordEnabled!!
+                    preferencesController.passwordEnabled as Boolean
                 )
             }
 

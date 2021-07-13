@@ -44,7 +44,7 @@
         android:layout_marginBottom="8dp"
         android:cursorVisible="true"
         android:ems="10"
-        android:hint="Text"
+        android:hint="@string/chat_input_hint"
         android:imeOptions="actionSend"
         android:inputType="textMultiLine|textCapSentences"
         android:maxHeight="112dp"

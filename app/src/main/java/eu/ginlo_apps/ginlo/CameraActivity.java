@@ -4,7 +4,6 @@ package eu.ginlo_apps.ginlo;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.media.MediaRecorder;
 import android.os.Bundle;
@@ -103,8 +102,8 @@ public class CameraActivity
             recordButton.setColorDisabled(appAccentColor);
 
             final Drawable drawable = recordButton.getIconDrawable();
-            drawable.setColorFilter(appAccentContrastColor, PorterDuff.Mode.SRC_ATOP);
-            stopIcon.setColorFilter(appAccentContrastColor, PorterDuff.Mode.SRC_ATOP);
+            ColorUtil.setColorFilter(drawable, appAccentContrastColor);
+            ColorUtil.setColorFilter(stopIcon, appAccentContrastColor);
         }
 
         mButtonOnClickListener = new Button.OnClickListener() {

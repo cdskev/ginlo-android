@@ -65,6 +65,7 @@ import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.FragmentUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.OnSingleClickListener;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
@@ -1019,8 +1020,9 @@ public class ChatRoomInfoActivity
                 case RouterConstants.SELECT_GALLARY_RESULT_CODE: {
                     Uri selectedGallaryItem = returnIntent.getData();
                     FileUtil fileUtil = new FileUtil(this);
+                    MimeUtil mimeUtil = new MimeUtil(this);
 
-                    if (!fileUtil.checkImageUriMimetype(getApplication(), selectedGallaryItem)) {
+                    if (!mimeUtil.checkImageUriMimetype(getApplication(), selectedGallaryItem)) {
                         Toast.makeText(this, R.string.chats_addAttachment_wrong_format_or_error, Toast.LENGTH_LONG).show();
                         break;
                     }

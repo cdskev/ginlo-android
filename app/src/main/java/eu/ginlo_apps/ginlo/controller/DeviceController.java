@@ -49,6 +49,7 @@ import eu.ginlo_apps.ginlo.util.XMLUtil;
  */
 
 public class DeviceController {
+    public final static String TAG = DeviceController.class.getSimpleName();
     private final SimsMeApplication mApplication;
     private final DeviceDao mDeviceDao;
     private Device mOwnDevice;
@@ -111,7 +112,7 @@ public class DeviceController {
 
         if (devices != null && devices.size() > 0) {
             mOwnDevice = devices.get(0);
-            LogUtil.i(this.getClass().getName(), "Device loaded.");
+            LogUtil.i(TAG, "Device loaded.");
         }
     }
 
@@ -259,8 +260,14 @@ public class DeviceController {
         mLoadDevicesTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    public void deleteDeviceFromBackend(@NonNull final String deviceGuid, final GenericActionListener<Void> listener)
+    public void deleteDeviceFromBackend(final String deviceGuid, final GenericActionListener<Void> listener)
             throws LocalizedException {
+
+        if(StringUtil.isNullOrEmpty(deviceGuid)) {
+            LogUtil.w(TAG, "deleteDeviceFromBackend: DeviceGuid is " + deviceGuid + "!");
+            return;
+        }
+
         if (mDeleteDeviceTask != null) {
             return;
         }
@@ -298,9 +305,14 @@ public class DeviceController {
         mDeleteDeviceTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    public void changeDeviceNameAtBackend(@NonNull final String deviceGuid, @NonNull final String deviceName, final GenericActionListener<Void> listener)
+    public void changeDeviceNameAtBackend(final String deviceGuid, final String deviceName, final GenericActionListener<Void> listener)
             throws LocalizedException {
         if (mSetDeviceNameTask != null) {
+            return;
+        }
+
+        if(StringUtil.isNullOrEmpty(deviceGuid) || StringUtil.isNullOrEmpty(deviceName)) {
+            LogUtil.w(TAG, "changeDeviceNameAtBackend: Invalid parameters (deviceGuid=" + deviceGuid + ", deviceName=" + deviceName + ").");
             return;
         }
 

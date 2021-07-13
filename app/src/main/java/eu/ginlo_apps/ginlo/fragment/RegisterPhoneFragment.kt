@@ -103,11 +103,11 @@ class RegisterPhoneFragment : BaseFragment(), RegisterPhone.View {
     }
 
     private fun initCountries(countries: List<Map<String, String>>) {
-        countriesSpinnerAdapter = ArrayAdapter(
-            context!!,
-            android.R.layout.simple_spinner_item
-        )
-        countries.forEach { countriesSpinnerAdapter.add(it[CountryCodeUtil.NAME]) }
+        countriesSpinnerAdapter = ArrayAdapter(context as Context, android.R.layout.simple_spinner_item)
+
+        countries.forEach {
+            countriesSpinnerAdapter.add(it[CountryCodeUtil.NAME])
+        }
         countriesSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         intro_ident_request_spinner_country_select.adapter = countriesSpinnerAdapter
     }

@@ -19,13 +19,6 @@ class PreferencesOverviewActivity : NewBaseActivity() {
     var appearanceChanged : Boolean = false
 
     override fun onCreateActivity(savedInstanceState: Bundle?) {
-
-        // Prepare display of version information
-        // (This has moved from PreferencesInformationActivity)
-        AppConstants.gatherData(this)
-        information_version?.apply {
-            text = "${resources.getString(R.string.settings_version)} ${AppConstants.getAppVersionName()}"
-        }
     }
 
     override fun getActivityLayout(): Int =
@@ -64,10 +57,6 @@ class PreferencesOverviewActivity : NewBaseActivity() {
         startActivity(Intent(this, PreferencesAppearanceActivity::class.java))
         // Make life easier: Always assume changes in app apprearance
         appearanceChanged = true
-    }
-
-    fun handleHelpClick(@Suppress("UNUSED_PARAMETER") v: View) {
-        startActivity(Intent(this, PreferencesInformationActivity::class.java))
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

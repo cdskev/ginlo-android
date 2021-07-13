@@ -56,6 +56,7 @@ import eu.ginlo_apps.ginlo.activity.chatsOverview.ChatsAdapter;
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemClick;
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemLongClick;
 import eu.ginlo_apps.ginlo.activity.device.DevicesOverviewActivity;
+import eu.ginlo_apps.ginlo.activity.preferences.PreferencesInformationActivity;
 import eu.ginlo_apps.ginlo.activity.preferences.PreferencesOverviewActivity;
 import eu.ginlo_apps.ginlo.activity.profile.ProfileActivity;
 import eu.ginlo_apps.ginlo.activity.reregister.ChangePhoneActivity;
@@ -422,6 +423,28 @@ public class ChatsOverviewActivity
                 "", // NSOSONAR
                 PreferencesOverviewActivity.class,
                 R.drawable.settings,
+                null,
+                false));
+
+        rc.add(new DrawerListItemVO(getText(R.string.settings_help_title).toString(),
+                "", // NSOSONAR
+                PreferencesInformationActivity.class,
+                R.drawable.help,
+                null,
+                false));
+
+        String versionText = AppConstants.getAppName() + " ";
+        // VersionName should be something like 4.1.0.410100
+        String v = AppConstants.getAppVersionName();
+        if(v.length() >= 12) {
+            versionText = versionText + v.substring(0, 6) + v.substring(9);
+        } else {
+            versionText = versionText + v;
+        }
+        rc.add(new DrawerListItemVO(versionText,
+                 "",
+                null,
+                -2,
                 null,
                 false));
 
@@ -849,6 +872,7 @@ public class ChatsOverviewActivity
                         negativeListener
                 ).show();
             }
+
             checkForUnsubscribedServices();
 
             //gucken, ob die Telefonnummer verifiziert werden muss

@@ -76,6 +76,8 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
         }
     }
 
+    val TAG = ContactsFragment::class.java.simpleName
+
     private val contactController: ContactController by lazy { (context as BaseActivity).simsMeApplication.contactController }
 
     private val chatImageController: ChatImageController by lazy { (context as BaseActivity).simsMeApplication.chatImageController }
@@ -151,9 +153,7 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
             rootView.contacts_list_view.choiceMode = ListView.CHOICE_MODE_MULTIPLE
         } catch (e: LocalizedException) {
             LogUtil.e(this.javaClass.name, e.message, e)
-            if (activity != null) {
-                activity!!.finish()
-            }
+            activity?.finish()
         }
 
         return rootView
@@ -321,7 +321,7 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
                                 )
                             } else {
                                 contactController.getFallbackImageByContact(
-                                        activity!!.applicationContext, contact
+                                        activity?.applicationContext, contact
                                 )
                             }
                         }
@@ -336,7 +336,7 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
 
                     return returnImage
                 } catch (e: LocalizedException) {
-                    LogUtil.w(activity!!.javaClass.name, "Image can't be loaded.", e)
+                    LogUtil.w(TAG, "initImageLoader: Image can't be loaded.", e)
                     return null
                 }
             }
@@ -498,18 +498,15 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
 
     private fun initForModeSimsmeGroup() {
         if (activity != null) {
-            val intent = activity!!.intent
-
-            if (intent != null && intent.extras != null
-                    && intent.extras!!.get(EXTRA_GROUP_CONTACTS) != null
-            ) {
+            val intent = activity?.intent
+            if(intent?.extras?.get(EXTRA_GROUP_CONTACTS) != null) {
                 groupContacts = ArrayList()
-                val contactsGuids = intent.extras!!.getStringArrayList(EXTRA_GROUP_CONTACTS)
+                val contactsGuids = intent.extras?.getStringArrayList(EXTRA_GROUP_CONTACTS)
                 if (contactsGuids != null) {
                     for (guid in contactsGuids) {
                         val contact = contactController.getContactByGuid(guid)
-                        if (contact != null && Contact.CLASS_PRIVATE_ENTRY == contact.classEntryName) {
-                            groupContacts!!.add(contact)
+                        if (contact?.classEntryName == Contact.CLASS_PRIVATE_ENTRY) {
+                            groupContacts?.add(contact)
                         }
                     }
                 }
@@ -524,33 +521,21 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
         contactsAdapter = ContactsAdapter(activity, layout, contacts, setCheckedAsDefault, true)
 
         val diameter = resources.getDimension(R.dimen.contact_item_multi_select_icon_diameter).toInt()
-
         imageLoader = initImageLoader(diameter)
-
         contactsAdapter?.setImageLoader(imageLoader)
 
-        if (activity != null) {
-            val intent = activity!!.intent
-            if (intent != null && intent.extras != null
-                    && intent.extras!!.get(EXTRA_GROUP_CHAT_OWNER_GUID) != null
-            ) {
-                val ownerGuid = intent.getStringExtra(EXTRA_GROUP_CHAT_OWNER_GUID)
-
-                contactsAdapter?.setGroupChatOwner(ownerGuid)
-            }
+        val intent = activity?.intent
+        if (intent?.extras?.get(EXTRA_GROUP_CHAT_OWNER_GUID) != null) {
+            val ownerGuid = intent.getStringExtra(EXTRA_GROUP_CHAT_OWNER_GUID)
+            contactsAdapter?.setGroupChatOwner(ownerGuid)
         }
     }
 
     private fun initForModeAdd() {
-        var intent: Intent? = null
-        if (activity != null) {
-            intent = activity!!.intent
-        }
-
-        val contacts = if (intent != null) SystemUtil.dynamicCastToList(
-                intent.getSerializableExtra(ContactsActivity.EXTRA_ADD_CONTACTS_LIST),
-                Contact::class.java
-        ) else null
+        val intent = activity?.intent
+        val contacts = SystemUtil.dynamicCastToList(
+                intent?.getSerializableExtra(ContactsActivity.EXTRA_ADD_CONTACTS_LIST),
+                Contact::class.java)
 
         if (contacts != null) {
             this.contacts = contacts

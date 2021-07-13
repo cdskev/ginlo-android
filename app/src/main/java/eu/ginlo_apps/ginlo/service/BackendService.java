@@ -24,8 +24,14 @@ import com.google.gson.JsonParser;
 import org.json.JSONArray;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -56,6 +62,7 @@ import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
 import eu.ginlo_apps.ginlo.model.param.HttpPostParams;
 import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.ChecksumUtil;
+import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
@@ -670,7 +677,11 @@ public class BackendService
         params.addParam("cmd", "sendPrivateMessage");
         params.addParam("message", messageJson);
         params.addParam("returnConfirmMessage", "1");
-        params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
+        if(messageJson.startsWith("/")) {
+            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messageJson)));
+        } else {
+            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
+        }
 
         callBackend(listener, params, requestId);
     }
@@ -685,7 +696,11 @@ public class BackendService
 
         params.addParam("cmd", "sendTimedPrivateMessage");
         params.addParam("message", messageJson);
-        params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
+        if(messageJson.startsWith("/")) {
+            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messageJson)));
+        } else {
+            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
+        }
         params.addParam("dateToSend", date);
 
         callBackend(listener, params, requestId);
@@ -701,7 +716,11 @@ public class BackendService
         params.addParam("cmd", "sendPrivateInternalMessage");
         params.addParam("message", messageJson);
         params.addParam("returnConfirmMessage", "1");
-        params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
+        if(messageJson.startsWith("/")) {
+            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messageJson)));
+        } else {
+            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
+        }
 
         callBackend(listener, params, requestId);
     }
@@ -716,7 +735,11 @@ public class BackendService
         params.addParam("cmd", "sendPrivateInternalMessages");
         params.addParam("messages", messagesJson);
         params.addParam("returnConfirmMessage", "1");
-        params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messagesJson));
+        if(messagesJson.startsWith("/")) {
+            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messagesJson)));
+        } else {
+            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messagesJson));
+        }
 
         callBackend(listener, params);
     }
@@ -731,7 +754,11 @@ public class BackendService
         params.addParam("cmd", "sendGroupMessage");
         params.addParam("message", messageJson);
         params.addParam("returnConfirmMessage", "1");
-        params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
+        if(messageJson.startsWith("/")) {
+            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messageJson)));
+        } else {
+            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
+        }
 
         callBackend(listener, params, requestId);
     }
@@ -746,7 +773,11 @@ public class BackendService
 
         params.addParam("cmd", "sendTimedGroupMessage");
         params.addParam("message", messageJson);
-        params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
+        if(messageJson.startsWith("/")) {
+            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messageJson)));
+        } else {
+            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
+        }
         params.addParam("dateToSend", date);
 
         callBackend(listener, params, requestId);
@@ -1913,7 +1944,7 @@ public class BackendService
             };
 
 
-            LogUtil.i(TAG, "Backend call: " + getCmdParam(params));
+            LogUtil.i(TAG, "Call backend via " + (isConnectedViaWLAN() ? "WLAN" : "mobile network") + " for command: " + getCmdParam(params));
 
             if (mUseAsycnConnections) {
                 getTaskManagerController().getHttpTaskManager().executeHttpPostTask(keyStore, params, username, password,
@@ -1978,9 +2009,33 @@ public class BackendService
             return backendResponse;
         }
 
+        File responseFile = null;
+        final Reader responseReader;
+        final JsonParser jsonParser = new JsonParser();
+        final JsonElement jsonElement;
+
         try {
-            final JsonParser jsonParser = new JsonParser();
-            final JsonElement jsonElement = jsonParser.parse(response);
+            if(response.startsWith("/")) {
+                // KS: Backend response is stored in separate file
+                // Check if we may do further processing in RAM because
+                // the filesize is < FileUtil.MAX_RAM_PROCESSING_SIZE
+                responseFile = new File(response);
+                if(responseFile.length() > FileUtil.MAX_RAM_PROCESSING_SIZE) {
+                    backendResponse.responseFilename = response;
+                    backendResponse.isError = false;
+                    backendResponse.jsonObject = null;
+                    backendResponse.jsonArray = null;
+                    // Keep responseFile!
+                    return backendResponse;
+                }
+
+                // Small response file, contents can be processed in RAM
+                responseReader = new FileReader(responseFile);
+                jsonElement = jsonParser.parse(responseReader);
+            } else {
+                // Backend response is given as String
+                jsonElement = jsonParser.parse(response);
+            }
 
             JsonObject jsonObject = null;
             JsonArray jsonArray = null;
@@ -2007,9 +2062,14 @@ public class BackendService
                 backendResponse.jsonArray = jsonArray;
             }
         } catch (JsonParseException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "wrapResponse(): Invalid json data: " + e.getMessage(), e);
+            backendResponse = wrapError(resources.getString(R.string.service_tryAgainLater));
+        } catch (FileNotFoundException e) {
+            LogUtil.e(TAG, "wrapResponse(): Response file " + responseFile.getPath() + " not found!");
             backendResponse = wrapError(resources.getString(R.string.service_tryAgainLater));
         }
+
+        FileUtil.deleteFile(responseFile);
 
         return backendResponse;
     }

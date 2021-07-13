@@ -5,12 +5,11 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.Base64;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import org.json.JSONObject;
 
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
@@ -41,17 +40,8 @@ import eu.ginlo_apps.ginlo.model.constant.DataContainer;
 import eu.ginlo_apps.ginlo.model.constant.FeatureVersion;
 import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
-import eu.ginlo_apps.ginlo.util.AudioUtil;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
-import eu.ginlo_apps.ginlo.util.DateUtil;
-import eu.ginlo_apps.ginlo.util.FileUtil;
-import eu.ginlo_apps.ginlo.util.GuidUtil;
-import eu.ginlo_apps.ginlo.util.IOSMessageConversionUtil;
-import eu.ginlo_apps.ginlo.util.SecurityUtil;
-import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.VideoUtil;
-import eu.ginlo_apps.ginlo.util.XMLUtil;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -298,14 +288,14 @@ public class MessageModelBuilder {
             privateMessageModel.signatureSha256Bytes = message.getSignatureSha256();
 
             if (message.getDateSendTimed() != null) {
-                privateMessageModel.dateSendTimed = eu.ginlo_apps.ginlo.util.DateUtil.getDateFromMillis(message.getDateSendTimed());
+                privateMessageModel.dateSendTimed = DateUtil.getDateFromMillis(message.getDateSendTimed());
             }
 
             DecryptedMessage decryptedMessage = chatController.decryptMessage(message);
             if (decryptedMessage != null) {
                 String contentType = decryptedMessage.getContentType();
 
-                if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(contentType)) {
+                if (!StringUtil.isNullOrEmpty(contentType)) {
                     if (contentType.equals(MimeType.APP_OCTET_STREAM)) {
                         privateMessageModel.features = Integer.toString(FeatureVersion.FILE_MSG);
                     } else if (contentType.equals(MimeType.AUDIO_MPEG)) {
@@ -348,14 +338,14 @@ public class MessageModelBuilder {
             groupMessageModel.signatureSha256Bytes = message.getSignatureSha256();
 
             if (message.getDateSendTimed() != null) {
-                groupMessageModel.dateSendTimed = eu.ginlo_apps.ginlo.util.DateUtil.getDateFromMillis(message.getDateSendTimed());
+                groupMessageModel.dateSendTimed = DateUtil.getDateFromMillis(message.getDateSendTimed());
             }
 
             DecryptedMessage decryptedMessage = chatController.decryptMessage(message);
             if (decryptedMessage != null) {
                 String contentType = decryptedMessage.getContentType();
 
-                if (eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(contentType)) {
+                if (StringUtil.isNullOrEmpty(contentType)) {
                     if (contentType.equals(MimeType.APP_OCTET_STREAM)) {
                         groupMessageModel.features = Integer.toString(FeatureVersion.FILE_MSG);
                     } else if (contentType.equals(MimeType.AUDIO_MPEG)) {
@@ -706,9 +696,9 @@ public class MessageModelBuilder {
         String nickname = (fromAccount.getName() != null) ? fromAccount.getName() : fromAccount.getAccountGuid();
 
         dataJson.addProperty(DataContainer.NICKNAME, nickname);
-        dataJson.addProperty(DataContainer.PHONE, eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(fromAccount.getAccountID()) ? "N/A" : fromAccount.getAccountID());
+        dataJson.addProperty(DataContainer.PHONE, StringUtil.isNullOrEmpty(fromAccount.getAccountID()) ? "N/A" : fromAccount.getAccountID());
 
-        if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(fromAccount.getAccountInfosAesKey())) {
+        if (!StringUtil.isNullOrEmpty(fromAccount.getAccountInfosAesKey())) {
             dataJson.addProperty(DataContainer.PROFIL_KEY, fromAccount.getAccountInfosAesKey());
         }
 
@@ -718,7 +708,7 @@ public class MessageModelBuilder {
     private void attachSendContactInfo(final BaseMessageModel messageModel,
                                        final String accountID,
                                        final String accountGuid) {
-        if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(accountGuid) && !eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(accountID)) {
+        if (!StringUtil.isNullOrEmpty(accountGuid) && !StringUtil.isNullOrEmpty(accountID)) {
             JsonObject dataJson = getDataJsonObject(messageModel);
             dataJson.addProperty(DataContainer.ACCOUNT_ID, accountID);
             dataJson.addProperty(DataContainer.ACCOUNT_GUID, accountGuid);
@@ -734,11 +724,11 @@ public class MessageModelBuilder {
             dataJson.addProperty(DataContainer.DESTRUCTION_COUNTDOWN, destructionParams.countdown);
         }
         if (destructionParams.date != null) {
-            dataJson.addProperty(DataContainer.DESTRUCTION_DATE, eu.ginlo_apps.ginlo.util.DateUtil.dateToUtcString(destructionParams.date));
+            dataJson.addProperty(DataContainer.DESTRUCTION_DATE, DateUtil.dateToUtcString(destructionParams.date));
         }
 
         messageModel.data = dataJson.toString();
-        if (eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(messageModel.mimeType)) {
+        if (StringUtil.isNullOrEmpty(messageModel.mimeType)) {
             messageModel.mimeType = "/selfdest";
         } else {
             messageModel.mimeType += "/selfdest";
@@ -770,19 +760,19 @@ public class MessageModelBuilder {
         }
 
         //Fill content
-        if (eu.ginlo_apps.ginlo.util.StringUtil.isEqual(citationModel.contentType, MimeType.TEXT_PLAIN)
-                || eu.ginlo_apps.ginlo.util.StringUtil.isEqual(citationModel.contentType, MimeType.TEXT_RSS)) {
+        if (StringUtil.isEqual(citationModel.contentType, MimeType.TEXT_PLAIN)
+                || StringUtil.isEqual(citationModel.contentType, MimeType.TEXT_RSS)) {
             citationJsonObject.addProperty(DataContainer.CONTENT, citationModel.text);
-        } else if (eu.ginlo_apps.ginlo.util.StringUtil.isEqual(citationModel.contentType, MimeType.VIDEO_MPEG)
-                || eu.ginlo_apps.ginlo.util.StringUtil.isEqual(citationModel.contentType, MimeType.IMAGE_JPEG)
+        } else if (StringUtil.isEqual(citationModel.contentType, MimeType.VIDEO_MPEG)
+                || StringUtil.isEqual(citationModel.contentType, MimeType.IMAGE_JPEG)
         ) {
-            final byte[] previewImageBytes = eu.ginlo_apps.ginlo.util.BitmapUtil.compress(citationModel.previewImage, 60);
+            final byte[] previewImageBytes = BitmapUtil.compress(citationModel.previewImage, 60);
             final String previewImageBase64 = Base64.encodeToString(previewImageBytes, Base64.DEFAULT);
             citationJsonObject.addProperty(DataContainer.CONTENT, previewImageBase64);
-        } else if (eu.ginlo_apps.ginlo.util.StringUtil.isEqual(citationModel.contentType, MimeType.MODEL_LOCATION)) {
+        } else if (StringUtil.isEqual(citationModel.contentType, MimeType.MODEL_LOCATION)) {
             final JsonObject content = new JsonObject();
 
-            final byte[] previewImageBytes = eu.ginlo_apps.ginlo.util.BitmapUtil.compress(citationModel.previewImage, 60);
+            final byte[] previewImageBytes = BitmapUtil.compress(citationModel.previewImage, 60);
 
             content.addProperty(DataContainer.LOCATION_CONTAINER_PREVIEW,
                     Base64.encodeToString(previewImageBytes, Base64.DEFAULT));
@@ -811,7 +801,7 @@ public class MessageModelBuilder {
 
         dataJson.add(DataContainer.CITATION, citationJsonObject);
 
-        if (eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(messageModel.mimeType)) {
+        if (StringUtil.isNullOrEmpty(messageModel.mimeType)) {
             messageModel.mimeType = "/citation";
         } else {
             messageModel.mimeType += "/citation";
@@ -868,7 +858,9 @@ public class MessageModelBuilder {
             throws LocalizedException {
         JsonObject dataJson = getDataJsonObject(messageModel);
 
-        final eu.ginlo_apps.ginlo.util.FileUtil fu = new FileUtil(activity);
+        final FileUtil fu = new FileUtil(activity);
+        final MimeUtil mu = new MimeUtil(activity);
+
         long fileSize;
         try {
             fileSize = fu.getFileSize(fileUri);
@@ -880,17 +872,17 @@ public class MessageModelBuilder {
 
         dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.APP_OCTET_STREAM);
 
-        if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(fileName)) {
+        if (!StringUtil.isNullOrEmpty(fileName)) {
             if (fileName.lastIndexOf(".") < 0) {
-                String ext = fu.getExtensionForUri(fileUri);
-                if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(ext)) {
+                String ext = mu.getExtensionForUri(fileUri);
+                if (!StringUtil.isNullOrEmpty(ext)) {
                     fileName = fileName + "." + ext;
                 }
             }
             dataJson.addProperty(DataContainer.FILE_NAME, fileName);
         }
 
-        if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(description)) {
+        if (!StringUtil.isNullOrEmpty(description)) {
             dataJson.addProperty(DataContainer.CONTENT_DESC, description);
         }
 
@@ -898,7 +890,7 @@ public class MessageModelBuilder {
             dataJson.addProperty(DataContainer.FILE_SIZE, fileSize);
         }
 
-        if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(mimeType)) {
+        if (!StringUtil.isNullOrEmpty(mimeType)) {
             dataJson.addProperty(DataContainer.FILE_TYPE, mimeType);
         } else {
             dataJson.addProperty(DataContainer.FILE_TYPE, MimeType.APP_OCTET_STREAM);
@@ -906,6 +898,14 @@ public class MessageModelBuilder {
 
         dataJson.addProperty(DataContainer.ENCODING_VERSION, DecryptedMessage.ATTACHMENT_ENCODING_VERSION_1);
 
+        // KS: Don't load attachment into memory
+        prepareAttachment(fileUri, messageModel, aesKey, iv);
+        messageModel.data = dataJson.toString();
+        messageModel.features = Integer.toString(FeatureVersion.FILE_MSG);
+
+        ////////////////////////////////////////
+
+        /*
         byte[] bytes = fu.getByteArrayFromUri(fileUri);
 
         if (bytes == null) {
@@ -920,6 +920,7 @@ public class MessageModelBuilder {
         messageModel.features = Integer.toString(FeatureVersion.FILE_MSG);
 
         addAttachment(bytes, messageModel, aesKey, iv);
+         */
     }
 
     private void attachImage(final Activity activity,
@@ -972,7 +973,7 @@ public class MessageModelBuilder {
             }
         }
 
-        final Bitmap image = eu.ginlo_apps.ginlo.util.BitmapUtil.decodeUri(activity, imageUri, imageWidth, imageHeight, true);
+        final Bitmap image = BitmapUtil.decodeUri(activity, imageUri, imageWidth, imageHeight, true);
 
         if (image == null) {
             throw new LocalizedException(LocalizedException.NO_DATA_FOUND, "image is null");
@@ -1046,9 +1047,9 @@ public class MessageModelBuilder {
             throw new LocalizedException(LocalizedException.NO_DATA_FOUND);
         }
 
-        final byte[] previewImageBytes = eu.ginlo_apps.ginlo.util.BitmapUtil.compress(previewImage, imageCompressionRatio);
+        final byte[] previewImageBytes = BitmapUtil.compress(previewImage, imageCompressionRatio);
 
-        final byte[] imageBytes = eu.ginlo_apps.ginlo.util.BitmapUtil.compress(image, imageCompressionRatio);
+        final byte[] imageBytes = BitmapUtil.compress(image, imageCompressionRatio);
 
         previewImage.recycle();
         image.recycle();
@@ -1064,13 +1065,14 @@ public class MessageModelBuilder {
         dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.IMAGE_JPEG);
         dataJson.addProperty(DataContainer.CONTENT, previewImageBase64);
         dataJson.addProperty(DataContainer.ENCODING_VERSION, DecryptedMessage.ATTACHMENT_ENCODING_VERSION_1);
-        if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(description)) {
+        if (!StringUtil.isNullOrEmpty(description)) {
             dataJson.addProperty(DataContainer.CONTENT_DESC, description);
         }
 
         messageModel.data = dataJson.toString();
 
-        addAttachment(imageBytes, messageModel, aesKey, iv);
+        prepareAttachment(imageUri, messageModel, aesKey, iv);
+        //addAttachment(imageBytes, messageModel, aesKey, iv);
     }
 
     private void attachVideo(Activity activity,
@@ -1082,7 +1084,7 @@ public class MessageModelBuilder {
             throws LocalizedException {
         JsonObject dataJson = getDataJsonObject(messageModel);
 
-        Bitmap previewImage = eu.ginlo_apps.ginlo.util.VideoUtil.getThumbnail(activity, videoUri);
+        Bitmap previewImage = VideoUtil.getThumbnail(activity, videoUri);
 
         byte[] fileBytes = VideoUtil.decodeUri(activity, videoUri);
         byte[] previewImageBytes = BitmapUtil.compress(previewImage, 100);
@@ -1094,13 +1096,14 @@ public class MessageModelBuilder {
         dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.VIDEO_MPEG);
         dataJson.addProperty(DataContainer.CONTENT, previewImageBase64);
         dataJson.addProperty(DataContainer.ENCODING_VERSION, DecryptedMessage.ATTACHMENT_ENCODING_VERSION_1);
-        if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(description)) {
+        if (!StringUtil.isNullOrEmpty(description)) {
             dataJson.addProperty(DataContainer.CONTENT_DESC, description);
         }
 
         messageModel.data = dataJson.toString();
 
-        addAttachment(fileBytes, messageModel, aesKey, iv);
+        prepareAttachment(videoUri, messageModel, aesKey, iv);
+        //addAttachment(fileBytes, messageModel, aesKey, iv);
     }
 
     private void attachVoice(Activity activity,
@@ -1112,9 +1115,9 @@ public class MessageModelBuilder {
         JsonObject dataJson = getDataJsonObject(messageModel);
         JsonObject contentJson = new JsonObject();
 
-        contentJson.addProperty(DataContainer.VOICE_CONTAINER_DURATION, eu.ginlo_apps.ginlo.util.AudioUtil.getDuration(activity, voiceUri));
+        contentJson.addProperty(DataContainer.VOICE_CONTAINER_DURATION, AudioUtil.getDuration(activity, voiceUri));
         contentJson.add(DataContainer.VOICE_CONTAINER_WAVEFORM,
-                jsonParser.parse(gson.toJson(eu.ginlo_apps.ginlo.util.AudioUtil.getLevels())));
+                jsonParser.parse(gson.toJson(AudioUtil.getLevels())));
 
         dataJson.addProperty(DataContainer.CONTENT, contentJson.toString());
         dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.AUDIO_MPEG);
@@ -1125,7 +1128,8 @@ public class MessageModelBuilder {
         messageModel.data = dataJson.toString();
         messageModel.features = Integer.toString(FeatureVersion.VOICEREC);
 
-        addAttachment(fileBytes, messageModel, aesKey, iv);
+        prepareAttachment(voiceUri, messageModel, aesKey, iv);
+        //addAttachment(fileBytes, messageModel, aesKey, iv);
     }
 
     private void attachGroupInvitation(String groupGuid,
@@ -1169,13 +1173,13 @@ public class MessageModelBuilder {
             String concatSignatureString = signature.getCombinedHashes(false);
 
             if (useSha256) {
-                byte[] signatureSha256Data = eu.ginlo_apps.ginlo.util.SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), true);
+                byte[] signatureSha256Data = SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), true);
 
                 signature.setSignature(Base64.encodeToString(signatureSha256Data, Base64.DEFAULT));
 
                 messageModel.signatureSha256Bytes = signature.getModel(false).toString().getBytes(StandardCharsets.UTF_8);
             } else {
-                byte[] signatureData = eu.ginlo_apps.ginlo.util.SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), false);
+                byte[] signatureData = SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), false);
                 signature.setSignature(Base64.encodeToString(signatureData, Base64.DEFAULT));
 
                 messageModel.signatureBytes = signature.getModel(false).toString().getBytes(StandardCharsets.UTF_8);
@@ -1186,12 +1190,12 @@ public class MessageModelBuilder {
             String concatSignatureString = signature.getCombinedHashes(true);
 
             if (useSha256) {
-                byte[] signatureSha256Data = eu.ginlo_apps.ginlo.util.SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), true);
+                byte[] signatureSha256Data = SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), true);
                 signature.setSignatureWithTempInfo(Base64.encodeToString(signatureSha256Data, Base64.DEFAULT));
 
                 messageModel.signatureTempSha256Bytes = signature.getModel(true).toString().getBytes(StandardCharsets.UTF_8);
             } else {
-                byte[] signatureData = eu.ginlo_apps.ginlo.util.SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), false);
+                byte[] signatureData = SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), false);
                 signature.setSignatureWithTempInfo(Base64.encodeToString(signatureData, Base64.DEFAULT));
 
                 messageModel.signatureTempBytes = signature.getModel(true).toString().getBytes(StandardCharsets.UTF_8);
@@ -1199,36 +1203,43 @@ public class MessageModelBuilder {
         }
     }
 
-    private void addAttachment(final byte[] attachmentData,
+    /**
+     * Prepare attachment for message and generate encrypted meta-file for further
+     * processing. Set messageModel.attachment property on success.
+     * Note: Replaces the (meanwhile removed) addAttachment() method which did the whole job in memory.
+     * @param fileUri
+     * @param messageModel
+     * @param aesKey
+     * @param ivParameterSpec
+     * @throws LocalizedException
+     */
+    private void prepareAttachment(final Uri fileUri,
                                final BaseMessageModel messageModel,
                                final SecretKey aesKey,
                                final IvParameterSpec ivParameterSpec)
             throws LocalizedException {
-        if (eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(messageModel.requestGuid)) {
+        if (StringUtil.isNullOrEmpty(messageModel.requestGuid)) {
             return;
         }
+        if (fileUri == null) {
+            throw new LocalizedException(LocalizedException.OBJECT_NULL);
+        }
+
+        String filename = fileUri.getPath();
+
+        File attachmentFile = new File(filename);
+        File encryptedAttachmentFile = AttachmentController.getAttachmentFile(messageModel.requestGuid);
 
         if (messageModel instanceof GroupMessageModel) {
-            final IvParameterSpec groupIv = eu.ginlo_apps.ginlo.util.SecurityUtil.generateIV();
-
-            byte[] ivBytes = groupIv.getIV();
-
-            byte[] encryptedBytes = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithAES(attachmentData, aesKey, groupIv);
-            byte[] payloadBytes = new byte[ivBytes.length + encryptedBytes.length];
-
-            System.arraycopy(ivBytes, 0, payloadBytes, 0, ivBytes.length);
-            System.arraycopy(encryptedBytes, 0, payloadBytes, ivBytes.length, encryptedBytes.length);
-
-            //TODO für 1.8. bitte behalten
-            AttachmentController.saveEncryptedMessageAttachmentAsBase64File(payloadBytes, messageModel.requestGuid);
-            messageModel.attachment = messageModel.requestGuid;
+            final IvParameterSpec groupIv = SecurityUtil.generateIV();
+            SecurityUtil.encryptFileWithAes(aesKey, groupIv, true, attachmentFile, encryptedAttachmentFile);
         } else {
-            byte[] encryptedBytes = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithAES(attachmentData, aesKey, ivParameterSpec);
-
-            //TODO für 1.8. bitte behalten
-            AttachmentController.saveEncryptedMessageAttachmentAsBase64File(encryptedBytes, messageModel.requestGuid);
-            messageModel.attachment = messageModel.requestGuid;
+            SecurityUtil.encryptFileWithAes(aesKey, ivParameterSpec, false, attachmentFile, encryptedAttachmentFile);
         }
+
+        messageModel.attachment = messageModel.requestGuid;
+        AttachmentController.saveEncryptedAttachmentFileAsBase64File(messageModel.attachment,
+                AttachmentController.getEncryptedBase64AttachmentFile(messageModel.attachment).getPath());
     }
 
     private void encryptData(BaseMessageModel messageModel,
@@ -1237,7 +1248,7 @@ public class MessageModelBuilder {
             throws LocalizedException {
         JsonObject dataJson = getDataJsonObject(messageModel);
 
-        byte[] encryptedMessage = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithAES(dataJson.toString().getBytes(StandardCharsets.UTF_8),
+        byte[] encryptedMessage = SecurityUtil.encryptMessageWithAES(dataJson.toString().getBytes(StandardCharsets.UTF_8),
                 aesKey, iv);
         String encodedMessage;
 
@@ -1276,7 +1287,7 @@ public class MessageModelBuilder {
 
         byte[] keyContainerBytes = IOSMessageConversionUtil.convertJsonToXML(keyJson).getBytes(StandardCharsets.UTF_8);
 
-        byte[] fromEncryptedKeyBytes = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(keyContainerBytes, userKeyPair.getPublic());
+        byte[] fromEncryptedKeyBytes = SecurityUtil.encryptMessageWithRSA(keyContainerBytes, userKeyPair.getPublic());
 
         String fromEncodedEncryptedKey = Base64.encodeToString(fromEncryptedKeyBytes, Base64.NO_WRAP);
 
@@ -1334,7 +1345,7 @@ public class MessageModelBuilder {
         keyJson.addProperty("iv", ivString);
 
         byte[] keyContainerBytes = IOSMessageConversionUtil.convertJsonToXML(keyJson).getBytes(StandardCharsets.UTF_8);
-        byte[] fromEncryptedKeyBytes = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(keyContainerBytes, userKeyPair.getPublic());
+        byte[] fromEncryptedKeyBytes = SecurityUtil.encryptMessageWithRSA(keyContainerBytes, userKeyPair.getPublic());
         String fromEncodedEncryptedKey = Base64.encodeToString(fromEncryptedKeyBytes, Base64.NO_WRAP);
 
         String fromTempDeviceKey = null;
@@ -1342,8 +1353,8 @@ public class MessageModelBuilder {
 
         if (fromTempDevicePublicKeyXML != null) {
             PublicKey tempDevicePublicKey = getToPublicKey(fromTempDevicePublicKeyXML);
-            fromTempDeviceKey = Base64.encodeToString(eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(keyContainerBytes, tempDevicePublicKey), Base64.NO_WRAP);
-            fromTempDeviceKey2 = Base64.encodeToString(eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), tempDevicePublicKey), Base64.NO_WRAP);
+            fromTempDeviceKey = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(keyContainerBytes, tempDevicePublicKey), Base64.NO_WRAP);
+            fromTempDeviceKey2 = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), tempDevicePublicKey), Base64.NO_WRAP);
         }
 
         String contactFromKey2;
@@ -1352,8 +1363,8 @@ public class MessageModelBuilder {
             boolean changed = false;
             // fromkey2 aus Kontakt holen oder ggf in Kontact speichern
             contactFromKey2 = contact.getFromKey2();
-            if (eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(contactFromKey2)) {
-                byte[] fromKey2Bytes = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), userKeyPair.getPublic());
+            if (StringUtil.isNullOrEmpty(contactFromKey2)) {
+                byte[] fromKey2Bytes = SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), userKeyPair.getPublic());
                 contactFromKey2 = Base64.encodeToString(fromKey2Bytes, Base64.NO_WRAP);
                 contact.setFromKey2(contactFromKey2);
                 changed = true;
@@ -1361,9 +1372,9 @@ public class MessageModelBuilder {
 
             // tokey2 aus Kontakt holen oder ggf in Kontact speichern
             contactToKey2 = contact.getToKey2();
-            if (eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(contactToKey2)) {
+            if (StringUtil.isNullOrEmpty(contactToKey2)) {
                 // aes key mit contact-schluessel vershcluesseln
-                byte[] toKey2Bytes = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), toPublicKey);
+                byte[] toKey2Bytes = SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), toPublicKey);
                 contactToKey2 = Base64.encodeToString(toKey2Bytes, Base64.NO_WRAP);
                 contact.setToKey2(contactToKey2);
                 changed = true;
@@ -1374,11 +1385,11 @@ public class MessageModelBuilder {
         } else {
             contactFromKey2 = null;
             // aes key mit contact-schluessel vershcluesseln
-            byte[] toKey2Bytes = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), toPublicKey);
+            byte[] toKey2Bytes = SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), toPublicKey);
             contactToKey2 = Base64.encodeToString(toKey2Bytes, Base64.NO_WRAP);
         }
 
-        byte[] toEncryptedKeyBytes = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(keyContainerBytes, toPublicKey);
+        byte[] toEncryptedKeyBytes = SecurityUtil.encryptMessageWithRSA(keyContainerBytes, toPublicKey);
         String toEncodedEncryptedKey = Base64.encodeToString(toEncryptedKeyBytes, Base64.NO_WRAP);
 
         String toTempDeviceKey = null;
@@ -1386,8 +1397,8 @@ public class MessageModelBuilder {
 
         if (toTempDevicePublicKeyXML != null) {
             PublicKey tempDevicePublicKey = getToPublicKey(toTempDevicePublicKeyXML);
-            toTempDeviceKey = Base64.encodeToString(eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(keyContainerBytes, tempDevicePublicKey), Base64.NO_WRAP);
-            toTempDeviceKey2 = Base64.encodeToString(eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), tempDevicePublicKey), Base64.NO_WRAP);
+            toTempDeviceKey = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(keyContainerBytes, tempDevicePublicKey), Base64.NO_WRAP);
+            toTempDeviceKey2 = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), tempDevicePublicKey), Base64.NO_WRAP);
         }
 
         privateMessage.from = new KeyContainerModel(fromAccount.getAccountGuid(), fromEncodedEncryptedKey, contactFromKey2, fromTempDeviceGuid, fromTempDeviceKey, fromTempDeviceKey2);
@@ -1428,10 +1439,10 @@ public class MessageModelBuilder {
 
         byte[] keyContainerBytes = IOSMessageConversionUtil.convertJsonToXML(keyJson).getBytes(StandardCharsets.UTF_8);
 
-        byte[] fromEncryptedKeyBytes = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(keyContainerBytes, userKeyPair.getPublic());
+        byte[] fromEncryptedKeyBytes = SecurityUtil.encryptMessageWithRSA(keyContainerBytes, userKeyPair.getPublic());
         String fromEncodedEncryptedKey = Base64.encodeToString(fromEncryptedKeyBytes, Base64.NO_WRAP);
 
-        byte[] toEncryptedKeyBytes = eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(keyContainerBytes, toPublicKey);
+        byte[] toEncryptedKeyBytes = SecurityUtil.encryptMessageWithRSA(keyContainerBytes, toPublicKey);
         String toEncodedEncryptedKey = Base64.encodeToString(toEncryptedKeyBytes, Base64.NO_WRAP);
 
         String toTempDeviceKey = null;
@@ -1439,7 +1450,7 @@ public class MessageModelBuilder {
 
         if (toTempDevicePublicKeyXML != null) {
             PublicKey tempDevicePublicKey = getToPublicKey(toTempDevicePublicKeyXML);
-            toTempDeviceKey = Base64.encodeToString(eu.ginlo_apps.ginlo.util.SecurityUtil.encryptMessageWithRSA(keyContainerBytes, tempDevicePublicKey), Base64.NO_WRAP);
+            toTempDeviceKey = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(keyContainerBytes, tempDevicePublicKey), Base64.NO_WRAP);
             toTempDeviceKey2 = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), tempDevicePublicKey), Base64.NO_WRAP);
         }
 

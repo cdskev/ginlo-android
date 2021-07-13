@@ -36,8 +36,6 @@ class PreferencesInformationActivity : PreferencesBaseActivity() {
     }
 
     override fun onResumeActivity() {
-        if (!RuntimeConfig.isBAMandant())
-            information_faq.visibility = View.GONE
     }
 
     private fun onClick(v: View) {

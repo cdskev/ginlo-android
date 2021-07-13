@@ -195,7 +195,6 @@ public abstract class ChatInputActivity
     private SpeedDialActionItem mFabBombEnabledItem;
     private SpeedDialActionItem mFabPrioItem;
     private SpeedDialActionItem mFabPrioEnabledItem;
-    private AudioManager mAudioManager;
     @Inject
     public Router router;
 
@@ -551,11 +550,6 @@ public abstract class ChatInputActivity
                 return;
             }
 
-            if (!(baseChatItemVO instanceof VoiceChatItemVO) && (mAudioManager != null)) {
-                mAudioManager.stop();
-                mAudioManager = null;
-            }
-
             final String messageGuid = baseChatItemVO.getMessageGuid() != null ? baseChatItemVO.getMessageGuid() : Long.toString(baseChatItemVO.messageId);
 
             AttachmentController.OnAttachmentLoadedListener onAtttachmentLoadWrapper = new AttachmentController.OnAttachmentLoadedListener() {
@@ -678,27 +672,17 @@ public abstract class ChatInputActivity
             }
 
             if (baseChatItemVO instanceof VoiceChatItemVO) {
-                if ((mAudioManager != null) && mAudioManager.getHasSameView(view) && mAudioManager.isPlaying()) {
-                    mAudioManager.stop();
-                    mAudioManager = null;
-                } else {
-                    if ((mAudioManager != null) && mAudioManager.isPlaying()) {
-                        mAudioManager.stop();
-                    }
-                    mAudioManager = new AudioManager(this, view);
+                VoiceChatItemVO voiceChatItemVO = (VoiceChatItemVO) baseChatItemVO;
 
-                    VoiceChatItemVO voiceChatItemVO = (VoiceChatItemVO) baseChatItemVO;
+                if (!isDownloading(messageGuid)) {
 
-                    if (!isDownloading(messageGuid)) {
-
-                        final ProgressBar progressBar = view.findViewById(R.id.progressBar_download);
-                        if (progressBar != null) {
-                            HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(adapterPosition, baseChatItemVO.isPriority);
-                            getChatController().getAttachment(voiceChatItemVO, onAtttachmentLoadWrapper, false, onConnectionDataUpdatedListener);
-                            view.setTag("downloading");
-                        } else {
-                            getChatController().getAttachment(voiceChatItemVO, onAtttachmentLoadWrapper, false, null);
-                        }
+                    final ProgressBar progressBar = view.findViewById(R.id.progressBar_download);
+                    if (progressBar != null) {
+                        HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(adapterPosition, baseChatItemVO.isPriority);
+                        getChatController().getAttachment(voiceChatItemVO, onAtttachmentLoadWrapper, false, onConnectionDataUpdatedListener);
+                        view.setTag("downloading");
+                    } else {
+                        getChatController().getAttachment(voiceChatItemVO, onAtttachmentLoadWrapper, false, null);
                     }
                 }
                 return;
@@ -951,10 +935,6 @@ public abstract class ChatInputActivity
     protected void onPauseActivity() {
         super.onPauseActivity();
 
-        if ((mAudioManager != null) && mAudioManager.isPlaying()) {
-            mAudioManager.stop();
-            mAudioManager = null;
-        }
         if (mContactController != null) {
             mContactController.stopGetOnlineStateTask();
         }
@@ -1110,15 +1090,11 @@ public abstract class ChatInputActivity
             dismissIdleDialog();
             startActivity(intent);
         } else {
-            if (mAudioManager != null) {
-                mAudioManager.play(voiceFile);
-            } else {
-                if (ChatInputActivity.this.isActivityInForeground()) {
-                    intent = new Intent(this, ViewAttachmentActivity.class);
-                    intent.putExtra(ViewAttachmentActivity.EXTRA_VOICE_URI, voiceFile.toURI().toASCIIString());
-                    intent.putExtra(ViewAttachmentActivity.EXTRA_ATTACHMENT_GUID, decryptedMsg.getMessage().getAttachment());
-                    startActivity(intent);
-                }
+            if (ChatInputActivity.this.isActivityInForeground()) {
+                intent = new Intent(this, ViewAttachmentActivity.class);
+                intent.putExtra(ViewAttachmentActivity.EXTRA_VOICE_URI, voiceFile.toURI().toASCIIString());
+                intent.putExtra(ViewAttachmentActivity.EXTRA_ATTACHMENT_GUID, decryptedMsg.getMessage().getAttachment());
+                startActivity(intent);
             }
             dismissIdleDialog();
         }

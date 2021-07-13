@@ -36,14 +36,14 @@ class SearchContactActivity : BaseActivity() {
 
     companion object {
         private const val TAG = "SearchContactActivity"
-        private const val TYPE_SPINNER_EMAIL = 0
-        private const val TYPE_SPINNER_PHONE = 1
-        private const val TYPE_SPINNER_SIMSMEID = 2
+        private const val TYPE_SPINNER_SIMSMEID = 0
+        private const val TYPE_SPINNER_EMAIL = 1
+        private const val TYPE_SPINNER_PHONE = 2
     }
 
     private lateinit var countriesSpinnerAdapter: ArrayAdapter<String>
     private lateinit var locale: Locale
-    private var searchType: ContactUtil.SearchType = ContactUtil.SearchType.PHONE
+    private var searchType: ContactUtil.SearchType = ContactUtil.SearchType.SIMSME_ID
 
     @Inject
     lateinit var appConnectivity: AppConnectivity
@@ -120,21 +120,22 @@ class SearchContactActivity : BaseActivity() {
 
         search_contact_spinner_type.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
+                LogUtil.d(TAG, "Spinner pos = $pos")
                 when (pos) {
-                    TYPE_SPINNER_PHONE -> {
-                        setPhoneIsVisibleUI(true)
-                        setIsEmailVisibleUI(false)
-                        searchType = ContactUtil.SearchType.PHONE
+                    TYPE_SPINNER_SIMSMEID -> {
+                        setPhoneIsVisibleUI(false)
+                        setIsEmailVisibleUI(true)
+                        searchType = ContactUtil.SearchType.SIMSME_ID
                     }
                     TYPE_SPINNER_EMAIL -> {
                         setPhoneIsVisibleUI(false)
                         setIsEmailVisibleUI(true)
                         searchType = ContactUtil.SearchType.EMAIL
                     }
-                    TYPE_SPINNER_SIMSMEID -> {
-                        setPhoneIsVisibleUI(false)
-                        setIsEmailVisibleUI(true)
-                        searchType = ContactUtil.SearchType.SIMSME_ID
+                    TYPE_SPINNER_PHONE -> {
+                        setPhoneIsVisibleUI(true)
+                        setIsEmailVisibleUI(false)
+                        searchType = ContactUtil.SearchType.PHONE
                     }
                 }
             }
@@ -166,11 +167,7 @@ class SearchContactActivity : BaseActivity() {
             }
         }
 
-        if (RuntimeConfig.isBAMandant()) {
-            search_contact_spinner_type.setSelection(TYPE_SPINNER_EMAIL)
-        } else {
-            search_contact_spinner_type.setSelection(TYPE_SPINNER_PHONE)
-        }
+        search_contact_spinner_type.setSelection(TYPE_SPINNER_SIMSMEID)
     }
 
     private fun setUpCountriesSpinner() {

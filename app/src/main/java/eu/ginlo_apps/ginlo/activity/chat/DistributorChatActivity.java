@@ -43,6 +43,7 @@ import eu.ginlo_apps.ginlo.router.RouterConstants;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.SystemUtil;
@@ -868,6 +869,7 @@ public class DistributorChatActivity
                     if (mActionContainer.uris != null && mActionContainer.uris.size() > 0) {
                         final Uri fileUri = mActionContainer.uris.get(0);
                         final FileUtil fu = new FileUtil(this);
+                        final MimeUtil mu = new MimeUtil(this);
                         final String filename = fu.getFileName(fileUri);
 
                         final DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
@@ -877,7 +879,7 @@ public class DistributorChatActivity
 
                                 int ctr = mSelectedContacts.size();
 
-                                final String mimeType = fu.getMimeType(fileUri);
+                                final String mimeType = mu.getMimeType(fileUri);
 
                                 final Uri tmpUri;
 
@@ -917,7 +919,7 @@ public class DistributorChatActivity
                             fileSize = 0;
                             LogUtil.e(TAG, "Failed to get file size.", e);
                         }
-                        showSendFileDialog(filename, fu.getExtensionForUri(fileUri), fileSize, positiveListener, null);
+                        showSendFileDialog(filename, mu.getExtensionForUri(fileUri), fileSize, positiveListener, null);
                     }
                     return;
                 }

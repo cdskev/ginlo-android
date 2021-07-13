@@ -10,7 +10,10 @@ import android.util.Base64InputStream;
 import android.util.Base64OutputStream;
 import android.webkit.MimeTypeMap;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonStreamParser;
+
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.concurrent.task.HttpBaseTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
@@ -25,25 +28,24 @@ import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.*;
+import eu.ginlo_apps.ginlo.view.ProgressDownloadDialog;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import java.io.*;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Florian
  * @version $Revision$, $Date$, $Author$
  */
 public class AttachmentController {
+    private static final String TAG = AttachmentController.class.getSimpleName();
     private static final String SHARE_FOLDER = "share";
-
     private static File attachmentsDir;
-
     private final File cacheDir;
-
     private final File shareDir;
-
     private final SimsMeApplication mApplication;
 
     /**
@@ -71,30 +73,118 @@ public class AttachmentController {
     }
 
     /**
-     * saveEncryptedMessageAttachmentAsBase64File
+     * convertJsonArrayFileToEncryptedAttachmentBase64File
      *
-     * @param encryptedData  encryptedData
+     * Convert the contents of an existing JsonArray file
+     * to a Base64 encoded encrypted attachment and save this as a new file.
+     *
+     * @param jsonFilename Name of file containing jsonArray with attachment data
      * @param attachmentGuid attachmentGuid
-     * @throws LocalizedException le
+     * @return The pathname of the Base64 encoded encrypted attachment file
      */
-    public static void saveEncryptedMessageAttachmentAsBase64File(@NonNull final byte[] encryptedData, @NonNull final String attachmentGuid)
-            throws LocalizedException {
+    public static String convertJsonArrayFileToEncryptedAttachmentBase64File(@NonNull final String jsonFilename, @NonNull final String attachmentGuid) {
         if (attachmentsDir == null) {
-            return;
+            return null;
         }
 
-        String fileName = attachmentGuid + "-Base64";
+        final File jsonFile = new File(jsonFilename);
+        final File encryptedBase64File = new File(attachmentsDir, attachmentGuid + "-Base64");
 
-        final File encryptedFile = new File(attachmentsDir, fileName);
+        try {
+            int read = 0;
+            boolean firstRun = true;
+            byte[] data = new byte[StreamUtil.STREAM_BUFFER_SIZE];
+            FileWriter fw = new FileWriter(encryptedBase64File);
+            FileInputStream fi = new FileInputStream(jsonFile);
 
-        if (!encryptedFile.exists()) {
-            try (FileOutputStream fileOutputStream = new FileOutputStream(encryptedFile);
-                 Base64OutputStream base64OutputStream = new Base64OutputStream(fileOutputStream, Base64.DEFAULT)) {
-                base64OutputStream.write(encryptedData);
-            } catch (IOException e) {
-                throw new LocalizedException(LocalizedException.LOAD_FILE_FAILED, "saveEncryptedMessageAttachmentAsBase64File failed", e);
+            while ((read = fi.read(data, 0, StreamUtil.STREAM_BUFFER_SIZE)) > 0) {
+                String d = new String(data, StandardCharsets.US_ASCII).substring(0, read);
+                fw.append(d.replaceAll("\\[\"|\"\\]",""));
             }
+            fw.close();
+            fi.close();
+
+        } catch (IOException e) {
+            LogUtil.e(TAG, e.getMessage(), e);
+            return null;
         }
+
+        return encryptedBase64File.getPath();
+    }
+
+    /**
+     * convertEncryptedAttachmentBase64FileToJsonArrayFile
+     *
+     * Convert the contents of an existing Base64 encoded encrypted attachment file
+     * to a JsonArray and save this as a new file.
+     * @param attachmentGuid The Guid of the attachment
+     * @return The pathname of the JsonArray file
+     */
+    public static String convertEncryptedAttachmentBase64FileToJsonArrayFile(@NonNull String attachmentGuid) {
+        if (attachmentsDir == null) {
+            return null;
+        }
+
+        final File encryptedBase64File = new File(attachmentsDir, attachmentGuid + "-Base64");
+        final File jsonFile = new File(attachmentsDir, attachmentGuid + "-json");
+
+        try {
+            int read = 0;
+            byte[] data = new byte[StreamUtil.STREAM_BUFFER_SIZE];
+            FileWriter fw = new FileWriter(jsonFile);
+            FileInputStream fi = new FileInputStream(encryptedBase64File);
+
+            fw.append("[\"");
+            while ((read = fi.read(data, 0, StreamUtil.STREAM_BUFFER_SIZE)) > 0) {
+                String d = new String(data, StandardCharsets.US_ASCII).substring(0, read);
+                fw.append(d.replaceAll("[\\n ]+",""));
+            }
+            fw.append("\"]");
+
+            fw.close();
+            fi.close();
+
+        } catch (IOException e) {
+            LogUtil.e(TAG, e.getMessage(), e);
+            return null;
+        }
+
+        return jsonFile.getPath();
+    }
+
+    /**
+     * Create a JsonArray-compatible object out of the Base64 encoded encrypted attachment file
+     * Warning: This must be used with care (OOM) if big attachments are to be processed.
+     * @param attachmentGuid The Guid of the attachment
+     * @return The JsonElement object with the attachment data
+     */
+    public static JsonElement loadEncryptedBase64AttachmentAsJsonElementFromFile(@NonNull String attachmentGuid) {
+        if (attachmentsDir == null) {
+            return null;
+        }
+        final String jsonFilename = convertEncryptedAttachmentBase64FileToJsonArrayFile(attachmentGuid);
+        if(jsonFilename == null) {
+            return null;
+        }
+
+        final File jsonFile = new File(jsonFilename);
+        JsonElement je = null;
+
+        try {
+            JsonStreamParser jsp = new JsonStreamParser(new FileReader(jsonFile));
+            // Only 1 element - the attachment
+            if(jsp.hasNext()) {
+                je = jsp.next();
+            }
+
+        } catch (IOException e) {
+            LogUtil.e(TAG, e.getMessage(), e);
+            return null;
+        } finally {
+            FileUtil.deleteFile(jsonFile);
+        }
+
+        return je;
     }
 
     public static byte[] loadEncryptedBase64AttachmentFile(@NonNull String attachmentGuid)
@@ -152,7 +242,7 @@ public class AttachmentController {
         return returnValue;
     }
 
-    private static File getAttachmentFile(@NonNull String attachmentGuid) {
+    public static File getAttachmentFile(@NonNull String attachmentGuid) {
         if (attachmentsDir == null) {
             return null;
         }
@@ -207,7 +297,8 @@ public class AttachmentController {
      * @param attachmentGuid attachmentGuid
      */
     public static void deleteBase64AttachmentFile(final String attachmentGuid) {
-        if (attachmentsDir == null) {
+        if (attachmentsDir == null || StringUtil.isNullOrEmpty(attachmentGuid)) {
+            LogUtil.w(TAG, "deleteBase64AttachmentFile with invalid attachmentsDir or attachmentGuid.");
             return;
         }
 
@@ -300,6 +391,8 @@ public class AttachmentController {
                 if (base64File != null && base64File.exists()) {
                     saveBase64FileAsEncryptedAttachment(attachmentGuid, base64File.getAbsolutePath());
                 } else {
+                    // KS: Encoding the attachment Guid and save it?? This is crap.
+                    // Note: message.getAttachment() *does not* return the attachment contents!
                     byte[] content = Base64.decode(message.getAttachment(), Base64.DEFAULT);
 
                     FileUtil.saveToFile(encryptedFile, content);
@@ -520,6 +613,7 @@ public class AttachmentController {
 
     private class LoadAttachmentBackendTask
             extends AsyncTask<Void, Void, Void> {
+
         private final DecryptedMessage mDecryptedMsg;
         private final OnAttachmentLoadedListener mListener;
         private final boolean mSafeToShareFolder;
@@ -568,25 +662,36 @@ public class AttachmentController {
                                 }
                             } else {
                                 try {
-                                    if (response.jsonArray != null && response.jsonArray.get(0) != null) {
+                                    if(response.responseFilename != null) {
+                                        String base64file = convertJsonArrayFileToEncryptedAttachmentBase64File(
+                                                response.responseFilename, attachmentGuid);
+                                        // TODO: Separate (expensive!) file conversion calls right now. Must be combined later.
+                                        saveBase64FileAsEncryptedAttachment(attachmentGuid, base64file);
+                                        LogUtil.d(TAG, "Saved attachment from file for: " + attachmentGuid);
+                                        FileUtil.deleteFile(base64file);
+
+                                    } else if (response.jsonArray != null && response.jsonArray.get(0) != null) {
                                         byte[] content = Base64.decode(response.jsonArray.get(0).getAsString(), Base64.DEFAULT);
 
                                         FileUtil.saveToFile(encryptedFile, content);
-                                        decryptFile(mDecryptedMsg, encryptedFile, mSafeToShareFolder);
+                                        LogUtil.d(TAG, "Saved attachment from memory for: " + attachmentGuid);
 
-                                        //Bug 38006 - bild soll erts nach download als gelesen markiert werden - Bug 38345 und wieder zurueck...
-                              /*
-                              final JsonArray jsonArray = new JsonArray();
-                              jsonArray.add(new JsonPrimitive(mDecryptedMsg.getMessage().getGuid()));
-                              mBackendService.confirmRead(jsonArray, null);
-                              */
-                                        final JsonArray jsonArray = new JsonArray();
-                                        jsonArray.add(new JsonPrimitive(mDecryptedMsg.getMessage().getGuid()));
-                                        BackendService.withSyncConnection(mApplication)
-                                                .setMessageState(jsonArray, AppConstants.MESSAGE_STATE_ATTACHMENT_DOWNLOADED, null, false);
                                     } else {
                                         mErrorTextId = R.string.chat_load_attachment_error;
+                                        return;
                                     }
+
+                                    decryptFile(mDecryptedMsg, encryptedFile, mSafeToShareFolder);
+
+                                    final JsonArray jsonArray = new JsonArray();
+                                    jsonArray.add(new JsonPrimitive(mDecryptedMsg.getMessage().getGuid()));
+
+                                    BackendService.withSyncConnection(mApplication)
+                                            .setMessageState(
+                                                    jsonArray,
+                                                    AppConstants.MESSAGE_STATE_ATTACHMENT_DOWNLOADED,
+                                                    null,
+                                                    false);
                                 } catch (LocalizedException e) {
                                     LogUtil.e(this.getClass().getName(), e.getMessage(), e);
                                     mErrorTextId = R.string.chat_load_attachment_error;
@@ -606,7 +711,7 @@ public class AttachmentController {
 
         @Override
         protected void onProgressUpdate(Void... values) {
-
+            LogUtil.d(this.getClass().getSimpleName(), "onProgressUpdate called.");
         }
 
         @Override

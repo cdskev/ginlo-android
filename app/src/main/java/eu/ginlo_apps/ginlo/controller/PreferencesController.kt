@@ -48,7 +48,7 @@ import java.util.concurrent.Executor
 open class PreferencesController(val mApplication: SimsMeApplication) :
     LoginController.AppLockLifecycleCallbacks, AppLifecycleCallbacks {
 
-    private val TAG = PreferencesController.javaClass.simpleName
+    private val TAG = PreferencesController::class.java.simpleName
 
     companion object {
         const val NOTIFICATION_SOUND_NO_SOUND = "noSound"

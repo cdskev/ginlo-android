@@ -555,7 +555,7 @@
     <string name="delete_contact_title">Kişiyi sil</string>
     <string name="delete_email_address">E-posta adresini kaldır</string>
     <string name="delete_phone_number">Telefon numarasını kaldır</string>
-    <string name="delete_timed_message_error">İleti sunucudan kaldırılamadı</string>
+    <string name="delete_message_error">İleti sunucudan kaldırılamadı</string>
     <string name="delete_timed_messages_error">Zaman gecikmeli mesajlar sunucudan kaldırılamadı</string>
     <string name="device_apply_changes_error">We\'re sorry, but something went wrong while saving your changes. Please try again.</string>
     <string name="device_cancel_coupling_device">Do you want to cancel the activation of your new device?</string>
@@ -1159,8 +1159,8 @@
     <string name="settings_dontAskForPassword_alert">The password prompt that appears whenever ginlo is started serves to further improve the security of your communication. Do you want to disable the prompt?</string>
     <string name="settings_dontAskForPassword_alert_title">Önemli not</string>
     <string name="settings_enable_fingerprint">Fingerprint unlock</string>
-    <string name="settings_faq">SSS</string>
-	<string name="settings_faq_url">https://app-help.ginlo.net/consumer/en/support/</string>
+    <string name="settings_faq">elkitabı</string>
+	<string name="settings_faq_url">https://app-help.ginlo.net/docs/en/</string>
     <string name="settings_fingerprint_not_set">No fingerprint stored</string>
     <string name="settings_help_title">Yardım</string>
     <string name="settings_image_quality_hint">Gönderilen fotoğraflar için görüntü kalitesini ayarlar.</string>
@@ -1301,7 +1301,7 @@
     <string name="settings_simsme_media">ginlo media</string>
     <string name="settings_simsme_media_description">Show all sent and received ginlo media</string>
     <string name="settings_simsme_media_header">medya</string>
-    <string name="settings_statusWorker_firstMessage">On the good side of messaging :-)</string>
+    <string name="settings_statusWorker_firstMessage">Ready for secure messaging with ginlo</string>
     <string name="settings_switch_destruction_sound">Kendi kendini yok etme oyununda ses</string>
     <string name="settings_switch_destruction_sound_hint">Bir mesajın kendini imha etmesi sırasında bir sesin çalınması gerekip gerekmediğini tanımlar.</string>
     <string name="settings_switch_message_read_sound">Alırken ses çal</string>

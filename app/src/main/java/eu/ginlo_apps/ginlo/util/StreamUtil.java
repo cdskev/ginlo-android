@@ -13,6 +13,8 @@ import java.io.*;
  */
 public class StreamUtil {
 
+    public static int STREAM_BUFFER_SIZE = 32768;
+
     public static void closeStream(Closeable stream) {
         try {
             if (stream != null) {
@@ -63,24 +65,26 @@ public class StreamUtil {
                                    final OutputStream bos)
             throws IOException {
         int read = 0;
-        byte[] data = new byte[32768];
+        byte[] data = new byte[STREAM_BUFFER_SIZE];
 
-        while ((read = bis.read(data, 0, 32768)) != -1) {
+        while ((read = bis.read(data, 0, STREAM_BUFFER_SIZE)) > 0) {
             bos.write(data, 0, read);
         }
         bos.flush();
     }
 
-    public static void copyStreams(final InputStream bis,
-                                   final ByteArrayOutputStream bos,
-                                   HttpBaseTask.OnConnectionDataUpdatedListener listener)
+    public static void copyStreamsWithProgressIndication(final InputStream bis,
+                                                         final OutputStream bos,
+                                                         HttpBaseTask.OnConnectionDataUpdatedListener listener)
             throws IOException {
         int read = 0;
-        byte[] data = new byte[32768];
-        while ((read = bis.read(data, 0, 32768)) != -1) {
+        int size = 0;
+        byte[] data = new byte[STREAM_BUFFER_SIZE];
+        while ((read = bis.read(data, 0, STREAM_BUFFER_SIZE)) > 0) {
             bos.write(data, 0, read);
+            size += read;
             if (listener != null) {
-                listener.onConnectionDataUpdated(bos.size());
+                listener.onConnectionDataUpdated(size);
             }
         }
         bos.flush();

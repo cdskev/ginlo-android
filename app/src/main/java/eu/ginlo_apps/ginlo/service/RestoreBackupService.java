@@ -3,7 +3,9 @@ package eu.ginlo_apps.ginlo.service;
 
 import android.app.Application;
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
+import android.os.PowerManager;
 import android.util.Base64;
 
 import androidx.annotation.NonNull;
@@ -72,10 +74,13 @@ import eu.ginlo_apps.ginlo.util.ZipUtils;
  * Created by Florian on 25.05.16.
  */
 public class RestoreBackupService extends IntentService {
-    private static final String TAG = "RestoreBackupService";
+    private static final String TAG = RestoreBackupService.class.getSimpleName();
+    private final static String WAKELOCK_TAG = "ginlo:" + TAG;
+    private final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
+
     // Defines and instantiates an object for handling status updates.
     private final BroadcastNotifier mBroadcaster = new BroadcastNotifier(this, AppConstants.BROADCAST_RESTORE_BACKUP_ACTION);
-    private SimsMeApplication mApplication;
+    private SimsMeApplication mApplication = null;
     private File mRestoreFile;
     private File mUnzipFolder;
     private FileUtil mFileUtil;
@@ -90,111 +95,12 @@ public class RestoreBackupService extends IntentService {
     }
 
     @Override
-    protected void onHandleIntent(Intent intent) {
-        try {
-            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_STARTED, null, null, null);
+    public void onCreate() {
+        super.onCreate();
 
-            String restorePath = intent.getStringExtra(AppConstants.INTENT_EXTENDED_DATA_PATH);
-            String backupPwd = intent.getStringExtra(AppConstants.INTENT_EXTENDED_DATA_BACKUP_PWD);
-
-            if (StringUtil.isNullOrEmpty(restorePath) || StringUtil.isNullOrEmpty(backupPwd)) {
-                return;
-            }
-
-            mFileUtil = new FileUtil(this);
-
-            createFolderAndUnzipBackup(restorePath);
-
-            BackupInfoModel infoModel = readBackupInfo();
-
-            //Schluessel von Passwort erstellen
-            mBackUpAesKey = generateAesKey(backupPwd, infoModel);
-
-            //erst Account Model aus Backup holen um zu prüfen ob das Passwort(durch Entschlüsselung) stimmt
-            AccountModel accModel = readAccountModel();
-
-            //salt prüfen
-            if (!isSaltFromBackupAllowed(infoModel.salt)) {
-                throw new LocalizedException(LocalizedException.BACKUP_RESTORE_SALTS_NOT_EQUAL, "Backup Salt and Server Salt are not equal.");
-            }
-
-            restoreAccount(accModel);
-
-            boolean restoreOldContacts = restoreContacts();
-
-            if (!restoreOldContacts && ConfigUtil.INSTANCE.syncPrivateIndexToServer()) {
-                if (RuntimeConfig.isBAMandant() && !mApplication.getContactController().existsFtsDatabase()) {
-                    mApplication.getContactController().createAndFillFtsDB(true);
-                }
-                mApplication.getContactController().loadPrivateIndexEntriesSync();
-            }
-
-            restoreChats();
-
-            restoreChannels();
-
-            restoreServices();
-
-            if (ConfigUtil.INSTANCE.syncPrivateIndexToServer()) {
-                restoreBlockedContacts();
-            }
-
-            SimsMeApplication app = getSimsMeApplication();
-
-            Account account = app.getAccountController().getAccount();
-            if (account != null) {
-                account.setState(Account.ACCOUNT_STATE_FULL);
-                app.getAccountController().saveOrUpdateAccount(account);
-
-                Contact ownContact = app.getContactController().getOwnContact();
-                if (ownContact != null) {
-                    ownContact.setAccountGuid(account.getAccountGuid());
-                    app.getContactController().insertOrUpdateContact(ownContact);
-                    app.getContactController().fillOwnContactWithAccountInfos(ownContact);
-                } else {
-                    final Contact newOwnContact = new Contact();
-                    newOwnContact.setAccountGuid(account.getAccountGuid());
-                    app.getContactController().insertOrUpdateContact(newOwnContact);
-                    app.getContactController().fillOwnContactWithAccountInfos(newOwnContact);
-                }
-
-                //Backup eingespielt, d.h. wurde Neuinstalliert, d.h Nachfrage für Profilnamen senden soll nicht angezeigt werden
-                app.getPreferencesController().setSendProfileNameSet();
-                app.getPreferencesController().setNotificationPreviewEnabled(false, true);
-            }
-            if (!restoreOldContacts) {
-                //Keine Kontakte --> kein merge
-                app.getPreferencesController().setHasOldContactsMerged();
-            }
-
-            //Todo: Commenting out this as we are going to remove the google drive and there will not be temporary downloaded files and we don't want to delete local backup file
-           /* if (mRestoreFile != null && mRestoreFile.exists()) {
-                mRestoreFile.delete();
-                mRestoreFile = null;
-            }*/
-
-            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_FINISHED, null, restoreOldContacts ? 1 : 0, null);
-        } catch (Exception e) {
-            LogUtil.w(TAG, e.getMessage(), e);
-
-            //DB loeschen
-            try {
-                SimsMeApplication application = getSimsMeApplication();
-                application.getContactController().getDao().deleteAll();
-                application.getSingleChatController().getChatDao().deleteAll();
-                application.getMessageController().getDao().deleteAll();
-                application.getChannelController().getDao().deleteAll();
-            } catch (Exception ee) {
-                LogUtil.e(this.getClass().getName(), ee.getMessage(), ee);
-            }
-
-            if (e instanceof LocalizedException
-                    && StringUtil.isEqual(((LocalizedException) e).getIdentifier(), LocalizedException.DECRYPT_DATA_FAILED)) {
-                LocalizedException ee = new LocalizedException(LocalizedException.BACKUP_RESTORE_WRONG_PW, e);
-                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ERROR, null, null, ee);
-            } else {
-                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ERROR, null, null, e);
-            }
+        Application app = this.getApplication();
+        if (app instanceof SimsMeApplication) {
+            mApplication = (SimsMeApplication) app;
         }
     }
 
@@ -210,9 +116,143 @@ public class RestoreBackupService extends IntentService {
         }
     }
 
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_STARTED, null, null, null);
+
+        if(mApplication == null) {
+            try {
+                throw new LocalizedException(LocalizedException.BACKUP_RESTORE_BACKUP_FAILED, "mApplication == null");
+            } catch (LocalizedException e) {
+                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ERROR, null, null, e);
+                LogUtil.w(TAG, "Could not initialize restore. Error: " + e.getMessage(), e);
+            }
+        }
+
+        PowerManager pm = (PowerManager) mApplication.getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wl = pm.newWakeLock(WAKELOCK_FLAGS, WAKELOCK_TAG);
+        wl.acquire(30*60*1000L /*30 minutes to be sure*/);
+
+
+        try {
+            String restorePath = intent.getStringExtra(AppConstants.INTENT_EXTENDED_DATA_PATH);
+            String backupPwd = intent.getStringExtra(AppConstants.INTENT_EXTENDED_DATA_BACKUP_PWD);
+            LogUtil.i(TAG, "Starting restore service intent from " + restorePath);
+
+            if (StringUtil.isNullOrEmpty(restorePath) || StringUtil.isNullOrEmpty(backupPwd)) {
+                LogUtil.w(TAG, "Starting restore service intent failed with restorePath = " + restorePath + " and/or backupPwd is null or empty");
+                return;
+            }
+
+            mFileUtil = new FileUtil(mApplication);
+            createFolderAndUnzipBackup(restorePath);
+            BackupInfoModel infoModel = readBackupInfo();
+
+            //Schluessel von Passwort erstellen
+            mBackUpAesKey = generateAesKey(backupPwd, infoModel);
+
+            //erst Account Model aus Backup holen um zu prüfen ob das Passwort(durch Entschlüsselung) stimmt
+            AccountModel accModel = readAccountModel();
+
+            //salt prüfen
+            if (!isSaltFromBackupAllowed(infoModel.salt)) {
+                throw new LocalizedException(LocalizedException.BACKUP_RESTORE_SALTS_NOT_EQUAL, "Backup Salt and Server Salt are not equal.");
+            }
+
+            LogUtil.i(TAG, "Restore account ...");
+            restoreAccount(accModel);
+
+            boolean restoreOldContacts = restoreContacts();
+
+            if (!restoreOldContacts && ConfigUtil.INSTANCE.syncPrivateIndexToServer()) {
+                if (RuntimeConfig.isBAMandant() && !mApplication.getContactController().existsFtsDatabase()) {
+                    mApplication.getContactController().createAndFillFtsDB(true);
+                }
+                mApplication.getContactController().loadPrivateIndexEntriesSync();
+            }
+
+            LogUtil.i(TAG, "Restore chats ...");
+            restoreChats();
+
+            LogUtil.i(TAG, "Restore channels ...");
+            restoreChannels();
+
+            LogUtil.i(TAG, "Restore services ...");
+            restoreServices();
+
+            if (ConfigUtil.INSTANCE.syncPrivateIndexToServer()) {
+                LogUtil.i(TAG, "Restore blocked contacts ...");
+                restoreBlockedContacts();
+            }
+
+            LogUtil.i(TAG, "Restore account ...");
+            Account account = mApplication.getAccountController().getAccount();
+            if (account != null) {
+                account.setState(Account.ACCOUNT_STATE_FULL);
+                mApplication.getAccountController().saveOrUpdateAccount(account);
+
+                Contact ownContact = mApplication.getContactController().getOwnContact();
+                if (ownContact != null) {
+                    ownContact.setAccountGuid(account.getAccountGuid());
+                    mApplication.getContactController().insertOrUpdateContact(ownContact);
+                    mApplication.getContactController().fillOwnContactWithAccountInfos(ownContact);
+                } else {
+                    final Contact newOwnContact = new Contact();
+                    newOwnContact.setAccountGuid(account.getAccountGuid());
+                    mApplication.getContactController().insertOrUpdateContact(newOwnContact);
+                    mApplication.getContactController().fillOwnContactWithAccountInfos(newOwnContact);
+                }
+
+                //Backup eingespielt, d.h. wurde Neuinstalliert, d.h Nachfrage für Profilnamen senden soll nicht angezeigt werden
+                mApplication.getPreferencesController().setSendProfileNameSet();
+                mApplication.getPreferencesController().setNotificationPreviewEnabled(false, true);
+            }
+
+            LogUtil.i(TAG, "Restore old contacts ...");
+            if (!restoreOldContacts) {
+                //Keine Kontakte --> kein merge
+                mApplication.getPreferencesController().setHasOldContactsMerged();
+            }
+
+            //Todo: Commenting out this as we are going to remove the google drive and there will not be temporary downloaded files and we don't want to delete local backup file
+           /* if (mRestoreFile != null && mRestoreFile.exists()) {
+                mRestoreFile.delete();
+                mRestoreFile = null;
+            }*/
+
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_FINISHED, null, restoreOldContacts ? 1 : 0, null);
+            LogUtil.i(TAG, "Restore done.");
+
+        } catch (Exception e) {
+            LogUtil.e(TAG, "Restore failed. Error: " + e.getMessage(), e);
+
+            //DB loeschen
+            try {
+                mApplication.getContactController().getDao().deleteAll();
+                mApplication.getSingleChatController().getChatDao().deleteAll();
+                mApplication.getMessageController().getDao().deleteAll();
+                mApplication.getChannelController().getDao().deleteAll();
+            } catch (Exception ee) {
+                LogUtil.e(TAG, "Restore failed. Exception while deleting local database: " + e.getMessage(), e);
+            }
+
+            if (e instanceof LocalizedException
+                    && StringUtil.isEqual(((LocalizedException) e).getIdentifier(), LocalizedException.DECRYPT_DATA_FAILED)) {
+                LocalizedException ee = new LocalizedException(LocalizedException.BACKUP_RESTORE_WRONG_PW, e);
+                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ERROR, null, null, ee);
+            } else {
+                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ERROR, null, null, e);
+            }
+        } finally {
+            wl.release();
+            if (wl.isHeld()) {
+                LogUtil.w(TAG, "RestoreBackupService: Wakelock held!");
+            }
+        }
+    }
+
     private void restoreChannels() throws LocalizedException {
-        final SimsMeApplication app = getSimsMeApplication();
-        final ChannelController channelController = app.getChannelController();
+        final ChannelController channelController = mApplication.getChannelController();
 
         if (!ConfigUtil.INSTANCE.channelsEnabled()) {
             return;
@@ -297,7 +337,7 @@ public class RestoreBackupService extends IntentService {
     private JsonObject saveChannel(@NonNull JsonObject jsonObject, Map<String, String> lastModifiedMap, Gson gson, Type stringToggleSettingsMap)
             throws LocalizedException {
 
-        final ChannelController channelController = getSimsMeApplication().getChannelController();
+        final ChannelController channelController = mApplication.getChannelController();
         JsonObject channelJO = jsonObject.getAsJsonObject("ChannelBackup");
 
         String guid = JsonUtil.stringFromJO("guid", channelJO);
@@ -393,8 +433,7 @@ public class RestoreBackupService extends IntentService {
     }
 
     private void restoreServices() throws LocalizedException {
-        final SimsMeApplication app = getSimsMeApplication();
-        ChannelController channelController = app.getChannelController();
+        ChannelController channelController = mApplication.getChannelController();
 
         File[] filesInFolder = mUnzipFolder.listFiles();
 
@@ -422,7 +461,7 @@ public class RestoreBackupService extends IntentService {
 
         final GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(ToggleSettingsModel.class, new ToggleSettingsModelSerializer());
-        gsonBuilder.registerTypeAdapter(Message.class, new MessageDeserializer(app.getAccountController()));
+        gsonBuilder.registerTypeAdapter(Message.class, new MessageDeserializer(mApplication.getAccountController()));
 
         Gson gson = gsonBuilder.create();
         Type stringToggleSettingsMap = new TypeToken<HashMap<String, ToggleSettingsModel>>() {
@@ -450,7 +489,7 @@ public class RestoreBackupService extends IntentService {
                 jo = (JsonObject) ja.get(0);
             } catch (Exception e) {
                 //kein JSON
-                LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.w(TAG, e.getMessage(), e);
                 continue;
             }
 
@@ -485,7 +524,7 @@ public class RestoreBackupService extends IntentService {
 
                 channelController.updateChannel(service);
 
-                app.getBackupController().restoreChatMessages(ja, 1, gson, null, mUnzipFolder);
+                mApplication.getBackupController().restoreChatMessages(ja, 1, gson, null, mUnzipFolder);
             }
         }
     }
@@ -507,7 +546,7 @@ public class RestoreBackupService extends IntentService {
 
         chat.setLastChatModifiedDate(lastModifiedDate);
 
-        getSimsMeApplication().getChannelChatController().insertOrUpdateChat(chat);
+        mApplication.getChannelChatController().insertOrUpdateChat(chat);
 
         return chat;
     }
@@ -516,7 +555,7 @@ public class RestoreBackupService extends IntentService {
             throws LocalizedException {
         final List<JsonArray> jsonArrayContainer = new ArrayList<>(1);
 
-        final eu.ginlo_apps.ginlo.service.IBackendService.OnBackendResponseListener listener = new eu.ginlo_apps.ginlo.service.IBackendService.OnBackendResponseListener() {
+        final IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
             @Override
             public void onBackendResponse(BackendResponse response) {
                 if (response.isError) {
@@ -528,10 +567,10 @@ public class RestoreBackupService extends IntentService {
         };
 
         if (isServiceCall) {
-            eu.ginlo_apps.ginlo.service.BackendService.withSyncConnection(mApplication)
+            BackendService.withSyncConnection(mApplication)
                     .setFollowedServices(followChannelsArray.toString(), listener);
         } else {
-            eu.ginlo_apps.ginlo.service.BackendService.withSyncConnection(mApplication)
+            BackendService.withSyncConnection(mApplication)
                     .setFollowedChannels(followChannelsArray.toString(), listener);
         }
 
@@ -563,10 +602,9 @@ public class RestoreBackupService extends IntentService {
     private ChannelModel loadChannelModel(String guid)
             throws LocalizedException {
         final List<ChannelModel> modelContainer = new ArrayList<>(1);
-        final SimsMeApplication app = getSimsMeApplication();
-        final ChannelController channelController = app.getChannelController();
+        final ChannelController channelController = mApplication.getChannelController();
 
-        final eu.ginlo_apps.ginlo.service.IBackendService.OnBackendResponseListener listener = new eu.ginlo_apps.ginlo.service.IBackendService.OnBackendResponseListener() {
+        final IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
             @Override
             public void onBackendResponse(BackendResponse response) {
                 if (response.isError) {
@@ -584,7 +622,7 @@ public class RestoreBackupService extends IntentService {
                                     modelContainer.add(model);
                                 }
                             } catch (LocalizedException e) {
-                                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                                LogUtil.e(TAG, e.getMessage(), e);
                                 mErrorText = e.getMessage();
                             }
                         }
@@ -597,32 +635,31 @@ public class RestoreBackupService extends IntentService {
                             modelContainer.add(model);
                         }
                     } catch (LocalizedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.e(TAG, e.getMessage(), e);
                         mErrorText = e.getMessage();
                     }
                 }
             }
         };
         if (GuidUtil.isChatService(guid)) {
-            eu.ginlo_apps.ginlo.service.BackendService.withSyncConnection(mApplication)
+            BackendService.withSyncConnection(mApplication)
                     .getServiceDetailsBatch(guid, listener);
         } else {
-            eu.ginlo_apps.ginlo.service.BackendService.withSyncConnection(mApplication)
+            BackendService.withSyncConnection(mApplication)
                     .getChannelDetails(guid, listener);
         }
 
         if (!StringUtil.isNullOrEmpty(mErrorText)) {
             // Nicht schoen, wenn vom Server der Channel geladen konnte(kann ja auch geloescht wurden sein)
             // aber deswegen wird der Restore nicht abgebrochen
-            LogUtil.e(this.getClass().getSimpleName(), mErrorText);
+            LogUtil.e(TAG, mErrorText);
         }
 
         return modelContainer.size() > 0 ? modelContainer.get(0) : null;
     }
 
     private void restoreChats() throws LocalizedException {
-        final SimsMeApplication app = getSimsMeApplication();
-        final Account account = app.getAccountController().getAccount();
+        final Account account = mApplication.getAccountController().getAccount();
         final String ownAccountGuid = account.getAccountGuid();
 
         final File[] filesInFolder = mUnzipFolder.listFiles();
@@ -651,15 +688,15 @@ public class RestoreBackupService extends IntentService {
 
         final GsonBuilder gsonBuilder = new GsonBuilder();
 
-        gsonBuilder.registerTypeAdapter(Message.class, new MessageDeserializer(app.getAccountController()));
+        gsonBuilder.registerTypeAdapter(Message.class, new MessageDeserializer(mApplication.getAccountController()));
         gsonBuilder.registerTypeAdapter(Chat.class, new ChatBackupDeserializer());
 
         final Gson gson = gsonBuilder.create();
 
-        final ChatDao chatDao = app.getChatDao();
+        final ChatDao chatDao = mApplication.getChatDao();
 
-        final List<String> timedMsgGuids = app.getMessageController().getTimedMessagesGuids();
-        final Map<String, ChatRoomModel> chatRoomModelMap = app.getBackupController().getCurrentRoomInfos();
+        final List<String> timedMsgGuids = mApplication.getMessageController().getTimedMessagesGuids();
+        final Map<String, ChatRoomModel> chatRoomModelMap = mApplication.getBackupController().getCurrentRoomInfos();
 
         for (int i = 0; i < chatFiles.size(); i++) {
             final File buFile = chatFiles.get(i);
@@ -680,7 +717,7 @@ public class RestoreBackupService extends IntentService {
                 jo = (JsonObject) ja.get(0);
             } catch (final Exception e) {
                 //kein JSON
-                LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.w(TAG, e.getMessage(), e);
                 continue;
             }
 
@@ -691,14 +728,14 @@ public class RestoreBackupService extends IntentService {
             }
 
             if (chat.getType() == Chat.TYPE_GROUP_CHAT_INVITATION || chat.getType() == Chat.TYPE_GROUP_CHAT) {
-                if (!app.getBackupController().setChatRoomInfos(chat, chatRoomModelMap, gson)) {
+                if (!mApplication.getBackupController().setChatRoomInfos(chat, chatRoomModelMap, gson)) {
                     continue;
                 }
             }
 
             chatDao.insert(chat);
 
-            app.getBackupController().restoreChatMessages(ja, 1, gson, timedMsgGuids, mUnzipFolder);
+            mApplication.getBackupController().restoreChatMessages(ja, 1, gson, timedMsgGuids, mUnzipFolder);
         }
 
         // aus Chats austreten, in denen man vor dem Backup noch nicht eingetreten war
@@ -709,14 +746,14 @@ public class RestoreBackupService extends IntentService {
 
         for (final ChatRoomModel chatRoomModel : chatRoomModelMap.values()) {
             if (GuidUtil.isChatRoom(chatRoomModel.guid)) {
-                eu.ginlo_apps.ginlo.service.BackendService.withSyncConnection(mApplication)
+                BackendService.withSyncConnection(mApplication)
                         .removeFromRoom(chatRoomModel.guid, ownAccountGuid, encodedName, null);
             }
         }
 
         if (timedMsgGuids.size() > 0) {
             mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_TIMED_MESSAGES, null, chatFiles.size(), null);
-            List<String> attachmentGuids = app.getMessageController().loadTimedMessages(timedMsgGuids);
+            List<String> attachmentGuids = mApplication.getMessageController().loadTimedMessages(timedMsgGuids);
 
             if (attachmentGuids != null && attachmentGuids.size() > 0) {
                 for (String attachmentGuid : attachmentGuids) {
@@ -754,8 +791,6 @@ public class RestoreBackupService extends IntentService {
     private boolean restoreContacts() throws LocalizedException {
         mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_CONTACTS, null, null, null);
 
-        final SimsMeApplication app = getSimsMeApplication();
-
         File encryptedContactsFile = new File(mUnzipFolder, AppConstants.BACKUP_FILE_CONTACTS);
 
         if (!encryptedContactsFile.exists()) {
@@ -779,7 +814,7 @@ public class RestoreBackupService extends IntentService {
 
         String[] blockedContactGuids = getBlockedContacts();
 
-        ContactDao contactDao = app.getContactController().getDao();
+        ContactDao contactDao = mApplication.getContactController().getDao();
 
         if (contacts != null) {
             boolean restoreOldContacts = true;
@@ -817,8 +852,6 @@ public class RestoreBackupService extends IntentService {
     private boolean restoreBlockedContacts() throws LocalizedException {
         mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_CONTACTS, null, null, null);
 
-        final SimsMeApplication app = getSimsMeApplication();
-
         String[] blockedContactGuids = getBlockedContacts();
 
         if (blockedContactGuids == null) {
@@ -826,7 +859,7 @@ public class RestoreBackupService extends IntentService {
         }
 
         for (String blockedContactGuid : blockedContactGuids) {
-            app.getContactController().blockContact(blockedContactGuid, true, false, null);
+            mApplication.getContactController().blockContact(blockedContactGuid, true, false, null);
         }
 
         return true;
@@ -836,7 +869,7 @@ public class RestoreBackupService extends IntentService {
     private String[] getBlockedContacts() throws LocalizedException {
         final List<String[]> guids = new ArrayList<>(1);
 
-        final eu.ginlo_apps.ginlo.service.IBackendService.OnBackendResponseListener listener = new eu.ginlo_apps.ginlo.service.IBackendService.OnBackendResponseListener() {
+        final IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
             @Override
             public void onBackendResponse(BackendResponse response) {
                 if (response.isError) {
@@ -852,7 +885,7 @@ public class RestoreBackupService extends IntentService {
             }
         };
 
-        eu.ginlo_apps.ginlo.service.BackendService.withSyncConnection(mApplication)
+        BackendService.withSyncConnection(mApplication)
                 .getBlocked(listener);
 
         if (!StringUtil.isNullOrEmpty(mErrorText)) {
@@ -866,9 +899,7 @@ public class RestoreBackupService extends IntentService {
             throws LocalizedException {
         mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ACCOUNT, null, null, null);
 
-        final SimsMeApplication app = getSimsMeApplication();
-
-        final DeviceModel deviceModel = app.getBackupController().createDeviceModel(accountModel, null, null);
+        final DeviceModel deviceModel = mApplication.getBackupController().createDeviceModel(accountModel, null, null);
 
         final GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(DeviceModel.class, new DeviceModelSerializer());
@@ -878,7 +909,7 @@ public class RestoreBackupService extends IntentService {
         jsonArray.add(gson.toJsonTree(deviceModel));
         String deviceJson = jsonArray.toString();
 
-        final eu.ginlo_apps.ginlo.service.IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
+        final IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
             @Override
             public void onBackendResponse(BackendResponse response) {
                 if (response.isError) {
@@ -887,18 +918,18 @@ public class RestoreBackupService extends IntentService {
             }
         };
 
-        BackendService.withSyncConnection(app)
+        BackendService.withSyncConnection(mApplication)
                 .createDevice(accountModel.guid, accountModel.backupPasstoken, deviceJson, accountModel.phone, listener);
 
         if (!StringUtil.isNullOrEmpty(mErrorText)) {
             throw new LocalizedException(LocalizedException.BACKUP_RESTORE_ACCOUNT_SERVER_CONNECTION_FAILED, mErrorText);
         }
 
-        app.getBackupController().updateAccountAndDevice(accountModel, deviceModel);
+        mApplication.getBackupController().updateAccountAndDevice(accountModel, deviceModel);
 
-        app.getAccountController().updateAccountInfoFromServer(true, true);
+        mApplication.getAccountController().updateAccountInfoFromServer(true, true);
 
-        app.getAccountController().doActionsAfterRestoreAccountFromBackup(accountModel.accountBackupJO);
+        mApplication.getAccountController().doActionsAfterRestoreAccountFromBackup(accountModel.accountBackupJO);
     }
 
     @NonNull
@@ -915,7 +946,7 @@ public class RestoreBackupService extends IntentService {
 
         JsonObject buAccountObj = getJsonObjectFromFile(AppConstants.BACKUP_JSON_ACCOUNT_OBJECT_KEY, decryptedAccountFile);
 
-        return getSimsMeApplication().getBackupController().getAccountModelFromJson(buAccountObj, true);
+        return mApplication.getBackupController().getAccountModelFromJson(buAccountObj, true);
     }
 
     @NonNull
@@ -1010,22 +1041,6 @@ public class RestoreBackupService extends IntentService {
 
         ZipUtils uzu = new ZipUtils(mRestoreFile.getAbsolutePath(), mUnzipFolder.getAbsolutePath());
         uzu.startUnzip();
-    }
-
-    @NonNull
-    private SimsMeApplication getSimsMeApplication() throws LocalizedException {
-        if (mApplication != null) {
-            return mApplication;
-        }
-
-        Application app = this.getApplication();
-        if (!(app instanceof SimsMeApplication)) {
-            throw new LocalizedException(LocalizedException.BACKUP_RESTORE_BACKUP_FAILED, "application == null");
-        }
-
-        mApplication = (SimsMeApplication) app;
-
-        return mApplication;
     }
 
     private boolean isSaltFromBackupAllowed(final String salt) {

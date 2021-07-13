@@ -66,6 +66,7 @@ import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.MessageModelBuilder;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.OnImageDataChangedListener;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import java.util.ArrayList;
@@ -226,11 +227,11 @@ public abstract class ChatController
                 if (response.isError) {
 
                     final String errorMsg = response.errorMessage != null ? response.errorMessage
-                            : mApplication.getString(R.string.delete_timed_message_error);
+                            : mApplication.getString(R.string.delete_message_error);
 
                     listener.onFail(errorMsg, null);
 
-                    LogUtil.w(TAG, "DeleteTimedMessageError " + errorMsg);
+                    LogUtil.w(TAG, "clearChat: " + errorMsg);
                 } else {
                     Long msgId = chat.getLastMsgId();
                     if (msgId != null) {
@@ -814,6 +815,7 @@ public abstract class ChatController
                          final CitationModel citation
     ) {
         final FileUtil fileUtil = new FileUtil(this.mApplication);
+        final MimeUtil mu = new MimeUtil(this.mApplication);
 
         try {
             final String fileNameNext;
@@ -828,7 +830,7 @@ public abstract class ChatController
             }
 
             if (StringUtil.isNullOrEmpty(mimeType)) {
-                mimeTypeNext = fu.getMimeType(fileUri);
+                mimeTypeNext = mu.getMimeType(fileUri);
             } else {
                 mimeTypeNext = mimeType;
             }
@@ -1677,11 +1679,11 @@ public abstract class ChatController
 
                             if (listener != null) {
                                 final String errorMsg = response.errorMessage != null ? response.errorMessage
-                                        : mApplication.getString(R.string.delete_timed_message_error);
+                                        : mApplication.getString(R.string.delete_message_error);
 
                                 listener.onDeleteMessageError(errorMsg);
 
-                                LogUtil.w(TAG, "DeleteTimedMessageError " + errorMsg);
+                                LogUtil.w(TAG, "deleteMessage: " + errorMsg);
                             }
                         } else {
                             final JsonArray jArray = response.jsonArray;
@@ -1691,8 +1693,8 @@ public abstract class ChatController
                                     deleteMessageHelper(message, listener);
                                 }
                             } else {
-                                listener.onDeleteMessageError(mApplication.getString(R.string.delete_timed_message_error));
-                                LogUtil.w(TAG, "DeleteTimedMessageError " + "JsonArray  null or empty");
+                                listener.onDeleteMessageError(mApplication.getString(R.string.delete_message_error));
+                                LogUtil.w(TAG, "deleteMessage: JsonArray null or empty");
                             }
                         }
                     }
@@ -1709,9 +1711,9 @@ public abstract class ChatController
 
                                 if (listener != null) {
                                     final String errorMsg = response.errorMessage != null ? response.errorMessage
-                                            : mApplication.getString(R.string.delete_timed_message_error);
+                                            : mApplication.getString(R.string.delete_message_error);
 
-                                    LogUtil.w(TAG, "DeleteTimedMessageError " + errorMsg);
+                                    LogUtil.w(TAG, "deleteMessage: " + errorMsg);
                                 }
                             } else {
                                 deleteMessageHelper(message, listener);
