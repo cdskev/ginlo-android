@@ -71,12 +71,6 @@ public class SingleChatActivity
             mOnSendMessageListener = createOnSendMessageListener(mTargetGuid);
             getChatController().addListener(this);
 
-            if (mChat == null) {
-                LogUtil.w(TAG, "Load Chat failed: " + mTargetGuid);
-                finish();
-                return;
-            }
-
             mContact = mContactController.getContactByGuid(mTargetGuid);
             if (mContact == null) {
                 LogUtil.w(TAG, "Load Contact failed for " + mTargetGuid);

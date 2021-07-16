@@ -23,17 +23,10 @@ import java.security.NoSuchAlgorithmException;
  * @version $Revision$, $Date$, $Author$
  */
 public class ChecksumUtil {
+    
+    private static final String TAG = ChecksumUtil.class.getSimpleName();
 
     private ChecksumUtil() {
-    }
-
-    public static String getMD5ChecksumForString(String string) {
-        try {
-            return getMD5Hash(string);
-        } catch (IOException e) {
-            LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
-        }
-        return "";
     }
 
     public static String getSHA1ChecksumForString(String str) {
@@ -44,7 +37,7 @@ public class ChecksumUtil {
             data = str.getBytes(Encoding.UTF8);
             hash = getSHA1ChecksumForData(data);
         } catch (UnsupportedEncodingException e) {
-            LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
         return hash;
     }
@@ -57,7 +50,7 @@ public class ChecksumUtil {
             data = str.getBytes(Encoding.UTF8);
             hash = getSHA256ChecksumForData(data);
         } catch (UnsupportedEncodingException e) {
-            LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
         return hash;
     }
@@ -69,7 +62,7 @@ public class ChecksumUtil {
             digester.update(data, 0, data.length);
             return digester.digest();
         } catch (NoSuchAlgorithmException e) {
-            LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
         return null; //NOSONAR
     }
@@ -81,7 +74,7 @@ public class ChecksumUtil {
             digester.update(data, 0, data.length);
             return digester.digest();
         } catch (NoSuchAlgorithmException e) {
-            LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
         return null; //NOSONAR
     }
@@ -136,7 +129,7 @@ public class ChecksumUtil {
             data = str.getBytes(Encoding.UTF8);
             hash = getSHA256ChecksumBytesForData(data);
         } catch (UnsupportedEncodingException e) {
-            LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
         return hash;
     }
@@ -181,14 +174,14 @@ public class ChecksumUtil {
 
             return sb.toString();
         } catch (NoSuchAlgorithmException | IOException e) {
-            LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             throw new LocalizedException(LocalizedException.GENERATE_CHECKSUM_FAILED, e);
         } finally {
             if (inChannel != null) {
                 try {
                     inChannel.close();
                 } catch (IOException e) {
-                    LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                 }
             }
             eu.ginlo_apps.ginlo.util.StreamUtil.closeStream(fis);
@@ -228,14 +221,14 @@ public class ChecksumUtil {
 
             return sb.toString();
         } catch (NoSuchAlgorithmException | IOException e) {
-            LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             throw new LocalizedException(LocalizedException.GENERATE_CHECKSUM_FAILED, e);
         } finally {
             if (inChannel != null) {
                 try {
                     inChannel.close();
                 } catch (IOException e) {
-                    LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                 }
             }
             StreamUtil.closeStream(fis);
@@ -249,25 +242,23 @@ public class ChecksumUtil {
      */
     public static String getMD5HashFromFile(@NonNull File file) {
         if (!file.exists()) {
-            return null;
+            LogUtil.e(TAG, "getMD5HashFromFile: No such file!" + file.getPath());
+            return "";
         }
 
         FileInputStream fis = null;
         FileChannel inChannel = null;
         try {
             fis = new FileInputStream(file);
-
             inChannel = fis.getChannel();
 
             MappedByteBuffer byteBuffer = inChannel.map(FileChannel.MapMode.READ_ONLY, 0, inChannel.size());
 
-            MessageDigest digester = SecurityUtil.getMessageDigestInstance("MD5");
-            digester.update(byteBuffer);
-
-            byte[] array = digester.digest();
+            MessageDigest md5 = SecurityUtil.getMessageDigestInstance("MD5");
+            md5.update(byteBuffer);
+            byte[] array = md5.digest();
 
             final StringBuilder sb = new StringBuilder();
-
             for (byte value : array) {
                 final int b = value & 0xFF;
 
@@ -279,19 +270,28 @@ public class ChecksumUtil {
 
             return sb.toString();
         } catch (NoSuchAlgorithmException | IOException e) {
-            LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
-            return null;
+            LogUtil.e(TAG, e.getMessage(), e);
+            return "";
             //throw new LocalizedException(LocalizedException.GENERATE_CHECKSUM_FAILED, e);
         } finally {
             if (inChannel != null) {
                 try {
                     inChannel.close();
                 } catch (IOException e) {
-                    LogUtil.e(ChecksumUtil.class.getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                 }
             }
             StreamUtil.closeStream(fis);
         }
+    }
+
+    public static String getMD5ChecksumForString(String string) {
+        try {
+            return getMD5Hash(string);
+        } catch (IOException e) {
+            LogUtil.e(TAG, e.getMessage(), e);
+        }
+        return "";
     }
 
     /**
