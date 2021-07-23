@@ -61,7 +61,7 @@ import java.util.Map;
 public class BackupService extends IntentService {
 
     private static final String TAG = BackupService.class.getSimpleName();
-    private final static String WAKELOCK_TAG = "ginlo:" + TAG;
+    private final static String WAKELOCK_TAG = "ginlo:BackupService";
     private final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
 
     private static final int LOAD_MSG_COUNT = 20;
@@ -174,9 +174,11 @@ public class BackupService extends IntentService {
             LogUtil.e(TAG, "Backup failed. Error: " + e.getMessage(), e);
         }
         finally {
-            wl.release();
-            if (wl.isHeld()) {
-                LogUtil.w(TAG, "BackupService: Wakelock held!");
+            if(wl.isHeld()) {
+                wl.release();
+                if(wl.isHeld()) {
+                    LogUtil.w(TAG, "BackupService: Wakelock held!");
+                }
             }
         }
     }

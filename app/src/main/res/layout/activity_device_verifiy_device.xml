@@ -271,7 +271,7 @@
                         android:layout_height="@dimen/progress_dialog_circular_transparent_size"
                         android:indeterminate="true"
                         android:indeterminateOnly="false"
-                        android:indeterminateTint="@color/app_accent"
+                        android:indeterminateTint="@color/action"
                         android:max="100"
                         android:progress="50" />
 

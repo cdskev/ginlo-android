@@ -59,6 +59,7 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
     private final SimsMeApplication mApplication;
     private static final Object lockGetUnreadMessages = new Object();
     private static final Object lockGetChat = new Object();
+    private static final String TAG = ChatOverviewBaseTask.class.getSimpleName();
 
     protected ChatOverviewBaseTask(SimsMeApplication application) {
         super();
@@ -142,7 +143,7 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
                                     contactController.setProfilInfoAesKey(contact.getAccountGuid(), decryptedMsg.getProfilKey(), decryptedMsg);
                                 } catch (LocalizedException e) {
                                     //Nicht dadurch den ganzen Task abbrechen
-                                    LogUtil.w(ChatOverviewBaseTask.class.getSimpleName(), "Error setProfileInfoAesKey", e);
+                                    LogUtil.w(TAG, "Error setProfileInfoAesKey", e);
                                 }
                             }
                         }
@@ -258,7 +259,7 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
                 mChatController.getChatDao().update(chat);
             }
 
-            LogUtil.i(ChatOverviewBaseTask.class.getSimpleName(), "decryptedMsg is null");
+            LogUtil.i(TAG, "decryptedMsg is null");
         }
         item.setState(Contact.STATE_LOW_TRUST);
 
@@ -437,7 +438,7 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
                 return queryBuilder.build().forCurrentThread().listLazyUncached();
             } finally {
                 long endTime = System.currentTimeMillis();
-                LogUtil.i(this.getClass().getSimpleName(), "Time Used in getGroupInvitationAndUnreadMessages ms:" + (endTime - startTime));
+                LogUtil.i(TAG, "Time Used in getGroupInvitationAndUnreadMessages ms:" + (endTime - startTime));
             }
         }
     }
@@ -549,7 +550,7 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
 
             return chatMap;
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, "getChatsForRefresh: " + e.getMessage());
             return null;
         }
     }

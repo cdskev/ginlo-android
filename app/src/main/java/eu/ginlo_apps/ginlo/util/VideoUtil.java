@@ -10,16 +10,14 @@ import android.media.MediaMetadataRetriever;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.util.StreamUtil;
-import eu.ginlo_apps.ginlo.util.VideoProvider;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 public class VideoUtil {
+    private static final String TAG = VideoUtil.class.getSimpleName();
     private static final int THUMBNAIL_WIDTH = 200;
-
     private static final int THUMNAIL_HEIGHT = 200;
 
     static byte[] decodeUri(Activity activity,
@@ -37,7 +35,7 @@ public class VideoUtil {
 
             return byteOutputStream.toByteArray();
         } catch (IOException e) {
-            LogUtil.e(VideoUtil.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         } finally {
             StreamUtil.closeStream(inputStream);
             StreamUtil.closeStream(byteOutputStream);

@@ -83,14 +83,23 @@
                         android:cropToPadding="true"
                         android:src="@drawable/data_xls" />
 
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/progressBar_download_image"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:background="@drawable/circle_download_state_bg"
+                        android:src="@drawable/data_xls" />
+
                     <ProgressBar
                         android:id="@+id/progressBar_download"
                         style="@style/Base.Widget.AppCompat.ProgressBar"
                         android:layout_width="@dimen/progress_dialog_circular_small"
                         android:layout_height="@dimen/progress_dialog_circular_small"
+                        android:layout_centerInParent="true"
                         android:indeterminate="false"
                         android:indeterminateOnly="false"
-                        android:indeterminateTint="@color/app_accent"
+                        android:indeterminateTint="@color/action"
                         android:max="100"
                         android:progress="0"
                         android:progressDrawable="@drawable/circular_progress_bar_small"

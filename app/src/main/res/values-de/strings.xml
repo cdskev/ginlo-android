@@ -422,10 +422,10 @@
     <string name="chats_timedmessage_invalid_date2">Bitte wählen Sie ein Datum innerhalb eines Jahres</string>
     <string name="chats_title_chats">Chats</string>
     <string name="chats_voiceMessage_play">Abspielen</string>
-    <string name="chats_voiceMessage_play_error">Beim Abspielen der Sprachnachricht ist leider etwas schiefgelaufen. Bitte versuchen Sie es nochmal.</string>
-    <string name="chats_voiceMessage_send_error">Die Sprachnachricht kann nicht gesendet werden, da sie fehlerhaft ist.</string>
-    <string name="chats_voiceMessage_title">Sprachnachricht</string>
-    <string name="chats_voiceMessage_title_windows">Sprachnachricht</string>
+    <string name="chats_voiceMessage_play_error">Beim Abspielen der Audionachricht ist leider etwas schiefgelaufen. Bitte versuchen Sie es nochmal.</string>
+    <string name="chats_voiceMessage_send_error">Die Audionachricht kann nicht gesendet werden, da sie beschädigt ist.</string>
+    <string name="chats_voiceMessage_title">Audionachricht</string>
+    <string name="chats_voiceMessage_title_windows">Audionachricht</string>
     <string name="chatsoverview_business_30day_ad">Noch %1$s Tage TESTEN -\nHier geht\'s zur Lizenz</string>
     <string name="chatsoverview_popup_services_negative_button">Später</string>
     <string name="chatsoverview_popup_services_positive_button">Zu den Services</string>
@@ -515,7 +515,7 @@
     <string name="content_description_chatinput_play_voice_message">Aufgenommene Nachricht abspielen</string>
     <string name="content_description_chatinput_send_message">Nachricht senden</string>
     <string name="content_description_chatinput_show_emojis">Emojicons anzeigen</string>
-    <string name="content_description_chatinput_start_voice_message">Sprachnachricht aufnehmen</string>
+    <string name="content_description_chatinput_start_voice_message">Audionachricht aufnehmen</string>
     <string name="content_description_chatinput_stop_voice_message">Aufnahme stoppen</string>
     <string name="content_description_chatsoverview_profile">Profil anzeigen</string>
     <string name="content_description_checkbox_emojicon">Emojicons</string>
@@ -644,7 +644,7 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="dialog_saveToGallery_body">In Galerie speichern?</string>
     <string name="dialog_saveToGallery_title">Speichern</string>
     <string name="dialog_saveToGallery_video_finished">Video gespeichert.</string>
-    <string name="dialog_saveToGallery_voice_finished">Sprachnachricht gespeichert.</string>
+    <string name="dialog_saveToGallery_voice_finished">Audionachricht gespeichert.</string>
     <string name="drawer_promotion_ba_text">Noch mehr Funktionen mit dem ginlo Business Messenger</string>
     <string name="ecommerceTextKey">eCommerce</string>
     <string name="enter_password_hint">Bitte geben Sie das Passwort ein, um mit der Registrierung fortzufahren.</string>
@@ -820,7 +820,7 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="permission_rationale_contacts">Der Zugriff auf Ihre Kontakte ist nötig, um andere App-Nutzer unter Ihren Kontakten zu finden. Die Kontaktdaten liegen uns zu keinem Zeitpunkt im Klartext vor.</string>
     <string name="permission_rationale_location">Der Zugriff auf Ihren Standort ist nötig, um ihn mit Ihren Chatpartnern zu teilen. Verschlüsselt, versteht sich.</string>
     <string name="permission_rationale_read_external_storage">Der Zugriff auf Ihren lokalen Speicher ist nötig, um Anhänge an Ihre Chatpartner zu schicken. Verschlüsselt zu jedem Zeitpunkt.</string>
-    <string name="permission_rationale_rec_audio">Der Zugriff auf Ihr Mikrofon ist nötig, um Videos und Sprachnachrichten mit Ihren Chatpartnern zu teilen. Verschlüsselt zu jedem Zeitpunkt.</string>
+    <string name="permission_rationale_rec_audio">Der Zugriff auf Ihr Mikrofon ist nötig, um Video- und Audionachrichten mit Ihren Chatpartnern zu teilen. Ihre Informationen bleiben zu jedem Zeitpunkt verschlüsselt.</string>
     <string name="permission_rationale_write_external_storage">Der Zugriff auf Ihren lokalen Speicher ist nötig, um Anhänge auf Ihrem Gerät zu speichern. Verschlüsselt zu jedem Zeitpunkt.</string>
 	<string name="permission_rationale_rec_audio_phone_settings">ginlo braucht Berechtigungen, um auf das Mikrofon zuzugreifen. Diese können Sie in den App-Einstellungen Ihres Geräts vergeben.</string>
     <string name="popup_high_priority">Hohe Priorität</string>
@@ -1317,16 +1317,12 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="settings_title_options">Optionen</string>
     <string name="settings_title_purchase">Einkäufe</string>
     <string name="settings_version">Version</string>
-    <string name="settings_video_quality_hint">Legt die Qualität für in ginlo aufgenommene Videos fest.</string>
+    <string name="settings_video_quality">Legt die Qualität für in ginlo aufgenommene Videos fest.</string>
     <string name="settings_video_quality_l">Hoch</string>
-    <string name="settings_video_quality_l_length">maximale Videolänge ca. 2 Minuten</string>
     <string name="settings_video_quality_m">Mittel</string>
-    <string name="settings_video_quality_m_length">maximale Videolänge ca. 3,5 Minuten</string>
     <string name="settings_video_quality_s">Niedrig</string>
-    <string name="settings_video_quality_s_length">maximale Videolänge ca. 8 Minuten</string>
     <string name="settings_video_quality_title">Qualität versendeter Videos</string>
     <string name="settings_video_quality_xl">Sehr hoch</string>
-    <string name="settings_video_quality_xl_length">maximale Videolänge ca. 1,5 Minuten</string>
     <string name="share_file_titel">Datei öffnen</string>
     <string name="shoppingTextKey">Shopping</string>
     <string name="simsme">ginlo</string>
@@ -1393,4 +1389,5 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="chat_announcement_group_off">Nein</string>
     <string name="chat_announcement_group_on">Ja</string>
     <string name="intro_2_text_1">Ob im Büro oder unterwegs - kommunizieren Sie schnell, direkt und zuverlässig.\nStarten Sie jetzt!</string>
+    <string name="send_action_file_send_hint">Das kann lange dauern und wird daher im Hintergrund ausgeführt.</string>
 </resources>

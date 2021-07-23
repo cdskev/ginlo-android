@@ -938,6 +938,10 @@ public class NotificationController {
     }
 
     public boolean wasNotificationShownForMessage(final String messageGuid) {
+        if(StringUtil.isNullOrEmpty(messageGuid)) {
+            LogUtil.w(TAG, "wasNotificationShownForMessage called with messageGuid = " + messageGuid);
+            return true;
+        }
         synchronized (mNotificationDao) {
             final QueryBuilder<eu.ginlo_apps.ginlo.greendao.Notification> queryBuilder = mNotificationDao.queryBuilder();
             final List<eu.ginlo_apps.ginlo.greendao.Notification> notifications = queryBuilder.where(NotificationDao.Properties.MessageGuid.eq(messageGuid)).list();

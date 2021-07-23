@@ -23,7 +23,7 @@ import eu.ginlo_apps.ginlo.util.XMLUtil;
 public class DeviceVerifyActivity extends NewBaseActivity {
 
     private final static String TAG = DeviceVerifyActivity.class.getSimpleName();
-    private final static String WAKELOCK_TAG = "ginlo:" + TAG;
+    private final static String WAKELOCK_TAG = "ginlo:DeviceVerifyActivity";
     private final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
 
     @Override
@@ -71,9 +71,11 @@ public class DeviceVerifyActivity extends NewBaseActivity {
                         public void onSuccess(Void object) {
                             LogUtil.d(TAG, "coupleDeviceCreateDevice onSuccess called.");
                             dismissIdleDialog();
-                            wl.release();
-                            if (wl.isHeld()) {
-                                LogUtil.w(TAG, "handleConfirmClick: onSuccess: Wakelock held!");
+                            if(wl.isHeld()) {
+                                wl.release();
+                                if (wl.isHeld()) {
+                                    LogUtil.w(TAG, "handleConfirmClick: onSuccess: Wakelock held!");
+                                }
                             }
 
                             Intent intent = new Intent(DeviceVerifyActivity.this, RuntimeConfig.getClassUtil().getLoginActivityClass());
@@ -85,9 +87,11 @@ public class DeviceVerifyActivity extends NewBaseActivity {
                         public void onFail(String message, String errorIdent) {
                             LogUtil.w(TAG, "coupleDeviceCreateDevice onFail called: " + message + "(" + errorIdent + ")");
                             dismissIdleDialog();
-                            wl.release();
-                            if (wl.isHeld()) {
-                                LogUtil.w(TAG, "handleConfirmClick: onFail: Wakelock held!");
+                            if(wl.isHeld()) {
+                                wl.release();
+                                if (wl.isHeld()) {
+                                    LogUtil.w(TAG, "handleConfirmClick: onFail: Wakelock held!");
+                                }
                             }
 
                             String error = getString(R.string.error_couple_device);
@@ -103,9 +107,11 @@ public class DeviceVerifyActivity extends NewBaseActivity {
                 public void onFail(String message, String errorIdent) {
                     LogUtil.w(TAG, "coupleDeviceGetCouplingResponse onFail called." + message + "(" + errorIdent + ")");
                     dismissIdleDialog();
-                    wl.release();
-                    if (wl.isHeld()) {
-                        LogUtil.w(TAG, "handleConfirmClick: onFail: Wakelock held!");
+                    if(wl.isHeld()) {
+                        wl.release();
+                        if (wl.isHeld()) {
+                            LogUtil.w(TAG, "handleConfirmClick: onFail: Wakelock held!");
+                        }
                     }
 
                     String error = getString(R.string.error_couple_device);
@@ -133,9 +139,11 @@ public class DeviceVerifyActivity extends NewBaseActivity {
                 finish();
             }
 
-            wl.release();
-            if (wl.isHeld()) {
-                LogUtil.w(TAG, "LocalizedException: Wakelock held!");
+            if(wl.isHeld()) {
+                wl.release();
+                if (wl.isHeld()) {
+                    LogUtil.w(TAG, "LocalizedException: Wakelock held!");
+                }
             }
         }
     }

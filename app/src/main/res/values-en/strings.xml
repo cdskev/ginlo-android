@@ -422,10 +422,10 @@
     <string name="chats_timedmessage_invalid_date2">Select a date and a year.</string>
     <string name="chats_title_chats">Chats</string>
     <string name="chats_voiceMessage_play">Play</string>
-    <string name="chats_voiceMessage_play_error">We\'re sorry, but something went wrong while playing back the voice message. Please try again.</string>
+    <string name="chats_voiceMessage_play_error">We\'re sorry, but something went wrong while playing back the audio message. Please try again.</string>
     <string name="chats_voiceMessage_send_error">The audio message can\'t be sent because it is corrupted.</string>
-    <string name="chats_voiceMessage_title">Voice Message</string>
-    <string name="chats_voiceMessage_title_windows">Voice Message</string>
+    <string name="chats_voiceMessage_title">Audio message</string>
+    <string name="chats_voiceMessage_title_windows">Audio message</string>
     <string name="chatsoverview_business_30day_ad">Still %1$s days to TEST -\nGet your license here</string>
     <string name="chatsoverview_popup_services_negative_button">Not Now</string>
     <string name="chatsoverview_popup_services_positive_button">Services</string>
@@ -643,7 +643,7 @@
     <string name="dialog_saveToGallery_body">Save to gallery?</string>
     <string name="dialog_saveToGallery_title">Save</string>
     <string name="dialog_saveToGallery_video_finished">Video saved.</string>
-    <string name="dialog_saveToGallery_voice_finished">Voice message saved.</string>
+    <string name="dialog_saveToGallery_voice_finished">Audio message saved.</string>
     <string name="drawer_promotion_ba_text">Even more features with the ginlo Business Messenger</string>
     <string name="ecommerceTextKey">eCommerce</string>
     <string name="enter_password_hint">Please enter the password to continue with the registration.</string>
@@ -819,7 +819,7 @@
     <string name="permission_rationale_contacts">Access to your contacts is needed to show you fellow users among your contacts. We never access their details in plain text.</string>
     <string name="permission_rationale_location">Access to your location is needed to share it with your chat partners. Encrypted, of course.</string>
     <string name="permission_rationale_read_external_storage">Access to your local storage is needed to send attachments to your chat partners. They\’ll be encrypted and always stay private.</string>
-    <string name="permission_rationale_rec_audio">Access to your microphone is needed to share videos and voice messages with your chat partners. They\’ll be encrypted and always stay private.</string>
+    <string name="permission_rationale_rec_audio">Access to your microphone is needed to share video and audio messages with your chat partners. They\\’ll be encrypted and always stay private.</string>
     <string name="permission_rationale_write_external_storage">Access to your local storage is needed to save attachments to your device. They\'ll be encrypted and always stay private.</string>
 	<string name="permission_rationale_rec_audio_phone_settings">ginlo needs permission to use your microphone. You can set this permission in your device\'s app settings.</string>
     <string name="popup_high_priority">High priority</string>
@@ -963,7 +963,7 @@
     <string name="search_contact_search_button">Find User</string>
     <string name="search_contact_title">Contacts</string>
     <string name="send_action_file_send_message">to</string>
-    <string name="send_action_file_send_title">Send a file?</string>
+    <string name="send_action_file_send_title">Send file?</string>
     <string name="send_contact_extern">Contact from Device Address Book</string>
     <string name="send_contact_intern">ginlo Contact</string>
     <string name="send_contact_text">Please select which type of contact you want to send.</string>
@@ -1316,16 +1316,12 @@
     <string name="settings_title_options">Options</string>
     <string name="settings_title_purchase">Purchases</string>
     <string name="settings_version">Version</string>
-    <string name="settings_video_quality_hint">Set the quality for videos recorded with ginlo.</string>
+    <string name="settings_video_quality">Set the quality for videos recorded with ginlo.</string>
     <string name="settings_video_quality_l">High</string>
-    <string name="settings_video_quality_l_length">Maximum video length approx. 2 minutes</string>
     <string name="settings_video_quality_m">Medium</string>
-    <string name="settings_video_quality_m_length">Maximum video length approx. 3.5 minutes</string>
     <string name="settings_video_quality_s">Low</string>
-    <string name="settings_video_quality_s_length">Maximum video length approx. 8 minutes</string>
     <string name="settings_video_quality_title">Quality of videos sent</string>
     <string name="settings_video_quality_xl">Very high</string>
-    <string name="settings_video_quality_xl_length">Maximum video length approx. 1.5 minutes</string>
     <string name="share_file_titel">Open file</string>
     <string name="shoppingTextKey">Shopping</string>
     <string name="simsme">ginlo</string>
@@ -1383,4 +1379,5 @@
     <string name="chats_AVC_call_rejected">Cannot join the audio/video call</string>
     <string name="chats_AVC_call_expired">Cannot join the audio/video call</string>
     <string name="intro_2_text_1">Whether in the office or on the go - communicate quickly, directly and reliably. Get started now!</string>
+    <string name="send_action_file_send_hint">This may take a long time and will be done in background.</string>
 </resources>

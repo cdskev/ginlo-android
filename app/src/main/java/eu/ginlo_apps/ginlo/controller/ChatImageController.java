@@ -36,26 +36,21 @@ import java.util.List;
  * @version $Revision$, $Date$, $Author$
  */
 public class ChatImageController implements LowMemoryCallback {
+    
+    private static final String TAG = ChatImageController.class.getSimpleName();
 
     public static final int SIZE_ORIGINAL = -1;
-
     public static final int SIZE_CHAT = R.drawable.maske_chat;
-
     public static final int SIZE_CHAT_OVERVIEW = R.drawable.maske_portraet;
-
     public static final int SIZE_PROFILE_BIG = R.drawable.mask_portraet_big;
-
     public static final int SIZE_GROUP_INFO_BIG = R.drawable.mask_portraet_big;
-
     public static final int SIZE_DRAWER = R.drawable.mask_seclevel_about;
     public static final int SIZE_CONTACT = 48;
     public static final int SIZE_CONTACT_GROUP_INFO = 38;
     private static final int MAX_CACHE_SIZE = 10;
 
     private final File internalFileDir;
-
     private final File profileImageDir;
-
     private final File backgroundFile;
     // Cache der Bilder
     private final HashMap<String, Bitmap> bitmapCache;
@@ -182,9 +177,9 @@ public class ChatImageController implements LowMemoryCallback {
 
             StreamUtil.copyStreams(byteInputStream, fileOutputStream);
 
-            LogUtil.i(this.getClass().getName(), "Save Image " + guid + " size:" + file.length());
+            LogUtil.i(TAG, "Save Image " + guid + " size:" + file.length());
         } catch (IOException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             throw new LocalizedException(LocalizedException.SAVE_IMAGE_FAILED, e);
         } finally {
             StreamUtil.closeStream(byteInputStream);
@@ -243,16 +238,16 @@ public class ChatImageController implements LowMemoryCallback {
                 ContactController contactController = context.getContactController();
                 if(System.currentTimeMillis() > (lastAsyncRefresh + 10000)) {
                     lastAsyncRefresh = System.currentTimeMillis();
-                    LogUtil.i("ChatImageController.getImage()", "Initialize async to get profile data from server." + guid);
+                    LogUtil.i(TAG, "Initialize async to get profile data from server." + guid);
                     contactController.updateContactProfileInfosFromServer(guid);
                 }
 
-                LogUtil.i("ChatImageController.getImage()", "Load fallback image for Guid " + guid);
+                LogUtil.i(TAG, "Load fallback image for Guid " + guid);
 
                 // Fallback des Contact-Image Fallbacks sollte die Farbe sein ...
                 bitmap = contactController.getFallbackImageByGuid(context, guid, 0);
                 if (bitmap != null) {
-                    LogUtil.i("ChatImageController.getImage()", "Got Fallback Image for Guid " + guid);
+                    LogUtil.i(TAG, "Got Fallback Image for Guid " + guid);
                 }
             }
         }
@@ -320,7 +315,7 @@ public class ChatImageController implements LowMemoryCallback {
                     }
                 }
             } else {
-                LogUtil.i("ChatImageController.getImage()", "guid is null!");
+                LogUtil.i(TAG, "guid is null!");
             }
 
             if (returnBitmap == null) {
@@ -359,7 +354,7 @@ public class ChatImageController implements LowMemoryCallback {
 
             background = BitmapUtil.decodeByteArray(outputStream.toByteArray());
         } catch (IOException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             throw new LocalizedException(LocalizedException.LOAD_BACKGROUND_FAILED, e);
         } finally {
             StreamUtil.closeStream(inputStream);
@@ -383,7 +378,7 @@ public class ChatImageController implements LowMemoryCallback {
             fileOutputStream = new FileOutputStream(backgroundFile);
             fileOutputStream.write(data);
         } catch (IOException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             throw new LocalizedException(LocalizedException.SAVE_BACKGROUND_FAILED, e);
         } finally {
             StreamUtil.closeStream(fileOutputStream);
@@ -487,7 +482,7 @@ public class ChatImageController implements LowMemoryCallback {
 
             int fileSize = new BigDecimal(file.length()).intValueExact();
 
-            LogUtil.i(this.getClass().getName(), "Load Image " + guid + " size:" + file.length());
+            LogUtil.i(TAG, "Load Image " + guid + " size:" + file.length());
 
             byte[] ivBytes = new byte[SecurityUtil.IV_LENGTH / 8];
             byte[] encryptedImageData = new byte[fileSize - ivBytes.length];
@@ -501,7 +496,7 @@ public class ChatImageController implements LowMemoryCallback {
             imageBytes = SecurityUtil.decryptMessageWithAES(encryptedImageData, keyController.getInternalEncryptionKey(),
                     iv);
         } catch (IOException | LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             throw new LocalizedException(LocalizedException.LOAD_IMAGE_FAILED, e);
         } finally {
             StreamUtil.closeStream(fileInputStream);

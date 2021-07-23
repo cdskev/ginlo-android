@@ -33,6 +33,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 import com.github.chrisbanes.photoview.PhotoView;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -40,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import eu.ginlo_apps.ginlo.CameraActivity;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.TextExtensionsKt;
-import eu.ginlo_apps.ginlo.activity.chat.ChatInputActivity;
 import eu.ginlo_apps.ginlo.concurrent.manager.SerialExecutor;
 import eu.ginlo_apps.ginlo.concurrent.task.ConvertToChatItemVOTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
@@ -78,6 +81,12 @@ import java.util.List;
 public class PreviewActivity
         extends ChatInputActivity
         implements EmojiPickerCallback {
+
+    private static final String TAG = PreviewActivity.class.getSimpleName();
+    private static final String PREVIEW_URI = "mediaUri";
+    private static final String ACTION_TYPE = "actionType";
+    private static final SerialExecutor COPY_SERIAL_EXECUTOR = new SerialExecutor();
+
     public static final int MAX_MEDIA_ITEMS = 10;
     public static final int SELECT_PHOTOS_ACTION = 100;
     public static final int SELECT_VIDEOS_ACTION = 200;
@@ -91,30 +100,17 @@ public class PreviewActivity
     public static final String EXTRA_TEXTS = "PreviewActivity.texts";
     public static final String EXTRA_IS_PRIORITY = "PreviewActivity.isPriority";
     public static final String EXTRA_SHOW_ADD_BUTTON = "PreviewActivity.showAddButton";
-    private static final String PREVIEW_URI = "mediaUri";
-    private static final String ACTION_TYPE = "actionType";
-    private static final SerialExecutor COPY_SERIAL_EXECUTOR = new SerialExecutor();
 
     private ImageLoader mImageLoader;
-
     private RecyclerView mThumbnailRecyclerView;
-
     private ThumbnailAdapter mAdapter;
-
     private float mDensityMultiplier;
-
     private int mPreviewAction;
-
     private PreviewPagerAdapter mPreviewPagerAdapter;
-
     private ViewPager mViewPager;
-
     private int mCurrentPosition;
-
     private Uri mTakePhotoUri;
-
     private boolean mShowAddButton;
-
     private ArrayList<ImageModel> mModels;
 
     private final GenericActionListener<ArrayList<String>> mCopyListener = new GenericActionListener<ArrayList<String>>() {
@@ -381,7 +377,7 @@ public class PreviewActivity
 
             hideOrShowFragment(mEmojiconsFragment, false, false);
         } catch (final LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             setResult(RESULT_CANCELED, getIntent());
             finish();
         }
@@ -697,7 +693,7 @@ public class PreviewActivity
                 break;
             }
             default: {
-                LogUtil.w(this.getClass().getName(), LocalizedException.UNDEFINED_ARGUMENT);
+                LogUtil.w(TAG, LocalizedException.UNDEFINED_ARGUMENT);
                 break;
             }
         }
@@ -771,7 +767,7 @@ public class PreviewActivity
                         mTakePhotoUri = Uri.fromFile(takenPhotoFile);
                         router.startExternalActivityForResult(intent, TAKE_PHOTOS_ACTION);
                     } catch (final LocalizedException e) {
-                        LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.w(TAG, e.getMessage(), e);
                     }
                 }
             }
@@ -832,7 +828,7 @@ public class PreviewActivity
                         try {
                             takenPhoto = (new FileUtil(this)).copyFileToInternalDir(mTakePhotoUri);
                         } catch (final LocalizedException e) {
-                            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                            LogUtil.e(TAG, e.getMessage(), e);
                         }
 
                         if (takenPhoto != null) {
@@ -844,7 +840,7 @@ public class PreviewActivity
                     break;
                 }
                 default: {
-                    LogUtil.w(this.getClass().getName(), LocalizedException.UNDEFINED_ARGUMENT);
+                    LogUtil.w(TAG, LocalizedException.UNDEFINED_ARGUMENT);
                     break;
                 }
             }
@@ -930,7 +926,7 @@ public class PreviewActivity
                 FileUtil fu = new FileUtil(this);
                 fu.deleteAllFilesInDir(fu.getInternalMediaDir());
             } catch (Exception e) {
-                LogUtil.w(PreviewActivity.class.getSimpleName(), e.getMessage(), e);
+                LogUtil.w(TAG, e.getMessage(), e);
             }
             super.onBackPressed();
         }
@@ -941,11 +937,13 @@ public class PreviewActivity
         return getSimsMeApplication().getPreferencesController().canSendMedia();
     }
 
-    private static final class ViewHolder
+
+    // Private classes ...
+
+    private static class ViewHolder
             extends RecyclerView.ViewHolder {
 
         private final ImageView mThumbnailView;
-
         private final View mBorderView;
 
         private ViewHolder(final View itemView) {
@@ -957,36 +955,12 @@ public class PreviewActivity
     }
 
     public static class PreviewObjectFragment
-            extends Fragment {
+            extends Fragment implements Player.Listener {
         private static final int VIDEO_DELAY = 200;
-
-        private VideoView mVideoView;
-
-        private MediaController mMediaController;
-
+        private StyledPlayerView mVideoView;
+        private SimpleExoPlayer mVideoPlayer;
         private Uri mVideoUri;
-
         private int mVideoPlayTries;
-
-        private final MediaPlayer.OnErrorListener mStdErrorListener = new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(final MediaPlayer mp, final int what, final int extra) {
-                ++mVideoPlayTries;
-                mVideoView.stopPlayback();
-                if (mVideoPlayTries < 10) {
-                    final Handler handler = new Handler();
-                    final Runnable runnable = new Runnable() {
-                        public void run() {
-                            if (!mVideoView.isPlaying()) {
-                                mVideoView.start();
-                            }
-                        }
-                    };
-                    handler.postDelayed(runnable, VIDEO_DELAY);
-                }
-                return true;
-            }
-        };
 
         @Override
         public View onCreateView(final LayoutInflater inflater,
@@ -1012,15 +986,8 @@ public class PreviewActivity
 
                 return imageView;
             } else if ((action == SELECT_VIDEOS_ACTION) || (action == TAKE_VIDEOS_ACTION)) {
-                final View v = inflater.inflate(R.layout.fragment_imageview_heper_layout, container, false);
-
+                final View v = inflater.inflate(R.layout.fragment_imageview_helper_layout, container, false);
                 final LinearLayout linearLayout = v.findViewById(R.id.imageview_helper_main_layout);
-
-                mMediaController = new MediaController(getActivity());
-                mVideoView = linearLayout.findViewById(R.id.videoView);
-
-                mVideoView.setMediaController(mMediaController);
-                mVideoView.setOnErrorListener(mStdErrorListener);
 
                 if (previewUri != null && previewUri.startsWith("content")) {
                     mVideoUri = Uri.parse(previewUri);
@@ -1030,8 +997,18 @@ public class PreviewActivity
                     mVideoUri = Uri.parse(VideoProvider.CONTENT_URI_BASE + path.getPath());
                 }
 
-                mVideoView.setVideoURI(mVideoUri);
-                mVideoView.seekTo(1);
+                mVideoView = linearLayout.findViewById(R.id.videoView);
+                mVideoPlayer  = new SimpleExoPlayer.Builder(getActivity()).build();
+                mVideoView.setPlayer(mVideoPlayer);
+
+                MediaItem mediaItem = MediaItem.fromUri(mVideoUri);
+                mVideoPlayer.setMediaItem(mediaItem);
+                mVideoPlayer.prepare();
+                mVideoPlayer.setPlayWhenReady(false);
+                mVideoView.setControllerHideOnTouch(true);
+                mVideoView.setControllerAutoShow(true);
+
+                mVideoPlayer.addListener(this);
 
                 mVideoPlayTries = 0;
 
@@ -1041,22 +1018,33 @@ public class PreviewActivity
             return new LinearLayout(null);
         }
 
-        @Override
-        public void onConfigurationChanged(Configuration newConfig) {
-            super.onConfigurationChanged(newConfig);
-
-            //Check Orientation
-            if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                if (mMediaController != null) {
-                    mMediaController.hide();
-                }
-            } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-                if (mMediaController != null) {
-                    mMediaController.show();
-                }
+        private void releasePlayers() {
+            if (mVideoPlayer != null) {
+                mVideoPlayer.release();
             }
+            mVideoPlayer = null;
         }
 
+        @Override
+        public void onDestroy() {
+            releasePlayers();
+            super.onDestroy();
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+        }
+
+        @Override
+        public void onPause() {
+            if (mVideoPlayer != null) {
+                mVideoPlayer.pause();
+            }
+            super.onPause();
+        }
+
+        /* KS: Deprecated! Code moved to onPause() and onResume().
         @Override
         public void setUserVisibleHint(final boolean isVisibleToUser) {
             if (isVisibleToUser) {
@@ -1080,9 +1068,10 @@ public class PreviewActivity
 
             super.setUserVisibleHint(isVisibleToUser);
         }
+         */
     }
 
-    static class CopyTask extends AsyncTask<List, Void, ArrayList<String>> {
+    private static class CopyTask extends AsyncTask<List, Void, ArrayList<String>> {
         private final SimsMeApplication mApplication;
         private final GenericActionListener<ArrayList<String>> mListener;
         private boolean mError;
@@ -1132,7 +1121,7 @@ public class PreviewActivity
         }
     }
 
-    private final class ThumbnailIdentifier {
+    private static class ThumbnailIdentifier {
         private final String uriString;
 
         private ThumbnailIdentifier(final String uriString) {
@@ -1142,9 +1131,10 @@ public class PreviewActivity
 
     private class ThumbnailAdapter
             extends RecyclerView.Adapter<ViewHolder> {
+
         @Override
-        public ViewHolder onCreateViewHolder(final ViewGroup parent,
-                                             final int viewType) {
+        public @NotNull ViewHolder onCreateViewHolder(final ViewGroup parent,
+                                                      final int viewType) {
             // create a new view
             final RelativeLayout v = (RelativeLayout) LayoutInflater.from(parent.getContext()).inflate(R.layout.preview_thumbnail_view,
                     parent, false);
@@ -1152,7 +1142,7 @@ public class PreviewActivity
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder,
+        public void onBindViewHolder(final @NotNull ViewHolder holder,
                                      int aPosition) {
             //position wird umgedreht, da wir eine RTL Befuellung haben
             final int position = -aPosition + (mModels.size() - (mShowAddButton ? 0 : 1));
@@ -1166,7 +1156,7 @@ public class PreviewActivity
                     holder.mThumbnailView.setImageResource(R.drawable.chat_add);
                 }
             } else {
-                final Boolean selected = mCurrentPosition == position;
+                final boolean selected = mCurrentPosition == position;
                 holder.mBorderView.setSelected(selected);
                 if (RuntimeConfig.isBAMandant()) {
                     if (selected) {
@@ -1199,14 +1189,14 @@ public class PreviewActivity
         }
     }
 
-    private final class PreviewPagerAdapter
+    private class PreviewPagerAdapter
             extends FragmentStatePagerAdapter {
         private PreviewPagerAdapter(final FragmentManager fm) {
-            super(fm);
+            super(fm, FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         }
 
         @Override
-        public Fragment getItem(final int i) {
+        public @NotNull Fragment getItem(final int i) {
             final Fragment fragment = new PreviewObjectFragment();
 
             final Bundle args = new Bundle();
@@ -1224,7 +1214,7 @@ public class PreviewActivity
         }
     }
 
-    private class ImageModel {
+    private static class ImageModel {
         String uri;
         String text;
 

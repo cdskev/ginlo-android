@@ -11,6 +11,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.jetbrains.annotations.NotNull;
+
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
@@ -52,14 +54,12 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 
 public class MessageModelBuilder {
+    
+    private static final String TAG = MessageModelBuilder.class.getSimpleName();
     private static MessageModelBuilder gInstance;
-
     private final HashMap<String, PublicKey> toPublicKeyCache;
-
     private final JsonParser jsonParser;
-
     private final Gson gson;
-
     private final ContactController mContactController;
 
     private MessageModelBuilder(ContactController contactController) {
@@ -115,7 +115,7 @@ public class MessageModelBuilder {
                 messageModel = createChannelMessageModelBase(toGuid);
                 break;
             default:
-                throw new LocalizedException(LocalizedException.UNDEFINED_ARGUMENT, this.getClass().getSimpleName());
+                throw new LocalizedException(LocalizedException.UNDEFINED_ARGUMENT, TAG);
         }
 
         if (messageModel != null) {
@@ -866,7 +866,7 @@ public class MessageModelBuilder {
             fileSize = fu.getFileSize(fileUri);
         } catch (LocalizedException e) {
             fileSize = 0;
-            LogUtil.e(this.getClass().getSimpleName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
         String fileName = aFileName;
 
@@ -899,7 +899,7 @@ public class MessageModelBuilder {
         dataJson.addProperty(DataContainer.ENCODING_VERSION, DecryptedMessage.ATTACHMENT_ENCODING_VERSION_1);
 
         // KS: Don't load attachment into memory
-        prepareAttachment(fileUri, messageModel, aesKey, iv);
+        prepareAttachment(fileUri.getPath(), messageModel, aesKey, iv);
         messageModel.data = dataJson.toString();
         messageModel.features = Integer.toString(FeatureVersion.FILE_MSG);
 
@@ -941,37 +941,30 @@ public class MessageModelBuilder {
         final int imageCompressionRatio;
 
         switch (quality) {
-            case 0: {
+            case 0:
                 imageWidth = activity.getResources().getInteger(R.integer.image_width_s);
                 imageHeight = activity.getResources().getInteger(R.integer.image_heigth_s);
                 imageCompressionRatio = activity.getResources().getInteger(R.integer.image_compression_percent_s);
                 break;
-            }
-            case 1: {
-                imageWidth = activity.getResources().getInteger(R.integer.image_width_m);
-                imageHeight = activity.getResources().getInteger(R.integer.image_heigth_m);
-                imageCompressionRatio = activity.getResources().getInteger(R.integer.image_compression_percent_m);
-                break;
-            }
-            case 2: {
+            case 2:
                 imageWidth = activity.getResources().getInteger(R.integer.image_width_l);
                 imageHeight = activity.getResources().getInteger(R.integer.image_heigth_l);
                 imageCompressionRatio = activity.getResources().getInteger(R.integer.image_compression_percent_l);
                 break;
-            }
-            case 3: {
+            case 3:
                 imageWidth = activity.getResources().getInteger(R.integer.image_width_xl);
                 imageHeight = activity.getResources().getInteger(R.integer.image_heigth_xl);
                 imageCompressionRatio = activity.getResources().getInteger(R.integer.image_compression_percent_xl);
                 break;
-            }
-            default: {
+            case 1:
+            default:
                 imageWidth = activity.getResources().getInteger(R.integer.image_width_m);
                 imageHeight = activity.getResources().getInteger(R.integer.image_heigth_m);
                 imageCompressionRatio = activity.getResources().getInteger(R.integer.image_compression_percent_m);
                 break;
-            }
         }
+        
+        LogUtil.d(TAG, "attachImage: Using maximum image resolution: " + imageWidth + "x" + imageHeight);
 
         final Bitmap image = BitmapUtil.decodeUri(activity, imageUri, imageWidth, imageHeight, true);
 
@@ -989,6 +982,9 @@ public class MessageModelBuilder {
          */
         final int height = image.getHeight();
         final int width = image.getWidth();
+
+        LogUtil.d(TAG, "attachImage: Calculated image resolution: " + width + "x" + height);
+
         final double previewRatio = 1.3364; // 294/220
 
         final int iOSMagicNumberWidth = 220;
@@ -1032,7 +1028,7 @@ public class MessageModelBuilder {
                 previewImage = Bitmap.createScaledBitmap(previewImage, iOSMagicNumberWidth, iOSMagicNumberHeight, true);
             }
         } catch (final IllegalArgumentException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
             /*
              * SGA: falls irgendwo oben die Werte doch nicht passen (sollte nicht passieren), hier der Fallback
              */
@@ -1043,20 +1039,20 @@ public class MessageModelBuilder {
             }
         }
 
-        if (previewImage == null) {
-            throw new LocalizedException(LocalizedException.NO_DATA_FOUND);
-        }
+        LogUtil.d(TAG, "attachImage: Calculated preview image resolution: " + previewImage.getWidth() + "x" + previewImage.getHeight());
 
         final byte[] previewImageBytes = BitmapUtil.compress(previewImage, imageCompressionRatio);
 
-        final byte[] imageBytes = BitmapUtil.compress(image, imageCompressionRatio);
+        //final byte[] imageBytes = BitmapUtil.compress(image, imageCompressionRatio);
+        final File tempImageFile = BitmapUtil.compress(activity, image, imageCompressionRatio);
 
         previewImage.recycle();
         image.recycle();
 
         // Bug 37967 Bilder sollen erts bei Kompression geprueft werden
-        if (imageBytes.length > activity.getApplication().getResources().getInteger(R.integer.attachment_file_max_size)) {
+        if (tempImageFile.length() > activity.getApplication().getResources().getInteger(R.integer.attachment_file_max_size)) {
             final String errorMsg = activity.getApplication().getResources().getString(R.string.chats_addAttachment_too_big);
+            FileUtil.deleteFile(tempImageFile);
             throw new LocalizedException(LocalizedException.FILE_TO_BIG_AFTER_COMPRESSION, errorMsg);
         }
 
@@ -1071,10 +1067,15 @@ public class MessageModelBuilder {
 
         messageModel.data = dataJson.toString();
 
-        prepareAttachment(imageUri, messageModel, aesKey, iv);
+        final String imageFilePath = tempImageFile.getPath();
+        LogUtil.d(TAG, "attachImage: Prepared image in temp file: " + imageFilePath + ", Size: " + tempImageFile.length());
+        prepareAttachment(imageFilePath, messageModel, aesKey, iv);
+        FileUtil.deleteFile(tempImageFile);
         //addAttachment(imageBytes, messageModel, aesKey, iv);
     }
 
+    // KS: This method is not changing the video quality at all.
+    // Why do we have a video quality preference for this?
     private void attachVideo(Activity activity,
                              BaseMessageModel messageModel,
                              Uri videoUri,
@@ -1086,7 +1087,7 @@ public class MessageModelBuilder {
 
         Bitmap previewImage = VideoUtil.getThumbnail(activity, videoUri);
 
-        byte[] fileBytes = VideoUtil.decodeUri(activity, videoUri);
+        // byte[] fileBytes = VideoUtil.decodeUri(activity, videoUri);
         byte[] previewImageBytes = BitmapUtil.compress(previewImage, 100);
 
         String previewImageBase64 = Base64.encodeToString(previewImageBytes, Base64.DEFAULT);
@@ -1102,7 +1103,7 @@ public class MessageModelBuilder {
 
         messageModel.data = dataJson.toString();
 
-        prepareAttachment(videoUri, messageModel, aesKey, iv);
+        prepareAttachment(videoUri.getPath(), messageModel, aesKey, iv);
         //addAttachment(fileBytes, messageModel, aesKey, iv);
     }
 
@@ -1128,7 +1129,7 @@ public class MessageModelBuilder {
         messageModel.data = dataJson.toString();
         messageModel.features = Integer.toString(FeatureVersion.VOICEREC);
 
-        prepareAttachment(voiceUri, messageModel, aesKey, iv);
+        prepareAttachment(voiceUri.getPath(), messageModel, aesKey, iv);
         //addAttachment(fileBytes, messageModel, aesKey, iv);
     }
 
@@ -1207,13 +1208,13 @@ public class MessageModelBuilder {
      * Prepare attachment for message and generate encrypted meta-file for further
      * processing. Set messageModel.attachment property on success.
      * Note: Replaces the (meanwhile removed) addAttachment() method which did the whole job in memory.
-     * @param fileUri
+     * @param filename
      * @param messageModel
      * @param aesKey
      * @param ivParameterSpec
      * @throws LocalizedException
      */
-    private void prepareAttachment(final Uri fileUri,
+    private void prepareAttachment(final String filename,
                                final BaseMessageModel messageModel,
                                final SecretKey aesKey,
                                final IvParameterSpec ivParameterSpec)
@@ -1221,11 +1222,9 @@ public class MessageModelBuilder {
         if (StringUtil.isNullOrEmpty(messageModel.requestGuid)) {
             return;
         }
-        if (fileUri == null) {
+        if (filename == null) {
             throw new LocalizedException(LocalizedException.OBJECT_NULL);
         }
-
-        String filename = fileUri.getPath();
 
         File attachmentFile = new File(filename);
         File encryptedAttachmentFile = AttachmentController.getAttachmentFile(messageModel.requestGuid);

@@ -11,7 +11,6 @@ import android.view.View
 import android.widget.TextView
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity
-import eu.ginlo_apps.ginlo.concurrent.task.HttpBaseTask
 import eu.ginlo_apps.ginlo.controller.AccountController
 import eu.ginlo_apps.ginlo.greendao.Account
 import eu.ginlo_apps.ginlo.log.LogUtil
@@ -25,7 +24,7 @@ class DeviceCoupleConfirmActivity : NewBaseActivity() {
     }
 
     private val TAG = DeviceCoupleConfirmActivity::class.java.simpleName
-    private val WAKELOCK_TAG = "ginlo:" + TAG
+    private val WAKELOCK_TAG = "ginlo:DeviceCoupleConfirmActivity"
     private val WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK
 
     private val accountController: AccountController by lazy { simsMeApplication.accountController }
@@ -119,11 +118,13 @@ class DeviceCoupleConfirmActivity : NewBaseActivity() {
                 account,
                 object : GenericActionListener<Void> {
                     override fun onSuccess(noting: Void?) {
-                        wl.release()
-                        dismissIdleDialog()
                         if (wl.isHeld) {
-                            LogUtil.w(TAG, "handleConfirmClick: onSuccess: Wakelock held!")
+                            wl.release()
+                            if (wl.isHeld) {
+                                LogUtil.w(TAG, "handleConfirmClick: onSuccess: Wakelock held!")
+                            }
                         }
+                        dismissIdleDialog()
 
                         val intent = Intent(this@DeviceCoupleConfirmActivity, DeviceCoupleFinishActivity::class.java)
                         startActivity(intent)
@@ -131,11 +132,13 @@ class DeviceCoupleConfirmActivity : NewBaseActivity() {
                     }
 
                     override fun onFail(message: String?, errorIdent: String?) {
-                        wl.release()
-                        dismissIdleDialog()
                         if (wl.isHeld) {
-                            LogUtil.w(TAG, "handleConfirmClick: onFail: Wakelock held!")
+                            wl.release()
+                            if (wl.isHeld) {
+                                LogUtil.w(TAG, "handleConfirmClick: onFail: Wakelock held!")
+                            }
                         }
+                        dismissIdleDialog()
                         finish()
                     }
                 })

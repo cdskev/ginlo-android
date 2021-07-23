@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="attachment_file_max_size">250000000</integer>
+    <integer name="attachment_file_max_size">52428800</integer>
 </resources>
