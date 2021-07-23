@@ -317,7 +317,7 @@ public abstract class BaseChatActivity
                 }
             }
         };
-        checkIntentForAction(null);
+        checkIntentForAction(null, false);
     }
 
     void createOnChatDataChangedListener() {
@@ -1470,13 +1470,13 @@ public abstract class BaseChatActivity
 
                         uris.add(recordedVideo.toString());
 
-                        final Intent intentVideo = new Intent(this, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.class);
+                        final Intent intentVideo = new Intent(this, PreviewActivity.class);
 
-                        intentVideo.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_ACTION, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.TAKE_VIDEOS_ACTION);
-                        intentVideo.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_TITLE, getChatTitle());
+                        intentVideo.putExtra(PreviewActivity.EXTRA_PREVIEW_ACTION, PreviewActivity.TAKE_VIDEOS_ACTION);
+                        intentVideo.putExtra(PreviewActivity.EXTRA_PREVIEW_TITLE, getChatTitle());
                         addInputTextToPreviewIntent(intentVideo, uris);
                         clearChatInputAndClipboard();
-                        intentVideo.putStringArrayListExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS, uris);
+                        intentVideo.putStringArrayListExtra(PreviewActivity.EXTRA_URIS, uris);
                         if (mCitatedChatItem != null) {
                             intentVideo.putExtra(ChatInputActivity.EXTRA_CITATED_MSG_MODEL_ID, mCitatedChatItem.messageId);
                         }
@@ -1499,13 +1499,13 @@ public abstract class BaseChatActivity
 
                         uris.add(takenPhoto.toString());
 
-                        final Intent photoIntent = new Intent(this, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.class);
+                        final Intent photoIntent = new Intent(this, PreviewActivity.class);
 
-                        photoIntent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_ACTION, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.TAKE_PHOTOS_ACTION);
-                        photoIntent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_TITLE, getChatTitle());
+                        photoIntent.putExtra(PreviewActivity.EXTRA_PREVIEW_ACTION, PreviewActivity.TAKE_PHOTOS_ACTION);
+                        photoIntent.putExtra(PreviewActivity.EXTRA_PREVIEW_TITLE, getChatTitle());
                         addInputTextToPreviewIntent(photoIntent, uris);
                         clearChatInputAndClipboard();
-                        photoIntent.putStringArrayListExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS, uris);
+                        photoIntent.putStringArrayListExtra(PreviewActivity.EXTRA_URIS, uris);
                         if (mCitatedChatItem != null) {
                             photoIntent.putExtra(ChatInputActivity.EXTRA_CITATED_MSG_MODEL_ID, mCitatedChatItem.messageId);
                         }
@@ -1601,7 +1601,7 @@ public abstract class BaseChatActivity
                         actionIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
 
                         //Die Action wird dann im onResume mittels checkActionContainer gestartet
-                        checkIntentForAction(actionIntent);
+                        checkIntentForAction(actionIntent, true);
                         break;
                     }
                     case RouterConstants.GET_LOCATION_RESULT_CODE: {
@@ -1619,19 +1619,19 @@ public abstract class BaseChatActivity
                         break;
                     }
                     case RouterConstants.GET_PHOTO_WITH_DESTRUCTION_RESULT_CODE: {
-                        final List<String> imageUris = returnIntent.getStringArrayListExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS);
-                        final List<String> imageTexts = returnIntent.getStringArrayListExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_TEXTS);
-                        final boolean isPriority = returnIntent.getBooleanExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_IS_PRIORITY, false);
+                        final List<String> imageUris = returnIntent.getStringArrayListExtra(PreviewActivity.EXTRA_URIS);
+                        final List<String> imageTexts = returnIntent.getStringArrayListExtra(PreviewActivity.EXTRA_TEXTS);
+                        final boolean isPriority = returnIntent.getBooleanExtra(PreviewActivity.EXTRA_IS_PRIORITY, false);
 
                         MessageDestructionParams params = null;
                         Date timerDate = null;
 
-                        if (returnIntent.hasExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_DESTRUCTION_PARAMS)) {
-                            params = SystemUtil.dynamicDownCast(returnIntent.getSerializableExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_DESTRUCTION_PARAMS), MessageDestructionParams.class);
+                        if (returnIntent.hasExtra(PreviewActivity.EXTRA_DESTRUCTION_PARAMS)) {
+                            params = SystemUtil.dynamicDownCast(returnIntent.getSerializableExtra(PreviewActivity.EXTRA_DESTRUCTION_PARAMS), MessageDestructionParams.class);
                         }
 
-                        if (returnIntent.hasExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_TIMER)) {
-                            timerDate = SystemUtil.dynamicDownCast(returnIntent.getSerializableExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_TIMER), Date.class);
+                        if (returnIntent.hasExtra(PreviewActivity.EXTRA_TIMER)) {
+                            timerDate = SystemUtil.dynamicDownCast(returnIntent.getSerializableExtra(PreviewActivity.EXTRA_TIMER), Date.class);
                         }
 
                         if ((imageUris == null) || (imageUris.size() < 1)) {
@@ -1656,18 +1656,18 @@ public abstract class BaseChatActivity
                         break;
                     }
                     case RouterConstants.GET_VIDEO_WITH_DESTRUCTION_RESULT_CODE: {
-                        final List<String> videoUris = returnIntent.getStringArrayListExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS);
-                        final List<String> videoTexts = returnIntent.getStringArrayListExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_TEXTS);
-                        final boolean isPriority = returnIntent.getBooleanExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_IS_PRIORITY, false);
+                        final List<String> videoUris = returnIntent.getStringArrayListExtra(PreviewActivity.EXTRA_URIS);
+                        final List<String> videoTexts = returnIntent.getStringArrayListExtra(PreviewActivity.EXTRA_TEXTS);
+                        final boolean isPriority = returnIntent.getBooleanExtra(PreviewActivity.EXTRA_IS_PRIORITY, false);
                         Date timerDate = null;
                         MessageDestructionParams params = null;
 
-                        if (returnIntent.hasExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_DESTRUCTION_PARAMS)) {
-                            params = SystemUtil.dynamicDownCast(returnIntent.getSerializableExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_DESTRUCTION_PARAMS), MessageDestructionParams.class);
+                        if (returnIntent.hasExtra(PreviewActivity.EXTRA_DESTRUCTION_PARAMS)) {
+                            params = SystemUtil.dynamicDownCast(returnIntent.getSerializableExtra(PreviewActivity.EXTRA_DESTRUCTION_PARAMS), MessageDestructionParams.class);
                         }
 
-                        if (returnIntent.hasExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_TIMER)) {
-                            timerDate = SystemUtil.dynamicDownCast(returnIntent.getSerializableExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_TIMER), Date.class);
+                        if (returnIntent.hasExtra(PreviewActivity.EXTRA_TIMER)) {
+                            timerDate = SystemUtil.dynamicDownCast(returnIntent.getSerializableExtra(PreviewActivity.EXTRA_TIMER), Date.class);
                         }
 
                         if ((videoUris == null) || (videoUris.size() < 1)) {
@@ -1755,7 +1755,7 @@ public abstract class BaseChatActivity
                                 actionIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
 
                                 //Die Action wird dann im onResume mittels checkActionContainer gestartet
-                                checkIntentForAction(actionIntent);
+                                checkIntentForAction(actionIntent, true);
                             }
                         }
                         break;
@@ -1798,13 +1798,13 @@ public abstract class BaseChatActivity
             if (mChatInputFragment.getDestructionEnabled()) {
                 try {
                     final MessageDestructionParams destructionParams = getDestructionParams();
-                    intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_DESTRUCTION_PARAMS, destructionParams);
+                    intent.putExtra(PreviewActivity.EXTRA_DESTRUCTION_PARAMS, destructionParams);
                 } catch (final InvalidDateException e) {
                     LogUtil.e(TAG, e.getMessage(), e);
                 }
             }
             if (mChatInputFragment.getTimerEnabled()) {
-                intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_TIMER, mSelfdestructionFragment.getTimerDate());
+                intent.putExtra(PreviewActivity.EXTRA_TIMER, mSelfdestructionFragment.getTimerDate());
             }
         }
     }
@@ -1827,22 +1827,22 @@ public abstract class BaseChatActivity
         }
 
         if (uris.size() > 0) {
-            final Intent intent = new Intent(this, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.class);
-            intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_TITLE, getChatTitle());
-            intent.putStringArrayListExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS, uris);
+            final Intent intent = new Intent(this, PreviewActivity.class);
+            intent.putExtra(PreviewActivity.EXTRA_PREVIEW_TITLE, getChatTitle());
+            intent.putStringArrayListExtra(PreviewActivity.EXTRA_URIS, uris);
             addInputTextToPreviewIntent(intent, uris);
             clearChatInputAndClipboard();
             addDestructionParamsAndTimerToIntent(intent);
             if (handleImageResult) {
-                intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_ACTION, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.SELECT_PHOTOS_ACTION);
+                intent.putExtra(PreviewActivity.EXTRA_PREVIEW_ACTION, PreviewActivity.SELECT_PHOTOS_ACTION);
                 startActivityForResult(intent, RouterConstants.GET_PHOTO_WITH_DESTRUCTION_RESULT_CODE);
             } else {
-                intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_ACTION, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.SELECT_VIDEOS_ACTION);
+                intent.putExtra(PreviewActivity.EXTRA_PREVIEW_ACTION, PreviewActivity.SELECT_VIDEOS_ACTION);
                 startActivityForResult(intent, RouterConstants.GET_VIDEO_WITH_DESTRUCTION_RESULT_CODE);
             }
         }
 
-        if (uris.size() > eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.MAX_MEDIA_ITEMS) {
+        if (uris.size() > PreviewActivity.MAX_MEDIA_ITEMS) {
             Toast.makeText(this, getString(R.string.chats_addAttachments_too_many), Toast.LENGTH_LONG).show();
         } else if (resultContainer.getHasImportError()) {
             Toast.makeText(this, getString(R.string.chats_addAttachments_some_imports_fails), Toast.LENGTH_LONG).show();
@@ -1865,7 +1865,7 @@ public abstract class BaseChatActivity
                     texts.add("");
                 }
                 texts.add(inputText);
-                intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_TEXTS, texts);
+                intent.putExtra(PreviewActivity.EXTRA_TEXTS, texts);
             }
         }
     }
@@ -2575,12 +2575,12 @@ public abstract class BaseChatActivity
         }
     }
 
-    private void checkIntentForAction(final Intent returnIntent) {
+    private void checkIntentForAction(final Intent returnIntent, boolean forceFileHandling) {
         final Intent intent = returnIntent != null ? returnIntent : getIntent();
         final String action = intent.getAction();
         if (!StringUtil.isNullOrEmpty(action) && (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action))) {
             try {
-                mActionContainer = new FileUtil(this).checkFileSendActionIntent(intent);
+                mActionContainer = new FileUtil(this).checkFileSendActionIntent(intent, forceFileHandling);
 
                 if (!StringUtil.isNullOrEmpty(mActionContainer.displayMessage)) {
                     Toast.makeText(this, mActionContainer.displayMessage, Toast.LENGTH_LONG).show();
@@ -2618,11 +2618,13 @@ public abstract class BaseChatActivity
                 case SendActionContainer.ACTION_SEND: {
                     switch (mActionContainer.type) {
                         case SendActionContainer.TYPE_TXT: {
+                            LogUtil.d(TAG, "checkActionContainer: Processing SendActionContainer.TYPE_TEXT.");
                             mChatInputFragment.setChatInputText(mActionContainer.text, false);
                             mActionContainer = null;
                             break;
                         }
                         case SendActionContainer.TYPE_IMAGE: {
+                            LogUtil.d(TAG, "checkActionContainer: Processing SendActionContainer.TYPE_IMAGE.");
                             final ArrayList<Uri> uris = mActionContainer.uris;
                             final ArrayList<String> uriStrings = new ArrayList<>(uris.size());
 
@@ -2630,11 +2632,12 @@ public abstract class BaseChatActivity
                                 uriStrings.add(uri.toString());
                             }
 
-                            startPreviewActivityForResult(RouterConstants.GET_PHOTO_WITH_DESTRUCTION_RESULT_CODE, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.SELECT_PHOTOS_ACTION, uriStrings, false);
+                            startPreviewActivityForResult(RouterConstants.GET_PHOTO_WITH_DESTRUCTION_RESULT_CODE, PreviewActivity.SELECT_PHOTOS_ACTION, uriStrings, false);
                             mActionContainer = null;
                             break;
                         }
                         case SendActionContainer.TYPE_VIDEO: {
+                            LogUtil.d(TAG, "checkActionContainer: Processing SendActionContainer.TYPE_VIDEO.");
                             final ArrayList<Uri> uris = mActionContainer.uris;
                             final ArrayList<String> uriStrings = new ArrayList<>(uris.size());
 
@@ -2642,16 +2645,20 @@ public abstract class BaseChatActivity
                                 uriStrings.add(uri.toString());
                             }
 
-                            startPreviewActivityForResult(RouterConstants.GET_VIDEO_WITH_DESTRUCTION_RESULT_CODE, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.SELECT_VIDEOS_ACTION, uriStrings, false);
+                            startPreviewActivityForResult(RouterConstants.GET_VIDEO_WITH_DESTRUCTION_RESULT_CODE, PreviewActivity.SELECT_VIDEOS_ACTION, uriStrings, false);
                             mActionContainer = null;
                             break;
                         }
                         case SendActionContainer.TYPE_FILE: {
+                            LogUtil.d(TAG, "checkActionContainer: Processing SendActionContainer.TYPE_FILE.");
                             if (mActionContainer.uris != null && mActionContainer.uris.size() > 0) {
                                 final Uri fileUri = mActionContainer.uris.get(0);
                                 final DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(final DialogInterface dialog, final int which) {
+                                        // Action may take a while. Remove dialog immediately to signal user that we are on our way.
+                                        dialog.dismiss();
+                                        closeCommentView();
                                         try {
                                             final Uri fileUri = mActionContainer.uris.get(0);
 
@@ -2662,7 +2669,6 @@ public abstract class BaseChatActivity
                                             getChatController().sendFile(BaseChatActivity.this, mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML,
                                                     fileUri, true, null, null, mOnSendMessageListener, buildCitationFromSelectedChatItem());
                                             mActionContainer = null;
-                                            closeCommentView();
                                             setResult(RESULT_OK);
                                         } catch (final LocalizedException e) {
                                             LogUtil.w(TAG, e.getMessage(), e);
@@ -2701,6 +2707,7 @@ public abstract class BaseChatActivity
                     break;
                 }
                 case SendActionContainer.ACTION_FORWARD: {
+                    LogUtil.d(TAG, "checkActionContainer: Processing SendActionContainer.ACTION_FORWARD.");
                     final Message message = getChatController().findMessageById(mActionContainer.forwardMessageId);
 
                     if (message != null) {
@@ -2725,6 +2732,7 @@ public abstract class BaseChatActivity
                     break;
                 }
                 default: {
+                    LogUtil.w(TAG, "checkActionContainer: Unknown action: " + mActionContainer.action);
                     mActionContainer = null;
                     break;
                 }
@@ -2733,7 +2741,12 @@ public abstract class BaseChatActivity
     }
 
     /**
-     * @param fileSize [!PA RA_DESCRIPTION!]
+     * Create and show a dialog box for starting or cancelling a file attachment
+     * @param filename
+     * @param extension
+     * @param fileSize
+     * @param positiveListener
+     * @param negativeListener
      */
     @Override
     protected void showSendFileDialog(final String filename,
@@ -2741,28 +2754,16 @@ public abstract class BaseChatActivity
                                       final long fileSize,
                                       final DialogInterface.OnClickListener positiveListener,
                                       final DialogInterface.OnClickListener negativeListener) {
-        if (filename != null) {
+        if (!StringUtil.isNullOrEmpty(filename)) {
             final String sendButton = getResources().getString(R.string.general_send);
             final String cancelButton = getResources().getString(R.string.general_no_thank);
             final String title = getResources().getString(R.string.send_action_file_send_title);
 
-            final String dialogText = getSendFileDialogMessage(filename, extension, fileSize);
-            final Spanned message = Html.fromHtml(dialogText);
+            final StringBuilder sb = new StringBuilder(getResources().getString(R.string.send_action_file_send_hint));
 
-            mSendFileDialog = DialogBuilderUtil.buildResponseDialogV7(this, null, title, sendButton, cancelButton,
-                    positiveListener, negativeListener);
-
-            mSendFileDialog.setMessage(message);
-            mSendFileDialog.show();
-        }
-    }
-
-    /**
-     * @return message
-     */
-    private String getSendFileDialogMessage(final String filename, final String extension, final long fileSize) {
-        if (!StringUtil.isNullOrEmpty(filename)) {
-            final StringBuilder sb = new StringBuilder(filename);
+            sb.append("<br/>");
+            sb.append("<br/>");
+            sb.append(filename);
 
             if (filename.lastIndexOf('.') < 0) {
                 if (!StringUtil.isNullOrEmpty(extension)) {
@@ -2781,24 +2782,34 @@ public abstract class BaseChatActivity
                 sb.append("<br/>");
                 sb.append(getResources().getString(R.string.send_action_file_send_message));
                 sb.append(" <b>");
+                // Recipient
                 sb.append(mTitle);
                 sb.append("</b>");
             }
 
-            return sb.toString();
-        }
+            final Spanned message = Html.fromHtml(sb.toString());
 
-        return null;
+            mSendFileDialog = DialogBuilderUtil.buildResponseDialogV7(this,
+                    null,
+                    getResources().getString(R.string.send_action_file_send_title),
+                    sendButton,
+                    cancelButton,
+                    positiveListener,
+                    negativeListener);
+
+            mSendFileDialog.setMessage(message);
+            mSendFileDialog.show();
+        }
     }
 
     private void startPreviewActivityForResult(final int resultCode,
                                                final int previewAction,
                                                final ArrayList<String> uris,
                                                final boolean showAddButton) {
-        final Intent intent = new Intent(this, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.class);
+        final Intent intent = new Intent(this, PreviewActivity.class);
 
-        intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS, uris);
-        intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_ACTION, previewAction);
+        intent.putExtra(PreviewActivity.EXTRA_URIS, uris);
+        intent.putExtra(PreviewActivity.EXTRA_PREVIEW_ACTION, previewAction);
         intent.putExtra(PreviewActivity.EXTRA_SHOW_ADD_BUTTON, showAddButton);
 
         startActivityForResult(intent, resultCode);

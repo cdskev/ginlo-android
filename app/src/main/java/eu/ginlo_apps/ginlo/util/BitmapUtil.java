@@ -28,7 +28,10 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -38,6 +41,28 @@ import java.io.InputStream;
 public class BitmapUtil {
 
     private final static String TAG = BitmapUtil.class.getSimpleName();
+
+    /**
+     * Compress a given jpeg bitmap according to the quality requested.
+     * Save result to temp file.
+     * @param context
+     * @param bitmap
+     * @param quality
+     * @return
+     */
+    public static File compress(Context context, Bitmap bitmap, int quality) {
+        FileUtil fu = new FileUtil(context);
+        File tempFile = null;
+        try {
+            tempFile = fu.getTempFile();
+            FileOutputStream fos = new FileOutputStream(tempFile);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, fos);
+        } catch (IOException e) {
+            LogUtil.e(TAG, e.getMessage(), e);
+        }
+
+        return tempFile;
+    }
 
     public static byte[] compress(Bitmap bitmap,
                                   int quality) {
@@ -448,7 +473,7 @@ public class BitmapUtil {
             }
         }
 
-        LogUtil.i(TAG, "Calculated image samplesize of " + imageSampleSize);
+        LogUtil.d(TAG, "Calculated image samplesize of " + imageSampleSize);
         return imageSampleSize;
     }
 

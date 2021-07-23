@@ -11,14 +11,11 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 
 public abstract class ConcurrentTask
         extends AsyncTask<Void, Void, Void> {
+    private static final String TAG = ConcurrentTask.class.getSimpleName();
     public static final int STATE_RUNNING = 0;
-
     public static final int STATE_COMPLETE = 1;
-
     public static final int STATE_ERROR = 2;
-
     public static final int STATE_CANCELED = 3;
-
     private final boolean mCalledFromMainThread;
     LocalizedException mLocalizedException;
     int mResponseCode;
@@ -54,8 +51,8 @@ public abstract class ConcurrentTask
                 long endTime = System.currentTimeMillis();
                 if (Looper.getMainLooper().getThread().equals(Thread.currentThread())) {
                     if ((endTime - startTime) > 10) {
-                        LogUtil.i(this.getClass().getSimpleName(),
-                                "Needed Time for onPostExecute on Mainthread :" + (endTime - startTime) + " Listener " + getListener().getClass());
+                        LogUtil.i(TAG, "Needed Time for onPostExecute on Mainthread :"
+                                + (endTime - startTime) + " Listener " + getListener().getClass());
                     }
                 }
             }

@@ -625,6 +625,74 @@ public class ChatAdapter
         ad.start();
     }
 
+    private void fillFileChatItem(final LinearLayout linearLayout,
+                                  final FileChatItemVO fileChatItemVO) {
+        final TextView filenameTextView = linearLayout.findViewById(R.id.chat_item_text_view_file_name);
+        final TextView filesizeTextView = linearLayout.findViewById(R.id.chat_item_text_view_file_size);
+
+        String filename = fileChatItemVO.fileName;
+        if (StringUtil.isNullOrEmpty(filename)) {
+            filename = getContext().getString(R.string.chat_filename_unknown);
+        }
+
+        String filesize = fileChatItemVO.fileSize;
+        if (StringUtil.isNullOrEmpty(filesize)) {
+            filesize = getContext().getString(R.string.chat_filesize_unknown);
+        } else {
+            try {
+                long sizeInBytes = Long.parseLong(filesize);
+                filesize = StringUtil.getReadableByteCount(sizeInBytes);
+            } catch (NumberFormatException e) {
+                filesize = getContext().getString(R.string.chat_filesize_unknown);
+            }
+        }
+
+        if (!StringUtil.isNullOrEmpty(fileChatItemVO.attachmentGuid)) {
+            final MaskImageView background = linearLayout.findViewById(R.id.chat_item_data_placeholder_bg);
+            final ImageView foreground = linearLayout.findViewById(R.id.chat_item_data_placeholder);
+            if (background != null && foreground != null) {
+                String mimeType;
+                if (StringUtil.isNullOrEmpty(filename)) {
+                    mimeType = "";
+                } else {
+                    mimeType = MimeUtil.getMimeTypeFromPath(filename);
+                }
+                if (mimeType == null) {
+                    mimeType = "";
+                }
+
+                int resID = MimeUtil.getIconForMimeType(mimeType);
+                Bitmap placeholder = null;
+                if (resID != MimeUtil.MIMETYPE_NOT_FOUND) {
+                    placeholder = BitmapFactory.decodeResource(getContext().getResources(), resID);
+                }
+                foreground.setImageBitmap(placeholder);
+
+                final ProgressBar progressBar = linearLayout.findViewById(R.id.progressBar_download);
+                final ImageView progressBarImage = linearLayout.findViewById(R.id.progressBar_download_image);
+                if (mAttachmentController.isAttachmentLocallyAvailable(fileChatItemVO.attachmentGuid)) {
+                    background.setMask(R.drawable.data_placeholder);
+                    if (progressBar != null && progressBarImage != null) {
+                        progressBar.setVisibility(View.GONE);
+                        progressBarImage.setVisibility(View.GONE);
+                    }
+                } else {
+                    background.setMask(R.drawable.data_placeholder_not_loaded);
+                    if (progressBar != null && progressBarImage != null) {
+                        progressBar.setVisibility(View.VISIBLE);
+                        progressBar.setProgress(0);
+                        progressBarImage.setImageBitmap(placeholder);
+                        progressBarImage.setVisibility(View.VISIBLE);
+                    }
+                }
+
+                background.setImageBitmapFormColor(ColorUtil.getInstance().getChatItemColor((Application) getContext().getApplicationContext()));
+            }
+        }
+        filenameTextView.setText(filename);
+        filesizeTextView.setText(filesize);
+    }
+
     private void fillImageChatItem(final LinearLayout linearLayout,
                                    final ImageChatItemVO imageChatItemVO) {
         final ImageView maskImageBubble = linearLayout.findViewById(R.id.chat_item_data_placeholder_bg);
@@ -640,7 +708,6 @@ public class ChatAdapter
 
         final ProgressBar progressBar = linearLayout.findViewById(R.id.progressBar_download);
         final ImageView progressBarImage = linearLayout.findViewById(R.id.progressBar_download_image);
-
         if (progressBar != null && progressBarImage != null) {
             if (mAttachmentController.isAttachmentLocallyAvailable(imageChatItemVO.attachmentGuid)) {
                 progressBar.setVisibility(View.GONE);
@@ -651,6 +718,7 @@ public class ChatAdapter
                 progressBarImage.setVisibility(View.VISIBLE);
             }
         }
+
         View importantView = linearLayout.findViewById(R.id.priority_image);
         if (imageChatItemVO.isPriority) {
             if (importantView != null) {
@@ -942,63 +1010,6 @@ public class ChatAdapter
                 background.setImageBitmapFormColor(ColorUtil.getInstance().getChatItemColor((Application) getContext().getApplicationContext()));
             }
         }
-    }
-
-    private void fillFileChatItem(final LinearLayout linearLayout,
-                                  final FileChatItemVO fileChatItemVO) {
-        final TextView filenameTextView = linearLayout.findViewById(R.id.chat_item_text_view_file_name);
-        final TextView filesizeTextView = linearLayout.findViewById(R.id.chat_item_text_view_file_size);
-
-        String filename = fileChatItemVO.fileName;
-        if (StringUtil.isNullOrEmpty(filename)) {
-            filename = getContext().getString(R.string.chat_filename_unknown);
-        }
-
-        String filesize = fileChatItemVO.fileSize;
-        if (StringUtil.isNullOrEmpty(filesize)) {
-            filesize = getContext().getString(R.string.chat_filesize_unknown);
-        } else {
-            try {
-                long sizeInBytes = Long.parseLong(filesize);
-                filesize = StringUtil.getReadableByteCount(sizeInBytes);
-            } catch (NumberFormatException e) {
-                filesize = getContext().getString(R.string.chat_filesize_unknown);
-            }
-        }
-
-        if (!StringUtil.isNullOrEmpty(fileChatItemVO.attachmentGuid)) {
-            final MaskImageView background = linearLayout.findViewById(R.id.chat_item_data_placeholder_bg);
-            final ImageView foreground = linearLayout.findViewById(R.id.chat_item_data_placeholder);
-            if (background != null && foreground != null) {
-                String mimeType;
-                if (StringUtil.isNullOrEmpty(filename)) {
-                    mimeType = "";
-                } else {
-                    mimeType = MimeUtil.getMimeTypeFromPath(filename);
-                }
-                if (mimeType == null) {
-                    mimeType = "";
-                }
-
-                int resID = MimeUtil.getIconForMimeType(mimeType);
-
-                if (resID != MimeUtil.MIMETYPE_NOT_FOUND) {
-                    final Bitmap placeholder = BitmapFactory.decodeResource(getContext().getResources(), resID);
-                    foreground.setImageBitmap(placeholder);
-                } else {
-                    foreground.setImageBitmap(null);
-                }
-
-                if (mAttachmentController.isAttachmentLocallyAvailable(fileChatItemVO.attachmentGuid)) {
-                    background.setMask(R.drawable.data_placeholder);
-                } else {
-                    background.setMask(R.drawable.data_placeholder_not_loaded);
-                }
-                background.setImageBitmapFormColor(ColorUtil.getInstance().getChatItemColor((Application) getContext().getApplicationContext()));
-            }
-        }
-        filenameTextView.setText(filename);
-        filesizeTextView.setText(filesize);
     }
 
     private void setMessageStatus(final LinearLayout linearLayout,

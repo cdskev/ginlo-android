@@ -73,53 +73,34 @@ import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 
-public class MessageDetailsActivity
-        extends eu.ginlo_apps.ginlo.activity.chat.ChatInputActivity
+public class MessageDetailsActivity extends ChatInputActivity
         implements ContactController.OnContactProfileInfoChangeNotification,
         EmojiPickerCallback,
         OnMessageReceiverChangedListener {
     public final static String MESSAGE_ID = "MessageDetailsActivity.MessageId";
-
     public final static String CHAT_GUID = "MessageDetailsActivity.ChatGuid";
-
     public final static String EXTRA_RETURN_TYPE = "MessageDetailsActivity.ExtraReturnType";
-
     public final static String EXTRA_RETURN_ACTION = "MessageDetailsActivity.ExtraReturnAction";
-
     public final static String EXTRA_RETURN_ACTION_DELETE_MSG = "MessageDetailsActivity.ExtraDeleteMsg";
-
     public final static String EXTRA_RETURN_ACTION_FORWARD_MSG = "MessageDetailsActivity.ExtraForwardMSG";
-
     public final static String EXTRA_RETURN_ACTION_FORWARD_IMAGE = "MessageDetailsActivity.ExtraForwardImage";
-
     public final static String EXTRA_RETURN_TEXT = "MessageDetailsActivity.ExtraReturnText";
-
     public static final String EXTRA_RETURN_IMAGE_URIS = "MessageDetailsActivity.ExtraReturnImage";
-
     public static final String EXTRA_RETURN_IMAGE_TEXTS = "MessageDetailsActivity.ExtraReturnImageTexts";
-
     public final static String EXTRA_RETURN_IS_PRIORITY = "MessageDetailsActivity.ExtraReturnIsPriority";
-
     public final static String EXTRA_MIN_CHATITEM_HEIGHT = "MessageDetailsActivity.ExtraMinChatItemHeigt";
 
+    private static final String TAG = MessageDetailsActivity.class.getSimpleName();
+
     private ListView listViewMessage;
-
     private ListView listViewContacts;
-
     private ContactsAdapter mContactsAdapter;
-
     private ImageLoader mImageLoader;
-
     private long mMessageId = 0;
-
     private String mChatGuid;
-
     private int mTrustState;
-
     private int mMinChatitemHeight;
-
     private boolean mContactIsBlocked;
-
     private Context mContext;
 
     // return value for image capture intent, since adding it as an extra
@@ -264,7 +245,7 @@ public class MessageDetailsActivity
             mShowSimpleFab = true;
             resetChatInputFabButton();
         } catch (LocalizedException e) {
-            LogUtil.e(getClass().getName(), "Error creating activity");
+            LogUtil.e(TAG, "Error creating activity");
             finish();
         }
     }
@@ -447,7 +428,7 @@ public class MessageDetailsActivity
 
                                     return contacts;
                                 } catch (LocalizedException e) {
-                                    LogUtil.e("MessageDetailsActivity async task", "Error: " + e);
+                                    LogUtil.e(TAG, "async task: Error: " + e.getMessage(), e);
                                 }
 
                                 return null;
@@ -503,7 +484,7 @@ public class MessageDetailsActivity
                     }
                 }
             } catch (LocalizedException e) {
-                LogUtil.e(getClass().getName(), "Error refreshing activity");
+                LogUtil.e(TAG, "Error refreshing activity");
                 finish();
             }
         }
@@ -652,7 +633,7 @@ public class MessageDetailsActivity
                                 closeBottomSheet(mOnBottomSheetClosedListener);
                                 router.startExternalActivityForResult(intent, RouterConstants.TAKE_PHOTO_RESULT_CODE);
                             } catch (LocalizedException e) {
-                                LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                                LogUtil.w(TAG, e.getMessage(), e);
                             }
                         }
                     }
@@ -736,6 +717,7 @@ public class MessageDetailsActivity
 
             router.startExternalActivityForResult(openFile, RouterConstants.SELECT_FILE_RESULT_CODE);
         } catch (final ActivityNotFoundException e) {
+            LogUtil.e(TAG, "handleAttachFileClick: Could not locate an app for selecting a file!");
             Toast.makeText(this, R.string.chat_file_open_error_no_app_to_pick_found, Toast.LENGTH_LONG).show();
         }
     }
@@ -807,7 +789,7 @@ public class MessageDetailsActivity
 
                     return returnImage;
                 } catch (LocalizedException e) {
-                    LogUtil.w(MessageDetailsActivity.this.getClass().getName(), "Image can't be loaded.", e);
+                    LogUtil.w(TAG, "Image can't be loaded.", e);
                     return null;
                 }
             }
@@ -871,7 +853,7 @@ public class MessageDetailsActivity
                         try {
                             takenPhoto = (new FileUtil(this)).copyFileToInternalDir(mTakePhotoUri);
                         } catch (LocalizedException e) {
-                            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                            LogUtil.e(TAG, e.getMessage(), e);
                             return;
                         }
 
@@ -928,7 +910,7 @@ public class MessageDetailsActivity
                         throw new LocalizedException("err");
                 }
             } catch (LocalizedException e) {
-                LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.w(TAG, e.getMessage(), e);
             }
         }
     }

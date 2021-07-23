@@ -424,8 +424,8 @@
     <string name="chats_voiceMessage_play">Reproducir</string>
     <string name="chats_voiceMessage_play_error">Se ha producido un error durante la reproducción</string>
     <string name="chats_voiceMessage_send_error">No se puede enviar el mensaje de audio porque está dañado.</string>
-    <string name="chats_voiceMessage_title">Mensaje de voz</string>
-    <string name="chats_voiceMessage_title_windows">Mensaje de voz</string>
+    <string name="chats_voiceMessage_title">Mensaje de audio</string>
+    <string name="chats_voiceMessage_title_windows">Mensaje de audio</string>
     <string name="chatsoverview_business_30day_ad">Still %1$s days to TEST -\nGet your license here</string>
     <string name="chatsoverview_popup_services_negative_button">Not Now</string>
     <string name="chatsoverview_popup_services_positive_button">Ir a los servicios</string>
@@ -643,7 +643,7 @@
     <string name="dialog_saveToGallery_body">Guardar en la galería?</string>
     <string name="dialog_saveToGallery_title">Guardar</string>
     <string name="dialog_saveToGallery_video_finished">Vídeo guardado.</string>
-    <string name="dialog_saveToGallery_voice_finished">Mensaje de voz guardado.</string>
+    <string name="dialog_saveToGallery_voice_finished">Mensaje de audio guardado.</string>
     <string name="drawer_promotion_ba_text">Aún más funciones con el servicio de mensajería ginlo Business</string>
     <string name="ecommerceTextKey">Comercio electrónico</string>
     <string name="enter_password_hint">Por favor, introduzca la contraseña para continuar con el registro.</string>
@@ -820,7 +820,7 @@
     <string name="permission_rationale_contacts">Access to your contacts is needed to show you fellow users among your contacts. We never access their details in plain text.</string>
     <string name="permission_rationale_location">Access to your location is needed to share it with your chat partners. Encrypted, of course.</string>
     <string name="permission_rationale_read_external_storage">Access to your local storage is needed to send attachments to your chat partners. They\’ll be encrypted and always stay private.</string>
-    <string name="permission_rationale_rec_audio">Access to your microphone is needed to share videos and voice messages with your chat partners. They\’ll be encrypted and always stay private.</string>
+    <string name="permission_rationale_rec_audio">El acceso a tu micrófono es necesario para compartir mensajes de vídeo y audio con tus compañeros de chat. Estarán encriptados y siempre permanecerán privados.</string>
     <string name="permission_rationale_write_external_storage">Access to your local storage is needed to save attachments to your device. They\'ll be encrypted and always stay private.</string>
 	<string name="permission_rationale_rec_audio_phone_settings">ginlo needs permission to use your microphone. You can set this permission in your device\'s app settings.</string>
     <string name="popup_high_priority">Alta prioridad</string>
@@ -964,7 +964,7 @@
     <string name="search_contact_search_button">Find User</string>
     <string name="search_contact_title">Contacts</string>
     <string name="send_action_file_send_message">a</string>
-    <string name="send_action_file_send_title">¿Enviar archivo?</string>
+    <string name="send_action_file_send_title">¿Enviar el archivo?</string>
     <string name="send_contact_extern">Contact from Device Address Book</string>
     <string name="send_contact_intern">ginlo Contact</string>
     <string name="send_contact_text">Por favor, escoja qué tipo de contacto desea enviar.</string>
@@ -1317,16 +1317,12 @@
     <string name="settings_title_options">Opciones</string>
     <string name="settings_title_purchase">Compras</string>
     <string name="settings_version">Versión</string>
-    <string name="settings_video_quality_hint">Determine la calidad de los vídeos grabados en ginlo.</string>
+    <string name="settings_video_quality">Determine la calidad de los vídeos grabados en ginlo.</string>
     <string name="settings_video_quality_l">Alta</string>
-    <string name="settings_video_quality_l_length">Duración máxima de los vídeos aprox. 2 minutos</string>
     <string name="settings_video_quality_m">Media</string>
-    <string name="settings_video_quality_m_length">Duración máxima de los vídeos aprox. 3,5 minutos</string>
     <string name="settings_video_quality_s">Baja</string>
-    <string name="settings_video_quality_s_length">Duración máxima de los vídeos aprox. 8 minutos</string>
     <string name="settings_video_quality_title">Calidad de los vídeos enviados</string>
     <string name="settings_video_quality_xl">Muy alta</string>
-    <string name="settings_video_quality_xl_length">Duración máxima de los vídeos aprox. 1,5 minutos</string>
     <string name="share_file_titel">Abrir archivo</string>
     <string name="shoppingTextKey">Compras</string>
     <string name="simsme">ginlo</string>
@@ -1383,4 +1379,5 @@
     <string name="chat_announcement_group_title">Grupo de anuncios</string>
     <string name="chat_announcement_group_on">Sí</string>
     <string name="chat_announcement_group_off">No</string>
+    <string name="send_action_file_send_hint">Esto puede llevar mucho tiempo y se hará en segundo plano.</string>
 </resources>

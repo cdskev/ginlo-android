@@ -422,7 +422,7 @@
     <string name="chats_timedmessage_invalid_date2">Lütfen bir yıl içinde bir tarih seçin</string>
     <string name="chats_title_chats">sohbetler</string>
     <string name="chats_voiceMessage_play">oynamak</string>
-    <string name="chats_voiceMessage_play_error">We\'re sorry, but something went wrong while playing back the voice message. Please try again.</string>
+    <string name="chats_voiceMessage_play_error">We\'re sorry, but something went wrong while playing back the audio message. Please try again.</string>
     <string name="chats_voiceMessage_send_error">Sesli mesaj bozuk olduğu için gönderilemez.</string>
     <string name="chats_voiceMessage_title">sesli mesaj</string>
     <string name="chats_voiceMessage_title_windows">Sesli mesaj</string>
@@ -819,7 +819,7 @@
     <string name="permission_rationale_contacts">Access to your contacts is needed to show you fellow users among your contacts. We never access their details in plain text.</string>
     <string name="permission_rationale_location">Access to your location is needed to share it with your chat partners. Encrypted, of course.</string>
     <string name="permission_rationale_read_external_storage">Access to your local storage is needed to send attachments to your chat partners. They\’ll be encrypted and always stay private.</string>
-    <string name="permission_rationale_rec_audio">Access to your microphone is needed to share videos and voice messages with your chat partners. They\’ll be encrypted and always stay private.</string>
+    <string name="permission_rationale_rec_audio">Access to your microphone is needed to share videos and audio messages with your chat partners. They\\’ll be encrypted and always stay private.</string>
     <string name="permission_rationale_write_external_storage">Access to your local storage is needed to save attachments to your device. They\'ll be encrypted and always stay private.</string>
 	<string name="permission_rationale_rec_audio_phone_settings">ginlo needs permission to use your microphone. You can set this permission in your device\'s app settings.</string>
     <string name="popup_high_priority">Yüksek öncelikli</string>
@@ -1316,16 +1316,12 @@
     <string name="settings_title_options">seçenekleri</string>
     <string name="settings_title_purchase">alışveriş</string>
     <string name="settings_version">versiyon</string>
-    <string name="settings_video_quality_hint">Set the quality for videos recorded with ginlo.</string>
+    <string name="settings_video_quality">Set the quality for videos recorded with ginlo.</string>
     <string name="settings_video_quality_l">yüksek</string>
-    <string name="settings_video_quality_l_length">maksimum video uzunluğu yaklaşık 2 dakika</string>
     <string name="settings_video_quality_m">araç</string>
-    <string name="settings_video_quality_m_length">maksimum video uzunluğu yaklaşık 3,5 dakika</string>
     <string name="settings_video_quality_s">düşük</string>
-    <string name="settings_video_quality_s_length">maksimum video uzunluğu yaklaşık 8 dakika</string>
     <string name="settings_video_quality_title">Gönderilen videoların kalitesi</string>
     <string name="settings_video_quality_xl">Çok yüksek</string>
-    <string name="settings_video_quality_xl_length">maksimum video uzunluğu yaklaşık 1,5 dakika</string>
     <string name="share_file_titel">Dosyayı aç</string>
     <string name="shoppingTextKey">alışveriş</string>
     <string name="simsme">ginlo</string>
@@ -1374,4 +1370,5 @@
     <string name="notification_avc_audio">Audio only</string>
     <string name="notification_avc_video">Video call</string>
     <string name="settings_appearance_darkmode">Darkmode (experimental)</string>
+    <string name="send_action_file_send_hint">This may take a long time and will be done in background.</string>
 </resources>

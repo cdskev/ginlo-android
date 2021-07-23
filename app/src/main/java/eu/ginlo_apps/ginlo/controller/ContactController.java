@@ -1159,6 +1159,10 @@ public class ContactController
                 } else {
                     try {
                         JsonObject responseJSON = response.jsonObject;
+                        if(responseJSON == null) {
+                            throw new LocalizedException(LocalizedException.NO_DATA_FOUND, "response is null");
+                        }
+
                         JsonObject accountObject = responseJSON.get(JsonConstants.ACCOUNT).getAsJsonObject();
 
                         if (StringUtil.isNullOrEmpty(contact.getPublicKey()) || StringUtil.isNullOrEmpty(contact.getProfileInfoAesKey()) || StringUtil.isNullOrEmpty(contact.getSimsmeId())) {

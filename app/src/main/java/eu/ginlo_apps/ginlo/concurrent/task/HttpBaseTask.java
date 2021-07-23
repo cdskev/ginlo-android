@@ -57,9 +57,8 @@ public abstract class HttpBaseTask
     );
     
     private final static String TAG = HttpBaseTask.class.getSimpleName();
-    private final static String WAKELOCK_TAG = "ginlo:" + TAG;
     private final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
-
+    private final String WAKELOCK_TAG;
     private final String mUsername;
     private final String mPassword;
     private final String mRequestGuid;
@@ -101,6 +100,9 @@ public abstract class HttpBaseTask
         if (httpPostParams != null && httpPostParams.getNameValuePairs().get("cmd") != null) {
             mCommand = httpPostParams.getNameValuePairs().get("cmd");
         }
+
+        WAKELOCK_TAG = "ginlo:HttpBaseTask#" + hashCode();
+        LogUtil.d(TAG, "HttpBaseTask: Setting WAKELOCK_TAG to " + WAKELOCK_TAG);
     }
 
     /**
@@ -176,16 +178,21 @@ public abstract class HttpBaseTask
         File gzipPostQueryFile = null;
         File queryResultsFile = null;
 
+        boolean isLazyTask = this instanceof HttpLazyMessageTask;
+        int i = 0;
+
         PowerManager pm = (PowerManager)simsMeApplication.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wl = pm.newWakeLock(WAKELOCK_FLAGS, WAKELOCK_TAG);
-        wl.acquire(10*60*1000L /*10 minutes*/);
 
-        for (int i = 0; i < 3; i++) {
-            boolean isLazyTask = this instanceof HttpLazyMessageTask;
-            if (isLazyTask) {
-                // Beim LazyTask nicht wiederholen
-                i = 2;
-            }
+        // No WakeLock on lazy task and only one try to connect to backend
+        if(isLazyTask) {
+            LogUtil.d(TAG, "No WakeLock on lazy task.");
+            i = 2;
+        } else {
+            wl.acquire(10 * 60 * 1000L /*10 minutes*/);
+        }
+
+        for (; i < 3; i++) {
             try {
                 String urlString = mHttpPostParams.getUrl();
 
@@ -288,9 +295,13 @@ public abstract class HttpBaseTask
                 InputStream in = null;
 
                 try {
+                    // No need to show upload progress for now
+                    /*
                     if (mOnConnectionDataUpdatedListener != null) {
                         mOnConnectionDataUpdatedListener.setFileSize(outputFileSize);
                     }
+
+                     */
 
 
                     FileInputStream fis = new FileInputStream(outputFile);
@@ -303,8 +314,7 @@ public abstract class HttpBaseTask
 
                     LogUtil.i(TAG, "Connected and request sent. Got HTTP-Status " + mResponseCode + ".");
                     if (mResponseCode != 200) {
-                        // Release wakelock
-                        wl.release();
+                        releaseWakelock(wl);
                         error();
                         return;
                     }
@@ -321,8 +331,9 @@ public abstract class HttpBaseTask
                         LogUtil.d(TAG, "Backend will serve us " + contentLength + " bytes (Content-Length)");
                     }
 
-                    if (contentLength != 0 && mOnConnectionDataUpdatedListener != null) {
-                        mOnConnectionDataUpdatedListener.setFileSize(contentLength);
+                    if (mOnConnectionDataUpdatedListener != null) {
+                        // contentLength-1 to show listener, that we have no filesize!
+                        mOnConnectionDataUpdatedListener.setFileSize(contentLength-1);
                     }
 
                     in = new BufferedInputStream(urlConnection.getInputStream());
@@ -351,16 +362,13 @@ public abstract class HttpBaseTask
                     }
 
                 } catch (IOException e) {
-                    if("timeout".equalsIgnoreCase(e.getMessage())) {
-                        LogUtil.w(TAG, "Got timeout while connecting to backend!");
-                    } else {
-                        LogUtil.e(TAG, "Got IOException while connecting to backend: " + e.getMessage(), e);
-                    }
+                    LogUtil.w(TAG, "Got IOException while connecting to backend: " + e.getMessage());
                 } finally {
                     StreamUtil.closeStream(in);
                     urlConnection.disconnect();
                 }
             } catch (SocketTimeoutException e) {
+                LogUtil.w(TAG, "Got SocketTimeoutException while connecting to backend: " + e.getMessage());
                 if (i < 2) {
                     continue;
                 }
@@ -369,8 +377,7 @@ public abstract class HttpBaseTask
                     mLocalizedException = new LocalizedException(
                         LocalizedException.BACKEND_REQUEST_FAILED, TAG + " " + e.getMessage()
                     );
-                    // Release wakelock
-                    wl.release();
+                    releaseWakelock(wl);
                     error();
                     return;
                 }
@@ -382,8 +389,7 @@ public abstract class HttpBaseTask
                 mLocalizedException = new LocalizedException(
                     LocalizedException.BACKEND_REQUEST_FAILED, TAG + " " + e.getMessage()
                 );
-                // Release wakelock
-                wl.release();
+                releaseWakelock(wl);
                 error();
                 return;
             } catch (IOException e) {
@@ -395,8 +401,7 @@ public abstract class HttpBaseTask
                     mLocalizedException = new LocalizedException(
                             LocalizedException.SSL_HANDSHAKE_FAILED, e);
                     LogUtil.e(TAG, e.getMessage(), e);
-                    // Release wakelock
-                    wl.release();
+                    releaseWakelock(wl);
                     error();
                     return;
                 }
@@ -411,8 +416,7 @@ public abstract class HttpBaseTask
                         mLocalizedException = new LocalizedException(
                             LocalizedException.BACKEND_REQUEST_FAILED, TAG + " " + e.getMessage()
                         );
-                        // Release wakelock
-                        wl.release();
+                        releaseWakelock(wl);
                         error();
                         return;
                     }
@@ -421,8 +425,7 @@ public abstract class HttpBaseTask
                     mLocalizedException = new LocalizedException(
                         LocalizedException.BACKEND_REQUEST_FAILED, TAG + " " + e.getMessage()
                     );
-                    // Release wakelock
-                    wl.release();
+                    releaseWakelock(wl);
                     error();
                     return;
                 }
@@ -432,8 +435,7 @@ public abstract class HttpBaseTask
                 }
                 mLocalizedException = new LocalizedException(LocalizedException.SSL_HANDSHAKE_FAILED, e);
                 LogUtil.e(TAG, e.getMessage(), e);
-                // Release wakelock
-                wl.release();
+                releaseWakelock(wl);
                 error();
                 return;
             } finally {
@@ -447,13 +449,25 @@ public abstract class HttpBaseTask
         }
 
         LogUtil.d(TAG, "Backend call done.");
-        // Release wakelock
-        wl.release();
-        if(wl.isHeld()) {
-            LogUtil.w(TAG, "Wakelock held!");
-        }
+        releaseWakelock(wl);
         this.mResult = result;
         complete();
+    }
+
+    /**
+     * Release a WakeLock.
+     * Re-check and warn if release does not work but do not care anymore.
+     * This should prevent from 'java.lang.RuntimeException: WakeLock under-locked'
+     * @param wl Given WakeLock
+     */
+    private void releaseWakelock(PowerManager.WakeLock wl) {
+        if(wl.isHeld()) {
+            LogUtil.d(TAG, "Release Wakelock: " + wl.toString());
+            wl.release();
+            if(wl.isHeld()) {
+                LogUtil.w(TAG, "Wakelock held!");
+            }
+        }
     }
 
     @Override

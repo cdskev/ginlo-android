@@ -250,25 +250,32 @@ public class AttachmentController {
         return new File(attachmentsDir, attachmentGuid);
     }
 
-    public static void saveEncryptedAttachmentFileAsBase64File(final String attachmentGuid, final String bas64OutputPath)
+    public static void saveEncryptedAttachmentFileAsBase64File(final String attachmentGuid, final String base64OutputPath)
             throws LocalizedException {
         if (attachmentsDir == null) {
+            LogUtil.e(TAG, "saveEncryptedAttachmentFileAsBase64File: Attachment Directory not given!");
             throw new LocalizedException(LocalizedException.NO_DATA_FOUND, "Attachment Directory not loaded!");
         }
         File encryptedFile = new File(attachmentsDir, attachmentGuid);
-
         if (!encryptedFile.exists()) {
+            LogUtil.w(TAG, "saveEncryptedAttachmentFileAsBase64File: Could not find " + encryptedFile.getPath());
             return;
         }
 
-        try (FileInputStream fileInputStream = new FileInputStream(encryptedFile);
-             BufferedInputStream bufferdInputStream = new BufferedInputStream(fileInputStream)) {
-            FileOutputStream fileOutputStream = new FileOutputStream(bas64OutputPath);
+        try {
+            final FileInputStream fileInputStream = new FileInputStream(encryptedFile);
+            final BufferedInputStream bufferdInputStream = new BufferedInputStream(fileInputStream);
+            final FileOutputStream fileOutputStream = new FileOutputStream(base64OutputPath);
+            final Base64OutputStream base64OutputStream = new Base64OutputStream(fileOutputStream, Base64.DEFAULT);
 
-            try (Base64OutputStream base64OutputStream = new Base64OutputStream(fileOutputStream, Base64.DEFAULT)) {
-                StreamUtil.copyStreams(bufferdInputStream, base64OutputStream);
-            }
+            StreamUtil.copyStreams(bufferdInputStream, base64OutputStream);
+
+            base64OutputStream.close();
+            bufferdInputStream.close();
+            fileInputStream.close();
+
         } catch (IOException e) {
+            LogUtil.e(TAG, "saveEncryptedAttachmentFileAsBase64File: " + e.getMessage(), e);
             throw new LocalizedException(LocalizedException.LOAD_FILE_FAILED, "saveEncryptedAttachmentFileAsBase64File()", e);
         }
     }
@@ -276,37 +283,34 @@ public class AttachmentController {
     public static void saveBase64FileAsEncryptedAttachment(final String attachmentGuid, final String base64FileInputPath)
             throws LocalizedException {
         if (attachmentsDir == null) {
+            LogUtil.e(TAG, "saveBase64FileAsEncryptedAttachment: Attachment Directory not given!");
             throw new LocalizedException(LocalizedException.NO_DATA_FOUND, "Attachment Directory not loaded!");
         }
 
-        try (FileInputStream fileInputStream = new FileInputStream(base64FileInputPath);
-             Base64InputStream base64InputStream = new Base64InputStream(fileInputStream, Base64.DEFAULT)
-        ) {
-            File encryptedFile = new File(attachmentsDir, attachmentGuid);
-            FileOutputStream fileOutputStream = new FileOutputStream(encryptedFile);
+        final File attachmentFile = new File(attachmentsDir, attachmentGuid);
 
-            try (BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
-                StreamUtil.copyStreams(base64InputStream, bufferedOutputStream);
-            }
+        try {
+            final FileInputStream fileInputStream = new FileInputStream(base64FileInputPath);
+            final Base64InputStream base64InputStream = new Base64InputStream(fileInputStream, Base64.DEFAULT);
+            final FileOutputStream fileOutputStream = new FileOutputStream(attachmentFile);
+
+            StreamUtil.copyStreams(base64InputStream, fileOutputStream);
+
+            fileOutputStream.close();
+            base64InputStream.close();
+            fileInputStream.close();
+
         } catch (IOException e) {
+            LogUtil.e(TAG, "saveBase64FileAsEncryptedAttachment: "+ e.getMessage(), e);
             throw new LocalizedException(LocalizedException.LOAD_FILE_FAILED, "saveBase64FileAsEncryptedAttachment()", e);
         }
     }
 
     /**
-     * @param attachmentGuid attachmentGuid
+     * @param attachmentFilename attachmentGuid
      */
-    public static void deleteBase64AttachmentFile(final String attachmentGuid) {
-        if (attachmentsDir == null || StringUtil.isNullOrEmpty(attachmentGuid)) {
-            LogUtil.w(TAG, "deleteBase64AttachmentFile with invalid attachmentsDir or attachmentGuid.");
-            return;
-        }
-
-        File file = getEncryptedBase64AttachmentFile(attachmentGuid);
-
-        if (file != null && file.exists()) {
-            file.delete();
-        }
+    public static void deleteBase64AttachmentFile(final String attachmentFilename) {
+        FileUtil.deleteFile(getEncryptedBase64AttachmentFile(attachmentFilename));
     }
 
     /**
@@ -454,7 +458,6 @@ public class AttachmentController {
             return false;
         }
         File encryptedFile = new File(attachmentsDir, attachmentGuid);
-
         return encryptedFile.exists();
     }
 
@@ -472,11 +475,18 @@ public class AttachmentController {
                 listener.onAudioLoaded(file, message);
             } else if (contentType.equals(MimeType.TEXT_PLAIN) && (message.getMessage().getType() == Message.TYPE_CHANNEL)) {
                 listener.onBitmapLoaded(file, message);
+            } else {
+                listener.onFileLoaded(file, message);
+            }
+            // KS: A file may be of any other mime type!
+                /*
             } else if (contentType.equals(MimeType.APP_OCTET_STREAM)) {
                 listener.onFileLoaded(file, message);
             } else {
                 listener.onLoadedFailed(null);
             }
+
+                 */
         }
     }
 

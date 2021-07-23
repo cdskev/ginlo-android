@@ -6,6 +6,8 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -97,12 +99,15 @@ import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.MetricsUtil;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.SystemUtil;
 import eu.ginlo_apps.ginlo.view.MaskImageView;
 import ezvcard.VCard;
+
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -552,7 +557,7 @@ public abstract class ChatInputActivity
 
             final String messageGuid = baseChatItemVO.getMessageGuid() != null ? baseChatItemVO.getMessageGuid() : Long.toString(baseChatItemVO.messageId);
 
-            AttachmentController.OnAttachmentLoadedListener onAtttachmentLoadWrapper = new AttachmentController.OnAttachmentLoadedListener() {
+            AttachmentController.OnAttachmentLoadedListener onAttachmentLoadWrapper = new AttachmentController.OnAttachmentLoadedListener() {
                 final String mMessageGuid = messageGuid;
 
                 @Override
@@ -601,6 +606,7 @@ public abstract class ChatInputActivity
             };
 
             if (baseChatItemVO instanceof LocationChatItemVO) {
+                LogUtil.d(TAG, "onItemClick: LocationChatItemVO");
                 requestPermission(PermissionUtil.PERMISSION_FOR_LOCATION, R.string.permission_rationale_location,
                         new PermissionUtil.PermissionResultCallback() {
                             @Override
@@ -618,13 +624,11 @@ public abstract class ChatInputActivity
                                 }
                             }
                         });
-                return;
-            }
-
-            // User clicks on AVC message in the chat. The received message stays active for
-            // 7200 seconds (default) to allow answering a call and restart, if kicked out.
-            // avChatController is null if no AVC is available
-            if (baseChatItemVO instanceof AVChatItemVO) {
+            } else if (baseChatItemVO instanceof AVChatItemVO) {
+                // User clicks on AVC message in the chat. The received message stays active for
+                // 7200 seconds (default) to allow answering a call and restart, if kicked out.
+                // avChatController is null if no AVC is available
+                LogUtil.d(TAG, "onItemClick: AVChatItemVO");
                 Message message = getChatController().findMessageById(baseChatItemVO.messageId);
                 if (message == null) {
                     return;
@@ -668,27 +672,8 @@ public abstract class ChatInputActivity
                         LogUtil.i(TAG, "Cannot join AVC - CallStatus is " + avChatController.getCallStatus());
                     }
                 }
-                return;
-            }
-
-            if (baseChatItemVO instanceof VoiceChatItemVO) {
-                VoiceChatItemVO voiceChatItemVO = (VoiceChatItemVO) baseChatItemVO;
-
-                if (!isDownloading(messageGuid)) {
-
-                    final ProgressBar progressBar = view.findViewById(R.id.progressBar_download);
-                    if (progressBar != null) {
-                        HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(adapterPosition, baseChatItemVO.isPriority);
-                        getChatController().getAttachment(voiceChatItemVO, onAtttachmentLoadWrapper, false, onConnectionDataUpdatedListener);
-                        view.setTag("downloading");
-                    } else {
-                        getChatController().getAttachment(voiceChatItemVO, onAtttachmentLoadWrapper, false, null);
-                    }
-                }
-                return;
-            }
-
-            if (baseChatItemVO instanceof VCardChatItemVO) {
+            } else if (baseChatItemVO instanceof VCardChatItemVO) {
+                LogUtil.d(TAG, "onItemClick: VCardChatItemVO");
                 if (getSimsMeApplication().getPreferencesController().isSendContactsDisabled()) {
                     Toast.makeText(getSimsMeApplication(), getResources().getString(R.string.error_mdm_contact_access_not_allowed), Toast.LENGTH_SHORT).show();
                 } else {
@@ -759,9 +744,8 @@ public abstract class ChatInputActivity
                         }
                     }
                 }
-                return;
-            }
-            if (baseChatItemVO instanceof SelfDestructionChatItemVO) {
+            } else if (baseChatItemVO instanceof SelfDestructionChatItemVO) {
+                LogUtil.d(TAG, "onItemClick: SelfDestructionChatItemVO");
                 Message message = getChatController().findMessageById(baseChatItemVO.messageId);
 
                 if (message == null) {
@@ -798,50 +782,63 @@ public abstract class ChatInputActivity
                             if (progressBar != null) {
                                 HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(adapterPosition, message.getIsPriority());
 
-                                getChatController().getAttachment(selfDestructionChatItemVO, onAtttachmentLoadWrapper, false, onConnectionDataUpdatedListener);
+                                getChatController().getAttachment(selfDestructionChatItemVO, onAttachmentLoadWrapper, false, onConnectionDataUpdatedListener);
                                 view.setTag("downloading");
                             } else {
-                                getChatController().getAttachment(selfDestructionChatItemVO, onAtttachmentLoadWrapper, false, null);
+                                getChatController().getAttachment(selfDestructionChatItemVO, onAttachmentLoadWrapper, false, null);
                             }
                         }
                     }
                 }
-                return;
-            }
-            if (baseChatItemVO instanceof FileChatItemVO) {
+            } else if (baseChatItemVO instanceof FileChatItemVO) {
+                // Other filetypes
+                LogUtil.d(TAG, "onItemClick: FileChatItemVO");
+                FileChatItemVO imageChatItemVO = (FileChatItemVO) baseChatItemVO;
+
                 if (!mBottomSheetMoving) {
                     if (mPreferencesController.isOpenInAllowed()) {
                         int bottomSheetLayoutResourceID = R.layout.dialog_chat_context_menu_open_share_layout;
-
                         mAnimationSlideIn = mAnimationSlideInTwoLines;
                         mAnimationSlideOut = mAnimationSlideOutTwoLines;
-
                         mMarkedChatItem = baseChatItemVO;
-
                         openBottomSheet(bottomSheetLayoutResourceID, R.id.chat_bottom_sheet_container);
+
                     } else {
                         DialogBuilderUtil.buildErrorDialog(this, getResources().getString(R.string.error_mdm_media_access_not_allowed)).show();
                     }
                 }
-                return;
-            }
-            if (baseChatItemVO instanceof AttachmentChatItemVO) {
+            } else if (baseChatItemVO instanceof AttachmentChatItemVO) {
+                // Image and Video
+                LogUtil.d(TAG, "onItemClick: AttachmentChatItemVO");
                 AttachmentChatItemVO imageChatItemVO = (AttachmentChatItemVO) baseChatItemVO;
 
-                //showIdleDialog(R.string.progress_dialog_load_attachment);
-
                 if (!isDownloading(messageGuid)) {
-
                     final ProgressBar progressBar = view.findViewById(R.id.progressBar_download);
                     if (progressBar != null) {
                         HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(adapterPosition, imageChatItemVO.isPriority);
 
-                        getChatController().getAttachment(imageChatItemVO, onAtttachmentLoadWrapper, false, onConnectionDataUpdatedListener);
+                        getChatController().getAttachment(imageChatItemVO, onAttachmentLoadWrapper, false, onConnectionDataUpdatedListener);
                         view.setTag("downloading");
                     } else {
-                        getChatController().getAttachment(imageChatItemVO, onAtttachmentLoadWrapper, false, null);
+                        getChatController().getAttachment(imageChatItemVO, onAttachmentLoadWrapper, false, null);
                     }
                 }
+            } else if (baseChatItemVO instanceof VoiceChatItemVO) {
+                LogUtil.d(TAG, "onItemClick: VoiceChatItemVO");
+                VoiceChatItemVO voiceChatItemVO = (VoiceChatItemVO) baseChatItemVO;
+
+                if (!isDownloading(messageGuid)) {
+                    final ProgressBar progressBar = view.findViewById(R.id.progressBar_download);
+                    if (progressBar != null) {
+                        HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(adapterPosition, baseChatItemVO.isPriority);
+                        getChatController().getAttachment(voiceChatItemVO, onAttachmentLoadWrapper, false, onConnectionDataUpdatedListener);
+                        view.setTag("downloading");
+                    } else {
+                        getChatController().getAttachment(voiceChatItemVO, onAttachmentLoadWrapper, false, null);
+                    }
+                }
+            } else {
+                LogUtil.w(TAG, "onItemClick: baseChatItemVO instanceof ???");
             }
         } catch (final LocalizedException le) {
             LogUtil.w(TAG, le.getMessage());
@@ -1104,7 +1101,23 @@ public abstract class ChatInputActivity
     @Override
     public void onFileLoaded(File dataFile, DecryptedMessage decryptedMsg) {
         dismissIdleDialog();
-        final String mimeType = decryptedMsg.getFileMimetype();
+
+        if(dataFile == null || decryptedMsg == null) {
+            LogUtil.e(TAG, "onFileLoaded: Got datafile = " + dataFile + " and decryptedMsg = " + decryptedMsg);
+            return;
+        }
+
+        // KS: Ensure that we have a mime type!
+        // This is not nice but effective.
+        String tmpMimeType = decryptedMsg.getFileMimetype();
+        if(StringUtil.isNullOrEmpty(tmpMimeType)) {
+            tmpMimeType = MimeUtil.getMimeTypeFromPath(dataFile.getPath());
+            if(StringUtil.isNullOrEmpty(tmpMimeType)) {
+                //tmpMimeType = "application/octet-stream";
+                tmpMimeType = "text/plain";
+            }
+        }
+        final String mimeType = tmpMimeType;
 
         if (mActionContainer != null) {
             //Weiterleiten UseCase
@@ -1145,12 +1158,12 @@ public abstract class ChatInputActivity
                 }
             };
 
+            // KS: This is just doing nothing?
             showSendFileDialog(filename, null, filesize, positiveListener, negativeListener);
             mActionContainer = null;
-            return;
-        }
 
-        if (dataFile != null && !StringUtil.isNullOrEmpty(mimeType)) {
+        } else {
+            // Share/send use case
             Intent shareIntent = new Intent();
             String action = StringUtil.isNullOrEmpty(mFileIntentAction) ? Intent.ACTION_SEND : mFileIntentAction;
             shareIntent.setAction(action);
@@ -1160,11 +1173,12 @@ public abstract class ChatInputActivity
             try {
                 mShareFileUri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", dataFile);
             } catch (IllegalArgumentException e) {
-                LogUtil.e(TAG, "Failed to get file.", e);
+                LogUtil.e(TAG, "onFileLoaded: Failed to get file.", e);
                 return;
             }
 
             if (mShareFileUri != null) {
+                LogUtil.d(TAG, "onFileLoaded: Prepare " + action + " for " + mShareFileUri);
                 if (isSendAction) {
                     shareIntent.putExtra(Intent.EXTRA_STREAM, mShareFileUri);
                     shareIntent.setType(mimeType);
@@ -1172,13 +1186,19 @@ public abstract class ChatInputActivity
                     shareIntent.setDataAndType(mShareFileUri, mimeType);
                 }
 
-                shareIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY);
+                for (ResolveInfo resolveInfo : resInfoList) {
+                    String packageName = resolveInfo.activityInfo.packageName;
+                    grantUriPermission(packageName, mShareFileUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    LogUtil.d(TAG, "onFileLoaded: Request for mimeType " + mimeType + " brought " + resolveInfo);
+                }
 
                 Intent externIntent = Intent.createChooser(shareIntent, getResources().getText(R.string.share_file_titel));
 
                 if (shareIntent.resolveActivity(getPackageManager()) != null) {
                     router.startExternalActivityForResult(externIntent, RouterConstants.SEND_FILE_RESULT_CODE);
                 } else {
+                    LogUtil.i(TAG, "onFileLoaded: Could not locate a matching app for mimeType " + mimeType);
                     String msg = StringUtil.isEqual(action, Intent.ACTION_VIEW) ? getString(R.string.chat_open_file_no_extern_activity) : getString(R.string.chat_share_file_no_extern_activity);
                     DialogBuilderUtil.buildErrorDialog(this, msg).show();
                 }
@@ -1368,14 +1388,22 @@ public abstract class ChatInputActivity
             public void onConnectionDataUpdated(int value) {
 
                 final ProgressBar progressBar = mChatAdapter.getProgressBarForPosition(mPosition);
-
                 if (progressBar == null) {
                     return;
                 }
 
-                final int percent = mFilesize == 0 ? 0 : (int) (value * 100 / mFilesize);
+                // Initial signal that we could not determine a filesize.
+                if(mFilesize == -1) {
+                    progressBar.setIndeterminate(true);
+                    mFilesize = 0;
+                }
 
-                if (percent >= 100) {
+                final int percent = mFilesize == 0 ? 0 : (int) (value * 100 / mFilesize);
+                if (percent < 100) {
+                    if(percent != 0) {
+                        progressBar.setProgress(percent);
+                    }
+                } else {
                     final Handler handler = new Handler(ChatInputActivity.this.getMainLooper());
                     final Runnable runnable = new Runnable() {
                         @Override
@@ -1465,8 +1493,6 @@ public abstract class ChatInputActivity
                         }
                     };
                     handler.post(runnable);
-                } else {
-                    progressBar.setProgress(percent);
                 }
             }
 
@@ -1681,7 +1707,10 @@ public abstract class ChatInputActivity
         }
         closeBottomSheet(mOnBottomSheetClosedListener);
 
-        //show warning
+        // KS: Always show warning
+        mPreferencesController.setHasShowOpenFileWarning(false);
+
+        //Show file export warning
         if (!mPreferencesController.getHasShowOpenFileWarning()) {
             final String posButton = getString(R.string.std_ok);
             final String negButton = getString(R.string.std_cancel);
@@ -1732,20 +1761,22 @@ public abstract class ChatInputActivity
     private void startGetFileAttachment(final String fileIntentAction) {
         if (mMarkedChatItem instanceof FileChatItemVO) {
             mFileIntentAction = fileIntentAction;
-            final ProgressBar progressBar;
-            if (mClickedView != null) {
-                progressBar = mClickedView.findViewById(R.id.progressBar_download);
-                mClickedView = null;
-            } else {
-                progressBar = null;
-            }
 
-            if (progressBar != null) {
-                final HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(mClickedIndex, mMarkedChatItem.isPriority);
-                getChatController().getAttachment((AttachmentChatItemVO) mMarkedChatItem, ChatInputActivity.this, true, onConnectionDataUpdatedListener);
-            } else {
-                getChatController().getAttachment((AttachmentChatItemVO) mMarkedChatItem, ChatInputActivity.this, true, null);
-            }
+                final ProgressBar progressBar;
+                if (mClickedView != null) {
+                    progressBar = mClickedView.findViewById(R.id.progressBar_download);
+                    mClickedView = null;
+                } else {
+                    progressBar = null;
+                }
+
+                if (progressBar != null) {
+                    final HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(mClickedIndex, mMarkedChatItem.isPriority);
+                    getChatController().getAttachment((AttachmentChatItemVO) mMarkedChatItem, ChatInputActivity.this, true, onConnectionDataUpdatedListener);
+                } else {
+                    getChatController().getAttachment((AttachmentChatItemVO) mMarkedChatItem, ChatInputActivity.this, true, null);
+                }
+            //}
             mClickedIndex = -1;
         }
     }

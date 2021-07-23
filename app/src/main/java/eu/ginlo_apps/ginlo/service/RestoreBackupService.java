@@ -75,7 +75,7 @@ import eu.ginlo_apps.ginlo.util.ZipUtils;
  */
 public class RestoreBackupService extends IntentService {
     private static final String TAG = RestoreBackupService.class.getSimpleName();
-    private final static String WAKELOCK_TAG = "ginlo:" + TAG;
+    private final static String WAKELOCK_TAG = "ginlo:RestoreBackupService";
     private final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
 
     // Defines and instantiates an object for handling status updates.
@@ -244,9 +244,11 @@ public class RestoreBackupService extends IntentService {
                 mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ERROR, null, null, e);
             }
         } finally {
-            wl.release();
-            if (wl.isHeld()) {
-                LogUtil.w(TAG, "RestoreBackupService: Wakelock held!");
+            if(wl.isHeld()) {
+                wl.release();
+                if(wl.isHeld()) {
+                    LogUtil.w(TAG, "RestoreBackupService: Wakelock held!");
+                }
             }
         }
     }

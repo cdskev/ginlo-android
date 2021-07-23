@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import androidx.annotation.NonNull;
@@ -570,17 +571,30 @@ public class FileUtil {
      */
     public SendActionContainer checkFileSendActionIntent(Intent intent)
             throws LocalizedException {
+        return checkFileSendActionIntent(intent, false);
+    }
+
+    /**
+     * New overloaded version of checkFileSendActionIntent that allows a file handling override
+     * independent of the given mime type.
+     * @param intent
+     * @param forceFileHandling
+     * @return
+     * @throws LocalizedException
+     */
+    public SendActionContainer checkFileSendActionIntent(Intent intent, boolean forceFileHandling)
+            throws LocalizedException {
         if (intent == null) {
             throw new LocalizedException(LocalizedException.NO_DATA_FOUND, "Intent is null.");
         }
         SendActionContainer actionContainer = new SendActionContainer();
-        String action = intent.getAction();
-        String type = intent.getType();
 
+        String action = intent.getAction();
         if (StringUtil.isNullOrEmpty(action)) {
             throw new LocalizedException(LocalizedException.NO_ACTION_SEND);
         }
 
+        String type = intent.getType();
         if (StringUtil.isNullOrEmpty(type)) {
             throw new LocalizedException(LocalizedException.NO_DATA_FOUND, "No MIME type.");
         }
@@ -588,7 +602,9 @@ public class FileUtil {
         if (Intent.ACTION_SEND.equals(action)) {
             actionContainer.action = SendActionContainer.ACTION_SEND;
 
-            if (type.startsWith("text/")) {
+            if(forceFileHandling) {
+                checkSendFile(intent, actionContainer);
+            } else if (type.startsWith("text/")) {
                 checkSendText(intent, actionContainer);
             } else if (type.startsWith("image/")) {
                 checkSendImages(intent, actionContainer);
@@ -748,10 +764,12 @@ public class FileUtil {
     }
 
     private ArrayList<Uri> getUrisFromIntent(Intent intent) {
+        
         ArrayList<Uri> returnValue = null;
 
-        ClipData clipData = intent.getClipData();
+        LogUtil.d(TAG, "getUrisFromIntent: Now try to find out what we have. Try ClipData first ...");
 
+        ClipData clipData = intent.getClipData();
         if ((clipData != null) && (clipData.getItemCount() > 0)) {
             returnValue = new ArrayList<>();
             for (int i = 0; i < clipData.getItemCount(); i++) {
@@ -763,20 +781,24 @@ public class FileUtil {
         }
 
         if (returnValue == null || returnValue.size() < 1) {
+            LogUtil.d(TAG, "getUrisFromIntent: No ClipData, try getParcelableArrayListExtra ...");
+            
             try {
                 returnValue = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
             } catch (Exception e) {
-                LogUtil.e(TAG, e.getMessage(), e);
+                LogUtil.w(TAG, "getUrisFromIntent: Got exception in getParcelableArrayListExtra " + e.getMessage());
             }
         }
 
         if (returnValue == null || returnValue.size() < 1) {
+            LogUtil.d(TAG, "getUrisFromIntent: No ParcelableArrayListExtra, try getParcelableExtra ...");
+
             Uri uri = null;
 
             try {
                 uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
             } catch (Exception e) {
-                LogUtil.e(TAG, e.getMessage(), e);
+                LogUtil.w(TAG, "getUrisFromIntent: Got exception in getParcelableExtra " + e.getMessage());
             }
 
             if (uri == null) {
@@ -789,6 +811,7 @@ public class FileUtil {
             }
         }
 
+        LogUtil.d(TAG, "getUrisFromIntent: Finally got " + returnValue.toString());
         return returnValue;
     }
 
@@ -812,7 +835,7 @@ public class FileUtil {
                 }
             }
         } catch (IllegalArgumentException e) {
-            LogUtil.w(FileUtil.class.getSimpleName(), "getNameForUri", e);
+            LogUtil.w(TAG, "getNameForUri", e);
         }
 
         return name;
@@ -841,7 +864,7 @@ public class FileUtil {
                 }
             }
         } catch (IllegalArgumentException e) {
-            LogUtil.w(FileUtil.class.getSimpleName(), "getSizeForUri", e);
+            LogUtil.w(TAG, "getSizeForUri", e);
         } catch (NullPointerException | SecurityException e) {
             // die Google-Photo-App liefert hier eine kaputte URL. Es kommt intern zu einem Nullpointer
             // andere apps tuerzen hier auch ab (wa, gmail)

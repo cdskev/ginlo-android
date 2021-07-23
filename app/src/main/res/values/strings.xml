@@ -430,8 +430,8 @@
     <string name="chats_voiceMessage_play">Play</string>
     <string name="chats_voiceMessage_play_error">An error occurred during playback</string>
     <string name="chats_voiceMessage_send_error">The audio message cannot be sent because it is corrupted.</string>
-    <string name="chats_voiceMessage_title">Voicemail</string>
-    <string name="chats_voiceMessage_title_windows">Voicemail</string>
+    <string name="chats_voiceMessage_title">Audio message</string>
+    <string name="chats_voiceMessage_title_windows">Audio message</string>
     <string name="chatsoverview_business_30day_ad">Still %1$s days to TEST -\nGet your\'s license here</string>
     <string name="chatsoverview_popup_services_negative_button">Later</string>
     <string name="chatsoverview_popup_services_positive_button">Services</string>
@@ -649,7 +649,7 @@
     <string name="dialog_saveToGallery_body">Save to gallery?</string>
     <string name="dialog_saveToGallery_title">Save</string>
     <string name="dialog_saveToGallery_video_finished">Video saved.</string>
-    <string name="dialog_saveToGallery_voice_finished">Voice message saved.</string>
+    <string name="dialog_saveToGallery_voice_finished">Audio message saved.</string>
     <string name="drawer_promotion_ba_text">Even more features with the SIMSme Business Messenger</string>
     <string name="ecommerceTextKey">eCommerce</string>
     <string name="enter_password_hint">Please enter the password to continue with the registration.</string>
@@ -827,7 +827,7 @@
     <string name="permission_rationale_contacts">SIMSme requires access to your phone/address book to check which of your contacts also uses SIMSme.</string>
     <string name="permission_rationale_location">SIMSme requires access to your location in order for to send this to your contacts.</string>
     <string name="permission_rationale_read_external_storage">SIMSme requires access to your storage in order for you to save media from your smartphone in SIMSme.</string>
-    <string name="permission_rationale_rec_audio">SIMSme requires access to your microphone in order for you to record audio messages.</string>
+    <string name="permission_rationale_rec_audio">ginlo requires access to your microphone in order for you to record audio messages.</string>
     <string name="permission_rationale_write_external_storage">SIMSme requires access to your storage in order for you to save media from SIMSme to your smartphone.</string>
     <string name="permission_rationale_rec_audio_phone_settings">ginlo needs permission to use your microphone. You can set this permission in your device\'s app settings.</string>
     <string name="popup_high_priority">High priority</string>
@@ -971,7 +971,8 @@
     <string name="search_contact_search_button">Check with SIMSme</string>
     <string name="search_contact_title">Search contacts</string>
     <string name="send_action_file_send_message">to</string>
-    <string name="send_action_file_send_title">Send a file?</string>
+    <string name="send_action_file_send_title">Send file?</string>
+    <string name="send_action_file_send_hint">This may take a long time and will be done in background.</string>
     <string name="send_contact_extern">Telephone contact</string>
     <string name="send_contact_intern">SIMSme contact</string>
     <string name="send_contact_text">Please select which type of contact you want to send.</string>
@@ -1331,16 +1332,12 @@
     <string name="settings_title_options">Options</string>
     <string name="settings_title_purchase">Purchases</string>
     <string name="settings_version">Version</string>
-    <string name="settings_video_quality_hint">Set the quality for videos recorded with SIMSme.</string>
+    <string name="settings_video_quality">Set the quality for videos recorded with SIMSme.</string>
     <string name="settings_video_quality_l">High</string>
-    <string name="settings_video_quality_l_length">Maximum video length approx. 2 minutes</string>
     <string name="settings_video_quality_m">Medium</string>
-    <string name="settings_video_quality_m_length">Maximum video length approx. 3.5 minutes</string>
     <string name="settings_video_quality_s">Low</string>
-    <string name="settings_video_quality_s_length">Maximum video length approx. 8 minutes</string>
     <string name="settings_video_quality_title">Quality of videos sent</string>
     <string name="settings_video_quality_xl">Very high</string>
-    <string name="settings_video_quality_xl_length">Maximum video length approx. 1.5 minutes</string>
     <string name="share_file_titel">Open file</string>
     <string name="shoppingTextKey">Shopping</string>
     <string name="simsme">SIMSme</string>

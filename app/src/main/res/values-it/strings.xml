@@ -423,9 +423,9 @@
     <string name="chats_title_chats">Chat</string>
     <string name="chats_voiceMessage_play">Riproduci</string>
     <string name="chats_voiceMessage_play_error">Si è verificato un errore durante la riproduzione</string>
-    <string name="chats_voiceMessage_send_error">Il messaggio vocale non può essere inviato perché danneggiato.</string>
-    <string name="chats_voiceMessage_title">Messaggio vocale</string>
-    <string name="chats_voiceMessage_title_windows">Messaggio vocale</string>
+    <string name="chats_voiceMessage_send_error">Il messaggio audio non può essere inviato perché danneggiato.</string>
+    <string name="chats_voiceMessage_title">Messaggio audio</string>
+    <string name="chats_voiceMessage_title_windows">Messaggio audio</string>
     <string name="chatsoverview_business_30day_ad">Mancano %1$s giorni di prova -\nOttieni qui la tua licenza</string>
     <string name="chatsoverview_popup_services_negative_button">Non ora</string>
     <string name="chatsoverview_popup_services_positive_button">Vai ai servizi</string>
@@ -515,7 +515,7 @@
     <string name="content_description_chatinput_play_voice_message">Ascolta messaggio ricevuto</string>
     <string name="content_description_chatinput_send_message">Invia messaggio</string>
     <string name="content_description_chatinput_show_emojis">Mostra emoticon</string>
-    <string name="content_description_chatinput_start_voice_message">Registra messaggio vocale</string>
+    <string name="content_description_chatinput_start_voice_message">Registra messaggio audio</string>
     <string name="content_description_chatinput_stop_voice_message">Interrompi registrazione</string>
     <string name="content_description_chatsoverview_profile">Mostra profilo</string>
     <string name="content_description_checkbox_emojicon">Emoticon</string>
@@ -643,7 +643,7 @@
     <string name="dialog_saveToGallery_body">Salvare in galleria?</string>
     <string name="dialog_saveToGallery_title">Salvare</string>
     <string name="dialog_saveToGallery_video_finished">Video salvato.</string>
-    <string name="dialog_saveToGallery_voice_finished">Messaggio vocale salvato.</string>
+    <string name="dialog_saveToGallery_voice_finished">Messaggio audio salvato.</string>
     <string name="drawer_promotion_ba_text">Ancora più funzionalità con ginlo Business Messenger</string>
     <string name="ecommerceTextKey">E-Commerce</string>
     <string name="enter_password_hint">Inserisca la password per proseguire con la registrazione.</string>
@@ -819,7 +819,7 @@
     <string name="permission_rationale_contacts">ginlo richiede l\'accesso ai tuoi contatti per trovare altri utenti ginlo. Non accediamo mai alle loro informazioni in plain text.</string>
     <string name="permission_rationale_location">ginlo richiede l\'accesso alla tua posizione per condividerla con i tuoi compagni di chat. La posizione è cifrata.</string>
     <string name="permission_rationale_read_external_storage">ginlo richiede l\'accesso alla tua memoria locale per inviare allegati ai tuoi compagni di chat. I file saranno cifrati e sempre confidenziali.</string>
-    <string name="permission_rationale_rec_audio">ginlo richiede l\'accesso al tuo microfono per condividere video e messaggi vocali con i tuoi compagni di chat. I file saranno cifrati e sempre confidenziali.</string>
+    <string name="permission_rationale_rec_audio">ginlo richiede l\'accesso al tuo microfono per condividere video e messaggi audio con i tuoi compagni di chat. I file saranno cifrati e sempre confidenziali.</string>
     <string name="permission_rationale_write_external_storage">ginlo richiede l\'accesso alla tua memoria locale per salvare gli allegati sul tuo dispositivo. I file saranno cifrati e sempre confidenziali.</string>
 	<string name="permission_rationale_rec_audio_phone_settings">ginlo ha bisogno del permesso per utilizzare il tuo microfono. Puoi modificare questa autorizzazione nelle impostazioni dell\'app del tuo dispositivo.</string>
     <string name="popup_high_priority">Priorità elevata</string>
@@ -1315,16 +1315,12 @@
     <string name="settings_title_options">Opzioni</string>
     <string name="settings_title_purchase">Acquisti</string>
     <string name="settings_version">Versione</string>
-    <string name="settings_video_quality_hint">Stabilisce la qualità dei video registrati su ginlo.</string>
+    <string name="settings_video_quality">Stabilisce la qualità dei video registrati su ginlo.</string>
     <string name="settings_video_quality_l">Alta</string>
-    <string name="settings_video_quality_l_length">lunghezza massima del video circa 2 minuti</string>
     <string name="settings_video_quality_m">Media</string>
-    <string name="settings_video_quality_m_length">lunghezza massima del video circa 3,5 minuti</string>
     <string name="settings_video_quality_s">Bassa</string>
-    <string name="settings_video_quality_s_length">lunghezza massima del video circa 8 minuti</string>
     <string name="settings_video_quality_title">Qualità dei video inviati</string>
     <string name="settings_video_quality_xl">Molto alta</string>
-    <string name="settings_video_quality_xl_length">lunghezza massima del video circa 1,5 minuti</string>
     <string name="share_file_titel">Apri file</string>
     <string name="shoppingTextKey">Shopping</string>
     <string name="simsme">ginlo</string>
@@ -1382,4 +1378,5 @@
     <string name="chat_announcement_group_off">No</string>
     <string name="chat_announcement_group_on">Sì</string>
     <string name="intro_2_text_2">Continuando, accetti i nostri %1$s.</string>
+    <string name="send_action_file_send_hint">Questo può richiedere molto tempo e sarà fatto in background.</string>
 </resources>

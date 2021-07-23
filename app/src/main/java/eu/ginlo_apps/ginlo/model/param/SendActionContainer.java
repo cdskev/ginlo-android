@@ -12,24 +12,16 @@ import java.util.ArrayList;
 public class SendActionContainer {
 
     public static final int ACTION_SEND = 500;
-
     public static final int ACTION_FORWARD = 501;
-
     public static final int TYPE_TXT = 550;
-
     public static final int TYPE_IMAGE = 551;
-
     public static final int TYPE_FILE = 552;
-
     public static final int TYPE_VIDEO = 553;
 
     //oeffnen in action
     public int action = -1;
-
     public int type = -1;
-
     public ArrayList<Uri> uris;
-
     public String text;
 
     /**
