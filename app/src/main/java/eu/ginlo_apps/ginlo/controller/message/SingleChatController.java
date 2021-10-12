@@ -31,6 +31,8 @@ import eu.ginlo_apps.ginlo.util.SecurityUtil;
 
 public class SingleChatController extends ChatController {
 
+    final private static String TAG = SingleChatController.class.getSimpleName();
+
     public SingleChatController(final SimsMeApplication application) {
         super(application);
     }
@@ -45,23 +47,24 @@ public class SingleChatController extends ChatController {
         return Message.TYPE_PRIVATE;
     }
 
+
     @Override
-    public AESKeyDataContainer getEncryptionData(String recipientGuid, String temporaryDeviceGuid) throws LocalizedException {
+    public AESKeyDataContainer getEncryptionData(String recipientGuid) throws LocalizedException {
         ContactController contactController = mApplication.getContactController();
         final Contact contact = contactController.getContactByGuid(recipientGuid);
 
-        // Bei Temporären Geräten immer einen neuen AES_Key erzeugen
-        if (contact != null && temporaryDeviceGuid == null) {
-            if (contact.getKey2() == null) {
-                contact.setKey2(SecurityUtil.generateAESKey());
-                contactController.insertOrUpdateContact(contact);
-            }
-
-            return new AESKeyDataContainer((SecretKey) contact.getKey2(), null);
-        } else {
-            //SGA: bin mir unsicher, ob dieser Fall uebertreten kann. Zur Sicherheit geben wir hier erstmal trotzdem einen Key zurueck
-            return new AESKeyDataContainer(SecurityUtil.generateAESKey(), null);
+        if(contact == null) {
+            LogUtil.e(TAG, "getEncryptionData: No contact info for recipientGuid " + recipientGuid);
+            throw new LocalizedException(LocalizedException.OBJECT_NULL);
         }
+
+        if (contact.getKey2() == null) {
+            contact.setKey2(SecurityUtil.generateAESKey());
+            contactController.insertOrUpdateContact(contact);
+            LogUtil.d(TAG, "getEncryptionData: Key2 generated and saved for recipientGuid " + recipientGuid);
+        }
+
+        return new AESKeyDataContainer((SecretKey) contact.getKey2(), null);
     }
 
     @Override
@@ -150,7 +153,7 @@ public class SingleChatController extends ChatController {
                         contactController.insertOrUpdateContact(contactByGuid);
                     }
                 } catch (final LocalizedException le) {
-                    LogUtil.w(GroupChatController.class.getSimpleName(), le.getMessage(), le);
+                    LogUtil.w(TAG, "silenceChat: " + le.getMessage(), le);
                     if (silenceChatListener != null) {
                         silenceChatListener.onFail(mApplication.getResources().getString(R.string.chat_mute_error));
                     }

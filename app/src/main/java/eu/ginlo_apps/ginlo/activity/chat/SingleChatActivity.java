@@ -272,7 +272,7 @@ public class SingleChatActivity
                              * (es gab kein put vor dem get)
                              * SGA
                              */
-                            ;// NOPMD
+                            // NOPMD
                         }
                     }
                 }
@@ -465,8 +465,6 @@ public class SingleChatActivity
                         @Override
                         public void onLoadPublicKeyComplete(final Contact contact) {
                             LogUtil.d(TAG, "Contact exists!");
-                            mTempDeviceGuid = contact.getTempDeviceGuid();
-                            mTempDevicePublicKeyXML = contact.getTempDevicePublicKeyXML();
                             if (contact.getTempReadonly()) {
                                 LogUtil.w(TAG, "Contact.getTempReadonly() is true:" + mContact.getAccountGuid());
                                 disableChatinput();
@@ -515,17 +513,21 @@ public class SingleChatActivity
     protected boolean isChatReadOnly() {
         try {
             if (mContact == null) {
-                LogUtil.w(TAG, String.format("Contact not found. The 1to1 Chat %s will be set to readonly. [%s]", mChat.getChatGuid()));
+                LogUtil.w(TAG, String.format("Contact not found. The 1to1 Chat %s will be set to readonly.",
+                        mChat == null? "(null)" : mChat.getChatGuid()));
                 return true;
             } else if (mContact.getPublicKey() == null) {
-                LogUtil.w(TAG, String.format("Contact public key is null. The 1to1 Chat %s will be set to readonly. [%s]", mChat.getChatGuid(), mContact.getAccountGuid()));
+                LogUtil.w(TAG, String.format("Contact public key is null. The 1to1 Chat %s will be set to readonly.",
+                        mChat == null? "(null)" : mChat.getChatGuid()));
                 return true;
             } else if (mContact.isDeletedHidden() || mContact.getTempReadonly()) {
-                LogUtil.w(TAG, String.format("Contact is deleted hidden (%b) or tempReadonly (%b). The 1to1 Chat %s will be set to readonly.", mContact.isDeletedHidden(), mContact.getTempReadonly(), mChat.getChatGuid()));
+                LogUtil.w(TAG, String.format("Contact is deleted hidden (%b) or tempReadonly (%b). The 1to1 Chat %s will be set to readonly.",
+                        mContact.isDeletedHidden(),
+                        mContact.getTempReadonly(), mChat == null? "(null)" : mChat.getChatGuid()));
                 return true;
             }
         } catch (final LocalizedException e) {
-            LogUtil.e(TAG, "isChatReadOnly -> exception:" + e.getMessage(), e);
+            LogUtil.e(TAG, "isChatReadOnly: " + e.getMessage(), e);
         }
 
         return false;

@@ -8,20 +8,16 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.WriterException;
+
 import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity;
-import eu.ginlo_apps.ginlo.activity.device.DeviceCoupleConfirmActivity;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.models.CouplingRequestModel;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Account;
-import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.QRCodeModel;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
-import eu.ginlo_apps.ginlo.util.ChecksumUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.MetricsUtil;
@@ -57,7 +53,6 @@ public class DeviceCoupleNewActivity extends NewBaseActivity {
         if (mTanLabel1 != null
                 && mTanLabel2 != null
                 && mTanLabel3 != null
-                /*&& tan != null*/
                 && tan.length() == 9) {
             mTanLabel1.setText(tan.substring(0, 3));
             mTanLabel2.setText(tan.substring(3, 6));
@@ -192,6 +187,7 @@ public class DeviceCoupleNewActivity extends NewBaseActivity {
 
     private class GenerateQrCodeTask
             extends AsyncTask<Void, Void, Bitmap> {
+        private final String TAG = GenerateQrCodeTask.class.getSimpleName();
         private final int mWidthPixel;
         private final int mHeightPixel;
         private final ImageView mQrCodeImageView;
@@ -213,27 +209,12 @@ public class DeviceCoupleNewActivity extends NewBaseActivity {
         @Override
         protected Bitmap doInBackground(final Void... params) {
             Bitmap qrCodeBitmap = null;
+            final int displayWidth = Math.min(mWidthPixel, mHeightPixel);
+            final int size = Math.round(displayWidth - (displayWidth * 0.1f));
 
-            try {
-                final QRCodeWriter qrEncoder = new QRCodeWriter();
-                final int displayWidth = Math.min(mWidthPixel, mHeightPixel);
-                final int size = Math.round(displayWidth - (displayWidth * 0.1f));
-
-                BitMatrix bitMatrix = null;
-
-                if (!StringUtil.isNullOrEmpty(mAccount.getAccountID())) {
-                    final byte[] checksum = ChecksumUtil.getSHA256ChecksumAsBytesForString(mAccount.getPublicKey());
-
-                    if (checksum != null) {
-                        final String qrValue = mAccount.getAccountID() + "|" + mQRCodeData;
-
-                        bitMatrix = qrEncoder.encode(qrValue, BarcodeFormat.QR_CODE, size, size);
-                    }
-                }
-
-                qrCodeBitmap = BitmapUtil.decodeBitMatrix(bitMatrix);
-            } catch (final WriterException | LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            if (!StringUtil.isNullOrEmpty(mAccount.getAccountID())) {
+                QRCodeModel qrm = new QRCodeModel(mAccount.getAccountID() + "|" + mQRCodeData);
+                qrCodeBitmap = qrm.createQRCodeBitmap(size);
             }
             return qrCodeBitmap;
         }

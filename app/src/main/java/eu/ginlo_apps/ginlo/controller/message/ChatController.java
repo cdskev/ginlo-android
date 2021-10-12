@@ -99,7 +99,7 @@ public abstract class ChatController
     private final ArrayList<OnChatDataChangedListener> listeners;
     ChatAdapter mCurrentChatAdapter;
     private HashMap<String, LongSparseArray<BaseChatItemVO>> chatItemRegistry;
-    private Context mContext;
+    private final Context mContext;
 
     ChatController(final SimsMeApplication application) {
         super(application);
@@ -487,17 +487,13 @@ public abstract class ChatController
 
     public void sendSystemInfo(final String toGuid,
                                final String toPublicKeyXML,
-                               final String toTempDeviceGuid,
-                               final String toTempDevicePublicKeyXML,
                                final String message,
                                final long replaceMessageId) {
-        sendSystemInfo(toGuid, toPublicKeyXML, toTempDeviceGuid, toTempDevicePublicKeyXML, message, replaceMessageId, null, false);
+        sendSystemInfo(toGuid, toPublicKeyXML, message, replaceMessageId, null, false);
     }
 
     public void sendSystemInfo(final String toGuid,
                                final String toPublicKeyXML,
-                               final String toTempDeviceGuid,
-                               final String toTempDevicePublicKeyXML,
                                final String message,
                                final long replaceMessageId,
                                final OnSendMessageListener externalOnSendMessageListener,
@@ -530,7 +526,7 @@ public abstract class ChatController
             public BaseMessageModel buildMessage() {
                 BaseMessageModel baseMessage = null;
                 try {
-                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid, toTempDeviceGuid);
+                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
 
                     ContactController contactController = mApplication.getContactController();
                     AccountController accountController = mApplication.getAccountController();
@@ -539,12 +535,8 @@ public abstract class ChatController
                     baseMessage = MessageModelBuilder.getInstance(contactController).buildTextMessage(getMainTypeResponsibility(),
                             message,
                             accountController.getAccount(),
-                            accountController.getTempDeviceGuid(),
-                            accountController.getTempDevicePublicKeyXML(),
                             toGuid,
                             toPublicKeyXML,
-                            toTempDeviceGuid,
-                            toTempDevicePublicKeyXML,
                             keyController.getUserKeyPair(),
                             encryptionData.getAesKey(), encryptionData.getIv(), null, null, false, null);
 
@@ -571,8 +563,6 @@ public abstract class ChatController
 
     public void sendText(final String toGuid,
                          final String toPublicKeyXML,
-                         final String toTempDeviceGuid,
-                         final String toTempDevicePublicKeyXML,
                          final String message,
                          final MessageDestructionParams messageDestructionParams,
                          final OnSendMessageListener onSendMessageListener,
@@ -586,7 +576,7 @@ public abstract class ChatController
                 BaseMessageModel baseMessage = null;
 
                 try {
-                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid, toTempDeviceGuid);
+                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
 
                     ContactController contactController = mApplication.getContactController();
                     AccountController accountController = mApplication.getAccountController();
@@ -594,12 +584,8 @@ public abstract class ChatController
 
                     baseMessage = MessageModelBuilder.getInstance(contactController).buildTextMessage(getTypeResponsibility()[0], message,
                             accountController.getAccount(),
-                            accountController.getTempDeviceGuid(),
-                            accountController.getTempDevicePublicKeyXML(),
                             toGuid,
                             toPublicKeyXML,
-                            toTempDeviceGuid,
-                            toTempDevicePublicKeyXML,
                             keyController.getUserKeyPair(),
                             encryptionData.getAesKey(),
                             encryptionData.getIv(),
@@ -622,8 +608,6 @@ public abstract class ChatController
     // TODO: Is the wrong place here for that.
     public void sendAppGinloControl(final String toGuid,
                         final String toPublicKeyXML,
-                        final String toTempDeviceGuid,
-                        final String toTempDevicePublicKeyXML,
                         final AppGinloControlMessage controlMessage,
                         final OnSendMessageListener onSendMessageListener
     ) {
@@ -634,7 +618,7 @@ public abstract class ChatController
                 BaseMessageModel baseMessage = null;
 
                 try {
-                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid, toTempDeviceGuid);
+                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
 
                     ContactController contactController = mApplication.getContactController();
                     AccountController accountController = mApplication.getAccountController();
@@ -643,12 +627,8 @@ public abstract class ChatController
                     baseMessage = MessageModelBuilder.getInstance(contactController).buildAppGinloControlMessage(getMainTypeResponsibility(),
                             controlMessage,
                             accountController.getAccount(),
-                            accountController.getTempDeviceGuid(),
-                            accountController.getTempDevicePublicKeyXML(),
                             toGuid,
                             toPublicKeyXML,
-                            toTempDeviceGuid,
-                            toTempDevicePublicKeyXML,
                             keyController.getUserKeyPair(),
                             encryptionData.getAesKey(),
                             encryptionData.getIv());
@@ -667,8 +647,6 @@ public abstract class ChatController
     // KS: AVC
     public void sendAVC(final String toGuid,
                          final String toPublicKeyXML,
-                         final String toTempDeviceGuid,
-                         final String toTempDevicePublicKeyXML,
                          final String roomInfo,
                          final OnSendMessageListener onSendMessageListener,
                          final Date sendDateTimed,
@@ -682,7 +660,7 @@ public abstract class ChatController
                 BaseMessageModel baseMessage = null;
 
                 try {
-                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid, toTempDeviceGuid);
+                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
 
                     ContactController contactController = mApplication.getContactController();
                     AccountController accountController = mApplication.getAccountController();
@@ -691,12 +669,8 @@ public abstract class ChatController
                     baseMessage = MessageModelBuilder.getInstance(contactController).buildAVCMessage(getMainTypeResponsibility(),
                             roomInfo,
                             accountController.getAccount(),
-                            accountController.getTempDeviceGuid(),
-                            accountController.getTempDevicePublicKeyXML(),
                             toGuid,
                             toPublicKeyXML,
-                            toTempDeviceGuid,
-                            toTempDevicePublicKeyXML,
                             keyController.getUserKeyPair(),
                             encryptionData.getAesKey(),
                             encryptionData.getIv(),
@@ -716,8 +690,6 @@ public abstract class ChatController
 
     public void sendLocation(final String toGuid,
                              final String toPublicKeyXML,
-                             final String toTempDeviceGuid,
-                             final String toTempDevicePublicKeyXML,
                              final double longitude,
                              final double latitude,
                              final byte[] screenshot,
@@ -728,7 +700,7 @@ public abstract class ChatController
                 BaseMessageModel baseMessage = null;
 
                 try {
-                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid, toTempDeviceGuid);
+                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
 
                     ContactController contactController = mApplication.getContactController();
                     AccountController accountController = mApplication.getAccountController();
@@ -737,10 +709,7 @@ public abstract class ChatController
                     baseMessage = MessageModelBuilder.getInstance(contactController).buildLocationMessage(getMainTypeResponsibility(),
                             screenshot, longitude, latitude,
                             accountController.getAccount(),
-                            accountController.getTempDeviceGuid(),
-                            accountController.getTempDevicePublicKeyXML(),
                             toGuid, toPublicKeyXML,
-                            toTempDeviceGuid, toTempDevicePublicKeyXML,
                             keyController.getUserKeyPair(),
                             encryptionData.getAesKey(), encryptionData.getIv());
 
@@ -758,8 +727,6 @@ public abstract class ChatController
 
     public void sendVCard(final String toGuid,
                           final String toPublicKeyXML,
-                          final String toTempDeviceGuid,
-                          final String toTempDevicePublicKeyXML,
                           final String vCard,
                           final String accountID,
                           final String accountGuid,
@@ -770,7 +737,7 @@ public abstract class ChatController
                 BaseMessageModel baseMessage = null;
 
                 try {
-                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid, toTempDeviceGuid);
+                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
 
                     ContactController contactController = mApplication.getContactController();
                     AccountController accountController = mApplication.getAccountController();
@@ -778,12 +745,8 @@ public abstract class ChatController
 
                     baseMessage = MessageModelBuilder.getInstance(contactController).buildVCardMessage(getTypeResponsibility()[0], vCard,
                             accountController.getAccount(),
-                            accountController.getTempDeviceGuid(),
-                            accountController.getTempDevicePublicKeyXML(),
                             toGuid,
                             toPublicKeyXML,
-                            toTempDeviceGuid,
-                            toTempDevicePublicKeyXML,
                             keyController.getUserKeyPair(),
                             encryptionData.getAesKey(),
                             encryptionData.getIv(),
@@ -805,8 +768,6 @@ public abstract class ChatController
     public void sendFile(final Activity activity,
                          final String toGuid,
                          final String toPublicKeyXML,
-                         final String toTempDeviceGuid,
-                         final String toTempDevicePublicKeyXML,
                          final Uri fileUri,
                          final boolean copyFileToInternal,
                          final String fileName,
@@ -852,7 +813,7 @@ public abstract class ChatController
                     BaseMessageModel baseMessage = null;
 
                     try {
-                        final AESKeyDataContainer encryptionData = getEncryptionData(toGuid, toTempDeviceGuid);
+                        final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
 
                         ContactController contactController = mApplication.getContactController();
                         AccountController accountController = mApplication.getAccountController();
@@ -864,11 +825,8 @@ public abstract class ChatController
                                 null,
                                 mimeTypeNext,
                                 accountController.getAccount(),
-                                accountController.getTempDeviceGuid(),
-                                accountController.getTempDevicePublicKeyXML(),
                                 toGuid,
                                 toPublicKeyXML,
-                                toTempDeviceGuid, toTempDevicePublicKeyXML,
                                 keyController.getUserKeyPair(), encryptionData.getAesKey(), encryptionData.getIv(), citation);
 
                         contactController.upgradeTrustLevel(toGuid, Contact.STATE_MIDDLE_TRUST);
@@ -893,8 +851,6 @@ public abstract class ChatController
     public void sendImage(final Activity activity,
                           final String toGuid,
                           final String toPublicKeyXML,
-                          final String toTempDeviceGuid,
-                          final String toTempDevicePublicKeyXML,
                           final Uri imageUri,
                           final String imageText,
                           final MessageDestructionParams messageDestructionParams,
@@ -918,7 +874,7 @@ public abstract class ChatController
                     BaseMessageModel baseMessage = null;
 
                     try {
-                        final AESKeyDataContainer encryptionData = getEncryptionData(toGuid, toTempDeviceGuid);
+                        final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
 
                         ContactController contactController = mApplication.getContactController();
                         AccountController accountController = mApplication.getAccountController();
@@ -927,11 +883,8 @@ public abstract class ChatController
                         baseMessage = MessageModelBuilder.getInstance(contactController).buildImageMessage(getMainTypeResponsibility(), activity,
                                 tempUri, imageText,
                                 accountController.getAccount(),
-                                accountController.getTempDeviceGuid(),
-                                accountController.getTempDevicePublicKeyXML(),
                                 toGuid,
                                 toPublicKeyXML,
-                                toTempDeviceGuid, toTempDevicePublicKeyXML,
                                 keyController.getUserKeyPair(), encryptionData.getAesKey(),
                                 encryptionData.getIv(), messageDestructionParams, sendDateTimed, isPriority, citation);
 
@@ -957,8 +910,6 @@ public abstract class ChatController
     public void sendVideo(final Activity activity,
                           final String toGuid,
                           final String toPublicKeyXML,
-                          final String toTempDeviceGuid,
-                          final String toTempDevicePublicKeyXML,
                           final Uri videoUri,
                           final String description,
                           final MessageDestructionParams messageDestructionParams,
@@ -980,7 +931,7 @@ public abstract class ChatController
                     BaseMessageModel baseMessage = null;
 
                     try {
-                        final AESKeyDataContainer encryptionData = getEncryptionData(toGuid, toTempDeviceGuid);
+                        final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
 
                         ContactController contactController = mApplication.getContactController();
                         AccountController accountController = mApplication.getAccountController();
@@ -990,11 +941,8 @@ public abstract class ChatController
                                 tempUri,
                                 description,
                                 accountController.getAccount(),
-                                accountController.getTempDeviceGuid(),
-                                accountController.getTempDevicePublicKeyXML(),
                                 toGuid,
                                 toPublicKeyXML,
-                                toTempDeviceGuid, toTempDevicePublicKeyXML,
                                 keyController.getUserKeyPair(), encryptionData.getAesKey(),
                                 encryptionData.getIv(), messageDestructionParams, sendDateTimed, isPriority);
 
@@ -1020,8 +968,6 @@ public abstract class ChatController
     public void sendVoice(final Activity activity,
                           final String toGuid,
                           final String toPublicKeyXML,
-                          final String toTempDeviceGuid,
-                          final String toTempDevicePublicKeyXML,
                           final Uri voiceUri,
                           final MessageDestructionParams messageDestructionParams,
                           final OnSendMessageListener onSendMessageListener,
@@ -1034,7 +980,7 @@ public abstract class ChatController
                 BaseMessageModel baseMessage = null;
 
                 try {
-                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid, toTempDeviceGuid);
+                    final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
 
                     ContactController contactController = mApplication.getContactController();
                     AccountController accountController = mApplication.getAccountController();
@@ -1043,11 +989,8 @@ public abstract class ChatController
                     baseMessage = MessageModelBuilder.getInstance(contactController).buildVoiceMessage(getMainTypeResponsibility(), activity,
                             voiceUri,
                             accountController.getAccount(),
-                            accountController.getTempDeviceGuid(),
-                            accountController.getTempDevicePublicKeyXML(),
                             toGuid,
                             toPublicKeyXML,
-                            toTempDeviceGuid, toTempDevicePublicKeyXML,
                             keyController.getUserKeyPair(), encryptionData.getAesKey(),
                             encryptionData.getIv(), messageDestructionParams, sendDateTimed, isPriority);
 
@@ -1796,7 +1739,8 @@ public abstract class ChatController
         }
     }
 
-    public abstract AESKeyDataContainer getEncryptionData(final String recipientGuid, final String temporaryDeviceGuid) throws LocalizedException;
+    public abstract AESKeyDataContainer getEncryptionData(final String recipientGuid)
+            throws LocalizedException;
 
     public void clearAdapter(final String guid) {
         synchronized (chatItemRegistry) {

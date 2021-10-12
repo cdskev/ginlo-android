@@ -190,10 +190,6 @@ public class MessageDaoHelper {
                 }
             }
 
-            if (eu.ginlo_apps.ginlo.util.JsonUtil.hasKey("signature-temp256", msgJO)) {
-                message.setSignatureTemp256(msgJO.get("signature-temp256"));
-            }
-
             if (eu.ginlo_apps.ginlo.util.JsonUtil.hasKey("signature-sha256", msgJO)) {
                 byte[] signatureBytesSha256 = msgJO.get("signature-sha256").toString().getBytes(StandardCharsets.UTF_8);
                 message.setSignatureSha256(signatureBytesSha256);
@@ -242,14 +238,6 @@ public class MessageDaoHelper {
                     String key2 = eu.ginlo_apps.ginlo.util.JsonUtil.stringFromJO("key2", keyContainerObject);
                     if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(key2)) {
                         message.setEncryptedFromKey2(key2);
-                    }
-
-                    if (keyContainerObject.has("tempDevice")) {
-                        JsonElement jsonElement = keyContainerObject.get("tempDevice");
-                        if (jsonElement.isJsonObject()) {
-                            JsonObject tempInfo = jsonElement.getAsJsonObject();
-                            message.setFromTempDeviceInfo(tempInfo);
-                        }
                     }
                 }
 
@@ -325,14 +313,6 @@ public class MessageDaoHelper {
 
             if (!eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty(key2)) {
                 message.setEncryptedToKey2(key2);
-            }
-
-            if (keyContainerObject.has("tempDevice")) {
-                JsonElement jsonElement = keyContainerObject.get("tempDevice");
-                if (jsonElement.isJsonObject()) {
-                    JsonObject tempInfo = jsonElement.getAsJsonObject();
-                    message.setToTempDeviceInfo(tempInfo);
-                }
             }
 
             break;

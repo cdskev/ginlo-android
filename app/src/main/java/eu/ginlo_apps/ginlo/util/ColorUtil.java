@@ -341,6 +341,22 @@ public class ColorUtil {
         return getThemeAttributeColor(R.attr.fabIconColor);
     }
 
+    public int getAlertColor(final Application context) {
+        return getThemeAttributeColor(R.attr.alertColor);
+    }
+
+    public int getBlackColor(final Application context) {
+        return getThemeAttributeColor(R.attr.blackColor);
+    }
+
+    public int getWhiteColor(final Application context) {
+        return getThemeAttributeColor(R.attr.whiteColor);
+    }
+
+    public int getTransparentColor(final Application context) {
+        return getThemeAttributeColor(R.attr.transparentColor);
+    }
+
     // Doesn't uses available individual theme color attribute
     // getThemeAttributeColor(R.attr.sendButtonColor);
     private int getSendButtonColor(final Application context) {
@@ -380,6 +396,12 @@ public class ColorUtil {
                 return getMainContrast50Color(c);
             case "mainContrast80":
                 return getMainContrast80Color(c);
+            case "black":
+                return getBlackColor(c);
+            case "white":
+                return getWhiteColor(c);
+            case "alert":
+                return getAlertColor(c);
             case "action":
                 return getAppAccentColor(c);
             case "actionContrast":

@@ -35,6 +35,7 @@ import eu.ginlo_apps.ginlo.BaseActivity;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 
@@ -43,50 +44,28 @@ public class LocationActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
+    private static final String TAG = LocationActivity.class.getSimpleName();
     public static final String MODE_SHOW_LOCATION = "LocationActivity.modeShowLocation";
-
     public static final String MODE_GET_LOCATION = "LocationActivity.modeGetLocation";
-
     public static final String EXTRA_MODE = "LocationActivity.extraMode";
-
     public static final String EXTRA_LONGITUDE = "LocationActivity.longitude";
-
     public static final String EXTRA_LATITUDE = "LocationActivity.latitude";
-
     public static final String EXTRA_SCREENSHOT = "LocationActivity.screenShot";
-
     private static final int SCREENSHOT_QUALITY = 100;
-
     private static final int ZOOM_LEVEL = 15;
-
     private static final int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
-
     private static final int UPDATE_INTERVAL_IN_SECONDS = 5;
-
     private static final int MILLISECONDS_PER_SECOND = 1000;
-
-    private static final long UPDATE_INTERVAL = MILLISECONDS_PER_SECOND
-            * UPDATE_INTERVAL_IN_SECONDS;
-
+    private static final long UPDATE_INTERVAL = MILLISECONDS_PER_SECOND * UPDATE_INTERVAL_IN_SECONDS;
     private static final int FASTEST_INTERVAL_IN_SECONDS = 1;
-
-    private static final long FASTEST_INTERVAL = MILLISECONDS_PER_SECOND
-            * FASTEST_INTERVAL_IN_SECONDS;
-
-    private static final String TAG = "LocationActivity";
+    private static final long FASTEST_INTERVAL = MILLISECONDS_PER_SECOND * FASTEST_INTERVAL_IN_SECONDS;
 
     private String mode;
-
     private ConnectionResult connectionResult;
-
     private GoogleApiClient locationClient;
-
     private LocationRequest locationRequest;
-
     private Button getLocationButton;
-
     private GoogleMap locationMap;
-
     private Location lastLocation;
 
     @Override
@@ -99,7 +78,8 @@ public class LocationActivity
 
         getLocationButton = findViewById(R.id.location_button_get_location);
         if (RuntimeConfig.isBAMandant()) {
-            getLocationButton.getBackground().setColorFilter(getResources().getColor(R.color.app_accent), PorterDuff.Mode.SRC_ATOP);
+            getLocationButton.getBackground().setColorFilter(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()), PorterDuff.Mode.SRC_ATOP);
+            getLocationButton.setTextColor(ColorUtil.getInstance().getAppAccentContrastColor(getSimsMeApplication()));
         }
         SupportMapFragment locationMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.location_support_map_fragment);
         locationMapFragment.getMapAsync(new OnMapReadyCallback() {
@@ -126,9 +106,10 @@ public class LocationActivity
                     double latitude = getIntent().getDoubleExtra(EXTRA_LATITUDE, 0.0);
                     double longitude = getIntent().getDoubleExtra(EXTRA_LONGITUDE, 0.0);
 
+                    dismissIdleDialog();
                     getLocationButton.setVisibility(View.GONE);
 
-                    Location location = new Location("SIMSme Attachment");
+                    Location location = new Location("ginlo");
 
                     location.setLatitude(latitude);
                     location.setLongitude(longitude);
@@ -142,6 +123,7 @@ public class LocationActivity
                     locationMap.animateCamera(cameraUpdate);
                     lastLocation = location;
                 } else if (mode.equals(MODE_GET_LOCATION)) {
+                    showIdleDialog();
                     getLocationButton.setVisibility(View.VISIBLE);
                 }
 
@@ -280,6 +262,7 @@ public class LocationActivity
 
     @Override
     public void onLocationChanged(Location location) {
+        dismissIdleDialog();
         if (!getLocationButton.isEnabled()) {
             getLocationButton.setEnabled(true);
         }

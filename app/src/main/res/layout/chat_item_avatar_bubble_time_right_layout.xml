@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:baselineAligned="false"
+    android:padding="0dp"
+    android:layout_gravity="bottom|end">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:baselineAligned="false"
+        android:padding="0dp"
+        android:layout_gravity="bottom">
+
+        <View
+            android:id="@+id/bubble_tail"
+            android:layout_width="21dp"
+            android:layout_height="14dp"
+            android:layout_gravity="end|bottom"
+            android:layout_marginStart="-1.5dp"
+            android:layout_marginEnd="-2dp"
+            android:background="@drawable/tail_sender" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:baselineAligned="false"
+        android:padding="0dp"
+        android:layout_gravity="bottom">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/chat_item_text_view_date"
+        android:paddingStart="@dimen/half_padding"
+        android:paddingEnd="@dimen/half_padding"
+        android:paddingTop="@dimen/small_padding"
+        android:paddingBottom="@dimen/small_padding"
+        android:layout_marginEnd="@dimen/half_padding"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_weight="0"
+        android:maxLines="1"
+        android:textSize="13sp"
+        tools:text="00:00" />
+
+    <eu.ginlo_apps.ginlo.view.MaskImageView
+        android:id="@+id/chat_item_mask_image_view_chat_image"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="@dimen/half_padding"
+        android:scaleType="fitCenter"
+        android:src="@drawable/gfx_profil_placeholder"
+        app:mask="@drawable/maske_chat" />
+    </LinearLayout>
+</LinearLayout>
+

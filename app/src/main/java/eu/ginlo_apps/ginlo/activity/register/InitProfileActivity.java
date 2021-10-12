@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
@@ -21,6 +22,7 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +41,7 @@ import eu.ginlo_apps.ginlo.TextExtensionsKt;
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
+import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.contracts.UpdateAccountInfoCallback;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -55,12 +58,12 @@ import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.FragmentUtil;
+import eu.ginlo_apps.ginlo.util.GinloNowUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
 import eu.ginlo_apps.ginlo.view.RoundedImageView;
 import eu.ginlo_apps.ginlo.view.cropimage.CropImageActivity;
 
@@ -69,22 +72,22 @@ public class InitProfileActivity
         implements EmojiPickerCallback,
         UpdateAccountInfoCallback,
         ContactController.OnLoadContactsListener {
+    private static final String TAG = InitProfileActivity.class.getSimpleName();
     private static final String EXTRA_PROFILE_NAME = "InitProfileActivity.extraProfileName";
-
     private static final String EXTRA_FILE_URI = "InitProfileActivity.extraFileUri";
+
     @Inject
     public Router router;
-    private RoundedImageView mProfilePictureImageView;
 
+    private SimsMeApplication mApplication;
+    private RoundedImageView mProfilePictureImageView;
     private EmojiAppCompatEditText mNameEditText;
     private AccountController mAccountController;
     private File mTakenPhotoFile;
     private byte[] mImageBytes;
     private CheckBox mAddEmojiNicknameButton;
     private boolean mEmojiFragmentVisible;
-
     private EmojiPickerFragment mEmojiFragment;
-
     private FrameLayout mEmojiContainer;
     @Nullable
     private EmojiAppCompatEditText mFirstNameEditText;
@@ -93,7 +96,8 @@ public class InitProfileActivity
 
     @Override
     protected void onCreateActivity(Bundle savedInstanceState) {
-        mAccountController = ((SimsMeApplication) getApplication()).getAccountController();
+        mApplication = getSimsMeApplication();
+        mAccountController = mApplication.getAccountController();
         mProfilePictureImageView = findViewById(R.id.init_profile_mask_image_view_profile_picture);
 
         mNameEditText = findViewById(R.id.init_profile_edit_text_name);
@@ -104,11 +108,11 @@ public class InitProfileActivity
         String email = null;
 
         try {
-            Contact ownContact = getSimsMeApplication().getContactController().getOwnContact();
+            Contact ownContact = mApplication.getContactController().getOwnContact();
             phoneNumber = ownContact.getPhoneNumber();
             email = ownContact.getEmail();
         } catch (LocalizedException e) {
-            LogUtil.w(InitProfileActivity.class.getSimpleName(), e.getIdentifier(), e);
+            LogUtil.w(TAG, "onCreateActivity: " + e.getIdentifier(), e);
         }
 
         if (!StringUtil.isNullOrEmpty(phoneNumber)) {
@@ -120,6 +124,9 @@ public class InitProfileActivity
             identLabel.setText(R.string.label_email_address);
 
             configureNameEditFields(true);
+        } else {
+            identLabel.setVisibility(View.GONE);
+            identInput.setVisibility(View.GONE);
         }
 
         final int slideheigth = (int) getResources().getDimension(R.dimen.profile_slideheight);
@@ -161,9 +168,9 @@ public class InitProfileActivity
         try {
             final TextView mandantTextView = findViewById(R.id.init_profile_mandant_label);
             final String mandantIdent = RuntimeConfig.getMandant();
-            final Mandant mandant = getSimsMeApplication().getPreferencesController().getMandantFromIdent(mandantIdent);
+            final Mandant mandant = mApplication.getPreferencesController().getMandantFromIdent(mandantIdent);
             if (mandant != null) {
-                ColorUtil.getInstance().colorizeMandantTextView(getSimsMeApplication(), mandant, mandantTextView, true);
+                ColorUtil.getInstance().colorizeMandantTextView(mApplication, mandant, mandantTextView, true);
             } else {
                 mandantTextView.setVisibility(View.GONE);
             }
@@ -179,7 +186,7 @@ public class InitProfileActivity
         View lastNameLabel = findViewById(R.id.init_profile_label_last_name);
 
         try {
-            if (isIdentEmail && !getSimsMeApplication().getAccountController().isDeviceManaged()) {
+            if (isIdentEmail && !mApplication.getAccountController().isDeviceManaged()) {
                 if (firstNameInput != null) {
                     firstNameInput.setVisibility(View.VISIBLE);
                     mFirstNameEditText = firstNameInput;
@@ -271,11 +278,10 @@ public class InitProfileActivity
                     break;
                 }
                 case RouterConstants.ADJUST_PICTURE_RESULT_CODE: {
-                    Bitmap bm = returnIntent.getParcelableExtra(CropImageActivity.RETURN_DATA_AS_BITMAP);
-
+                    final Bitmap bm = returnIntent.getParcelableExtra(CropImageActivity.RETURN_DATA_AS_BITMAP);
                     if (bm != null) {
-                        mImageBytes = BitmapUtil.compress(bm, 100);
                         mProfilePictureImageView.setImageBitmap(bm);
+                        mImageBytes = BitmapUtil.compress(bm, 100);
                     }
                     break;
                 }
@@ -311,7 +317,7 @@ public class InitProfileActivity
 
                                     if (intent.resolveActivity(getPackageManager()) != null) {
                                         try {
-                                            FileUtil fu = new FileUtil(getSimsMeApplication());
+                                            FileUtil fu = new FileUtil(mApplication);
                                             mTakenPhotoFile = fu.createTmpImageFileAddInIntent(intent);
                                             router.startExternalActivityForResult(intent, TAKE_PICTURE_RESULT_CODE);
                                         } catch (LocalizedException e) {
@@ -327,7 +333,7 @@ public class InitProfileActivity
     }
 
     public void handleTakeFromGalleryClick(View view) {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
                     new PermissionUtil.PermissionResultCallback() {
@@ -354,6 +360,45 @@ public class InitProfileActivity
             });
         }
     }
+
+    // Don't use while initializing!
+    public void handleDeleteProfileImageClick(View view) {
+        LogUtil.d(TAG, "handleDeleteProfileImageClick: Called from " + this.getLocalClassName());
+        // Do nothing
+    }
+    /*
+    public void handleDeleteProfileImageClick(View view) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+            requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
+                    R.string.permission_rationale_read_external_storage,
+                    new PermissionUtil.PermissionResultCallback() {
+                        @Override
+                        public void permissionResult(int permission,
+                                                     boolean permissionGranted) {
+                            if ((permission == PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE)
+                                    && permissionGranted) {
+                                closeBottomSheet(new OnBottomSheetClosedListener() {
+                                    @Override
+                                    public void onBottomSheetClosed(final boolean bottomSheetWasOpen) {
+                                        ChatImageController cic = new ChatImageController(mApplication);
+                                        cic.deleteImageFile(mAccountController.getAccount().getAccountGuid());
+                                    }
+                                });
+                            }
+                        }
+                    });
+        } else {
+            closeBottomSheet(new OnBottomSheetClosedListener() {
+                @Override
+                public void onBottomSheetClosed(final boolean bottomSheetWasOpen) {
+                    ChatImageController cic = new ChatImageController(mApplication);
+                    cic.deleteImageFile(mAccountController.getAccount().getAccountGuid());
+                }
+            });
+        }
+    }
+
+     */
 
     public void handleNextClick(View view) {
         final String name = mNameEditText.getText().toString().trim();
@@ -541,30 +586,36 @@ public class InitProfileActivity
         mAccountController.getAccount().setState(Account.ACCOUNT_STATE_FULL);
         mAccountController.updateAccoutDao();
 
-        DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Start Kontaktsync
-                startContactSync();
-            }
-        };
+        // Only ask if we don't execute ginlo now invitation
+        if (mApplication.getPreferencesController().getSharedPreferences().getString(GinloNowUtil.GINLO_NOW_INVITATION, "").length() > 1) {
+            LogUtil.d(TAG, "updateAccountInfoFinished: Got ginlo now invitation - skip contact sync interaction.");
+            startNextActivity();
+        } else {
+            DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //Start Kontaktsync
+                    startContactSync();
+                }
+            };
 
-        DialogInterface.OnClickListener negativeListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                //Keine Kontaktesync
-                startNextActivity();
-            }
-        };
+            DialogInterface.OnClickListener negativeListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    //Keine Kontaktesync
+                    startNextActivity();
+                }
+            };
 
-        DialogBuilderUtil.buildResponseDialog(this,
-                getString(R.string.sync_phonebook_contacts_request),
-                null,
-                getString(R.string.general_yes),
-                getString(R.string.general_no),
-                positiveListener,
-                negativeListener
-        ).show();
+            DialogBuilderUtil.buildResponseDialog(this,
+                    getString(R.string.sync_phonebook_contacts_request),
+                    null,
+                    getString(R.string.general_yes),
+                    getString(R.string.general_no),
+                    positiveListener,
+                    negativeListener
+            ).show();
+        }
     }
 
     private void startContactSync() {
@@ -575,7 +626,7 @@ public class InitProfileActivity
                 if (hasPerm) {
                     //setOverlay(false);
                     showIdleDialog(R.string.backup_restore_progress_sync_contacts);
-                    final ContactController contactController = getSimsMeApplication().getContactController();
+                    final ContactController contactController = mApplication.getContactController();
                     contactController.syncContacts(InitProfileActivity.this, false, true);
                 } else {
                     startNextActivity();
@@ -586,7 +637,7 @@ public class InitProfileActivity
 
     void startNextActivity() {
         try {
-            final Class<?> classForNextIntent = RuntimeConfig.getClassUtil().getStartActivityClass(getSimsMeApplication());
+            final Class<?> classForNextIntent = RuntimeConfig.getClassUtil().getStartActivityClass(mApplication);
 
             Intent intent = new Intent(this, RuntimeConfig.getClassUtil().getLoginActivityClass());
 
@@ -608,20 +659,20 @@ public class InitProfileActivity
 
     @Override
     public void onLoadContactsComplete() {
-        getSimsMeApplication().getContactController().removeOnLoadContactsListener(this);
+        mApplication.getContactController().removeOnLoadContactsListener(this);
         dismissIdleDialog();
         startNextActivity();
     }
 
     @Override
     public void onLoadContactsCanceled() {
-        getSimsMeApplication().getContactController().removeOnLoadContactsListener(this);
+        mApplication.getContactController().removeOnLoadContactsListener(this);
         dismissIdleDialog();
     }
 
     @Override
     public void onLoadContactsError(String message) {
-        getSimsMeApplication().getContactController().removeOnLoadContactsListener(this);
+        mApplication.getContactController().removeOnLoadContactsListener(this);
         dismissIdleDialog();
         String errorMsg = getResources().getString(R.string.backup_restore_process_failed_contact_sync_failed);
         if (!StringUtil.isNullOrEmpty(message)) {

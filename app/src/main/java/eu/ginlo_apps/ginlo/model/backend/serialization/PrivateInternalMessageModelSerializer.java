@@ -11,6 +11,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Florian
@@ -59,25 +60,17 @@ public class PrivateInternalMessageModelSerializer
         if (privateInternalMessageModel.signatureSha256Bytes != null) {
             JsonParser parser = new JsonParser();
 
-            try {
-                JsonElement element = parser.parse(new String(privateInternalMessageModel.signatureSha256Bytes, Encoding.UTF8));
+            JsonElement element = parser.parse(new String(privateInternalMessageModel.signatureSha256Bytes, StandardCharsets.UTF_8));
 
-                privateMessageJsonObject.add("signature-sha256", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
+            privateMessageJsonObject.add("signature-sha256", element);
         }
 
         if (privateInternalMessageModel.signatureBytes != null) {
             JsonParser parser = new JsonParser();
 
-            try {
-                JsonElement element = parser.parse(new String(privateInternalMessageModel.signatureBytes, Encoding.UTF8));
+            JsonElement element = parser.parse(new String(privateInternalMessageModel.signatureBytes, StandardCharsets.UTF_8));
 
-                privateMessageJsonObject.add("signature", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
+            privateMessageJsonObject.add("signature", element);
         }
 
         if (privateInternalMessageModel.mimeType != null) {

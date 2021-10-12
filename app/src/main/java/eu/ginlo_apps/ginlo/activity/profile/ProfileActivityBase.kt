@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.Menu
@@ -13,23 +14,12 @@ import android.view.MenuItem
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.TranslateAnimation
-import android.widget.Button
-import android.widget.CheckBox
+import android.widget.*
 import android.widget.CompoundButton.OnCheckedChangeListener
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
-import eu.ginlo_apps.ginlo.DeleteAccountActivity
-import eu.ginlo_apps.ginlo.LoginActivity
-import eu.ginlo_apps.ginlo.R
-import eu.ginlo_apps.ginlo.StatusTextActivity
+import androidx.core.content.res.ResourcesCompat
+import eu.ginlo_apps.ginlo.*
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity
 import eu.ginlo_apps.ginlo.activity.reregister.ChangePhoneActivity
-import eu.ginlo_apps.ginlo.appendText
-import eu.ginlo_apps.ginlo.applyColorFilter
-import eu.ginlo_apps.ginlo.backspace
 import eu.ginlo_apps.ginlo.controller.AccountController
 import eu.ginlo_apps.ginlo.controller.ChatImageController
 import eu.ginlo_apps.ginlo.controller.KeyController
@@ -58,6 +48,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
     UpdateAccountInfoCallback, CoroutineScope {
 
     companion object {
+        private val TAG = ProfileActivityBase::class.java.simpleName
         private const val DELETE_ACCOUNT_RESULT_CODE = 500
         private const val EXTRA_FILE_URI = "ProfileActivity.extraFileUri"
         private const val UPDATE_STATUS_RESULT_CODE = 501
@@ -69,13 +60,12 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
     private lateinit var simsmeIdTextView: TextView
     private lateinit var qrCodeHeaderTextView: TextView
     private lateinit var qrCodeDescTextView: TextView
-    private lateinit var qrCodeSwitchButton: Button
     private lateinit var deleteAccountButton: Button
     private lateinit var simsmeIdContainer: View
     private lateinit var selectImageView: View
     private val keyController: KeyController by lazy { simsMeApplication.keyController }
     private var takenPhotoFile: File? = null
-    private var selectedImageBitmap: Bitmap? = null
+    protected var imageBytes: ByteArray? = null
     protected lateinit var account: Account
     protected var ownContact: Contact? = null
     private val chatImageController: ChatImageController by lazy { simsMeApplication.chatImageController }
@@ -87,6 +77,8 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
             startChangePhoneActivity()
         }
     }
+
+    private var deleteProfileImage = false
 
     private var isEditMode: Boolean = false
 
@@ -120,9 +112,6 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
 
     protected val statusText: String
         get() = statusEditText.text?.toString() ?: ""
-
-    protected val imageBytes: ByteArray?
-        get() = selectedImageBitmap?.let { BitmapUtil.compress(it, 100) }
 
     protected fun canPickAvatar(): Boolean {
         return !mBottomSheetMoving && isEditMode
@@ -176,7 +165,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                             FileUtil(this).copyFileToInternalDir(Uri.fromFile(takenPhotoFile))
                         router.cropImage(FileUtil.checkPath(internalUri.toString()))
                     } catch (e: LocalizedException) {
-                        LogUtil.e(this.javaClass.name, e.message, e)
+                        LogUtil.e(TAG, e.message, e)
                         Toast.makeText(
                             this,
                             R.string.chats_addAttachments_some_imports_fails,
@@ -185,12 +174,10 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                     }
                 }
                 RouterConstants.ADJUST_PICTURE_RESULT_CODE -> {
-                    val bm =
-                        returnIntent?.getParcelableExtra<Bitmap>(CropImageActivity.RETURN_DATA_AS_BITMAP)
-
+                    val bm = returnIntent?.getParcelableExtra<Bitmap>(CropImageActivity.RETURN_DATA_AS_BITMAP)
                     if (bm != null) {
-                        selectedImageBitmap = bm
                         profileImageView.setImageBitmap(bm)
+                        imageBytes = BitmapUtil.compress(bm, 100)
                     }
                 }
             }
@@ -267,7 +254,6 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
             selectImageView = findViewById(R.id.profile_select_image_imageview)
             qrCodeHeaderTextView = findViewById(R.id.settingsQrCodeHeader)
             qrCodeDescTextView = findViewById(R.id.settingsQrCodeDesc)
-            qrCodeSwitchButton = findViewById(R.id.settingsQrCodeSwitchButton)
             deleteAccountButton = findViewById(R.id.start_delete_account_btn)
             simsmeIdContainer = findViewById(R.id.profile_simsme_id_container)
             profileContentContainer = findViewById(R.id.profile_content_container)
@@ -307,13 +293,13 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
             mAnimationSlideIn.interpolator = decelerateInterpolator
             mAnimationSlideOut.interpolator = decelerateInterpolator
 
-            setQrCode(!account.accountID.isNullOrBlank())
+            setQrCode()
             disableElements()
         } catch (e: LocalizedException) {
             if (e.identifier != LocalizedException.KEY_NOT_AVAILABLE) {
                 finish()
             }
-            LogUtil.w(this.javaClass.name, e.message, e)
+            LogUtil.w(TAG, e.message, e)
         }
     }
 
@@ -371,7 +357,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                                     TAKE_PICTURE_RESULT_CODE
                                 )
                             } catch (e: LocalizedException) {
-                                LogUtil.w(this.javaClass.name, e.message, e)
+                                LogUtil.w(TAG, e.message, e)
                             }
                         }
                     }
@@ -381,7 +367,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
     }
 
     fun handleTakeFromGalleryClick(@Suppress("UNUSED_PARAMETER") unused: View) {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(
                 PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                 R.string.permission_rationale_read_external_storage
@@ -392,6 +378,33 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
             }
         } else {
             closeBottomSheet { router.pickImage() }
+        }
+    }
+
+    fun handleDeleteProfileImageClick(@Suppress("UNUSED_PARAMETER") unused: View) {
+        LogUtil.d(TAG, "handleDeleteProfileImageClick: Called from " + this.localClassName)
+
+        if(ownContact?.accountGuid != account.accountGuid) {
+            LogUtil.w(TAG, "handleDeleteProfileImageClick: Allowed only for own contact, not for " + account.accountID)
+            return
+        }
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+            requestPermission(
+                    PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
+                    R.string.permission_rationale_read_external_storage
+            ) { permission, permissionGranted ->
+                if (permission == PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE && permissionGranted) {
+                    closeBottomSheet {
+                        deleteProfileImage = true
+                        profileImageView.setImageDrawable(ResourcesCompat.getDrawable(application.applicationContext.resources, R.drawable.delete, null))
+                    }
+                }
+            }
+        } else {
+            closeBottomSheet {
+                deleteProfileImage = true
+                profileImageView.setImageDrawable(ResourcesCompat.getDrawable(application.applicationContext.resources, R.drawable.delete, null))
+            }
         }
     }
 
@@ -466,7 +479,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
 
     override fun updateAccountInfoFinished() {
         this.dismissIdleDialog()
-        updateProfileImage()
+        updateProfileImage(deleteProfileImage)
         updateNickName()
         updateStatus()
     }
@@ -475,24 +488,6 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
         this.dismissIdleDialog()
         if (error != null) {
             Toast.makeText(this, R.string.settings_profile_save_failed, Toast.LENGTH_LONG).show()
-        }
-    }
-
-    fun handleQRCodeSwitchButton(v: View) {
-        if (v !is Button) return
-
-        try {
-            val useNewQrCodeStyle =
-                v.text.toString() == getString(R.string.settings_profile_qr_code_btn_new)
-
-            setQrCode(useNewQrCodeStyle)
-
-            val newText =
-                if (useNewQrCodeStyle) R.string.settings_profile_qr_code_btn_old else R.string.settings_profile_qr_code_btn_new
-
-            v.setText(newText)
-        } catch (e: LocalizedException) {
-            LogUtil.d(javaClass.simpleName, "handleQRCodeSwitchButton()", e)
         }
     }
 
@@ -513,9 +508,9 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
         }
     }
 
-    private fun setQrCode(useNewQrCodeStyle: Boolean) {
+    private fun setQrCode() {
         if (!keyController.allKeyDataReady) {
-            LogUtil.w(this.javaClass.name, "Key controller data keys not ready.")
+            LogUtil.w(TAG, "Key controller data keys not ready.")
             return
         }
 
@@ -525,7 +520,6 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
             try {
                 val bitmap = viewModel.generateQrCode(
                     account,
-                    useNewQrCodeStyle,
                     MetricsUtil.getDisplayMetrics(this@ProfileActivityBase).widthPixels,
                     MetricsUtil.getDisplayMetrics(this@ProfileActivityBase).heightPixels,
                     usersPrivateKey
@@ -535,7 +529,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                     qrCodeImageView.setImageBitmap(bitmap)
                 }
             } catch (e: LocalizedException) {
-                LogUtil.e(e)
+                LogUtil.e(TAG, e.message, e)
             }
         }
     }
@@ -553,11 +547,16 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
         try {
             fillViews()
         } catch (e: LocalizedException) {
-            LogUtil.e(this.javaClass.name, e.message, e)
+            LogUtil.e(TAG, e.message, e)
         }
     }
 
-    private fun updateProfileImage() {
+    private fun updateProfileImage(delete: Boolean) {
+        if (delete) {
+            // Deletion of profile image requested
+            chatImageController.deleteImage(account.accountGuid)
+        }
+
         try {
             profileImageView.setImageBitmap(
                 chatImageController.getImageByGuid(
@@ -566,7 +565,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                 )
             )
         } catch (e: LocalizedException) {
-            LogUtil.e(this.javaClass.name, e.message, e)
+            LogUtil.e(TAG, "updateProfileImage: Got exception " + e.message, e)
         }
     }
 
@@ -574,7 +573,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
         nickNameText = try {
             ownContact?.nickname.orEmpty()
         } catch (e: LocalizedException) {
-            LogUtil.e(this.javaClass.name, e.message, e)
+            LogUtil.e(TAG, e.message, e)
             ""
         }
     }
@@ -583,7 +582,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
         try {
             setStatusText()
         } catch (e: LocalizedException) {
-            LogUtil.e(this.javaClass.name, e.message, e)
+            LogUtil.e(TAG, e.message, e)
         }
     }
 
@@ -605,7 +604,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                 profileTextViewPhoneNumber.setDrawableClickListener(phoneClickListener)
             }
         } catch (e: LocalizedException) {
-            LogUtil.w(ProfileActivityBase::class.java.simpleName, "enableElements()", e)
+            LogUtil.w(TAG, "enableElements()", e)
         }
 
         statusEditText.setCompoundDrawablesWithIntrinsicBounds(
@@ -625,7 +624,6 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
         qrCodeHeaderTextView.visibility = View.GONE
         qrCodeDescTextView.visibility = View.GONE
         qrCodeImageView.visibility = View.GONE
-        qrCodeSwitchButton.visibility = View.GONE
         deleteAccountButton.visibility = View.GONE
     }
 
@@ -636,7 +634,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                 profileTextViewPhoneNumber.setDrawableClickListener(null)
             }
         } catch (e: LocalizedException) {
-            LogUtil.w(ProfileActivityBase::class.java.simpleName, "disableElements()", e)
+            LogUtil.w(TAG, "disableElements()", e)
         }
 
         statusEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
@@ -652,7 +650,6 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
         qrCodeHeaderTextView.visibility = View.VISIBLE
         qrCodeDescTextView.visibility = View.VISIBLE
         qrCodeImageView.visibility = View.VISIBLE
-        qrCodeSwitchButton.visibility = View.VISIBLE
         deleteAccountButton.visibility = View.VISIBLE
 
         closeEmojis()
@@ -671,7 +668,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
             }
             startActivity(intent)
         } catch (e: LocalizedException) {
-            LogUtil.w(this.javaClass.name, e.message, e)
+            LogUtil.w(TAG, e.message, e)
         }
     }
 

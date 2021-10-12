@@ -11,6 +11,8 @@ import android.widget.TextView;
 import eu.ginlo_apps.ginlo.BaseActivity;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.UseCases.InviteFriendUseCase;
+import eu.ginlo_apps.ginlo.activity.register.IdentConfirmActivity;
+import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
@@ -21,8 +23,8 @@ import javax.inject.Inject;
 
 public class NoContactFoundActivity extends BaseActivity {
 
+    public static final String TAG = NoContactFoundActivity.class.getSimpleName();
     public static final String SEARCH_TYPE = "NoContactFoundActivity.searchType";
-
     public static final String SEARCH_VALUE = "NoContactFoundActivity.searchValue";
 
     private ContactUtil.SearchType mSearchType;
@@ -59,6 +61,14 @@ public class NoContactFoundActivity extends BaseActivity {
                 textView.setText(getString(R.string.search_contact_no_simsmeid_found, searchValue));
                 break;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        LogUtil.d(TAG, "onBackPressed: Starting  SearchContactActivity ...");
+        final Intent intent = new Intent(NoContactFoundActivity.this, SearchContactActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override

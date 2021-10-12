@@ -5,6 +5,7 @@ package eu.ginlo_apps.ginlo.controller
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.AsyncTask
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -1512,7 +1513,7 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
     fun getSaveMediaInBackup(): Boolean {
         return try {
             val value = preferences.saveMediaInBackup
-            value ?: true
+            value ?: false
         } catch (e: LocalizedException) {
             LogUtil.e(TAG, e.message, e)
             true
@@ -2410,7 +2411,7 @@ fun setSendProfileName(value: Boolean) {
     }
 
     fun getNotificationPreviewEnabled(): Boolean {
-        return if (!SystemUtil.hasMarshmallow()) {
+        return if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             false
         } else sharedPreferences.getBoolean(NOTIFICATION_PREVIEW_ENABLED, false)
     }
@@ -2427,7 +2428,7 @@ fun setSendProfileName(value: Boolean) {
 
     @Throws(LocalizedException::class)
     fun setNotificationPreviewEnabled(enabled: Boolean, forceEnable: Boolean) {
-        if (!SystemUtil.hasMarshmallow()) {
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             return
         }
         val oldValue = sharedPreferences.getBoolean(NOTIFICATION_PREVIEW_ENABLED, true)

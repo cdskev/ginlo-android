@@ -393,10 +393,7 @@ public class ContactDao
 
     @Override
     protected boolean hasKey(Contact entity) {
-        if (entity != null && entity.getId() != null) {
-            return true;
-        }
-        return false;
+        return entity != null && entity.getId() != null;
     }
 
     /**

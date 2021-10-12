@@ -3,6 +3,7 @@ package eu.ginlo_apps.ginlo.activity.register;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Html;
@@ -26,10 +27,13 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity;
 import eu.ginlo_apps.ginlo.activity.register.IdentConfirmActivity;
 import eu.ginlo_apps.ginlo.activity.reregister.ChangePhoneActivity;
+import eu.ginlo_apps.ginlo.activity.reregister.ConfirmPhoneActivity;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.contract.RegisterPhone;
+import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.controller.contracts.OnCreateAccountListener;
+import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.data.network.AppConnectivity;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.fragment.BaseFragment;
@@ -38,6 +42,7 @@ import eu.ginlo_apps.ginlo.fragment.RegisterPhoneFragment;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
+import eu.ginlo_apps.ginlo.util.GinloNowUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.PhoneNumberUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
@@ -48,22 +53,24 @@ public class IdentRequestActivity
         extends NewBaseActivity implements AdapterView.OnItemSelectedListener,
         BaseFragment.OnFragmentInteractionListener {
 
+    public static final String TAG = IdentRequestActivity.class.getSimpleName();
+
     private static final int TYPE_SPINNER_EMAIL = 0;
     private static final int TYPE_SPINNER_PHONE = 1;
     private final static String SAVE_INSTANCE_KEY_FRAGMENT = "SAVED_KEY_FRAGMENT";
     private final static String SAVE_INSTANCE_KEY_IDENT = "SAVED_KEY_IDENT";
     @Inject
     public AppConnectivity appConnectivity;
-    protected TextView mTermsAcceptTV;
     protected RegisterPhoneFragment mPhoneFragment;
     private boolean nextClicked = false;
     private RegisterEmailAddressFragment mEmailFragment;
     private int mRegistrationType = -1;
-    private String mFakePhonenumber = "+999" + System.currentTimeMillis();
+    private AccountController mAccountController;
+    private GinloNowUtil mGinloNowUtil;
     final private OnCreateAccountListener listener = new OnCreateAccountListener() {
         @Override
         public void onCreateAccountSuccess() {
-            if (mRegistrationType == eu.ginlo_apps.ginlo.activity.register.IdentConfirmActivity.REGISTRATION_TYPE_MAIL) {
+            if (mRegistrationType == IdentConfirmActivity.REGISTRATION_TYPE_MAIL) {
                 //prüfen ob Freemailer oder Business Adresse
                 validateMail();
             } else {
@@ -102,6 +109,35 @@ public class IdentRequestActivity
     };
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        mAccountController = getSimsMeApplication().getAccountController();
+        if(mAccountController == null) {
+            return;
+        }
+
+        mGinloNowUtil = new GinloNowUtil();
+
+        super.onCreate(savedInstanceState);
+
+        // A little bit unhandy, but IdentRequestActivity is being re-used by ChangePhoneActivity <sigh!>,
+        // so we need to do the instance check.
+        if (!(this instanceof ChangePhoneActivity)
+                && (!BuildConfig.NEED_PHONENUMBER_VALIDATION) || mGinloNowUtil.haveGinloNowInvitation()) {
+            // Skip all confirmation steps - create account and continue with next activity.
+            doExpressRegistration();
+        }
+    }
+
+    private void doExpressRegistration() {
+        View myView = findViewById(R.id.ident_request_main_layout);
+        myView.setVisibility(View.GONE);
+        mRegistrationType = IdentConfirmActivity.REGISTRATION_TYPE_PHONE;
+        LogUtil.i(TAG, "doExpressRegistration: Using registration with no phone number validation.");
+        mAccountController.createAccountRegisterPhone("", "", listener);
+        // listener.onCreateAccountSuccess();
+    }
+
+    @Override
     protected void onCreateActivity(final Bundle savedInstanceState) {
         Spinner identSpinner = findViewById(R.id.intro_ident_request_spinner);
         // Create an ArrayAdapter using the string array and a default spinner layout
@@ -135,23 +171,6 @@ public class IdentRequestActivity
                 ft.commit();
             }
         }
-
-        // A little bit unhandy, but IdentRequestActivity is being re-used by ChangePhoneActivity <sigh!>,
-        // so we need to do the instance check.
-        if (!BuildConfig.NEED_PHONENUMBER_VALIDATION && !(this instanceof ChangePhoneActivity)) {
-            View v = findViewById(R.id.intro_ident_request_headline);
-            v.setVisibility(View.GONE);
-            v = findViewById(R.id.intro_ident_request_fragment);
-            v.setVisibility(View.GONE);
-        }
-
-            final Button nextButton = findViewById(R.id.registration_continue_button);
-        nextButton.setText(R.string.registration_button_accept);
-
-        mTermsAcceptTV = findViewById(R.id.intro_ident_request_registration_label_accept);
-        mTermsAcceptTV.setText(Html.fromHtml(getString(R.string.registration_label_accept)));
-        mTermsAcceptTV.setClickable(true);
-        mTermsAcceptTV.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     @Override
@@ -283,15 +302,6 @@ public class IdentRequestActivity
             return;
         }
 
-        // A little bit unhandy, but IdentRequestActivity is being re-used by ChangePhoneActivity <sigh!>,
-        // so we need to do the instance check.
-        if (!BuildConfig.NEED_PHONENUMBER_VALIDATION && !(this instanceof ChangePhoneActivity)) {
-            LogUtil.d("handleRegisterPhone", "Using fake Phonenumber: " + mFakePhonenumber);
-            mRegistrationType = IdentConfirmActivity.REGISTRATION_TYPE_PHONE;
-            getSimsMeApplication().getAccountController().createAccountRegisterPhone(mFakePhonenumber, null, listener);
-            return;
-        }
-
         if ((!StringUtil.isNullOrEmpty(phoneNumber) && !StringUtil.isNullOrEmpty(countryCode) && (phoneNumber.length() >= 6)) && !nextClicked) {
             final String normalizedPhonenumber = PhoneNumberUtil.normalizePhoneNumberNew(this, countryCode, phoneNumber);
             final String noteText = getResources().getString(R.string.create_account_confirm, normalizedPhonenumber);
@@ -316,10 +326,10 @@ public class IdentRequestActivity
                 nextClicked = true;
                 showIdleDialog(registrationType == eu.ginlo_apps.ginlo.activity.register.IdentConfirmActivity.REGISTRATION_TYPE_MAIL ? R.string.progress_dialog_ident_request_mail : R.string.progress_dialog_ident_request);
                 mRegistrationType = registrationType;
-                if (BuildConfig.NEED_PHONENUMBER_VALIDATION) {
-                    getSimsMeApplication().getAccountController().createAccountRegisterPhone(phoneNumber, mailAdress, listener);
+                if (!mGinloNowUtil.haveGinloNowInvitation()) {
+                    mAccountController.createAccountRegisterPhone(phoneNumber, mailAdress, listener);
                 } else {
-                    getSimsMeApplication().getAccountController().createAccountRegisterPhone(mFakePhonenumber, mailAdress, listener);
+                    mAccountController.createAccountRegisterPhone("", "", listener);
                 }
             }
         };
@@ -344,7 +354,7 @@ public class IdentRequestActivity
 
     @Override
     public void onBackPressed() {
-        getSimsMeApplication().getAccountController().resetCreateAccountSetPassword();
+        mAccountController.resetCreateAccountSetPassword();
         super.onBackPressed();
     }
 
@@ -356,17 +366,13 @@ public class IdentRequestActivity
         final Class activityClass = RuntimeConfig.getClassUtil().getIdentConfirmActivityClass();
         final Intent identConfirmIntent = new Intent(IdentRequestActivity.this, activityClass);
         identConfirmIntent.putExtra(IdentConfirmActivity.REGISTRATION_TYPE, mRegistrationType);
-        if (!BuildConfig.NEED_PHONENUMBER_VALIDATION) {
-            identConfirmIntent.putExtra(IdentConfirmActivity.FAKE_PHONENUMBER, mFakePhonenumber);
-        }
-
-            startActivity(identConfirmIntent);
+        startActivity(identConfirmIntent);
         nextClicked = false;
     }
 
     private void validateMail() {
         try {
-            getSimsMeApplication().getAccountController().validateOwnEmailAsync(new GenericActionListener<Void>() {
+            mAccountController.validateOwnEmailAsync(new GenericActionListener<Void>() {
                 @Override
                 public void onSuccess(Void object) {
                     dismissIdleDialog();

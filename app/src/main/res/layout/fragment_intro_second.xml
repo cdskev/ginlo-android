@@ -11,16 +11,9 @@
         android:layout_width="1dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.4" />
+        app:layout_constraintGuide_percent="0.35" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="1dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.74" />
-
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/logo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -36,11 +29,10 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/intro_2_text_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
         android:gravity="center"
         android:letterSpacing="-0.02"
         android:lineSpacingExtra="5sp"
@@ -52,6 +44,57 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/guidelineLogo" />
 
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/intro_registration_label_accept"
+        style="@style/CaptionTextViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="20dp"
+        android:gravity="center_horizontal"
+        android:text="@string/registration_label_accept"
+        android:textColor="@color/mainContrast80"
+        android:textColorLink="@color/actionSecondary"
+        app:styledTextColor="mainContrast80"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/intro_2_text_1" />
+
+    <LinearLayout
+        android:id="@+id/intro_2_ginlo_now"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="40dp"
+        android:onClick="handleGinloNowClick"
+        app:layout_constraintBottom_toTopOf="@+id/intro_2_button_log_in"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:clickable="true"
+        android:focusable="true">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/intro_2_image_qr_code"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/ginlo_qr_code" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/intro_2_button_ginlo_now"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom"
+            android:layout_marginTop="-30dp"
+            android:background="@color/action"
+            android:onClick="handleGinloNowClick"
+            android:text="@string/intro_2_button_ginlo_now"
+            android:textAllCaps="false"
+            android:textColor="@color/actionContrast"
+            android:visibility="visible"
+            app:styledButtonType="normal" />
+    </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/intro_2_button_log_in"

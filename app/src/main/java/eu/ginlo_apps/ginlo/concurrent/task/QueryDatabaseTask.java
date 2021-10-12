@@ -18,7 +18,7 @@ public class QueryDatabaseTask<T>
 
     private static final int MAX_RETRY = 3;
 
-    private QueryBuilder<T> queryBuilder;
+    private final QueryBuilder<T> queryBuilder;
     private final int mMode;
     private Object mResult;
 

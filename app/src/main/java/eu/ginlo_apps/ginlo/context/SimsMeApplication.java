@@ -6,6 +6,8 @@ import android.app.Application;
 import android.content.Context;
 import android.database.SQLException;
 import android.media.MediaPlayer;
+import android.os.Build;
+
 import androidx.emoji.bundled.BundledEmojiCompatConfig;
 import androidx.emoji.text.EmojiCompat;
 import androidx.fragment.app.Fragment;
@@ -36,7 +38,6 @@ import eu.ginlo_apps.ginlo.controller.LoginController;
 import eu.ginlo_apps.ginlo.controller.MessageDecryptionController;
 import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
-import eu.ginlo_apps.ginlo.controller.ServiceController;
 import eu.ginlo_apps.ginlo.controller.StatusTextController;
 import eu.ginlo_apps.ginlo.controller.TaskManagerController;
 import eu.ginlo_apps.ginlo.controller.message.ChannelChatController;
@@ -98,7 +99,6 @@ public class SimsMeApplication
     private TaskManagerController taskManagerController;
     private ClipBoardController clipBoardController;
     private ChannelController channelController;
-    private ServiceController mServiceController;
     private ChannelChatController channelChatController;
     private BackupController mBackupController;
     private DeviceController mDeviceController;
@@ -216,51 +216,27 @@ public class SimsMeApplication
         }
 
         getKeyController();
-
         getGcmController();
-
         getAccountController();
-
         getContactController();
-
         getSingleChatController();
-
         getGroupChatController();
-
         getChatImageController();
-
         getChannelController();
-
-        getServiceController();
-
         getChatOverviewController();
-
         getPrivateInternalMessageController();
-
         getLoginController();
-
         getAttachmentController();
-
         getChannelChatController();
-
         getMessageController();
-
         getAVChatController();
-
         getInternalMessageController();
-
         getMessageDecryptionController();
-
         getStatusTextController();
-
         getNotificationController();
-
         getTaskManagerController();
-
         getClipBoardController();
-
         getAppLifecycleController();
-
         getBackupController();
 
         getMessageController().addListener(getSingleChatController());
@@ -356,7 +332,6 @@ public class SimsMeApplication
         taskManagerController = null;
         clipBoardController = null;
         channelController = null;
-        mServiceController = null;
         channelChatController = null;
         mBackupController = null;
 
@@ -389,7 +364,6 @@ public class SimsMeApplication
         taskManagerController = null;
         clipBoardController = null;
         channelController = null;
-        mServiceController = null;
         channelChatController = null;
         mBackupController = null;
     }
@@ -468,7 +442,7 @@ public class SimsMeApplication
 
     public AVChatController getAVChatController() {
 
-        if(!SystemUtil.hasOreo()) {
+        if(!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
             // No AVC earlier than Oreo
             avChatController = null;
         }
@@ -574,13 +548,6 @@ public class SimsMeApplication
             channelController = new ChannelController(this);
         }
         return channelController;
-    }
-
-    public ServiceController getServiceController() {
-        if (mServiceController == null) {
-            mServiceController = new ServiceController(this);
-        }
-        return mServiceController;
     }
 
     public ChannelChatController getChannelChatController() {

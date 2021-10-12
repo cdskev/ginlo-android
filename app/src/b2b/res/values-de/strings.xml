@@ -6,15 +6,6 @@
     <string name="administration_request_dialog_message">Sie wurden ins Team von \"%1$s\" eingeladen. Wenn Sie annehmen, übernimmt der Team-Admin die Verwaltung Ihres Accounts und stellt eine Lizenz für Sie bereit.</string>
     <string name="administration_request_dialog_title">Team-Einladung annehmen?</string>
     <string name="android_notification_newMessage_message">Sie haben %1$d neue Nachrichten.</string>
-	
-	<string name="askBrabblerSwitch_labelDescription">Kürzlich haben wir Sie darüber informiert, dass wir SIMSme Business (jetzt ginlo Business) an die Brabbler AG übergeben haben. Wir bitten Sie um Ihre Einwilligung (a) zur Übertragung Ihres Vertrags und (b) Übermittlung Ihrer Bestands-, Verkehrs- und Nachrichten-Daten an die Brabbler Secure Message and Data Exchange AG (Brabbler AG), damit Sie den Messenger weiterhin uneingeschränkt und im gleichen Umfang nutzen können.\nIhre Einwilligung ist freiwillig, aber für den Fall, dass Sie diese Einwilligung nicht geben, wird das Senden von Nachrichten ab %1$s nicht mehr möglich sein und Ihr Konto wird zum %2$s deaktiviert. Weitere Informationen zur Einwilligung und Ihren Rechten finden Sie %3$s.\nVielen Dank!\nIhr SIMSme Team</string>
-	<string name="askBrabblerSwitch_labelDescription_link_url">http://sims.me/datenuebergang/business/de</string>
-	<string name="askBrabblerSwitch_reminder1_message">Sie möchten SIMSme Business (jetzt ginlo Business) auch in Zukunft weiternutzen? Das freut uns sehr! Dann gleich zur Brabbler AG wechseln.</string>
-	<string name="askBrabblerSwitch_reminder2_message">Noch keine Zeit gehabt? Bitte stimmen Sie dem Wechsel zur Brabbler AG zu, um SIMSme Business (jetzt ginlo Business) weiter zu nutzen.</string>
-	<string name="askBrabblerSwitch_reminder3_message">Bitte stimmen Sie dem Wechsel zur Brabbler AG zu. Ansonsten können Sie ab jetzt keine Nachrichten mehr verschicken. Und das wäre doch schade. Wenn Sie ginlo Business nicht mehr nutzen möchten, sichern Sie bitte Ihre Daten.</string>
-	<string name="askBrabblerSwitch_reminder4_message">Wenn Sie mit ginlo Business wieder Nachrichten verschicken oder Ihre Daten noch sichern möchten, stimmen Sie bitte jetzt der Übertragung Ihres Vertrags an die Brabbler AG zu.</string>
-	
-	<string name="settings_brabblerSwitchInfo_cell_text">Ihre Einwilligung zur Datenübertragung ist erforderlich, um den Messenger weiterhin uneingeschränkt nutzen zu können.</string>
     <string name="backup_button_guid_hint">Sie brauchen diesen Schlüssel, um Ihr Backup später importieren zu können. Bitte bewahren Sie ihn sicher auf. Alternativ können Sie auch den unten stehenden QR-Code verwenden.</string>
     <string name="backup_button_guid_title">Ihr Backup-Schlüssel:</string>
     <string name="backup_password_empty">Bitte vergeben Sie ein Passwort.</string>
@@ -70,10 +61,10 @@
     <string name="contacts_activity_company_addressbook_title">E-Mail-Adresse verknüpfen &amp; Kollegen finden</string>
     <string name="contacts_activity_pager_company_addressbook_title">E-Mail-Verzeichnis</string>
     <string name="contacts_activity_pager_contacts_title">Adressbuch</string>
-	<string name="contacts_eMailMessageSubject">Wechseln Sie mit mir zu ginlo Business, dem sicheren Business-Messenger</string>
-    <string name="contacts_eMailMessageBody">Hallo,\n\nwechseln Sie mit mir zu ginlo Business, dem sicheren Messenger für vertrauliche und produktive Business-Kommunikation. DSGVO-konform &amp; made in Germany - powered by Deutsche Post technology.\n\nUnd das hat ginlo Business zu bieten:\n\n- Einzel- und Gruppenchats, Channels und Verteiler\n- Versand von Dokumenten, Fotos, Videos und Sprachnachrichten\n- Nachrichten kommentieren, als wichtig markieren und zeitversetzt verschicken - so wird Zusammenarbeit effizient\n- Gleichzeitige Nutzung auf mehreren Geräten - mobil und am Desktop\n\nJetzt 30 Tage kostenlos testen: ginlo.net/business-messenger\n\Herzliche Grüße\n</string>
+	<string name="contacts_eMailMessageSubject">Einladung zu ginlo, dem Spezialisten für absolute Privatsphäre und streng vertrauliches Messaging</string>
+    <string name="contacts_eMailMessageBody">Verbinden Sie sich mit mir über ginlo, dem Messenger für absolut vertrauliche Kommunikation, DSGVO-konform und made in Germany. Einfach den QR-Code scannen oder hier klicken:</string>
     <string name="contacts_error_verifyingContactByQRCodeFailed">Beim Validieren des QR-Codes ist leider etwas schiefgelaufen. Bitte versuchen Sie es nochmal.</string>
-    <string name="contacts_smsMessageBody">Wechseln Sie mit mir zu ginlo Business, dem sicheren Business-Messenger. DSGVO-konform &amp; made in Germany - powered by ginlo.net GmbH. Hier herunterladen: ginlo.net/business-messenger</string>
+    <string name="contacts_smsMessageBody">Verbinden Sie sich mit mir über ginlo, dem Messenger für absolut vertrauliche Kommunikation - made in Germany. Einfach den QR-Code scannen oder hier klicken:</string>
     <string name="dialog_email_activiation_code_sent_text">Wir haben eine E-Mail an %1$s geschickt.</string>
     <string name="dialog_email_verfication_code_too_short">Dieser Bestätigungscode stimmt nicht so ganz. Bitte versuchen Sie es nochmal.</string>
     <string name="dialog_email_verfication_succeeded">Prima, das hat geklappt. Die E-Mail-Adresse %1$s ist jetzt mit Ihrem Account verknüpft.</string>
@@ -104,8 +95,6 @@
     <string name="forgot_pwd_desc2">Sie bekommen den Code, sobald Ihr Admin die Anfrage bestätigt hat.</string>
     <string name="forgot_pwd_title">Wiederherstellungscode anfragen</string>
     <string name="gcm_notifcation_registration_failed">Beim Registrieren Ihres Geräts für Push-Benachrichtigungen ist leider etwas schiefgelaufen. Bitte starten Sie die App neu, und versuchen Sie es nochmal.</string>
-    <string name="intro_descriptionTextForSecondScreen">Brabbler AG garantiert die Sicherheit Ihrer Daten. Powered by Deutsche Post Technology. Mit echter Ende-zu-Ende-Verschlüsselung und Hosting in Deutschland.</string>
-    <string name="intro_descriptionTextForThirdScreen">Setzen Sie  ginlo Business jetzt auf, und vergeben Sie ein Passwort. Ihr Passwort wird nicht an uns übermittelt und kann nicht zurückgesetzt werden. Merken Sie es sich also gut.</string>
     <string name="intro_1_text_3">DSGVO-konform</string>
 	<string name="intro_2_text_link">AGB</string>
 	<string name="intro_skipwarning_terms">Bitte stimmen Sie unseren AGB zu</string>
@@ -300,4 +289,5 @@
 	<string name="settings_termsandcondition_dp_url">https://app-help.ginlo.net/business/de/terms/</string>
     <string name="start_chat_with_company_contact_idle_text">Kontaktdaten werden geladen...</string>
     <string name="unexpected_error_label_next">ginlo Business musste beendet werden, da ein unerwarter Fehler aufgetreten ist. Bitte starten Sie die App neu.</string>
+    <string name="settings_termsandcondition">Allgemeine Geschäftsbedingungen</string>
 </resources>

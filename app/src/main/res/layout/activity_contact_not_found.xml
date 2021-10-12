@@ -61,7 +61,7 @@
         android:layout_marginEnd="0dp"
         android:layout_marginBottom="0dp"
         android:onClick="onInviteClick"
-        android:text="@string/contacts_button_inviteUserToSimsMe"
+        android:text="@string/contacts_button_inviteNewUser"
         android:textAllCaps="false"
         app:styledBackgroundColorFilter="action"
         app:styledButtonType="normal"

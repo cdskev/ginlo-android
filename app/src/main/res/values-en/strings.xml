@@ -33,30 +33,6 @@
     <string name="app_bar_refresh">Update</string>
     <string name="app_bar_settings_unlock">Unlock settings</string>
     <string name="apply_changes">Save</string>
-	
-	<string name="askBrabblerSwitch_labelTitle">Important Note</string>
-	<string name="askBrabblerSwitch_labelDescription">As we\'ve recently informed you, SIMSme (now ginlo) has been handed over to Brabbler AG. That\'s why we\'d like to ask for your consent (a) to transfer your contract and (b) to transfer your inventory, traffic, and message data to Brabbler Secure Message and Data Exchange AG (Brabbler AG) so that you can continue to use the messenger without restriction and to the same extent.\nYour consent is voluntary, but if you don\'t give this consent, sending messages will no longer be possible as of %1$s and your account will be deactivated by %2$s. Further information on consent and your rights can be found %3$s.\nThank you!\nYour SIMSme Team</string>
-	<string name="askBrabblerSwitch_labelDescription_link">here</string>
-	<string name="askBrabblerSwitch_labelDescription_link_url">https://sims.me/datenuebergang/private-fcdp/en</string>
-	<string name="askBrabblerSwitch_buttonAskLater_title">Remind Me Later</string>
-	<string name="askBrabblerSwitch_buttonConfirm_title">Yes, I Agree</string>
-	<string name="askBrabblerSwitch_reminder1_title">Your Consent is Required</string>
-	<string name="askBrabblerSwitch_reminder1_message">You\'d like to continue using SIMSme (now ginlo) in the future? We\'re happy about that! So, don\'t wait and switch to Brabbler AG now.</string>
-	<string name="askBrabblerSwitch_reminder1_button_title">OK</string>
-	<string name="askBrabblerSwitch_reminder2_title">We Still Need Your Consent</string>
-	<string name="askBrabblerSwitch_reminder2_message">Haven\'t had time yet to give your consent? Please take some time to agree to the provider change to Brabbler AG in order to continue using SIMSme (now ginlo).</string>
-	<string name="askBrabblerSwitch_reminder2_button_title">OK</string>
-	<string name="askBrabblerSwitch_reminder3_title">It\'s Getting Serious…</string>
-	<string name="askBrabblerSwitch_reminder3_message">Please agree to the provider change to Brabbler AG. Otherwise, you\'ll no longer be able to send messages as of now. And that would be a real pity. If you no longer want to use ginlo, please create a backup of your data.</string>
-	<string name="askBrabblerSwitch_reminder3_button_title">OK</string>
-	<string name="askBrabblerSwitch_reminder4_title">Your Account Will be Deactivated</string>
-	<string name="askBrabblerSwitch_reminder4_message">If you want to send messages again with ginlo or create a backup of your data, please agree to the transfer of your contract to Brabbler AG now.</string>
-	<string name="askBrabblerSwitch_reminder4_button_title">OK</string>
-	<string name="settings_brabblerSwitchAction_cell_text">Your Consent is Required</string>
-	<string name="settings_brabblerSwitchInfo_cell_text">Your consent to the transfer of your data is required so that you can continue to use the messenger without restriction.</string>
-	<string name="brabbler_banner_link">Please agree to the provider change.</string>	
-	
-	
     <string name="backendservice_internet_connectionFailed">No internet connection</string>
     <string name="backup_btn_register_to_drive">Find Backup</string>
     <string name="backup_button_guid_hint">You\'ll need this key to import your backup later. Please keep it secure. Alternatively, you can use the QR code below.</string>
@@ -107,7 +83,7 @@
     <string name="backup_restore_progress_timed_messages">Importing delayed messages...</string>
     <string name="backup_restore_scan_guid_button">Scan backup key</string>
     <string name="backup_restore_search_failed">We\'re sorry, but something went wrong while finding your backup. Please try again.</string>
-    <string name="backup_restore_select_btn">Import Backup</string>
+    <string name="backup_restore_select_btn">Import backup</string>
     <string name="backup_restore_select_caption">It may take a few moments to import your backup depending on the speed of your internet connection.</string>
     <string name="backup_restore_select_title">Please tap the one you want to import.</string>
 	<string name="backup_restore_select_private_label">Private</string>
@@ -117,7 +93,7 @@
     <string name="backup_restore_title_no_backups_found">Oh, it\'s you - welcome back!</string>
     <string name="backup_restore_title_register_to_drive">Oh, it\'s you - welcome back!</string>
     <string name="backup_restore_title_select_backup">Great, we\'ve found your backup.</string>
-    <string name="backup_restore_warning">Note: Only use \"Import Backup\" if you don\'t have access to ginlo Business on any other device.</string>
+    <string name="backup_restore_warning">Note: Only use \"Import Backup\" if you don\'t have access to your ginlo account on any other device!</string>
     <string name="backup_save_as">Store in…</string>
     <string name="backup_set_password">Set a backup password</string>
     <string name="backup_set_password_hint">You can set a password for backup recovery here. This password won\'t be stored. If you forget it, your backup cannot be imported. For this reason, don\'t forget your password.</string>
@@ -475,17 +451,16 @@
     <string name="contacts_button_contactDetails">Contact details</string>
     <string name="contacts_button_create">Save Contact</string>
     <string name="contacts_button_delete">Delete</string>
-    <string name="contacts_button_inviteUserToSimsMe">Invite</string>
+    <string name="contacts_button_inviteNewUser">Invite</string>
     <string name="contacts_button_scanContact">Scan contact</string>
-    <string name="contacts_button_scanContactShort">Scan</string>
+    <string name="contacts_button_scanContactShort">Scan QR code</string>
     <string name="contacts_button_sendMessageToUser">Send secure message</string>
     <string name="contacts_button_sendMessageToUserShort">Chat</string>
     <string name="contacts_button_sendmessage">Send Message</string>
     <string name="contacts_button_unblockContact">Unblock Contact</string>
     <string name="contacts_button_unblockContactShort">Unblock</string>
     <string name="contacts_confidenceStatus">Trust status</string>
-    <string name="contacts_eMailMessageBody">Hello!\n\nJoin me on ginlo, the secure messenger for private and confidential communication - made &amp; hosted in Germany. It\'s easy to use, fully encrypted, and there\'s no tracking, no profiling, no ads.\n\nDownload it here: ginlo.net/join\n\nCU soon on ginlo,\n</string>
-    <string name="contacts_eMailMessageSubject">Join me on ginlo, the WhatsApp alternative</string>
+    <string name="contacts_eMailMessageBody">Join me on ginlo, the secure messenger for private and confidential communication - made in Germany. Just scan the QR-Code below or click:</string>
     <string name="contacts_error_verifyingContactByQRCodeFailed">We\'re sorry, but something went wrong while validating your QR code. Please try again.</string>
     <string name="contacts_fragment_header_last_contacts">Recent contacts</string>
     <string name="contacts_fragment_header_subtitle">in %1$s</string>
@@ -495,7 +470,7 @@
     <string name="contacts_fragment_search_desc">Please search directly by name, e-mail address, department, or ginlo ID</string>
     <string name="contacts_fragment_start_search">Start search</string>
     <string name="contacts_overViewViewControllerTitle">Contacts</string>
-    <string name="contacts_smsMessageBody">Join me on ginlo, the secure messenger for private and confidential communication - made in Germany. Download it here: ginlo.net/join</string>
+    <string name="contacts_smsMessageBody">Join me on ginlo, the secure messenger for private and confidential communication - made in Germany. Just scan the QR-Code below or click:</string>
     <string name="content_description_channeldetails_less">Show less</string>
     <string name="content_description_channeldetails_more">Show more</string>
     <string name="content_description_channellist_categories">Categories</string>
@@ -596,34 +571,6 @@
     <string name="devices_overview_load_devices_error">We\'re sorry, but something went wrong while loading your devices. Please try again.</string>
     <string name="devices_overview_new_device_btn">Add Additional Device</string>
     <string name="devices_title">Devices</string>
-    <string name="dhl_details_section_toggles_title">What do you want to be notified of?</string>
-    <string name="dhl_disclaimer">Yes, please notify me via ginlo as soon as there is news of my DHL parcels on occasions chosen by me. I agree that my consent to the fulfilment of the terms of my contract with DHL Paket GmbH will be passed onto them. I can at any time withdraw my consent to receive notifications on the occasions determined by me, either through the deactivation of the controls or in settings, by deactivating the entire service.</string>
-    <string name="dhl_disclaimer_header">Privacy:</string>
-    <string name="dhl_error_button_login">Log in</string>
-    <string name="dhl_error_button_register">Register</string>
-    <string name="dhl_error_no_account_errortext">This mobile number isn\'t linked to a DHL customer account.</string>
-    <string name="dhl_error_no_account_text1_hint">Please check that your mobile number has been entered correctly in your DHL customer details and is the same as the number of this smartphone.</string>
-    <string name="dhl_error_no_account_text1_text">We couldn\'t find a DHL customer account to match your mobile number %1$s.</string>
-    <string name="dhl_error_no_account_text1_title">No matching DHL customer account found</string>
-    <string name="dhl_error_no_account_text2_text">Register as a new customer with DHL so that you can receive notifications via ginlo.</string>
-    <string name="dhl_error_no_account_text2_title">Not yet registered with DHL?</string>
-    <string name="dhl_error_no_account_title">Not activated</string>
-    <string name="dhl_error_zipcode_invalid_errortext">This postcode doesn\'t match the DHL customer account.</string>
-    <string name="dhl_error_zipcode_invalid_text1_text">We couldn\'t find a DHL customer account to match your mobile number and the postcode provided.</string>
-    <string name="dhl_error_zipcode_invalid_text1_title">No matching DHL customer account found</string>
-    <string name="dhl_error_zipcode_invalid_text2_text">Register as a new customer with DHL so that you can receive notifications via ginlo.</string>
-    <string name="dhl_error_zipcode_invalid_text2_title">Not yet registered with DHL?</string>
-    <string name="dhl_error_zipcode_invalid_title">Connection failed</string>
-    <string name="dhl_hint">By accepting you agree that your mobile number will be passed onto DHL to check service availability. Your mobile number won\'t be retained by DHL or used for any other purpose.</string>
-    <string name="dhl_text">From now on you can receive notifications of the delivery of your DHL parcels directly via ginlo. Simply activate the new service for your DHL customer account.</string>
-    <string name="dhl_title">Good news for DHL customers</string>
-    <string name="dhl_zipcode_disclaimer">For identification, we need the postcode that you have given to DHL. You\'ll find it in your DHL customer account under \'My details\'.</string>
-    <string name="dhl_zipcode_edittext_empty">Please enter a five-digit postcode</string>
-    <string name="dhl_zipcode_header">Please enter your postcode</string>
-    <string name="dhl_zipcode_link">Log in here</string>
-    <string name="dhl_zipcode_title">Enter postcode</string>
-    <string name="dhl_track_url">https://www.dhl.de/en/privatkunden.html</string>
-    <string name="dhl_track_register_url">https://www.dhl.de/en/privatkunden/anmelden.html</string>
     <string name="dialog_do_not_show_again">Don\'t show again</string>
     <string name="dialog_fingerprint_auth_failed">Fingerprint not recognized</string>
     <string name="dialog_fingerprint_auth_hint">Please confirm with fingerprint.</string>
@@ -703,8 +650,6 @@
     <string name="intro_2_text_2">By continuing, you accept our %1$s.</string>
     <string name="intro_2_text_link">Terms of Use</string>
     <string name="intro_descriptionTextForFirstScreen">ginlo is a messenger service featuring a combination of the maximum possible degree of security and ease of use.</string>
-    <string name="intro_descriptionTextForSecondScreen">Brabbler AG guarantees the security of your data. Powered by Deutsche Post technology. With true end-to-end encryption and hosting in Germany.</string>
-    <string name="intro_descriptionTextForThirdScreen">Now set up your ginlo account and set your password. Your password isn\'t transmitted to us and cannot be reset. So make sure to remember it.</string>
     <string name="intro_nextButtonTitle">Continue</string>
     <string name="intro_nextButtonTitleSubscribe">Accept &amp; Continue</string>
     <string name="intro_skipwarning_terms">Please accept the Terms of Use</string>
@@ -894,7 +839,7 @@
     <string name="registration_button_complexPassword">Complex</string>
     <string name="registration_button_continue">Continue</string>
     <string name="registration_button_simplePassword">Simple</string>
-    <string name="registration_check_simplePassword">Use a Code Instead</string>
+    <string name="registration_check_simplePassword">Prefer to use a PIN</string>
     <string name="registration_confirmTerms_info">Before you start, please familiarize yourself with our Terms of Use.</string>
     <string name="registration_confirmTerms_readButton">Read Terms of Use</string>
     <string name="registration_confirmTerms_switch">I have read the Terms of Use and hereby agree with them.</string>
@@ -907,7 +852,7 @@
     <string name="registration_headline_completeYourProfile">Complete your profile</string>
     <string name="registration_headline_confirmPassword">Repeat password</string>
     <string name="registration_headline_enterPasswordAgain">Please enter your password again</string>
-    <string name="registration_headline_initialPassword">Please set a password to protect your app.</string>
+    <string name="registration_headline_initialPassword">The password you choose is used to protect your ginlo data on this device. Optionally, you can also assign a four-digit PIN.</string>
     <string name="registration_headline_phoneAndCountryCode">Now please enter your mobile number.</string>
     <string name="registration_headline_simplePassword">Use a 4-digit number code instead of a password.</string>
     <string name="registration_input_profileNamePlaceHolder">Display name</string>
@@ -928,7 +873,7 @@
     <string name="registration_title_init_profile">Your Profile</string>
     <string name="registration_title_password">Welcome</string>
     <string name="registration_title_repeatPassword">Confirm Device Password</string>
-    <string name="registration_title_setPassword">Let\'s start with your device password.</string>
+    <string name="registration_title_setPassword">Please assign a device password</string>
     <string name="registration_validation_passwordDoesNotMatch">The passwords don\'t match. Please try again.</string>
     <string name="registration_validation_passwordNotSet">Please set a password.</string>
     <string name="registration_validation_pinIsTooShort">The PIN must consist of 4 characters.</string>
@@ -951,11 +896,11 @@
     <string name="remove_phone_number_yes">Remove mobile number</string>
     <string name="resend_message_error">We\'re sorry, but something went wrong while sending your message. Please try again.</string>
     <string name="resend_message_error_sending_not_allowed">You can’t send messages in this chat.</string>
-    <string name="search_contact_header">Find a User</string>
+    <string name="search_contact_header">Find ginlo user</string>
     <string name="search_contact_header_country">Country</string>
     <string name="search_contact_header_phone_number">Country Code and Mobile Number</string>
-    <string name="search_contact_header_search_by">Search by</string>
-    <string name="search_contact_hint">Search for a ginlo user by mobile number, e-mail address, or ginlo ID.</string>
+    <string name="search_contact_header_search_by">Manually search for:</string>
+    <string name="search_contact_hint">Find and add a new ginlo contact using ginlo ID, email address or phone number. Or just scan the QR invitation code you have received.</string>
     <string name="search_contact_no_contact_found">This is not a ginlo user.</string>
     <string name="search_contact_no_email_found">Let\'s change that. :-) Send an invitation to %1$s now.</string>
     <string name="search_contact_no_phone_found">Let\'s change that. :-) Send an invitation to %1$s now.</string>
@@ -1137,9 +1082,6 @@
     <string name="settings_chats_header_sounds">Sounds</string>
     <string name="settings_chats_title">Chats</string>
     <string name="settings_companydetails">Legal Notice</string>
-    <string name="settings_companydetails_description">Company name:\n\nBrabbler Secure Message and Data Exchange Aktiengesellschaft\n\nRepresented by the Board of Management:\n\nEric Dolatre (CEO)\nJörg Sellmann (CFO)\nImdat Solak (CTO)n\nChairman of the Supervisory Board:\n\nKarsten Schramm\n\nCommercial register:\n\nRegistration Court Munich HRB 217480\n\nVAT identification number:\n\nDE300436559\n\nAddress:\n\nRia-Burkei-Straße 26\n81249 Munich/Germany\ncontact@brabbler.ag\n\nPhone:\n\n 
-+49 89 95 45 94 7-0</string>
-    <string name="settings_companydetails_title">Legal Notice</string>
     <string name="settings_config_automatic_download">Media auto-download</string>
     <string name="settings_config_automatic_download_always">Wi-Fi &amp; mobile data</string>
     <string name="settings_config_automatic_download_files">Files</string>
@@ -1380,4 +1322,6 @@
     <string name="chats_AVC_call_expired">Cannot join the audio/video call</string>
     <string name="intro_2_text_1">Whether in the office or on the go - communicate quickly, directly and reliably. Get started now!</string>
     <string name="send_action_file_send_hint">This may take a long time and will be done in background.</string>
+    <string name="contacts_eMailMessageSubject">Invitation to ginlo, the specialist for absolute privacy and strictly confidential messaging</string>
+    <string name="intro_2_button_ginlo_now">Scan invitation QR code</string>
 </resources>

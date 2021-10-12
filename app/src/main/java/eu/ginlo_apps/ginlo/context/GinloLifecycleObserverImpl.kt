@@ -6,6 +6,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.SystemClock
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.OnLifecycleEvent
@@ -63,7 +64,7 @@ class GinloLifecycleObserverImpl @Inject constructor(private val application: Si
 
         inBackground = false
 
-        LogUtil.d("ForeBack", "APP DID ENTER FOREGROUND")
+        LogUtil.i("GinloLifecycleObserverImpl", "onEnterForeground: APP DID ENTER FOREGROUND")
 
         registeredAppLifecycleCallbacks.forEach { it.appDidEnterForeground() }
 
@@ -76,7 +77,7 @@ class GinloLifecycleObserverImpl @Inject constructor(private val application: Si
 
         inBackground = true
 
-        LogUtil.d("ForeBack", "APP DID ENTER BACKGROUND")
+        LogUtil.i("OnLifeGinloLifecycleObserverImplcycleEvent", "onEnterBackground: APP DID ENTER BACKGROUND")
 
         registeredAppLifecycleCallbacks.forEach { it.appGoesToBackGround() }
 
@@ -90,7 +91,7 @@ class GinloLifecycleObserverImpl @Inject constructor(private val application: Si
     }
 
     override fun startLogoutService(isMinimumOneMinute: Boolean) {
-        LogUtil.i("Logout", "startLogoutService")
+        LogUtil.i("GinloLifecycleObserverImpl", "startLogoutService")
 
         if (application.loginController.state != LoginController.STATE_LOGGED_IN) return
 
@@ -108,7 +109,7 @@ class GinloLifecycleObserverImpl @Inject constructor(private val application: Si
             val startTime =
                 SystemClock.elapsedRealtime() + checkPasswordAfter * 1000 * if (BuildConfig.DEBUG) 30 else 60
 
-            if (checkPasswordAfter > 1 && SystemUtil.hasMarshmallow()) {
+            if (checkPasswordAfter > 1 && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
                 alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, startTime, logoutIntent)
             } else {
                 alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, startTime, logoutIntent)

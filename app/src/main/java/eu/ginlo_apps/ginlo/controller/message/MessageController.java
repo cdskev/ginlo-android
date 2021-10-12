@@ -91,9 +91,9 @@ import eu.ginlo_apps.ginlo.model.backend.action.ConfirmV1Action;
 import eu.ginlo_apps.ginlo.model.backend.serialization.ChannelMessageModelDeserializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.ChannelMessageModelSerializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.ConfirmMessageSendModelDeserializer;
-import eu.ginlo_apps.ginlo.model.backend.serialization.GroupInvMessageModelDeserializer;
+//import eu.ginlo_apps.ginlo.model.backend.serialization.GroupInvMessageModelDeserializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.GroupInvMessageModelSerializer;
-import eu.ginlo_apps.ginlo.model.backend.serialization.GroupMessageModelDeserializer;
+//import eu.ginlo_apps.ginlo.model.backend.serialization.GroupMessageModelDeserializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.GroupMessageModelSerializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.InternalMessageModelDeserializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.KeyContainerModelDeserializer;
@@ -101,7 +101,7 @@ import eu.ginlo_apps.ginlo.model.backend.serialization.KeyContainerModelSerializ
 import eu.ginlo_apps.ginlo.model.backend.serialization.MessageDeserializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.PrivateInternalMessageModelDeserializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.PrivateInternalMessageModelSerializer;
-import eu.ginlo_apps.ginlo.model.backend.serialization.PrivateMessageModelDeserializer;
+//import eu.ginlo_apps.ginlo.model.backend.serialization.PrivateMessageModelDeserializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.PrivateMessageModelSerializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.SignatureModelDeserializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.SignatureModelSerializer;
@@ -165,22 +165,26 @@ public class MessageController
 
         final GsonBuilder gsonBuilder = new GsonBuilder();
 
+        // KS: The commented out deserializers seem not to be used anymore. Replaced by generic MessageDeserializer?
+        // TODO: Must further investigate on this.
+
         gsonBuilder.registerTypeAdapter(PrivateMessageModel.class, new PrivateMessageModelSerializer());
-        gsonBuilder.registerTypeAdapter(PrivateMessageModel.class, new PrivateMessageModelDeserializer());
+        //gsonBuilder.registerTypeAdapter(PrivateMessageModel.class, new PrivateMessageModelDeserializer());
         gsonBuilder.registerTypeAdapter(PrivateInternalMessageModel.class, new PrivateInternalMessageModelSerializer());
-        gsonBuilder.registerTypeAdapter(PrivateInternalMessageModel.class, new PrivateInternalMessageModelDeserializer());
+        //gsonBuilder.registerTypeAdapter(PrivateInternalMessageModel.class, new PrivateInternalMessageModelDeserializer());
         gsonBuilder.registerTypeAdapter(GroupMessageModel.class, new GroupMessageModelSerializer());
-        gsonBuilder.registerTypeAdapter(GroupMessageModel.class, new GroupMessageModelDeserializer());
+        //gsonBuilder.registerTypeAdapter(GroupMessageModel.class, new GroupMessageModelDeserializer());
         gsonBuilder.registerTypeAdapter(GroupInvMessageModel.class, new GroupInvMessageModelSerializer());
-        gsonBuilder.registerTypeAdapter(GroupInvMessageModel.class, new GroupInvMessageModelDeserializer());
+        //gsonBuilder.registerTypeAdapter(GroupInvMessageModel.class, new GroupInvMessageModelDeserializer());
         gsonBuilder.registerTypeAdapter(KeyContainerModel.class, new KeyContainerModelSerializer());
-        gsonBuilder.registerTypeAdapter(KeyContainerModel.class, new KeyContainerModelDeserializer());
+        //gsonBuilder.registerTypeAdapter(KeyContainerModel.class, new KeyContainerModelDeserializer());
         gsonBuilder.registerTypeAdapter(SignatureModel.class, new SignatureModelSerializer());
         gsonBuilder.registerTypeAdapter(SignatureModel.class, new SignatureModelDeserializer());
-        gsonBuilder.registerTypeAdapter(InternalMessageModel.class, new InternalMessageModelDeserializer());
+        //gsonBuilder.registerTypeAdapter(InternalMessageModel.class, new InternalMessageModelDeserializer());
         gsonBuilder.registerTypeAdapter(ConfirmMessageSendModel.class, new ConfirmMessageSendModelDeserializer());
-        gsonBuilder.registerTypeAdapter(ChannelMessageModel.class, new ChannelMessageModelDeserializer());
+        //gsonBuilder.registerTypeAdapter(ChannelMessageModel.class, new ChannelMessageModelDeserializer());
         gsonBuilder.registerTypeAdapter(ChannelMessageModel.class, new ChannelMessageModelSerializer());
+
         gsonBuilder.registerTypeAdapter(Message.class, new MessageDeserializer(application.getAccountController()));
         gson = gsonBuilder.create();
 

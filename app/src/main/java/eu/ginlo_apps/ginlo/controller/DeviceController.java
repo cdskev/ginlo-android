@@ -15,6 +15,7 @@ import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.query.QueryBuilder;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -318,11 +319,7 @@ public class DeviceController {
 
         final String deviceNameEncoded;
 
-        try {
-            deviceNameEncoded = Base64.encodeToString(deviceName.getBytes(Encoding.UTF8), Base64.DEFAULT);
-        } catch (UnsupportedEncodingException e) {
-            throw new LocalizedException(LocalizedException.UNSUPPORTED_ENCODING_EXCEPTION, "Unsupported Encoding", e);
-        }
+        deviceNameEncoded = Base64.encodeToString(deviceName.getBytes(StandardCharsets.UTF_8), Base64.DEFAULT);
 
         mSetDeviceNameTask = new AsyncHttpTask<>(new AsyncHttpTask.AsyncHttpCallback<Void>() {
             @Override

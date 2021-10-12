@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Parcelable;
 import android.provider.MediaStore;
@@ -195,7 +196,7 @@ public class FileUtil {
             throws LocalizedException {
         try {
             File tmpFile;
-            if (SystemUtil.hasNougat()) {
+            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)) {
                 tmpFile = createTmpFile(mTmpFilesDir);
             } else {
                 File cacheDir = context.getExternalCacheDir();
@@ -214,7 +215,7 @@ public class FileUtil {
     @NonNull
     public Uri getUriForExternalUsageFromFile(@NonNull File file) {
         final Uri uri;
-        if (SystemUtil.hasNougat()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)) {
             uri = getFileProviderUriFromFile(file);
         } else {
             uri = Uri.fromFile(file);
@@ -811,7 +812,7 @@ public class FileUtil {
             }
         }
 
-        LogUtil.d(TAG, "getUrisFromIntent: Finally got " + returnValue.toString());
+        LogUtil.d(TAG, "getUrisFromIntent: Finally got " + returnValue);
         return returnValue;
     }
 

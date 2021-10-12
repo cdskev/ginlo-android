@@ -210,16 +210,17 @@ public class PurchaseLicenseActivity extends BaseActivity {
                             continue;
                         }
                         JsonObject product = outerProduct.getAsJsonObject("Product");
-                        String feature = product.get("feature").getAsString();
-                        if (!feature.equalsIgnoreCase("usage")) {
-                            continue;
+                        if(product.has("feature")) {
+                            String feature = product.get("feature").getAsString();
+                            if (!feature.equalsIgnoreCase("usage")) {
+                                continue;
+                            }
                         }
-                        String os = product.get("os").getAsString();
-                        if (os.equalsIgnoreCase("Android")) {
-                            String productId = product.get("productId").getAsString();
-                            String duration = null;
-                            if (product.has("duration")) {
-                                duration = product.get("duration").getAsString();
+                        String os = product.has("os") ? product.get("os").getAsString() : null;
+                        if (os != null && os.equalsIgnoreCase("Android")) {
+                            String productId = product.has("productId") ? product.get("productId").getAsString() : "";
+                            String duration = product.has("duration") ? product.get("duration").getAsString() : null;
+                            if (duration != null) {
                                 try {
 
                                     if (Long.parseLong(duration) > 0 && Long.parseLong(duration) < 40) {

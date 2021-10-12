@@ -468,7 +468,7 @@ public class AccountController extends AccountControllerBase implements Preferen
                                     @Override
                                     public void onBackendResponse(final BackendResponse response) {
                                         if (!response.isError) {
-                                            mMailAdd = jo.get(EMAIL_ATTRIBUTES_EMAIL).getAsString();
+                                            mMailAdd = jo.has(EMAIL_ATTRIBUTES_EMAIL) ? jo.get(EMAIL_ATTRIBUTES_EMAIL).getAsString() : null;
                                         } else {
                                             if (response.msgException != null) {
                                                 mErrorText = response.msgException.getIdent();
@@ -545,11 +545,12 @@ public class AccountController extends AccountControllerBase implements Preferen
                         if (listener != null) {
                             listener.onFail(getResources().getString(R.string.service_tryAgainLater), false);
                         }
-                        LogUtil.w(AccountController.class.getSimpleName(), "requestConfirmEmail failed -> result is null");
+                        LogUtil.w(AccountController.class.getSimpleName(), "requestConfirmationMail: Response is null!");
                         return;
                     }
 
                     String result = response.jsonArray.get(0).getAsString();
+                    LogUtil.d(AccountController.class.getSimpleName(), "requestConfirmationMail: Response is " + response.jsonArray.get(0).toString());
 
                     try {
                         mAccount.setCustomStringAttribute(PENDING_EMAIL_ADDRESS, email);
@@ -719,7 +720,8 @@ public class AccountController extends AccountControllerBase implements Preferen
                             final String companyJson = jObj.toString();
                             if (!StringUtil.isNullOrEmpty(companyJson)) {
                                 // einmal parsen, um das JsonObjekt zu validieren
-                                gson.fromJson(companyJson, CompanyLayoutModel.class);
+                                // KS: not possible - object is not exactly what we receive from server
+                                //gson.fromJson(companyJson, CompanyLayoutModel.class);
                                 mApplication.getPreferencesController().getSharedPreferences().edit().putString(ColorUtil.COMPANY_LAYOUT_JSON, companyJson).apply();
                             }
                         } catch (final JsonParseException je) {
@@ -1780,7 +1782,7 @@ public class AccountController extends AccountControllerBase implements Preferen
                     }
                     if (identities.has("confirmedPhone")) {
                         JsonArray a = identities.get("confirmedPhone").getAsJsonArray();
-                        if (a.size() >= 1) {
+                        if (a != null && a.size() >= 1) {
                             //  Telefonnummer entschlüsseln und speisetchern
                             String encryptedConfirmedPhone = a.get(0).getAsString();
                             KeyPair keyPair = getAccountKeyPair();
@@ -1833,7 +1835,7 @@ public class AccountController extends AccountControllerBase implements Preferen
                     }
                     if (identities.has("pendingPhone")) {
                         JsonArray a = identities.get("pendingPhone").getAsJsonArray();
-                        if (a.size() >= 1) {
+                        if (a != null && a.size() >= 1) {
 
                             // Telefonnummer entschlüsseln und speichern
                             String encryptedConfirmedPhone = a.get(0).getAsString();
@@ -1861,7 +1863,7 @@ public class AccountController extends AccountControllerBase implements Preferen
                     }
                     if (identities.has("confirmedMail")) {
                         JsonArray a = identities.get("confirmedMail").getAsJsonArray();
-                        if (a.size() == 1) {
+                        if (a != null && a.size() == 1) {
                             // EMail entschlüsseln und speichern
                             String encryptedMail = a.get(0).getAsString();
                             KeyPair keyPair = getAccountKeyPair();
@@ -1912,7 +1914,7 @@ public class AccountController extends AccountControllerBase implements Preferen
                     }
                     if (identities.has("pendingMail")) {
                         JsonArray a = identities.get("pendingMail").getAsJsonArray();
-                        if (a.size() == 1) {
+                        if (a != null && a.size() == 1) {
                             // EMail entschlüsseln und speichern
                             String encryptedMail = a.get(0).getAsString();
                             KeyPair keyPair = getAccountKeyPair();

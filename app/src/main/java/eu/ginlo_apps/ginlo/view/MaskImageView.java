@@ -19,6 +19,10 @@ public class MaskImageView
     private Bitmap mask;
 
     private boolean mForceNoMask;
+    private float mMaskRatio = 0.0f;
+    private float mIndicatorBubbleRadiusFactor = 0.0f;
+    private int mIndicatorBubbleColor = -1;
+
 
     public MaskImageView(Context context) {
         super(context);
@@ -48,22 +52,39 @@ public class MaskImageView
         }
 
         if ((mask != null) && !mForceNoMask) {
-            PorterDuffXfermode xferModeDstIn = new PorterDuffXfermode(Mode.DST_IN);
-            Bitmap result = Bitmap.createBitmap(mask.getWidth(), mask.getHeight(), Config.ARGB_8888);
+            Bitmap b;
 
-            float xoffset = (mask.getWidth() - bitmap.getWidth()) / 2;
-            float yoffset = (mask.getHeight() - bitmap.getHeight()) / 2;
+            if(mMaskRatio != 0.0f) {
+                // Scale the given bitmap to match mask size and optionally modify the extract.
+                // Zoom out (ratio < 1), keep original (ratio = 1) or zoom in (ratio > 1).
+                b = Bitmap.createScaledBitmap(bitmap, (int)(mask.getWidth() * mMaskRatio), (int)(mask.getHeight() * mMaskRatio), false);
+            } else {
+                b = bitmap;
+            }
 
-            Canvas customCanvas = new Canvas(result);
+            Bitmap resultBmp = Bitmap.createBitmap(mask.getWidth(), mask.getHeight(), Config.ARGB_8888);
+            Canvas customCanvas = new Canvas(resultBmp);
 
-            customCanvas.drawBitmap(bitmap, xoffset, yoffset, null);
+            float xOffset = (float) (resultBmp.getWidth() - b.getWidth()) / 2;
+            float yOffset = (float) (resultBmp.getHeight() - b.getHeight()) / 2;
+
+            customCanvas.drawBitmap(b, xOffset, yOffset, null);
 
             Paint paint = new Paint();
-
-            paint.setXfermode(xferModeDstIn);
-
+            paint.setXfermode(new PorterDuffXfermode(Mode.DST_IN));
             customCanvas.drawBitmap(mask, 0, 0, paint);
-            super.setImageBitmap(result);
+
+            if(mIndicatorBubbleRadiusFactor > 0.0f) {
+                paint.setXfermode(new PorterDuffXfermode(Mode.SRC_OVER));
+                paint.setColor(mIndicatorBubbleColor);
+
+                customCanvas.drawCircle(mask.getWidth() * (1 - mIndicatorBubbleRadiusFactor),
+                        mask.getHeight() * mIndicatorBubbleRadiusFactor,
+                        mask.getHeight() * (mIndicatorBubbleRadiusFactor), paint);
+
+            }
+
+            super.setImageBitmap(resultBmp);
         } else {
             super.setImageBitmap(bitmap);
         }
@@ -98,8 +119,8 @@ public class MaskImageView
 
             result = Bitmap.createBitmap(mask.getWidth(), mask.getHeight(), Config.ARGB_8888);
 
-            float xoffset = (mask.getWidth() - bitmap.getWidth()) / 2;
-            float yoffset = (mask.getHeight() - bitmap.getHeight()) / 2;
+            float xoffset = (float)(mask.getWidth() - bitmap.getWidth()) / 2;
+            float yoffset = (float)(mask.getHeight() - bitmap.getHeight()) / 2;
 
             Canvas customCanvas = new Canvas(result);
 
@@ -129,7 +150,6 @@ public class MaskImageView
                 mask = ((BitmapDrawable) maskDrawable).getBitmap();
             }
         }
-        typedArray.recycle();
     }
 
     private void setMaskBitmap(Context context,
@@ -148,4 +168,27 @@ public class MaskImageView
     public void setForceNoMask(boolean forceNoMask) {
         mForceNoMask = forceNoMask;
     }
+
+    /**
+     * Set a mask size ratio for the given image bitmap.
+     * = 1 - original image will be rescaled to match mask
+     * < 1 - image will be shrinked resulting in a zoom-out
+     * > 1 - image will be enlarged resulting in a zoom-in
+     * @param maskRatio
+     */
+    public void setMaskRatio(float maskRatio) {
+        mMaskRatio = maskRatio;
+    }
+
+    /**
+     * Set (relative) size and color of an optional indicator bubble
+     * The bubble appears in the upper right corner of the image.
+     * @param radiusFactor
+     * @param color
+     */
+    public void setIndicatorBubble(float radiusFactor, int color) {
+        mIndicatorBubbleRadiusFactor = radiusFactor;
+        mIndicatorBubbleColor = color;
+    }
+
 }

@@ -119,7 +119,6 @@
 
     </RelativeLayout>
 
-
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -145,32 +144,27 @@
 
             <LinearLayout
                 android:id="@+id/toolbar_title_container"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackground"
                 android:gravity="start|center"
                 android:orientation="vertical">
-
 
                 <eu.ginlo_apps.ginlo.view.EmojiconMediumTextView
                     android:id="@+id/toolbar_title"
                     style="@style/TitleTextViewStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginStart="@dimen/activity_horizontal_margin"
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:singleLine="true"
-                    android:text=""
-                    android:textAlignment="center"
+                    android:text="Toolbar Title"
                     android:visibility="visible" />
                 <!-- fontsize in DP ist Absicht wegen Animation!!-->
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/toolbar_secondary_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/activity_horizontal_margin"
                     android:ellipsize="start"
                     android:singleLine="true"
                     android:text="Status"
@@ -178,8 +172,6 @@
                     android:textStyle="italic"
                     android:visibility="gone"
                     tools:ignore="SpUsage" />
-
-
             </LinearLayout>
 
             <RelativeLayout
@@ -197,7 +189,6 @@
                     android:maxHeight="48dp"
                     android:scaleType="center"
                     android:visibility="gone" />
-
             </RelativeLayout>
 
             <RelativeLayout

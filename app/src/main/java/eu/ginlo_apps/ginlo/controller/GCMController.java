@@ -284,7 +284,7 @@ public class GCMController {
 
         private final SimsMeApplication application;
         private final GenericActionListener<Void> listener;
-        private String fcmToken;
+        private final String fcmToken;
 
         RegistrationTask(
             @NonNull final SimsMeApplication context,

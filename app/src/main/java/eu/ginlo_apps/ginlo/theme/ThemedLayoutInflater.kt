@@ -18,10 +18,12 @@ import android.widget.TextView
 import androidx.appcompat.widget.AppCompatButton
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.emoji.widget.EmojiAppCompatTextView
+import androidx.appcompat.widget.AppCompatImageView
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.util.ColorUtil
 import eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview
 import eu.ginlo_apps.ginlo.view.EmojiconMediumTextView
+import eu.ginlo_apps.ginlo.view.MaskImageView
 
 class ThemedLayoutInflater(
         private val context: Context?,
@@ -62,7 +64,8 @@ class ThemedLayoutInflater(
 
         val imageViewTypes = listOf(
                 "ImageView",
-                "androidx.appcompat.widget.AppCompatImageView"
+                "androidx.appcompat.widget.AppCompatImageView",
+                "eu.ginlo_apps.ginlo.view.MaskImageView"
         )
 
         val editTextViewTypes = listOf(
@@ -90,7 +93,7 @@ class ThemedLayoutInflater(
                 else -> parentFactory2.onCreateView(view, s, context, attributeSet)
             }
         } finally {
-            styledAttributes.recycle()
+            // styledAttributes.recycle()
         }
     }
 
@@ -153,7 +156,9 @@ class ThemedLayoutInflater(
             if (s == "ImageView") {
                 rc = ImageView(context, attributeSet)
             } else if (s == "androidx.appcompat.widget.AppCompatImageView") {
-                rc = androidx.appcompat.widget.AppCompatImageView(context, attributeSet)
+                rc = AppCompatImageView(context, attributeSet)
+            } else if (s == "eu.ginlo_apps.ginlo.view.MaskImageView") {
+                rc = MaskImageView(context, attributeSet)
             }
         }
         if (rc != null) {

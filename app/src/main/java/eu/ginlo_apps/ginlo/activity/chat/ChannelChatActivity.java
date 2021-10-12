@@ -60,6 +60,7 @@ import eu.ginlo_apps.ginlo.model.chat.ChannelChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.ChannelSelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.util.ChannelColorUtil;
+import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.ImageLoader;
@@ -178,7 +179,7 @@ public class ChannelChatActivity
 
     protected void hideToolbarOptions() {
         super.hideToolbarOptions();
-        mToolbarOptionsLayout.setBackgroundColor(getResources().getColor(R.color.actionbar_color));
+        mToolbarOptionsLayout.setBackgroundColor(ColorUtil.getInstance().getToolbarColor(getSimsMeApplication()));
     }
 
     @Override
@@ -369,16 +370,11 @@ public class ChannelChatActivity
 
     @Override
     public void onChatDataLoaded(final long lastMessageId) {
-        boolean bScrollToEnd = false;
         if (mLastMessageId == LAST_MESSAGE_ID_INITIAL_VALUE) {
             mLastMessageId = ChatController.NO_MESSAGE_ID_FOUND;
-            bScrollToEnd = true;
         }
         super.onChatDataLoaded(lastMessageId);
-
-        if (bScrollToEnd) {
-            scrollToEnd();
-        }
+        scrollToEnd();
     }
 
     public void onUnsubscribeClicked(final View v) {

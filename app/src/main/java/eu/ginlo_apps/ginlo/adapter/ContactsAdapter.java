@@ -18,6 +18,7 @@ import android.widget.RelativeLayout;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.ColorUtils;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
@@ -50,7 +51,6 @@ public class ContactsAdapter
         extends ArrayAdapter<Contact>
         implements SectionIndexer {
 
-    private static final int NO_COLOR_DEFINED = -1;
     private final Context mContext;
     private final List<Contact> mContacts;
     private final ContactController mContactController;
@@ -64,20 +64,18 @@ public class ContactsAdapter
     private Account mAccount;
     private ImageLoader mImageLoader;
     private String mGroupChatOwnerGuid;
-    private int mHighLevelColor;
 
-    private int mMediumLevelColor;
-
-    private int mLowLevelColor;
-
-    private int mMainColor;
+    private final int mHighLevelColor;
+    private final int mMediumLevelColor;
+    private final int mLowLevelColor;
+    private final int mMainColor;
 
     private LayoutInflater mInflater;
 
     private ISelectedContacts mSelectedContacts;
 
-    private Drawable mCheckDrawable;
-    private boolean mIsCheckAnAddAction;
+    private final Drawable mCheckDrawable;
+    private final boolean mIsCheckAnAddAction;
 
     /**
      *
@@ -91,7 +89,6 @@ public class ContactsAdapter
         super(context, resource, contacts);
 
         this.mContacts = new ArrayList<>(contacts);
-
         this.mContext = context;
         this.mResource = resource;
 
@@ -211,14 +208,14 @@ public class ContactsAdapter
                         cestionTitleContainer.setVisibility(View.VISIBLE);
                         if (state == null) {
                             sectionTitleText.setText(R.string.message_info_sent);
-                            sectionTitleImage.setImageDrawable(getContext().getResources().getDrawable(R.drawable.send_1));
+                            sectionTitleImage.setImageDrawable(ResourcesCompat.getDrawable(getContext().getResources(), R.drawable.send_1, null));
                         } else if (!state) {
                             sectionTitleText.setText(R.string.message_info_delivered);
-                            sectionTitleImage.setImageDrawable(getContext().getResources().getDrawable(R.drawable.send_2));
+                            sectionTitleImage.setImageDrawable(ResourcesCompat.getDrawable(getContext().getResources(), R.drawable.send_2, null));
                         } else // true
                         {
                             sectionTitleText.setText(R.string.message_info_read);
-                            sectionTitleImage.setImageDrawable(getContext().getResources().getDrawable(R.drawable.send_3));
+                            sectionTitleImage.setImageDrawable(ResourcesCompat.getDrawable(getContext().getResources(), R.drawable.send_3, null));
                         }
                     } else {
                         cestionTitleContainer.setVisibility(View.GONE);
@@ -288,27 +285,15 @@ public class ContactsAdapter
             if (trustedStateDivider != null) {
                 switch (contact.getState()) {
                     case Contact.STATE_HIGH_TRUST:
-                        if (mHighLevelColor != NO_COLOR_DEFINED) {
-                            trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getHighColor((Application) getContext().getApplicationContext()));
-                        } else {
-                            trustedStateDivider.setBackgroundColor(getContext().getResources().getColor(R.color.kColorSecLevelHigh));
-                        }
+                        trustedStateDivider.setBackgroundColor(mHighLevelColor);
                         trustedStateDivider.setVisibility(View.VISIBLE);
                         break;
                     case Contact.STATE_MIDDLE_TRUST:
-                        if (mMediumLevelColor != NO_COLOR_DEFINED) {
-                            trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getMediumColor((Application) getContext().getApplicationContext()));
-                        } else {
-                            trustedStateDivider.setBackgroundColor(getContext().getResources().getColor(R.color.kColorSecLevelMed));
-                        }
+                        trustedStateDivider.setBackgroundColor(mMediumLevelColor);
                         trustedStateDivider.setVisibility(View.VISIBLE);
                         break;
                     case Contact.STATE_LOW_TRUST:
-                        if (mLowLevelColor != NO_COLOR_DEFINED) {
-                            trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getLowColor((Application) getContext().getApplicationContext()));
-                        } else {
-                            trustedStateDivider.setBackgroundColor(getContext().getResources().getColor(R.color.kColorSecLevelLow));
-                        }
+                        trustedStateDivider.setBackgroundColor(mLowLevelColor);
                         trustedStateDivider.setVisibility(View.VISIBLE);
                         break;
                     case Contact.STATE_UNSIMSABLE: {

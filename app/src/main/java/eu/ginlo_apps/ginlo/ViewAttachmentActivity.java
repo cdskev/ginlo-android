@@ -294,6 +294,31 @@ public class ViewAttachmentActivity
             @Override
             public void permissionResult(final int permission, final boolean permissionGranted) {
                 if (permission == PermissionUtil.PERMISSION_FOR_WRITE_EXTERNAL_STORAGE && permissionGranted) {
+                    // KS: It is not possible for the user to save the original image file. For security or other reasons?
+                    // For now we use savePhoto() below to ensure that recipients always save the original image content.
+                    /*
+                    if (bitmap != null) {
+                        final FileUtil fileUtil = new FileUtil(ViewAttachmentActivity.this);
+                        OutputStream out = null;
+                        final File tmp;
+
+                        try {
+                            tmp = fileUtil.getTempFile();
+                            out = new FileOutputStream(tmp);
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, out);
+                            out.flush();
+
+                            fileUtil.savePhoto(Uri.fromFile(tmp), attachmentIdentTag);
+
+                            if (showToast) {
+                                Toast.makeText(ViewAttachmentActivity.this, R.string.dialog_saveToGallery_bitmap_finished, Toast.LENGTH_LONG).show();
+                            }
+                        } catch (final IOException e) {
+                            LogUtil.e(TAG, e.getMessage(), e);
+                        } finally {
+                            StreamUtil.closeStream(out);
+                        }
+                     */
                     if (imageUri != null) {
                         (new FileUtil(ViewAttachmentActivity.this)).savePhoto(imageUri, attachmentIdentTag);
 

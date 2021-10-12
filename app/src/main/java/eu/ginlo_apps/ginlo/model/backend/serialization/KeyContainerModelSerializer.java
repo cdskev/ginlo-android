@@ -34,15 +34,6 @@ public class KeyContainerModelSerializer
             innerContainerObject.addProperty("nickname", keyContainerModel.nickname);
         }
 
-        if (!StringUtil.isNullOrEmpty(keyContainerModel.tempDeviceGuid)) {
-            final JsonObject tempDeviceObject = new JsonObject();
-            tempDeviceObject.addProperty("guid", keyContainerModel.tempDeviceGuid);
-            tempDeviceObject.addProperty("key", keyContainerModel.tempDeviceKey);
-            tempDeviceObject.addProperty("key2", keyContainerModel.tempDeviceKey2);
-
-            innerContainerObject.add("tempDevice", tempDeviceObject);
-        }
-
         keyContainerObject.add(keyContainerModel.guid, innerContainerObject);
 
         return keyContainerObject;

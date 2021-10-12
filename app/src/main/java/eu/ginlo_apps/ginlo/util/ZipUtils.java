@@ -137,6 +137,6 @@ public class ZipUtils {
     }
 
     private String generateZipEntry(String file) {
-        return file.substring(mSourcePath.length() + 1, file.length());
+        return file.substring(mSourcePath.length() + 1);
     }
 }

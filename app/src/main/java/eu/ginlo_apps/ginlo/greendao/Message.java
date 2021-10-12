@@ -775,34 +775,6 @@ public class Message
         mIsBackup = isBackup;
     }
 
-    public String getSignatureTemp256() {
-        JsonElement e = this.getElementFromAttributes("signature-temp256");
-        if (!(e instanceof JsonObject)) {
-            return null;
-        }
-        return e.toString();
-    }
-
-    public void setSignatureTemp256(JsonElement signatureSha256) {
-        this.setElementToAttributes("signature-temp256", signatureSha256);
-    }
-
-    public void setFromTempDeviceInfo(JsonElement tempDeviceInfo) {
-        this.setElementToAttributes("fromTempDeviceInfo", tempDeviceInfo);
-    }
-
-    public void setToTempDeviceInfo(JsonElement tempDeviceInfo) {
-        this.setElementToAttributes("toTempDeviceInfo", tempDeviceInfo);
-    }
-
-    public String getFromTempDeviceGuid() {
-        JsonElement e = this.getElementFromAttributes("fromTempDeviceInfo");
-        if (!(e instanceof JsonObject)) {
-            return null;
-        }
-        return ((JsonObject) e).get("guid").getAsString();
-    }
-
     public void setServerMimeTye(String mimeType) {
         JsonElement e = new JsonPrimitive(mimeType);
         this.setElementToAttributes("serverMimeType", e);

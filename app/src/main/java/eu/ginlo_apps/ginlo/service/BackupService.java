@@ -15,9 +15,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
 import eu.ginlo_apps.ginlo.BuildConfig;
+import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
 import eu.ginlo_apps.ginlo.controller.LocalBackupHelper;
+import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.controller.message.SingleChatController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -69,6 +71,7 @@ public class BackupService extends IntentService {
     // Defines and instantiates an object for handling status updates.
     private final BroadcastNotifier mBroadcaster = new BroadcastNotifier(this, AppConstants.BROADCAST_ACTION);
     private SimsMeApplication mApplication = null;
+    private NotificationController mNotificationController = null;
     private FileUtil mFileUtil;
     private File mBackupDir;
     private SecretKey mBackUpAesKey;
@@ -76,6 +79,7 @@ public class BackupService extends IntentService {
     private String mErrorText;
     private String mBackupPasstoken;
     private boolean mSaveMedia;
+    private boolean mBackupRunning;
 
     public BackupService() {
         super("BackupService");
@@ -90,9 +94,12 @@ public class BackupService extends IntentService {
         Application app = this.getApplication();
         if (app instanceof SimsMeApplication) {
             mApplication = (SimsMeApplication) app;
+            mNotificationController = mApplication.getNotificationController();
         }
+        mBackupRunning = false;
     }
 
+    /* KS: ???
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -106,7 +113,7 @@ public class BackupService extends IntentService {
         }
     }
 
-
+     */
 
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -121,9 +128,16 @@ public class BackupService extends IntentService {
             }
         }
 
+        if(mBackupRunning) {
+            LogUtil.w(TAG, "onHandleIntent: Backup already running, exiting!");
+            return;
+        }
+
         PowerManager pm = (PowerManager) mApplication.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wl = pm.newWakeLock(WAKELOCK_FLAGS, WAKELOCK_TAG);
         wl.acquire(30*60*1000L /*30 minutes to be sure*/);
+
+        mNotificationController.showOngoingServiceNotification(mApplication.getString(R.string.settings_backup_config_create_backup));
 
         try {
             mSaveMedia = mApplication.getPreferencesController().getSaveMediaInBackup();
@@ -180,11 +194,17 @@ public class BackupService extends IntentService {
                     LogUtil.w(TAG, "BackupService: Wakelock held!");
                 }
             }
+            mBackupRunning = false;
+            mNotificationController.dismissOngoingNotification();
         }
     }
 
     private void loadBackupKey() throws LocalizedException {
         String base64KeyBytes = mApplication.getPreferencesController().getBackupKey();
+        if(base64KeyBytes == null) {
+            LogUtil.e(TAG, "loadBackupKey: BackupKey = null!");
+            throw new LocalizedException(LocalizedException.OBJECT_NULL);
+        }
 
         mBackUpAesKey = SecurityUtil.getAESKeyFromBase64String(base64KeyBytes);
     }
@@ -280,7 +300,7 @@ public class BackupService extends IntentService {
 
         Gson gson = gsonBuilder.create();
 
-        JsonElement accountInJson = mApplication.getBackupController().accountBackup(false, false);
+        JsonElement accountInJson = mApplication.getBackupController().accountBackup(false);
 
         if (accountInJson == null || !accountInJson.isJsonObject()) {
             throw new LocalizedException(LocalizedException.BACKUP_JSON_OBJECT_NULL, "Account JSON Object NULL");

@@ -66,9 +66,9 @@ public class GetMessagesTask
     private MsgExceptionModel mMsgExceptionModel;
     private List<Message> mLoadedMessagesInBg;
     private List<String> mSendMessages;
-    private Gson gson = new Gson();
+    private final Gson gson = new Gson();
 
-    private boolean mOnlyPrioMsg;
+    private final boolean mOnlyPrioMsg;
 
     public GetMessagesTask(
         final SimsMeApplication application,
@@ -232,37 +232,40 @@ public class GetMessagesTask
                 }
 
                 Message message = parseMessage(messageJsonContainer);
-                final String messageType = message.getServerMimeType();
 
-                if(messageType != null) {
-                    LogUtil.i(TAG, "Message with messageType " + messageType + " received.");
+                if(message != null) {
+                    final String messageMimeType = message.getServerMimeType();
 
-                    switch(messageType) {
-                        case MimeType.APP_GINLO_CONTROL:
-                            // KS: if SHOW_AGC_MESSAGES is set we process APP_GINLO_CONTROL (AGC) messages
-                            // and allow for saving them to the database for further processing, even if
-                            // they are control messages.
-                            LogUtil.i(TAG, "APP_GINLO_CONTROL - dismiss call notification.");
-                            mNotificationController.dismissNotification(NotificationController.AVC_NOTIFICATION_ID);
+                    if (messageMimeType != null) {
+                        LogUtil.i(TAG, "Message with messageMimeType " + messageMimeType + " received.");
 
-                            if(BuildConfig.SHOW_AGC_MESSAGES) {
-                                // Prevent this message from being pushed
-                                message.setPushInfo("nopush");
-                                message.setRead(true);
-                            } else {
-                                // Don't do further message processing
-                                message = null;
-                            }
-                            break;
-                        case MimeType.TEXT_V_CALL:
-                            // Don't push old AVC messages
-                            final long now = new Date().getTime();
-                            if(message.getDateSend() + NotificationController.DISMISS_NOTIFICATION_TIMEOUT < now) {
-                                LogUtil.i(TAG, "Older AVC message - no notification!");
-                                message.setPushInfo("nopush");
-                                //message.setRead(true);
-                            }
-                            break;
+                        switch (messageMimeType) {
+                            case MimeType.APP_GINLO_CONTROL:
+                                // KS: if SHOW_AGC_MESSAGES is set we process APP_GINLO_CONTROL (AGC) messages
+                                // and allow for saving them to the database for further processing, even if
+                                // they are control messages.
+                                LogUtil.i(TAG, "APP_GINLO_CONTROL - dismiss call notification.");
+                                mNotificationController.dismissNotification(NotificationController.AVC_NOTIFICATION_ID);
+
+                                if (BuildConfig.SHOW_AGC_MESSAGES) {
+                                    // Prevent this message from being pushed
+                                    message.setPushInfo("nopush");
+                                    message.setRead(true);
+                                } else {
+                                    // Don't do further message processing
+                                    message = null;
+                                }
+                                break;
+                            case MimeType.TEXT_V_CALL:
+                                // Don't push old AVC messages
+                                final long now = new Date().getTime();
+                                if (message.getDateSend() + NotificationController.DISMISS_NOTIFICATION_TIMEOUT < now) {
+                                    LogUtil.i(TAG, "Older AVC message - no notification!");
+                                    message.setPushInfo("nopush");
+                                    //message.setRead(true);
+                                }
+                                break;
+                        }
                     }
                 }
 
@@ -307,7 +310,12 @@ public class GetMessagesTask
         }
     }
 
-    private void processReadReceipt(@NotNull ConfirmReadReceipt.InternalMessage readReceiptMessage) {
+    private void processReadReceipt(ConfirmReadReceipt.InternalMessage readReceiptMessage) {
+        if (readReceiptMessage == null) {
+            LogUtil.w(TAG, "processReadReceipt: readReceiptMessage = null!");
+            return;
+        }
+
         if (!StringUtil.isEqual(readReceiptMessage.getFrom(), mAccountGuid)
             || readReceiptMessage.getMessageData() == null
             || readReceiptMessage.getMessageData().getConfirmRead() == null) {
@@ -426,6 +434,8 @@ public class GetMessagesTask
     }
 
     private Message parseMessage(final JsonObject messageJsonContainer) {
+
+        // Deserialize message
         Message message =
             MessageDaoHelper.getInstance(mApplication).buildMessageFromJson(messageJsonContainer);
 

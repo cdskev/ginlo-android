@@ -191,7 +191,7 @@ public class GroupChatController extends ChatController {
     }
 
     @Override
-    public AESKeyDataContainer getEncryptionData(String recipientGuid, String temporaryDeviceGuid) throws LocalizedException {
+    public AESKeyDataContainer getEncryptionData(String recipientGuid) throws LocalizedException {
         final Chat chat = getChatByGuid(recipientGuid);
 
         if (chat != null && chat.getChatAESKey() != null)
@@ -309,7 +309,7 @@ public class GroupChatController extends ChatController {
                     chatDao.update(chat);
 
                     //Bug 32926 - Gruppe loeschen fuehrt zum Loeschen des Inhalts der Gruppe bei allen Mitgliedern
-                    sendSystemInfo(chatRoomGuid, null, null, null, mApplication.getResources().getString(R.string.chat_group_wasDeleted), -1);
+                    sendSystemInfo(chatRoomGuid, null, mApplication.getResources().getString(R.string.chat_group_wasDeleted), -1);
                 } catch (LocalizedException e) {
                     LogUtil.w(TAG, "markAsRemoved", e);
                 }
@@ -360,7 +360,7 @@ public class GroupChatController extends ChatController {
                     if (!Chat.ROOM_TYPE_RESTRICTED.equals(chat.getRoomType())) {
                         if (!Chat.ROOM_TYPE_ANNOUNCEMENT.equals(chat.getRoomType()) || amIGroupAdmin(chat)) {
                             final String message = mApplication.getString(R.string.chat_group_newMember, name);
-                            sendSystemInfo(chatRoomGuid, null, null, null, message, -1);
+                            sendSystemInfo(chatRoomGuid, null, message, -1);
                         }
                     }
                 } catch (final LocalizedException le) {
@@ -425,8 +425,7 @@ public class GroupChatController extends ChatController {
                     if (!Chat.ROOM_TYPE_ANNOUNCEMENT.equals(chat.getRoomType()) || amIGroupAdmin(chat)) {
                         for (String contactGuid : noContactInfosList) {
                             final String message = mApplication.getString(R.string.chat_group_newMember, contactGuid);
-                            sendSystemInfo(action.getGroupGuid(), null,
-                                    null, null, message, action.internalMessageId);
+                            sendSystemInfo(action.getGroupGuid(), null, message, action.internalMessageId);
                         }
                     }
                 }
@@ -448,8 +447,7 @@ public class GroupChatController extends ChatController {
                                 if (!Chat.ROOM_TYPE_RESTRICTED.equals(chat.getRoomType())) {
                                     if (!Chat.ROOM_TYPE_ANNOUNCEMENT.equals(chat.getRoomType()) || amIGroupAdmin(chat)) {
                                         final String message = mApplication.getString(R.string.chat_group_newMember, contactGuid);
-                                        sendSystemInfo(action.getGroupGuid(), null,
-                                                null, null, message, action.internalMessageId);
+                                        sendSystemInfo(action.getGroupGuid(), null, message, action.internalMessageId);
                                     }
                                 }
                             }
@@ -527,7 +525,7 @@ public class GroupChatController extends ChatController {
                                 } else {
                                     message = mApplication.getString(getStringIdForAction(action, true), action.getSenderGuid(), contactGuid);
                                 }
-                                sendSystemInfo(action.getGroupGuid(), null, null, null, message, action.internalMessageId);
+                                sendSystemInfo(action.getGroupGuid(), null, message, action.internalMessageId);
                             }
                         }
                         updateRoomMemberInfo(action.getGroupGuid());
@@ -650,12 +648,10 @@ public class GroupChatController extends ChatController {
                         if (StringUtil.isEqual(contactGuid, ownGuid) || amIGroupAdmin(chat)){
                             final String altmessage = mApplication.getString(R.string.chat_group_removed_member_with_sender,
                                     action.getSenderGuid(), contactGuid);
-                            sendSystemInfo(action.getGroupGuid(), null, null,
-                                    null, altmessage, action.internalMessageId);
+                            sendSystemInfo(action.getGroupGuid(), null, altmessage, action.internalMessageId);
                         }
                     } else {
-                        sendSystemInfo(action.getGroupGuid(), null, null,
-                                null, message, action.internalMessageId);
+                        sendSystemInfo(action.getGroupGuid(), null, message, action.internalMessageId);
                     }
                 }
 
@@ -1203,7 +1199,7 @@ public class GroupChatController extends ChatController {
                             if (!Chat.ROOM_TYPE_ANNOUNCEMENT.equals(chat.getRoomType()) || amIGroupAdmin(chat)) {
                                 final Account account = mApp.getAccountController().getAccount();
                                 final String message = mApp.getString(R.string.chat_group_newMember, account.getAccountGuid());
-                                sendSystemInfo(mChatGuid, null, null, null, message, -1);
+                                sendSystemInfo(mChatGuid, null, message, -1);
                             }
                         }
                     } catch (final LocalizedException le) {
@@ -1961,12 +1957,10 @@ public class GroupChatController extends ChatController {
                     groupInvites.add(groupInviteMessageModel);
                 }
             }
-            String tempDeviceGuid = mApp.getAccountController().getTempDeviceGuid();
-            String tempDevicePublicKeyXML = mApp.getAccountController().getTempDevicePublicKeyXML();
             if (RuntimeConfig.supportMultiDevice()) {
                 final GroupInvMessageModel groupInviteMessageModel = createOwnGroupInvMessage(contactController,
                         chatRoomModel.guid, mChatRoomName, chatRoomModel.roomType, accountController.getAccount(),
-                        tempDeviceGuid, tempDevicePublicKeyXML, keyController.getUserKeyPair(), aesKey, iv, sendProfileName);
+                        keyController.getUserKeyPair(), aesKey, iv, sendProfileName);
 
                 if (groupInviteMessageModel != null) {
                     groupInvites.add(groupInviteMessageModel);
@@ -2118,17 +2112,17 @@ public class GroupChatController extends ChatController {
                         if (!StringUtil.isNullOrEmpty(tempRoomType)) {
                             roomType = tempRoomType;
                         }
+                    }
 
-                        final String groupImageAsBase64 = JsonUtil.stringFromJO(DataContainer.GROUP_IMAGE, jsonObject);
+                    final String groupImageAsBase64 = JsonUtil.stringFromJO(DataContainer.GROUP_IMAGE, jsonObject);
 
-                        if (!StringUtil.isNullOrEmpty(groupImageAsBase64)) {
-                            final byte[] image = Base64.decode(groupImageAsBase64, Base64.NO_WRAP);
+                    if (!StringUtil.isNullOrEmpty(groupImageAsBase64)) {
+                        final byte[] image = Base64.decode(groupImageAsBase64, Base64.NO_WRAP);
 
-                            if (image != null) {
-                                final ChatImageController chatImageController = mApp.getChatImageController();
-                                chatImageController.saveImage(guid, image);
-                                mHasSaveImage = true;
-                            }
+                        if (image != null) {
+                            final ChatImageController chatImageController = mApp.getChatImageController();
+                            chatImageController.saveImage(guid, image);
+                            mHasSaveImage = true;
                         }
                     }
                 }
@@ -2235,8 +2229,6 @@ public class GroupChatController extends ChatController {
                     ownAccount,
                     contact.getAccountGuid(),
                     contact.getPublicKey(),
-                    contact.getTempDeviceGuid(),
-                    contact.getTempDevicePublicKeyXML(),
                     ownKeyPair,
                     aesKey,
                     iv,
@@ -2256,8 +2248,6 @@ public class GroupChatController extends ChatController {
                                                       final String groupName,
                                                       final String roomType,
                                                       final Account ownAccount,
-                                                      final String tempDeviceGuid,
-                                                      final String tempDevicePublicKeyXML,
                                                       final KeyPair ownKeyPair,
                                                       final SecretKey aesKey,
                                                       final IvParameterSpec iv,
@@ -2272,8 +2262,6 @@ public class GroupChatController extends ChatController {
                     ownAccount,
                     ownAccount.getAccountGuid(),
                     ownAccount.getPublicKey(),
-                    tempDeviceGuid,
-                    tempDevicePublicKeyXML,
                     ownKeyPair,
                     aesKey,
                     iv,

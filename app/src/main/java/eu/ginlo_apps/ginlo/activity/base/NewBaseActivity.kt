@@ -14,7 +14,7 @@ abstract class NewBaseActivity : BaseActivity() {
         setSupportActionBar(toolbar)
 
         titleView = toolbar.findViewById<TextView>(R.id.toolbar_title)
-        title = title;
+        title = title
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setHomeButtonEnabled(true)

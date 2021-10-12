@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.PowerManager;
 import androidx.legacy.content.WakefulBroadcastReceiver;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
@@ -40,12 +41,12 @@ public class GCMBroadcastReceiver
 
             if (!isAppLoggedInAnVisible) {
                 if (GCMIntentService.haveToShowNotificationOrSetBadge(application, intent)) {
-                    if (SystemUtil.hasMarshmallow()) {
+                    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
                         if (GCMIntentService.haveToStartAsForegroundService(application, intent)) {
                             PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
                             boolean isIdleMode = (pm == null) || pm.isDeviceIdleMode();
 
-                            if (SystemUtil.hasOreo() && isIdleMode) {
+                            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) && isIdleMode) {
                                 context.startForegroundService((intent.setComponent(comp)));
                             } else {
                                 context.startService((intent.setComponent(comp)));

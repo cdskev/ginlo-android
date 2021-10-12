@@ -8,8 +8,8 @@ buildscript {
         b2c_uploadPW = 'PASSWORD'
     }
     ext.versionMajor = 4
-    ext.versionMinor = 2
-    ext.versionPatch = 4
+    ext.versionMinor = 4
+    ext.versionPatch = 3
     ext.kotlin_version = '1.3.50'
     ext.sentry_version = '1.7.23'
     ext.junit_version = '5.4.2'
@@ -43,7 +43,7 @@ allprojects {
 }
 
 private Integer generateVersionCode() {
-    Integer magicNumber = 424000
+    Integer magicNumber = 443101
     return magicNumber
 }
 

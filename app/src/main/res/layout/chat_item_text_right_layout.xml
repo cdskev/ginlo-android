@@ -19,29 +19,7 @@
         android:baselineAligned="false"
         android:tag="chat_item_selection_overlay">
 
-        <LinearLayout
-            style="@style/style_chat_item_info_right"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:orientation="vertical">
-
-            <FrameLayout
-                android:id="@+id/chat_item_frame_layout_message_status"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|end"
-                android:layout_marginBottom="2dp"
-                android:background="@drawable/message_status" />
-
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/chat_item_text_view_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:textSize="13sp"
-                tools:text="16:23" />
-        </LinearLayout>
+        <include layout="@layout/chat_item_message_status_right_layout" />
 
         <LinearLayout
             android:id="@+id/chat_item_linear_layout_chat_bubble"
@@ -83,13 +61,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <View
-            android:id="@+id/bubble_tail"
-            android:layout_width="21dp"
-            android:layout_height="14dp"
-            android:layout_gravity="end|bottom"
-            android:layout_marginStart="-1.5dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/tail_sender" />
+        <include layout="@layout/chat_item_avatar_bubble_time_right_layout" />
     </LinearLayout>
 </LinearLayout>

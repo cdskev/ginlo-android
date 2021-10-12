@@ -199,7 +199,16 @@ public class BackupController {
             for (int ii = 0; ii < chat.getMembers().size(); ii++) {
                 final String guid = chat.getMembers().get(ii).getAsString();
 
-                mApplication.getContactController().createContactIfNotExists(guid, null, null, true);
+                // KS: Old/missing contacts/keys should not lead to backup restore failure!
+                // Keep chat or remove it? TODO: Check that out - remove it for now!
+                //mApplication.getContactController().createContactIfNotExists(guid, null, null, true);
+                try {
+                    mApplication.getContactController().createContactIfNotExists(guid, null, null, true);
+                } catch (LocalizedException e) {
+                    LogUtil.e(TAG, "setChatRoomInfos: Could not createContactIfNotExists() for Guid " + guid + "(" + e.getMessage() + ")");
+                    chat.setIsRemoved(true);
+                    break;
+                }
             }
         } else {
             chat.setIsRemoved(true);
@@ -377,7 +386,10 @@ public class BackupController {
         }
 
         account.setAccountGuid(accountModel.guid);
-        account.setPhoneNumber(accountModel.phone);
+
+        // KS: Deprecated
+        // account.setPhoneNumber(accountModel.phone);
+
         account.setName(accountModel.nickname);
         account.setPrivateKey(accountModel.privateKey);
         account.setPublicKey(accountModel.publicKey);
@@ -502,22 +514,18 @@ public class BackupController {
         AttachmentController.saveBase64FileAsEncryptedAttachment(attachmentGuid, attachmentBuFile.getAbsolutePath());
     }
 
-    public JsonArray createMiniBackup(boolean bTempDevice)
+    public JsonArray createMiniBackup()
             throws LocalizedException {
         JsonArray rc = new JsonArray();
 
-        rc.add(accountBackup(true, bTempDevice));
-
-        if (bTempDevice) {
-            rc.add(contactBackup());
-        }
-        rc.add(singleChatBackup(bTempDevice));
-        rc.add(groupChatBackup(bTempDevice));
+        rc.add(accountBackup(true));
+        rc.add(singleChatBackup());
+        rc.add(groupChatBackup());
 
         return rc;
     }
 
-    public JsonObject accountBackup(boolean bMiniBackup, boolean bTempDevice)
+    public JsonObject accountBackup(boolean bMiniBackup)
             throws LocalizedException {
       /*
           {
@@ -537,17 +545,19 @@ public class BackupController {
         // Nickname + phone usw.
         innerData.addProperty("nickname", account.getName());
 
+        // KS: Deprecated
+        /*
         if (account.getPhoneNumber() != null) {
             innerData.addProperty("phone", account.getPhoneNumber());
         }
+         */
+        innerData.addProperty("phone", "");
+
         innerData.addProperty("profileKey", account.getAccountInfosAesKey());
 
         innerData.addProperty("publicKey", account.getPublicKey());
         innerData.addProperty("accountID", account.getAccountID());
-
-        if (!bTempDevice) {
-            innerData.addProperty("privateKey", account.getPrivateKey());
-        }
+        innerData.addProperty("privateKey", account.getPrivateKey());
         innerData.addProperty("mandant", RuntimeConfig.getMandant());
 
         if (!bMiniBackup) {
@@ -564,25 +574,17 @@ public class BackupController {
             JsonObject miniDict = new JsonObject();
             miniDict.addProperty("companyPublicKey", managementCompany.get("publicKey").getAsString());
 
-            if (bTempDevice) {
-                // MDM Config für das Tempdevice sichern
-                JsonObject appConfig = mApplication.getAccountController().getCompanyMDMConfig();
-                if (appConfig != null) {
-                    innerData.add("AppConfig", appConfig);
-                }
-            } else {
-                // companyKey übertragen
-                SecretKey sk = mApplication.getAccountController().getCompanyAesKey();
-                if (sk != null) {
-                    String companyKey = SecurityUtil.getBase64StringFromAESKey(sk);
-                    miniDict.addProperty(JsonConstants.COMPANY_KEY, companyKey);
-                }
+            // companyKey übertragen
+            SecretKey sk = mApplication.getAccountController().getCompanyAesKey();
+            if (sk != null) {
+                String companyKey = SecurityUtil.getBase64StringFromAESKey(sk);
+                miniDict.addProperty(JsonConstants.COMPANY_KEY, companyKey);
+            }
 
-                SecretKey uk = mApplication.getAccountController().getCompanyUserAesKey();
-                if (uk != null) {
-                    String userDataKey = SecurityUtil.getBase64StringFromAESKey(uk);
-                    miniDict.addProperty(JsonConstants.COMPANY_USER_DATA_KEY, userDataKey);
-                }
+            SecretKey uk = mApplication.getAccountController().getCompanyUserAesKey();
+            if (uk != null) {
+                String userDataKey = SecurityUtil.getBase64StringFromAESKey(uk);
+                miniDict.addProperty(JsonConstants.COMPANY_USER_DATA_KEY, userDataKey);
             }
             miniDict.addProperty("state", managementCompany.get("state").getAsString());
             miniDict.addProperty("guid", managementCompany.get("guid").getAsString());
@@ -625,7 +627,7 @@ public class BackupController {
         return rc;
     }
 
-    private JsonArray singleChatBackup(boolean bTempDevice)
+    private JsonArray singleChatBackup()
             throws LocalizedException {
         JsonArray rc = new JsonArray();
         List<Chat> allChats = mApplication.getSingleChatController().loadAll();
@@ -647,64 +649,62 @@ public class BackupController {
                     innerData.addProperty("confirmed", "false");
                 }
                 final JsonArray messages = new JsonArray();
-                if (!bTempDevice) {
-                    // Nachrichten Infos sichern
-                    final CountDownLatch latch = new CountDownLatch(1);
+                // Nachrichten Infos sichern
+                final CountDownLatch latch = new CountDownLatch(1);
 
-                    final QueryDatabaseListener queryDatabaseListener = new QueryDatabaseListener() {
-                        @Override
-                        public void onListResult(List<Message> dbMessages) {
-                            for (Message dbm : dbMessages) {
-                                JsonObject innerData = new JsonObject();
-                                innerData.addProperty("guid", dbm.getGuid());
-                                if (dbm.getDateSend() != null) {
-                                    innerData.addProperty("datesend", DateUtil.utcStringFromMillis(dbm.getDateSend().longValue()));
-                                }
-                                if (dbm.getDateDownloaded() != null) {
-                                    innerData.addProperty("datedownloaded", DateUtil.utcStringFromMillis(dbm.getDateDownloaded().longValue()));
-                                }
-                                if (dbm.getDateRead() != null) {
-                                    innerData.addProperty("dateread", DateUtil.utcStringFromMillis(dbm.getDateRead().longValue()));
-                                }
-                                if (dbm.getHasSendError() != null && dbm.getHasSendError().booleanValue()) {
-                                    innerData.addProperty("sendingFailed", "true");
-                                }
-                                if (dbm.getIsSignatureValid() != null) {
-                                    innerData.addProperty("signatureValid", (dbm.getIsSignatureValid()) ? "true" : "false");
-                                }
-
-                                if (dbm.getDateSendTimed() != null) {
-                                    // Timed Message ....
-                                    innerData.addProperty("dateToSend", DateUtil.utcStringFromMillis(dbm.getDateSendTimed().longValue()));
-                                }
-
-                                JsonObject privateMessageBackup = new JsonObject();
-                                privateMessageBackup.add("PrivateMessage", innerData);
-
-                                messages.add(privateMessageBackup);
+                final QueryDatabaseListener queryDatabaseListener = new QueryDatabaseListener() {
+                    @Override
+                    public void onListResult(List<Message> dbMessages) {
+                        for (Message dbm : dbMessages) {
+                            JsonObject innerData = new JsonObject();
+                            innerData.addProperty("guid", dbm.getGuid());
+                            if (dbm.getDateSend() != null) {
+                                innerData.addProperty("datesend", DateUtil.utcStringFromMillis(dbm.getDateSend().longValue()));
+                            }
+                            if (dbm.getDateDownloaded() != null) {
+                                innerData.addProperty("datedownloaded", DateUtil.utcStringFromMillis(dbm.getDateDownloaded().longValue()));
+                            }
+                            if (dbm.getDateRead() != null) {
+                                innerData.addProperty("dateread", DateUtil.utcStringFromMillis(dbm.getDateRead().longValue()));
+                            }
+                            if (dbm.getHasSendError() != null && dbm.getHasSendError().booleanValue()) {
+                                innerData.addProperty("sendingFailed", "true");
+                            }
+                            if (dbm.getIsSignatureValid() != null) {
+                                innerData.addProperty("signatureValid", (dbm.getIsSignatureValid()) ? "true" : "false");
                             }
 
-                            latch.countDown();
+                            if (dbm.getDateSendTimed() != null) {
+                                // Timed Message ....
+                                innerData.addProperty("dateToSend", DateUtil.utcStringFromMillis(dbm.getDateSendTimed().longValue()));
+                            }
+
+                            JsonObject privateMessageBackup = new JsonObject();
+                            privateMessageBackup.add("PrivateMessage", innerData);
+
+                            messages.add(privateMessageBackup);
                         }
 
-                        @Override
-                        public void onUniqueResult(Message message) {
-
-                        }
-
-                        @Override
-                        public void onCount(long count) {
-
-                        }
-                    };
-
-                    mApplication.getMessageController().loadAllMessages(chat.getChatGuid(), Message.TYPE_PRIVATE, false, queryDatabaseListener);
-
-                    try {
-                        latch.await();
-                    } catch (InterruptedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        latch.countDown();
                     }
+
+                    @Override
+                    public void onUniqueResult(Message message) {
+
+                    }
+
+                    @Override
+                    public void onCount(long count) {
+
+                    }
+                };
+
+                mApplication.getMessageController().loadAllMessages(chat.getChatGuid(), Message.TYPE_PRIVATE, false, queryDatabaseListener);
+
+                try {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
                 }
                 innerData.add("messages", messages);
 
@@ -717,7 +717,7 @@ public class BackupController {
         return rc;
     }
 
-    private JsonArray groupChatBackup(boolean bTempDevice)
+    private JsonArray groupChatBackup()
             throws LocalizedException {
         JsonArray rc = new JsonArray();
         List<Chat> allChats = mApplication.getGroupChatController().loadAll();
@@ -772,82 +772,80 @@ public class BackupController {
                 }
 
                 final JsonArray messages = new JsonArray();
-                if (!bTempDevice) {
-                    // Nachrichten Infos sichern
-                    final CountDownLatch latch = new CountDownLatch(1);
+                // Nachrichten Infos sichern
+                final CountDownLatch latch = new CountDownLatch(1);
 
-                    final QueryDatabaseListener queryDatabaseListener = new QueryDatabaseListener() {
-                        @Override
-                        public void onListResult(List<Message> dbMessages) {
-                            for (Message dbm : dbMessages) {
-                                JsonObject innerData = new JsonObject();
-                                innerData.addProperty("guid", dbm.getGuid());
-                                if (dbm.getDateSend() != null) {
-                                    innerData.addProperty("datesend", DateUtil.utcStringFromMillis(dbm.getDateSend().longValue()));
-                                }
-                                if (dbm.getDateDownloaded() != null) {
-                                    innerData.addProperty("datedownloaded", DateUtil.utcStringFromMillis(dbm.getDateDownloaded().longValue()));
-                                }
-                                if (dbm.getDateRead() != null) {
-                                    innerData.addProperty("dateread", DateUtil.utcStringFromMillis(dbm.getDateRead().longValue()));
-                                }
-                                if (dbm.getHasSendError() != null && dbm.getHasSendError().booleanValue()) {
-                                    innerData.addProperty("sendingFailed", "true");
-                                }
-                                if (dbm.getIsSignatureValid() != null) {
-                                    innerData.addProperty("signatureValid", (dbm.getIsSignatureValid()) ? "true" : "false");
-                                }
-                                JsonElement je = dbm.getElementFromAttributes(AppConstants.MESSAGE_JSON_RECEIVERS);
-                                if (je != null) {
-                                    innerData.add("receiver", je);
-                                }
-                                if (dbm.isSystemInfo()) {
+                final QueryDatabaseListener queryDatabaseListener = new QueryDatabaseListener() {
+                    @Override
+                    public void onListResult(List<Message> dbMessages) {
+                        for (Message dbm : dbMessages) {
+                            JsonObject innerData = new JsonObject();
+                            innerData.addProperty("guid", dbm.getGuid());
+                            if (dbm.getDateSend() != null) {
+                                innerData.addProperty("datesend", DateUtil.utcStringFromMillis(dbm.getDateSend().longValue()));
+                            }
+                            if (dbm.getDateDownloaded() != null) {
+                                innerData.addProperty("datedownloaded", DateUtil.utcStringFromMillis(dbm.getDateDownloaded().longValue()));
+                            }
+                            if (dbm.getDateRead() != null) {
+                                innerData.addProperty("dateread", DateUtil.utcStringFromMillis(dbm.getDateRead().longValue()));
+                            }
+                            if (dbm.getHasSendError() != null && dbm.getHasSendError().booleanValue()) {
+                                innerData.addProperty("sendingFailed", "true");
+                            }
+                            if (dbm.getIsSignatureValid() != null) {
+                                innerData.addProperty("signatureValid", (dbm.getIsSignatureValid()) ? "true" : "false");
+                            }
+                            JsonElement je = dbm.getElementFromAttributes(AppConstants.MESSAGE_JSON_RECEIVERS);
+                            if (je != null) {
+                                innerData.add("receiver", je);
+                            }
+                            if (dbm.isSystemInfo()) {
 
-                                    String guid = dbm.getGuid();
-                                    if (guid == null) {
-                                        guid = GuidUtil.generateGuid("104:");
-                                    }
-                                    guid += "0";
-                                    innerData.addProperty("guid", guid);
-                                    // TODO : Data bei SystemNachrichten mit übertragen -> Verschlüsselung prüfen !
-
-                                    // bis dahin
-                                    continue;
+                                String guid = dbm.getGuid();
+                                if (guid == null) {
+                                    guid = GuidUtil.generateGuid("104:");
                                 }
-                                String clazzName = "GroupMessage";
-                                if (dbm.getDateSendTimed() != null) {
-                                    // Timed Message ....
-                                    clazzName = "TimedGroupMessage";
-                                    innerData.addProperty("dateToSend", DateUtil.utcStringFromMillis(dbm.getDateSendTimed().longValue()));
-                                }
+                                guid += "0";
+                                innerData.addProperty("guid", guid);
+                                // TODO : Data bei SystemNachrichten mit übertragen -> Verschlüsselung prüfen !
 
-                                JsonObject privateMessageBackup = new JsonObject();
-                                privateMessageBackup.add(clazzName, innerData);
-
-                                messages.add(privateMessageBackup);
+                                // bis dahin
+                                continue;
+                            }
+                            String clazzName = "GroupMessage";
+                            if (dbm.getDateSendTimed() != null) {
+                                // Timed Message ....
+                                clazzName = "TimedGroupMessage";
+                                innerData.addProperty("dateToSend", DateUtil.utcStringFromMillis(dbm.getDateSendTimed().longValue()));
                             }
 
-                            latch.countDown();
+                            JsonObject privateMessageBackup = new JsonObject();
+                            privateMessageBackup.add(clazzName, innerData);
+
+                            messages.add(privateMessageBackup);
                         }
 
-                        @Override
-                        public void onUniqueResult(Message message) {
-
-                        }
-
-                        @Override
-                        public void onCount(long count) {
-
-                        }
-                    };
-
-                    mApplication.getMessageController().loadAllMessages(chat.getChatGuid(), Message.TYPE_GROUP, false, queryDatabaseListener);
-
-                    try {
-                        latch.await();
-                    } catch (InterruptedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        latch.countDown();
                     }
+
+                    @Override
+                    public void onUniqueResult(Message message) {
+
+                    }
+
+                    @Override
+                    public void onCount(long count) {
+
+                    }
+                };
+
+                mApplication.getMessageController().loadAllMessages(chat.getChatGuid(), Message.TYPE_GROUP, false, queryDatabaseListener);
+
+                try {
+                    latch.await();
+                } catch (InterruptedException e) {
+                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
                 }
 
                 innerData.add("messages", messages);

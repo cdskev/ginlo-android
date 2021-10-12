@@ -297,7 +297,6 @@ public class BackendService
         }
         params.addParam("language", language);
         params.addParam("data", dataJson);
-        params.addParam("data-checksum", ChecksumUtil.getMD5ChecksumForString(dataJson));
         params.addParam("allowFreeMailer", "true");
 
         if (!StringUtil.isNullOrEmpty(cockpitToken)) {
@@ -416,24 +415,6 @@ public class BackendService
 
         params.addParam("cmd", "setChatDeleted");
         params.addParam("guid", guid);
-
-        callBackend(listener, params);
-    }
-
-    public void setOptInState(final String state, final OnBackendResponseListener listener) {
-        final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
-
-        params.addParam("cmd", "setOptInState");
-        params.addParam("state", state);
-
-        callBackend(listener, params);
-    }
-
-    @Override
-    public void getOptInState(OnBackendResponseListener listener) {
-        final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
-
-        params.addParam("cmd", "getOptInState");
 
         callBackend(listener, params);
     }
@@ -670,19 +651,13 @@ public class BackendService
     public void sendPrivateMessage(final String messageJson,
                                    final OnBackendResponseListener listener,
                                    final String requestId) {
-        LogUtil.i(this.getClass().toString(), "SendPrivateMessage");
+        LogUtil.i(TAG, "SendPrivateMessage");
 
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendPrivateMessage");
         params.addParam("message", messageJson);
         params.addParam("returnConfirmMessage", "1");
-        if(messageJson.startsWith("/")) {
-            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messageJson)));
-        } else {
-            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
-        }
-
         callBackend(listener, params, requestId);
     }
 
@@ -690,17 +665,12 @@ public class BackendService
                                         final OnBackendResponseListener listener,
                                         final String requestId,
                                         final String date) {
-        LogUtil.i(this.getClass().toString(), "sendTimedPrivateMessage");
+        LogUtil.i(TAG, "sendTimedPrivateMessage");
 
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendTimedPrivateMessage");
         params.addParam("message", messageJson);
-        if(messageJson.startsWith("/")) {
-            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messageJson)));
-        } else {
-            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
-        }
         params.addParam("dateToSend", date);
 
         callBackend(listener, params, requestId);
@@ -709,57 +679,39 @@ public class BackendService
     public void sendPrivateInternalMessage(final String messageJson,
                                            final OnBackendResponseListener listener,
                                            final String requestId) {
-        LogUtil.i(this.getClass().toString(), "sendPrivateInternalMessage");
+        LogUtil.i(TAG, "sendPrivateInternalMessage");
 
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendPrivateInternalMessage");
         params.addParam("message", messageJson);
         params.addParam("returnConfirmMessage", "1");
-        if(messageJson.startsWith("/")) {
-            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messageJson)));
-        } else {
-            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
-        }
-
         callBackend(listener, params, requestId);
     }
 
     @Override
     public void sendPrivateInternalMessages(String messagesJson,
                                             OnBackendResponseListener listener) {
-        LogUtil.i(this.getClass().toString(), "sendPrivateInternalMessages");
+        LogUtil.i(TAG, "sendPrivateInternalMessages");
 
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendPrivateInternalMessages");
         params.addParam("messages", messagesJson);
         params.addParam("returnConfirmMessage", "1");
-        if(messagesJson.startsWith("/")) {
-            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messagesJson)));
-        } else {
-            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messagesJson));
-        }
-
         callBackend(listener, params);
     }
 
     public void sendGroupMessage(final String messageJson,
                                  final OnBackendResponseListener listener,
                                  final String requestId) {
-        LogUtil.i(this.getClass().toString(), "sendGroupMessage");
+        LogUtil.i(TAG, "sendGroupMessage");
 
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendGroupMessage");
         params.addParam("message", messageJson);
         params.addParam("returnConfirmMessage", "1");
-        if(messageJson.startsWith("/")) {
-            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messageJson)));
-        } else {
-            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
-        }
-
         callBackend(listener, params, requestId);
     }
 
@@ -767,24 +719,19 @@ public class BackendService
                                       final OnBackendResponseListener listener,
                                       final String requestId,
                                       final String date) {
-        LogUtil.i(this.getClass().toString(), "sendTimedGroupMessage");
+        LogUtil.i(TAG, "sendTimedGroupMessage");
 
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendTimedGroupMessage");
         params.addParam("message", messageJson);
-        if(messageJson.startsWith("/")) {
-            params.addParam("message-checksum", ChecksumUtil.getMD5HashFromFile(new File(messageJson)));
-        } else {
-            params.addParam("message-checksum", ChecksumUtil.getMD5ChecksumForString(messageJson));
-        }
         params.addParam("dateToSend", date);
 
         callBackend(listener, params, requestId);
     }
 
     public void getTenants(final OnBackendResponseListener listener) {
-        LogUtil.i(this.getClass().toString(), "getTenants");
+        LogUtil.i(TAG, "getTenants");
 
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
@@ -822,24 +769,6 @@ public class BackendService
         callBackend(listener, params);
     }
 
-    @Override
-    public void getServices(OnBackendResponseListener listener) {
-        final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
-
-        params.addParam("cmd", "getServices");
-
-        callBackend(listener, params);
-    }
-
-    public void getServiceDetailsBatch(final String serviceGuids, final OnBackendResponseListener listener) {
-        final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
-
-        params.addParam("cmd", "getServiceDetailsBatch");
-        params.addParam("guids", serviceGuids);
-
-        callBackend(listener, params);
-    }
-
     public void getKnownAccounts(final JsonArray data,
                                  final String salt,
                                  final String tenant,
@@ -849,7 +778,6 @@ public class BackendService
 
         params.addParam("cmd", "getKnownAccounts");
         params.addParam("data", data.toString());
-        params.addParam("data-checksum", ChecksumUtil.getMD5ChecksumForString(data.toString()));
         params.addParam("salt", salt);
         params.addParam("searchMode", searchMode);
         params.addParam("mandant", tenant);
@@ -865,7 +793,6 @@ public class BackendService
                                final int withProfileInfo,
                                final boolean withTenant,
                                final boolean checkReadonly,
-                               final boolean withTempDevice,
                                final OnBackendResponseListener listener) {
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
@@ -873,7 +800,7 @@ public class BackendService
         params.addParam("accountGuid", accountGuid);
         params.addParam("profileInfo", "" + withProfileInfo);
         params.addParam("mandant", withTenant ? "1" : "0");
-        params.addParam("tempDevice", withTempDevice ? "1" : "0");
+        params.addParam("tempDevice", "0");
         if (checkReadonly) {
             params.addParam("checkReadonly", "1");
         }
@@ -939,13 +866,12 @@ public class BackendService
 
     public void setDeviceData(final String dataJson,
                               final OnBackendResponseListener listener) {
-        LogUtil.i(this.getClass().toString(), "setDeviceData");
+        LogUtil.i(TAG, "setDeviceData");
 
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "setDeviceData");
         params.addParam("data", dataJson);
-        params.addParam("data-checksum", ChecksumUtil.getMD5ChecksumForString(dataJson));
 
         callBackend(listener, params);
     }
@@ -959,9 +885,7 @@ public class BackendService
 
         params.addParam("cmd", "createGroup");
         params.addParam("groupData", dataJson);
-        params.addParam("groupData-checksum", ChecksumUtil.getMD5ChecksumForString(dataJson));
         params.addParam("addRoomMemberData", groupInvMessagesAsJson);
-        params.addParam("addRoomMemberData-checksum", ChecksumUtil.getMD5ChecksumForString(groupInvMessagesAsJson));
 
         if (adminGuids != null) {
             params.addParam("makeAdminGuids", adminGuids);
@@ -1582,7 +1506,13 @@ public class BackendService
         if (!StringUtil.isNullOrEmpty(status)) {
             params.addParam("status", status);
         }
+        // KS: image = "" has a meaning. So it must be sent to the backend
+        /*
         if (!StringUtil.isNullOrEmpty(image)) {
+            params.addParam("image", image);
+        }
+         */
+        if (image != null) {
             params.addParam("image", image);
         }
 
@@ -1875,15 +1805,22 @@ public class BackendService
                              final boolean inBackground,
                              HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener,
                              final int connectionTimeout) {
+
         if (!mCanStartThreads) {
             return;
         }
+
         final String requestId;
         if (aRequestId == null) {
             requestId = GuidUtil.generateRequestGuid();
         } else {
             requestId = aRequestId;
         }
+
+        if(params != null) {
+            LogUtil.d(TAG, "callBackend: " + params.getNameValuePairs().toString());
+        }
+
         if (isConnected()) {
             final ConcurrentTaskListener taskListener = new ConcurrentTaskListener() {
                 @Override
@@ -1899,6 +1836,7 @@ public class BackendService
                         if (listener != null) {
                             listener.onBackendResponse(wrappedResponse);
                         }
+
                     } else if (state == ConcurrentTask.STATE_ERROR) {
                         String errormessage;
                         String excIdentifier = null;
@@ -1910,6 +1848,7 @@ public class BackendService
                                         "string", BuildConfig.APPLICATION_ID);
 
                                 errormessage = application.getResources().getString(resourceId);
+
                             } catch (Exception e) {
                                 LogUtil.e(TAG, e.getMessage(), e);
                                 errormessage = application.getResources().getString(R.string.service_tryAgainLater);
@@ -1918,19 +1857,23 @@ public class BackendService
                             if (inBackground && task.getResponseCode() == 403) {
                                 application.getMessageController().setMessageDeviceToken(null);
                             }
+
                             if (task.getResponseCode() == 499) {
                                 excIdentifier = LocalizedException.NO_ACCOUNT_ON_SERVER;
 
                                 errormessage = application.getResources().getString(R.string.notification_account_was_deleted);
+
                             } else {
                                 errormessage = application.getResources().getString(R.string.service_tryAgainLater);
                             }
                         }
+
                         wrappedResponse = wrapError(errormessage);
 
                         if (!StringUtil.isNullOrEmpty(excIdentifier)) {
                             wrappedResponse.msgException = new MsgExceptionModel();
                             wrappedResponse.msgException.setIdent(excIdentifier);
+
                             if (task.getLocalizedException() != null) {
                                 wrappedResponse.msgException.setMessage(task.getLocalizedException().getMessage());
                             }
@@ -1951,8 +1894,7 @@ public class BackendService
                         requestId, taskListener, onConnectionDataUpdatedListener, connectionTimeout);
             } else {
                 if (useLazyHttpTask) {
-                    final int timeout = application.getPreferencesController()
-                            .getLazyMsgServiceTimeout();
+                    final int timeout = application.getPreferencesController().getLazyMsgServiceTimeout();
                     final ConcurrentTask task = new HttpLazyMessageTask(keyStore, params, username, password,
                             requestId, timeout);
 
@@ -2114,32 +2056,6 @@ public class BackendService
 
     public void setUseAsyncConnections(final boolean useAsyncConnections) {
         this.mUseAsycnConnections = useAsyncConnections;
-    }
-
-    public void getTempDeviceInfo(final String accountGuid,
-                                  final OnBackendResponseListener listener) {
-        final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
-
-        params.addParam("cmd", "getTempDeviceInfo");
-        params.addParam("accountGuid", accountGuid);
-
-        callBackend(listener, params);
-    }
-
-    public void setTempDeviceInfo(final String keys,
-                                  final String createdAt,
-                                  final String nextUpdate,
-                                  final String sig,
-                                  final OnBackendResponseListener listener) {
-        final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
-
-        params.addParam("cmd", "setTempDeviceInfo");
-        params.addParam("keys", keys);
-        params.addParam("createdAt", createdAt);
-        params.addParam("nextUpdate", nextUpdate);
-        params.addParam("sig", sig);
-
-        callBackend(listener, params);
     }
 
     @Override

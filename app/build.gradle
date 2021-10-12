@@ -191,7 +191,7 @@ android {
 
         // More app configs
         buildConfigField("Boolean", "ACCOUNT_NEEDS_LICENCE", 'false')
-        buildConfigField("Boolean", "NEED_PHONENUMBER_VALIDATION", 'true')
+        buildConfigField("Boolean", "NEED_PHONENUMBER_VALIDATION", 'false')
         buildConfigField("Boolean", "FORCE_GERMAN", 'false')
         buildConfigField("Boolean", "HAVE_GINLO_ONGOING_SERVICE", 'false')
         buildConfigField("Boolean", "USE_BOOT_COMPLETED_RECEIVER", 'false')

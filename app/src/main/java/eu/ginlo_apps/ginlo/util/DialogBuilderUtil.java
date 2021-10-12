@@ -8,6 +8,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.DialogInterface.OnDismissListener;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -198,7 +199,7 @@ public class DialogBuilderUtil {
 
                 if (checkbox != null) {
                     //Farbe der Checkbox setzen geht leider nur unter Marshmallow+
-                    if (SystemUtil.hasMarshmallow() && eu.ginlo_apps.ginlo.util.RuntimeConfig.isBAMandant()) {
+                    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) && eu.ginlo_apps.ginlo.util.RuntimeConfig.isBAMandant()) {
                         final Drawable d = checkbox.getButtonDrawable();
                         if (d != null) {
                             final ColorUtil colorUtil = ColorUtil.getInstance();

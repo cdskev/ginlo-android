@@ -38,6 +38,4 @@ class SimsmeFragmentPagerAdapter(fm: FragmentManager) : FragmentStatePagerAdapte
     }
 }
 
-class PageAdapterItemInfo(val mPageTitle: String, val mPageFragment : Fragment){
-
-}
+class PageAdapterItemInfo(val mPageTitle: String, val mPageFragment : Fragment)

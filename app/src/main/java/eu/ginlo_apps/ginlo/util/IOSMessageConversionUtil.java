@@ -13,6 +13,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
@@ -59,7 +60,7 @@ public class IOSMessageConversionUtil {
         JSONObject keyJSON = new JSONObject();
 
         try {
-            InputStream is = new ByteArrayInputStream(data.getBytes("UTF-8"));
+            InputStream is = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8));
 
             Map<String, String> aesMap;
 

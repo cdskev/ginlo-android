@@ -646,6 +646,8 @@ public class ChatOverviewController
             return;
         }
 
+        LogUtil.d(TAG, "startCheckContactsOnlineTask: getOnlineStateBatch for SingleChatOverviewItemVOs: " + contactGuids.toString());
+
         mCheckContactsOnlineTask = new AsyncHttpTask<>(new AsyncHttpTask.AsyncHttpCallback<ArrayMap<String, Boolean>>() {
             @Override
             public void asyncLoaderServerRequest(IBackendService.OnBackendResponseListener listener) {
@@ -667,6 +669,8 @@ public class ChatOverviewController
                         }
 
                         JsonObject entryJO = je.getAsJsonObject();
+
+                        LogUtil.d(TAG, "asyncLoaderServerResponse: Got: " + entryJO.toString());
 
                         String guid = JsonUtil.stringFromJO(JsonConstants.ACCOUNT_GUID, entryJO);
                         if (StringUtil.isNullOrEmpty(guid)) {

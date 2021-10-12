@@ -44,10 +44,6 @@ public class ChangePhoneActivity extends IdentRequestActivity {
         try {
             super.onCreateActivity(savedInstanceState);
 
-            if (mTermsAcceptTV != null) {
-                mTermsAcceptTV.setVisibility(View.GONE);
-            }
-
             View identSpinner = findViewById(R.id.intro_ident_request_spinner);
             if (identSpinner != null) {
                 identSpinner.setVisibility(View.GONE);

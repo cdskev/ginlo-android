@@ -89,7 +89,7 @@
                                     android:text="@string/chats_overview_warning_license_button"
                                     android:textAllCaps="false"
                                     android:textSize="17sp"
-                                    app:styledBackgroundColorFilter="main"
+                                    app:styledBackgroundColorFilter="insecure"
                                     app:styledTextColor="main" />
                             </androidx.appcompat.widget.LinearLayoutCompat>
 

@@ -300,7 +300,7 @@ public class DistributorChatActivity
                         if (StringUtil.isEqual(toGuid, ctr.getAccountGuid())) {
                             final String notSendMsg = getString(R.string.chat_message_failed_update);
 
-                            getChatController().sendSystemInfo(ctr.getAccountGuid(), ctr.getPublicKey(), null, null, notSendMsg, -1);
+                            getChatController().sendSystemInfo(ctr.getAccountGuid(), ctr.getPublicKey(), notSendMsg, -1);
                             break;
                         }
                     }
@@ -367,25 +367,6 @@ public class DistributorChatActivity
             mTitle = getString(R.string.chat_single_select_title);
             setTitle(getString(R.string.chat_single_select_title));
         }
-    }
-
-    private void addItemToSelectedList(final Contact contact) {
-
-        if (!mSelectedContacts.contains(contact)) {
-            mSelectedContacts.add(contact);
-            // Temp Devices laden ....
-            if (!StringUtil.isNullOrEmpty(contact.getAccountGuid())) {
-                mContactController.checkPublicKey(contact, null);
-            }
-        }
-        mContactsAdapter = new ContactsAdapter(DistributorChatActivity.this, mLayout, mSelectedContacts,
-                true, false);
-
-        mListView.setAdapter(mContactsAdapter);
-        mContactsAdapter.notifyDataSetChanged();
-
-        mListView.setOnItemClickListener(mRemoveItemListener);
-        setTitleByListSize();
     }
 
     private void showNoContactsChosenToast() {
@@ -493,7 +474,7 @@ public class DistributorChatActivity
             createChatIfNeeded(contact);
 
             if (mSelfdestructionFragment == null || !mChatInputFragment.getTimerEnabled()) {
-                getChatController().sendText(contact.getAccountGuid(), contact.getPublicKey(), contact.getTempDeviceGuid(), contact.getTempDevicePublicKeyXML(), text,
+                getChatController().sendText(contact.getAccountGuid(), contact.getPublicKey(), text,
                         destructionParams, mOnSendMessageListener, null, mIsPriority, null);
             } else {
                 final Calendar oneYear = Calendar.getInstance();
@@ -520,7 +501,7 @@ public class DistributorChatActivity
                     mChatInputFragment.setTypingState();
                     return false;
                 } else {
-                    getChatController().sendText(contact.getAccountGuid(), contact.getPublicKey(), null, null, text,
+                    getChatController().sendText(contact.getAccountGuid(), contact.getPublicKey(), text,
                             destructionParams, mOnSendMessageListener, mSelfdestructionFragment.getTimerDate(), mIsPriority, null);
                 }
             }
@@ -563,10 +544,10 @@ public class DistributorChatActivity
             createChatIfNeeded(contact);
 
             if (mSelfdestructionFragment == null || !mChatInputFragment.getTimerEnabled()) {
-                getChatController().sendVoice(this, contact.getAccountGuid(), contact.getPublicKey(), contact.getTempDeviceGuid(), contact.getTempDevicePublicKeyXML(), voiceUri,
+                getChatController().sendVoice(this, contact.getAccountGuid(), contact.getPublicKey(), voiceUri,
                         destructionParams, mOnSendMessageListener, null, mIsPriority);
             } else {
-                getChatController().sendVoice(this, contact.getAccountGuid(), contact.getPublicKey(), contact.getTempDeviceGuid(), contact.getTempDevicePublicKeyXML(), voiceUri,
+                getChatController().sendVoice(this, contact.getAccountGuid(), contact.getPublicKey(), voiceUri,
                         destructionParams, mOnSendMessageListener, mSelfdestructionFragment.getTimerDate(), mIsPriority);
             }
             mChatInputFragment.setOnlineState();
@@ -652,8 +633,6 @@ public class DistributorChatActivity
                                 createChatIfNeeded(contact);
                                 getChatController().sendVCard(contact.getAccountGuid(),
                                         contact.getPublicKey(),
-                                        contact.getTempDeviceGuid(),
-                                        contact.getTempDevicePublicKeyXML(),
                                         vCard,
                                         null,
                                         null,
@@ -712,8 +691,6 @@ public class DistributorChatActivity
 
                                 getChatController().sendVCard(contact.getAccountGuid(),
                                         contact.getPublicKey(),
-                                        contact.getTempDeviceGuid(),
-                                        contact.getTempDevicePublicKeyXML(),
                                         vCard.write(),
                                         contact.getSimsmeId(),
                                         sendContactGuid,
@@ -742,7 +719,7 @@ public class DistributorChatActivity
                             final Contact contact = mSelectedContacts.get(ctr);
 
                             createChatIfNeeded(contact);
-                            getChatController().sendLocation(contact.getAccountGuid(), contact.getPublicKey(), contact.getTempDeviceGuid(), contact.getTempDevicePublicKeyXML(), longitude,
+                            getChatController().sendLocation(contact.getAccountGuid(), contact.getPublicKey(), longitude,
                                     latitude, screenshot, mOnSendMessageListener);
                         }
                         try {
@@ -791,7 +768,7 @@ public class DistributorChatActivity
                                 createChatIfNeeded(contact);
 
                                 final boolean deleteImage = ctr == 0;
-                                getChatController().sendImage(this, contact.getAccountGuid(), contact.getPublicKey(), contact.getTempDeviceGuid(), contact.getTempDevicePublicKeyXML(),
+                                getChatController().sendImage(this, contact.getAccountGuid(), contact.getPublicKey(),
                                         Uri.parse(uri), description, params, mOnSendMessageListener, timerDate, isPriority, null, deleteImage);
                                 try {
                                     mPreferencesController.incNumberOfStartedChats();
@@ -838,7 +815,7 @@ public class DistributorChatActivity
                                 final String description = videoTexts.get(i);
                                 createChatIfNeeded(contact);
 
-                                getChatController().sendVideo(this, contact.getAccountGuid(), contact.getPublicKey(), contact.getTempDeviceGuid(), contact.getTempDevicePublicKeyXML(),
+                                getChatController().sendVideo(this, contact.getAccountGuid(), contact.getPublicKey(),
                                         Uri.parse(videoUri), description, params, mOnSendMessageListener, timerDate, isPriority, ctr == 0);
                             }
                         }
@@ -894,7 +871,7 @@ public class DistributorChatActivity
                                         final Contact contact = mSelectedContacts.get(ctr);
 
                                         if (contact != null) {
-                                            getChatController().sendFile(DistributorChatActivity.this, contact.getAccountGuid(), contact.getPublicKey(), contact.getTempDeviceGuid(), contact.getTempDevicePublicKeyXML(),
+                                            getChatController().sendFile(DistributorChatActivity.this, contact.getAccountGuid(), contact.getPublicKey(),
                                                     tmpUri, false, filename, mimeType, mOnSendMessageListener, null);
                                         }
                                         try {

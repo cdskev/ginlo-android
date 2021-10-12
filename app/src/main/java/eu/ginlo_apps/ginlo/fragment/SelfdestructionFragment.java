@@ -268,7 +268,7 @@ public class SelfdestructionFragment
 
                 final Date destructionDate = mDateTimePickerFragment.getDestructionDate();
 
-                final boolean today = destructionDate == null ? true : mDateTimePickerFragment.checkAndSetDateText(destructionDate.getTime());
+                final boolean today = destructionDate == null || mDateTimePickerFragment.checkAndSetDateText(destructionDate.getTime());
 
                 mDateTimePickerFragment.callOnDestructionDateChanged(destructionDate == null ? new Date() : destructionDate, today);
             }

@@ -384,7 +384,7 @@ public class ChannelController
                                     ChatOverviewController.CHAT_CHANGED_NEW_CHAT);
 
                             mContext.getChannelChatController().sendSystemInfo(newChat.getChatGuid(),
-                                    null, null, null, message, -1, onSentMessageListener, false);
+                                    null, message, -1, onSentMessageListener, false);
                             gSubscribeSemaphore.release();
                         }
 
@@ -1404,7 +1404,7 @@ public class ChannelController
     public static class ChannelIdentifier {
         private ChannelListModel mClModel;
 
-        private String mType;
+        private final String mType;
 
         private String guid;
 

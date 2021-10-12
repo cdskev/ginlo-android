@@ -9,12 +9,17 @@ import android.widget.EditText;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import com.google.zxing.integration.android.IntentIntegrator;
+
+import java.util.Arrays;
+
 import eu.ginlo_apps.ginlo.MainActivity;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity;
 import eu.ginlo_apps.ginlo.activity.register.device.DeviceVerifyActivity;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.QRCodeModel;
+import eu.ginlo_apps.ginlo.util.ChecksumUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
@@ -23,6 +28,7 @@ import eu.ginlo_apps.ginlo.util.ViewUtil;
 
 public class DeviceRequestTanActivity extends NewBaseActivity {
 
+    private static final String TAG = DeviceRequestTanActivity.class.getSimpleName();
     private static final int SCAN_TAN_RESULT_CODE = 453;
 
     @Override
@@ -58,21 +64,14 @@ public class DeviceRequestTanActivity extends NewBaseActivity {
             if (resultCode == RESULT_OK) {
                 final String qrCodeString = intent.getStringExtra("SCAN_RESULT");
 
-                if (!StringUtil.isNullOrEmpty(qrCodeString)) {
-                    final int indexPipe = qrCodeString.indexOf("|");
-                    if (indexPipe > -1 && qrCodeString.length() > indexPipe + 1) {
-                        final String tan = qrCodeString.substring(indexPipe + 1);
-                        if (tan.length() == 9) {
-                            LogUtil.d("CHECK", "onActivityPostLoginResult()");
-                            startCoupling(tan);
-                        } else {
-                            Toast.makeText(DeviceRequestTanActivity.this,
-                                    getString(R.string.device_request_tan_error_coupling_qrcode_failed), Toast.LENGTH_LONG).show();
-                        }
-                    } else {
-                        Toast.makeText(DeviceRequestTanActivity.this,
-                                getString(R.string.device_request_tan_error_coupling_qrcode_failed), Toast.LENGTH_LONG).show();
-                    }
+                QRCodeModel qrm = QRCodeModel.parseQRString(qrCodeString);
+
+                if(qrm.getVersion().equals(QRCodeModel.TYPE_COUPLING_TAN) && qrm.getTAN().length() == 9) {
+                        startCoupling(qrm.getTAN());
+                } else {
+                    LogUtil.w(TAG, "onActivityPostLoginResult: Wrong TAN:" + qrm.getTAN());
+                    Toast.makeText(DeviceRequestTanActivity.this,
+                            getString(R.string.device_request_tan_error_coupling_qrcode_failed), Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -106,6 +105,7 @@ public class DeviceRequestTanActivity extends NewBaseActivity {
         }
 
         if (!checkTanPartString(tan1)) {
+            LogUtil.w(TAG, "handleNextClick: Wrong TAN:" + tan1);
             DialogBuilderUtil.buildErrorDialog(this, getString(R.string.device_request_tan_error_tan_length)).show();
             return;
         }
@@ -118,6 +118,7 @@ public class DeviceRequestTanActivity extends NewBaseActivity {
         }
 
         if (!checkTanPartString(tan2)) {
+            LogUtil.w(TAG, "handleNextClick: Wrong TAN:" + tan2);
             DialogBuilderUtil.buildErrorDialog(this, getString(R.string.device_request_tan_error_tan_length)).show();
             return;
         }
@@ -130,23 +131,21 @@ public class DeviceRequestTanActivity extends NewBaseActivity {
         }
 
         if (!checkTanPartString(tan3)) {
+            LogUtil.w(TAG, "handleNextClick: Wrong TAN:" + tan3);
             DialogBuilderUtil.buildErrorDialog(this, getString(R.string.device_request_tan_error_tan_length)).show();
             return;
         }
-        LogUtil.d("CHECK", "handleNextClick()");
         startCoupling(tan1 + tan2 + tan3);
     }
 
     private void startCoupling(@NonNull final String tan) {
-        LogUtil.d("CHECK", "startCoupling()");
+        LogUtil.d(TAG, "startCoupling: Start coupling process.");
         showIdleDialog();
         getSimsMeApplication().getAccountController().coupleDeviceRequestCoupling(tan, new GenericActionListener<Void>() {
             @Override
             public void onSuccess(final Void object) {
                 dismissIdleDialog();
-
-                //dismissIdleDialog();
-                LogUtil.d("CHECK", "coupleDeviceRequestCoupling() success");
+                LogUtil.d(TAG, "coupleDeviceRequestCoupling: Success");
                 final Intent intent = new Intent(DeviceRequestTanActivity.this, DeviceVerifyActivity.class);
                 startActivity(intent);
             }
@@ -154,6 +153,7 @@ public class DeviceRequestTanActivity extends NewBaseActivity {
             @Override
             public void onFail(final String message, final String errorIdent) {
                 dismissIdleDialog();
+                LogUtil.w(TAG, "coupleDeviceRequestCoupling: Failed");
                 String errorMessage = getString(R.string.device_request_tan_error_coupling_failed);
                 if (errorIdent.equals(LocalizedException.TOO_MANY_TRIES_FOR_REQUEST_COUPLING)) {
                     errorMessage = getString(R.string.service_ERR_0162);

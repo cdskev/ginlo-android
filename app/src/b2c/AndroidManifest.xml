@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="eu.ginlo_apps.ginlo">
+
+    <application
+        android:name=".context.SimsMeApplication"
+        tools:node="merge"
+        tools:replace="android:name"
+        tools:ignore="GoogleAppIndexingWarning">
+
+        <activity
+            android:name=".SearchContactActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/search_contact_title"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="stateHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="contact"
+                    android:scheme="${appScheme}" />
+                <data
+                    android:host="phone"
+                    android:scheme="${appScheme}" />
+                <!-- This is for backward compatibility, TODO: Remove in future versions -->
+                <data
+                    android:host="contact"
+                    android:scheme="${oldScheme}{appSchemeSuffix}" />
+                <data
+                    android:host="phone"
+                    android:scheme="${oldScheme}" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="join.ginlo.net"
+                    android:pathPattern="/invite" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

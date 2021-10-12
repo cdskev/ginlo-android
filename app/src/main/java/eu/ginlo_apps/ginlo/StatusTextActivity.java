@@ -55,17 +55,11 @@ public class StatusTextActivity
     public static final String EXTRA_CURRENT_STATUS = "currentStatus";
 
     private AccountController mAccountController;
-
     private ArrayAdapter mStatusTextAdapter;
-
     private CheckBox mAddEmojiButton;
-
     private EditText mStatusEditText;
-
     private EmojiPickerFragment mEmojiconsFragment;
-
     private boolean mEmojiIsShown;
-
     private FrameLayout mEmojiContainer;
 
     @Override
@@ -79,7 +73,7 @@ public class StatusTextActivity
         mStatusEditText.setText(callerIntent.getStringExtra(EXTRA_CURRENT_STATUS));
 
         if (RuntimeConfig.isBAMandant()) {
-            mStatusEditText.getBackground().setColorFilter(getResources().getColor(R.color.app_accent), Mode.SRC_ATOP);
+            mStatusEditText.getBackground().setColorFilter(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()), Mode.SRC_ATOP);
         }
         mAddEmojiButton = findViewById(R.id.status_text_check_box_add_emoji_status);
 

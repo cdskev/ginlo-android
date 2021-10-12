@@ -273,10 +273,7 @@ public class AccountDao
 
     @Override
     protected boolean hasKey(Account entity) {
-        if (entity != null && entity.getId() != null) {
-            return true;
-        }
-        return false;
+        return entity != null && entity.getId() != null;
     }
 
     /**

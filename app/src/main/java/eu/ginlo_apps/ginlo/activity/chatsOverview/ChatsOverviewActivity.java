@@ -11,6 +11,8 @@ import android.content.res.Configuration;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MenuItem;
@@ -59,9 +61,12 @@ import eu.ginlo_apps.ginlo.activity.device.DevicesOverviewActivity;
 import eu.ginlo_apps.ginlo.activity.preferences.PreferencesInformationActivity;
 import eu.ginlo_apps.ginlo.activity.preferences.PreferencesOverviewActivity;
 import eu.ginlo_apps.ginlo.activity.profile.ProfileActivity;
+import eu.ginlo_apps.ginlo.activity.register.IntroBaseActivity;
 import eu.ginlo_apps.ginlo.activity.reregister.ChangePhoneActivity;
 import eu.ginlo_apps.ginlo.activity.reregister.ConfirmPhoneActivity;
 import eu.ginlo_apps.ginlo.adapter.DrawerListAdapter;
+import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
+import eu.ginlo_apps.ginlo.concurrent.task.SyncAllContactsTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
@@ -74,7 +79,6 @@ import eu.ginlo_apps.ginlo.controller.GCMController;
 import eu.ginlo_apps.ginlo.controller.LoginController;
 import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
-import eu.ginlo_apps.ginlo.controller.ServiceController;
 import eu.ginlo_apps.ginlo.controller.message.ChannelChatController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.controller.message.GroupChatController;
@@ -94,6 +98,7 @@ import eu.ginlo_apps.ginlo.greendao.Chat;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.model.backend.ToggleSettingsModel;
 import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
@@ -102,6 +107,7 @@ import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.ConfigUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
+import eu.ginlo_apps.ginlo.util.GinloNowUtil;
 import eu.ginlo_apps.ginlo.util.ImageCache;
 import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
@@ -124,7 +130,6 @@ public class ChatsOverviewActivity
         implements OnChatDataChangedListener,
         ContactController.OnContactProfileInfoChangeNotification,
         OnSendMessageListener,
-        ServiceController.ServicesChangedListener,
         OnChatItemClick,
         OnChatItemLongClick {
 
@@ -151,7 +156,6 @@ public class ChatsOverviewActivity
     private GroupChatController groupChatController;
     private SingleChatController singleChatController;
     private ChannelController channelController;
-    private ServiceController mServiceController;
     private ChannelChatController channelChatController;
     private ChatOverviewController chatOverviewController;
 
@@ -202,11 +206,11 @@ public class ChatsOverviewActivity
     private OnLoadContactsListener initialContactsListener;
     private OnTimedMessagesDeliveredListener mOnTimedMessagesDeliveredListener;
     private int mFirstVisibleItemIndex = 0;
-    private boolean mShowServices;
     private boolean mFirstTouch;
     private Dialog mVerifyPhoneDialog;
     private SpeedDialView mSpeedDialView;
     private String mMdmConfigKey = null;
+    private GinloNowUtil mGinloNowUtil;
     InviteFriendUseCase inviteFriendUseCase = new InviteFriendUseCase();
 
     public void onFabPressed(View v) {
@@ -226,8 +230,12 @@ public class ChatsOverviewActivity
     }
 
     private void createNewContact() {
-        final Intent intent = new Intent(this, SearchContactActivity.class);
-        startActivity(intent);
+        // Must ensure that tenant list has been fully loaded to preferences.
+        // Activity is then called by the listener upon success.
+        showIdleDialog();
+        initContactsListener(true);
+        LogUtil.d(TAG, "createNewContact: Start synchronizing tenants ...");
+        contactController.syncContacts(initialContactsListener, false, false, true);
     }
 
     private void addNewChannel() {
@@ -254,7 +262,7 @@ public class ChatsOverviewActivity
         return super.onOptionsItemSelected(item);
     }
 
-    private void initContactsListener() {
+    private void initContactsListener(boolean forSearchContact) {
         initialContactsListener = new OnLoadContactsListener() {
             @Override
             public void onLoadContactsComplete() {
@@ -265,6 +273,14 @@ public class ChatsOverviewActivity
                 mPreferencesController.setHasOldContactsMerged();
                 mPreferencesController.checkRecoveryCodeToBeSet(true);
                 dismissIdleDialog();
+
+                // KS: Start searchContact upon request
+                if(forSearchContact) {
+                    LogUtil.d(TAG, "onLoadContactsComplete: Synchronizing tenants done. Start invitation contact search ...");
+                    final Intent intent = new Intent(ChatsOverviewActivity.this, SearchContactActivity.class);
+                    intent.setData(Uri.parse(mGinloNowUtil.getGinloNowInvitationString()));
+                    startActivity(intent);
+                }
             }
 
             @Override
@@ -332,11 +348,7 @@ public class ChatsOverviewActivity
 
                 mFirstVisibleItemIndex = tmp;
 
-                if (mFirstVisibleItemIndex > 0) {
-                    notificationController.toggleIgnoreAll(false);
-                } else {
-                    notificationController.toggleIgnoreAll(true);
-                }
+                notificationController.toggleIgnoreAll(mFirstVisibleItemIndex <= 0);
 
             }
         }
@@ -499,6 +511,8 @@ public class ChatsOverviewActivity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mGinloNowUtil = new GinloNowUtil();
+
         getWindow().setAllowEnterTransitionOverlap(false);
         getWindow().setAllowReturnTransitionOverlap(false);
         getWindow().setEnterTransition(null);
@@ -521,15 +535,12 @@ public class ChatsOverviewActivity
             singleChatController = ((SimsMeApplication) getApplication()).getSingleChatController();
             groupChatController = ((SimsMeApplication) getApplication()).getGroupChatController();
             channelController = ((SimsMeApplication) getApplication()).getChannelController();
-            mServiceController = ((SimsMeApplication) getApplication()).getServiceController();
             channelChatController = ((SimsMeApplication) getApplication()).getChannelChatController();
             chatOverviewController = ((SimsMeApplication) getApplication()).getChatOverviewController();
             contactController = ((SimsMeApplication) getApplication()).getContactController();
             notificationController = ((SimsMeApplication) getApplication()).getNotificationController();
             mChatImageController = ((SimsMeApplication) getApplication()).getChatImageController();
             mPreferencesController = ((SimsMeApplication) getApplication()).getPreferencesController();
-
-            checkForUnsubscribedServices();
 
             initFabMenu();
 
@@ -601,7 +612,7 @@ public class ChatsOverviewActivity
 
                         boolean isMerge = !mPreferencesController.hasOldContactsMerged();
 
-                        initContactsListener();
+                        initContactsListener(false);
                         contactController.syncContacts(initialContactsListener, isMerge, hasPerm);
                     }
                 });
@@ -670,9 +681,6 @@ public class ChatsOverviewActivity
             };
 
             mMessageController.addTimedMessagedDeliveredListener(mOnTimedMessagesDeliveredListener);
-
-            mServiceController.addServiceChangedListener(this);
-
             mPreferencesController.checkRecoveryCodeToBeSet(false);
             mPreferencesController.checkPublicOnlineStateSet();
 
@@ -730,10 +738,6 @@ public class ChatsOverviewActivity
             mMessageController.removeTimedMessagedDeliveredListener(mOnTimedMessagesDeliveredListener);
         }
 
-        if (mServiceController != null) {
-            mServiceController.removeServiceChangedListener(this);
-        }
-
         if (chatOverviewController != null) {
             chatOverviewController.removeListener(this);
         }
@@ -744,20 +748,6 @@ public class ChatsOverviewActivity
     @Override
     protected int getActivityLayout() {
         return R.layout.activity_chats_overview;
-    }
-
-    @Override
-    public void onServicesChanged(boolean hasUnsubscribedServices) {
-        if (!ConfigUtil.INSTANCE.servicesEnabled()) {
-            return;
-        }
-
-        if (hasUnsubscribedServices) {
-            if (!mShowServices) {
-                mShowServices = true;
-            }
-            chatOverviewController.loadChatOverviewItems();
-        }
     }
 
     @Override
@@ -785,14 +775,14 @@ public class ChatsOverviewActivity
             return;
         }
 
+        /* KS: This is too much for new users. Let them discover these options later ...
 
         if (mAfterCreate) {
             //check if push preview is enabled and key is available
             checkPushPreview();
+            checkIsSendProfileNameSet();
         }
-
-        // Eigenes TempDevice laden
-        mAccountController.fetchOwnTempDevice();
+         */
 
         mDrawerListAdapter = new DrawerListAdapter(this, getSimsMeApplication(), R.layout.drawer_list_item, createListForDrawer(),
                 mAccountController, mChatImageController);
@@ -805,11 +795,7 @@ public class ChatsOverviewActivity
         chatOverviewController.setMode(ChatOverviewController.MODE_OVERVIEW);
         chatOverviewController.filterMessages();
 
-        if (mFirstVisibleItemIndex > 2) {
-            notificationController.toggleIgnoreAll(false);
-        } else {
-            notificationController.toggleIgnoreAll(true);
-        }
+        notificationController.toggleIgnoreAll(mFirstVisibleItemIndex <= 2);
 
         try {
             if (ConfigUtil.INSTANCE.channelsInviteFriends() && mPreferencesController.getNumberOfStartedChats() == NUMBER_OF_CHATS_FOR_INVITE_DIALOG) {
@@ -835,46 +821,6 @@ public class ChatsOverviewActivity
                 contactController.addOnLoadContactsListener(initialContactsListener);
             }
 
-            if (!mPreferencesController.getIsSendProfileNameSet()) {
-                //Dialog wurde noch nicht angezeigt
-                mPreferencesController.setSendProfileName(false);
-
-                DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        try {
-                            mPreferencesController.setSendProfileName(true);
-                            mPreferencesController.setSendProfileNameSet();
-                        } catch (LocalizedException e) {
-                            LogUtil.w(TAG, e.getMessage(), e);
-                        }
-                    }
-                };
-
-                DialogInterface.OnClickListener negativeListener = new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        try {
-                            mPreferencesController.setSendProfileName(false);
-                            mPreferencesController.setSendProfileNameSet();
-                        } catch (LocalizedException e) {
-                            LogUtil.w(TAG, e.getMessage(), e);
-                        }
-                    }
-                };
-
-                DialogBuilderUtil.buildResponseDialog(this,
-                        getString(R.string.chats_overview_dialog_send_profle_name_text),
-                        getString(R.string.chats_overview_dialog_send_profle_name_title),
-                        getString(R.string.chats_overview_dialog_send_profle_name_positive),
-                        getString(R.string.chats_overview_dialog_send_profle_name_negative),
-                        positiveListener,
-                        negativeListener
-                ).show();
-            }
-
-            checkForUnsubscribedServices();
-
             //gucken, ob die Telefonnummer verifiziert werden muss
             checkPhoneRequestState();
             checkPhoneConfirmState();
@@ -890,6 +836,74 @@ public class ChatsOverviewActivity
             chatOverviewController.startCheckContactsOnlineTask();
         } catch (LocalizedException e) {
             LogUtil.w(TAG, e.getMessage(), e);
+        }
+
+        // ginlo now!
+        if(mGinloNowUtil.haveGinloNowInvitation()) {
+            processGinloNowInvitation();
+        }
+
+        if(!mAfterCreate && !mPreferencesController.getDisableBackup()) {
+            try {
+                mAccountController.checkBackupInterval();
+            } catch (Exception e) {
+                LogUtil.e(TAG, "onResumeActivity: checkBackupInterval threw exception: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    protected void checkIsSendProfileNameSet() {
+        if (!mPreferencesController.getIsSendProfileNameSet()) {
+            //Dialog wurde noch nicht angezeigt
+            mPreferencesController.setSendProfileName(false);
+
+            DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    try {
+                        mPreferencesController.setSendProfileName(true);
+                        mPreferencesController.setSendProfileNameSet();
+                    } catch (LocalizedException e) {
+                        LogUtil.w(TAG, e.getMessage(), e);
+                    }
+                }
+            };
+
+            DialogInterface.OnClickListener negativeListener = new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    try {
+                        mPreferencesController.setSendProfileName(false);
+                        mPreferencesController.setSendProfileNameSet();
+                    } catch (LocalizedException e) {
+                        LogUtil.w(TAG, e.getMessage(), e);
+                    }
+                }
+            };
+
+            DialogBuilderUtil.buildResponseDialog(this,
+                    getString(R.string.chats_overview_dialog_send_profle_name_text),
+                    getString(R.string.chats_overview_dialog_send_profle_name_title),
+                    getString(R.string.chats_overview_dialog_send_profle_name_positive),
+                    getString(R.string.chats_overview_dialog_send_profle_name_negative),
+                    positiveListener,
+                    negativeListener
+            ).show();
+        }
+    }
+
+    /**
+     *
+     */
+    protected void processGinloNowInvitation() {
+        // ginlo Private clients only
+        if(RuntimeConfig.isB2c()) {
+            LogUtil.i(TAG, "processGinloNowInvitation: Add new contact.");
+            createNewContact();
+        } else {
+            // Clear invitation
+            mGinloNowUtil.resetGinloNowInvitation();
+            LogUtil.i(TAG, "processGinloNowInvitation: Is b2b - invitation cleared.");
         }
     }
 
@@ -989,18 +1003,6 @@ public class ChatsOverviewActivity
                             .setFabBackgroundColor(fabColor)
                             .setFabImageTintColor(fabIconColor)
                             .setLabel(getString(R.string.chat_overview_new_contact))
-                            .setLabelColor(fabIconColor)
-                            .setLabelBackgroundColor(fabColor)
-                            .create()
-            );
-        }
-
-        if (ConfigUtil.INSTANCE.servicesEnabled() && mShowServices) {
-            mSpeedDialView.addActionItem(
-                    new SpeedDialActionItem.Builder(R.id.fab_chatsoverview_new_service, R.drawable.notification)
-                            .setFabBackgroundColor(fabColor)
-                            .setFabImageTintColor(fabIconColor)
-                            .setLabel(getString(R.string.chat_overview_new_service))
                             .setLabelColor(fabIconColor)
                             .setLabelBackgroundColor(fabColor)
                             .create()
@@ -1130,7 +1132,7 @@ public class ChatsOverviewActivity
 
     private void checkPushPreview() {
         //Preview ist default an, aber Key wurde nicht erzeugt
-        if (SystemUtil.hasMarshmallow() && !getSimsMeApplication().getPreferencesController().hasNotificationPreviewSetting() &&
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) && !getSimsMeApplication().getPreferencesController().hasNotificationPreviewSetting() &&
                 !getSimsMeApplication().getPreferencesController().isNotificationPreviewDisabledByAdmin()) {
             final String title = getResources().getString(R.string.notification_preview_askafterinstall_title);
             final String text = getResources().getString(R.string.notification_preview_askafterinstall_hint);
@@ -1523,9 +1525,6 @@ public class ChatsOverviewActivity
 
                                         channelChatController.deleteChat(channel.getGuid(), true, null);
 
-                                        if (StringUtil.isEqual(Channel.TYPE_SERVICE, channel.getType())) {
-                                            checkForUnsubscribedServices();
-                                        }
                                         chatOverviewController.chatChanged(null, channel.getGuid(), null, ChatOverviewController.CHAT_CHANGED_DELETE_CHAT);
                                         idleDialog.dismiss();
                                         chatOverviewController.filterMessages();
@@ -1553,15 +1552,9 @@ public class ChatsOverviewActivity
                 String positiveButton;
                 String message;
                 String negativeButton = getResources().getString(R.string.std_cancel);
-                if (StringUtil.isEqual(Channel.TYPE_SERVICE, channel.getType())) {
-                    title = getResources().getString(R.string.channel_leave_confirm_title_service);
-                    positiveButton = getResources().getString(R.string.channel_settings_unsubscribe_service);
-                    message = getResources().getString(R.string.channel_leave_confirm_service);
-                } else {
-                    title = getResources().getString(R.string.channel_subscribe_button_cancel);
-                    positiveButton = getResources().getString(R.string.channel_settings_unsubscribe);
-                    message = getResources().getString(R.string.channel_leave_confirm);
-                }
+                title = getResources().getString(R.string.channel_subscribe_button_cancel);
+                positiveButton = getResources().getString(R.string.channel_settings_unsubscribe);
+                message = getResources().getString(R.string.channel_leave_confirm);
 
                 AlertDialogWrapper alert = DialogBuilderUtil.buildResponseDialog(this, message,
                         title,
@@ -1686,7 +1679,7 @@ public class ChatsOverviewActivity
     }
 
     public void handleExportChatClick(final View view) {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
                     new PermissionUtil.PermissionResultCallback() {
@@ -1735,22 +1728,8 @@ public class ChatsOverviewActivity
         closeBottomSheet(mOnBottomSheetClosedListener);
     }
 
-    private void checkForUnsubscribedServices() {
-        try {
-            final boolean hasUnsubscribedServices = mServiceController.hasUnsubscribedServices();
-
-            if (mShowServices != hasUnsubscribedServices) {
-                mShowServices = hasUnsubscribedServices;
-                initFabMenu();
-            }
-        } catch (LocalizedException e) {
-            LogUtil.w(TAG, e.getMessage(), e);
-        }
-    }
-
     @Override
     public void onChatDataChanged(final boolean clearImageCache) {
-        checkForUnsubscribedServices();
 
         LogUtil.i(TAG, "onChatDataChanged");
 
@@ -1839,11 +1818,7 @@ public class ChatsOverviewActivity
                 if (channel != null && channelController.isChannelMandatory(channel)) {
                     bottomSheetLayoutResourceID = R.layout.dialog_chat_context_menu_channel_clear_only_layout;
                 } else {
-                    if (channel != null && StringUtil.isEqual(Channel.TYPE_SERVICE, channel.getType())) {
-                        bottomSheetLayoutResourceID = R.layout.dialog_chat_context_menu_service_unsubscribe_layout;
-                    } else {
-                        bottomSheetLayoutResourceID = R.layout.dialog_chat_context_menu_channel_unsubscribe_layout;
-                    }
+                    bottomSheetLayoutResourceID = R.layout.dialog_chat_context_menu_channel_unsubscribe_layout;
                 }
             } catch (LocalizedException e) {
                 LogUtil.w(TAG, e.getMessage(), e);
@@ -1924,8 +1899,8 @@ public class ChatsOverviewActivity
 
     private void clearImageLoader() {
         try {
-            FragmentManager fm = getSupportFragmentManager();
-            if (mImageLoader != null && fm != null) {
+            if (mImageLoader != null) {
+                FragmentManager fm = getSupportFragmentManager();
                 ImageCache.deleteImageCache(fm);
                 mImageLoader.addImageCache(fm, 0.1f);
             }

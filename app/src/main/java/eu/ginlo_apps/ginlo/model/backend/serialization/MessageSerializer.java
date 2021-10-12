@@ -16,6 +16,7 @@ import eu.ginlo_apps.ginlo.util.StringUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 /**
@@ -123,14 +124,14 @@ public class MessageSerializer implements JsonSerializer<Message> {
                     byte[] encryptedDataFromAttachment = AttachmentController.loadEncryptedBase64AttachmentFile(attachmentGuid);
 
                     if ((encryptedDataFromAttachment != null) && (encryptedDataFromAttachment.length > 0)) {
-                        String attachment = new String(encryptedDataFromAttachment, "US-ASCII");
+                        String attachment = new String(encryptedDataFromAttachment, StandardCharsets.US_ASCII);
 
                         JsonArray jsonArray = new JsonArray();
 
                         jsonArray.add(new JsonPrimitive(attachment));
                         privateMessageJsonObject.add("attachment", jsonArray);
                     }
-                } catch (LocalizedException | UnsupportedEncodingException e) {
+                } catch (LocalizedException e) {
                     LogUtil.w(TAG, "Can not load Attachment", e);
                 }
             }
@@ -140,26 +141,18 @@ public class MessageSerializer implements JsonSerializer<Message> {
         if (signatureBytes != null) {
             JsonParser parser = new JsonParser();
 
-            try {
-                JsonElement element = parser.parse(new String(signatureBytes, Encoding.UTF8));
+            JsonElement element = parser.parse(new String(signatureBytes, StandardCharsets.UTF_8));
 
-                privateMessageJsonObject.add("signature", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
+            privateMessageJsonObject.add("signature", element);
         }
 
         byte[] signatureBytesSah256 = message.getSignatureSha256();
         if (signatureBytesSah256 != null) {
             JsonParser parser = new JsonParser();
 
-            try {
-                JsonElement element = parser.parse(new String(signatureBytesSah256, Encoding.UTF8));
+            JsonElement element = parser.parse(new String(signatureBytesSah256, StandardCharsets.UTF_8));
 
-                privateMessageJsonObject.add("signature-sha256", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
+            privateMessageJsonObject.add("signature-sha256", element);
         }
 
         if (!StringUtil.isNullOrEmpty(message.getImportance())) {

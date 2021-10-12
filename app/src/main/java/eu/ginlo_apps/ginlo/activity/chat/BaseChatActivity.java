@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.ContactsContract;
@@ -616,9 +617,12 @@ public abstract class BaseChatActivity
     public void handleMessageCommentClick() {
         String roomType = Chat.ROOM_TYPE_STD;
         try {
+            if(mChat == null) {
+                throw new LocalizedException("mChat is null!");
+            }
             roomType = mChat.getRoomType();
         } catch (LocalizedException e) {
-            LogUtil.w(TAG, "Could not get roomType in handleMessageCommentClick(): ", e);
+            LogUtil.w(TAG, "handleMessageCommentClick: Could not get roomType: " + e.getMessage());
         }
 
         if(!roomType.equals(Chat.ROOM_TYPE_ANNOUNCEMENT)) {
@@ -883,8 +887,6 @@ public abstract class BaseChatActivity
             checkChat();
             getChatController().sendAVC(mTargetGuid,
                     mPublicKeyXML,
-                    mTempDeviceGuid,
-                    mTempDevicePublicKeyXML,
                     avChatController.getSerializedRoomInfo(),
                     mOnSendMessageListener,
                     null,
@@ -928,7 +930,7 @@ public abstract class BaseChatActivity
 
             if (mSelfdestructionFragment == null || !mChatInputFragment.getTimerEnabled()) {
                 checkChat();
-                getChatController().sendText(mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML, text, destructionParams, mOnSendMessageListener,
+                getChatController().sendText(mTargetGuid, mPublicKeyXML, text, destructionParams, mOnSendMessageListener,
                         null, mIsPriority, buildCitationFromSelectedChatItem());
 
                 closeCommentView();
@@ -957,8 +959,6 @@ public abstract class BaseChatActivity
                     checkChat();
                     getChatController().sendText(mTargetGuid,
                             mPublicKeyXML,
-                            mTempDeviceGuid,
-                            mTempDevicePublicKeyXML,
                             text,
                             destructionParams,
                             mOnSendMessageListener,
@@ -1119,7 +1119,7 @@ public abstract class BaseChatActivity
 
             if (mSelfdestructionFragment == null || !mChatInputFragment.getTimerEnabled()) {
                 checkChat();
-                getChatController().sendVoice(this, mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML, voiceUri, destructionParams, mOnSendMessageListener, null, mIsPriority);
+                getChatController().sendVoice(this, mTargetGuid, mPublicKeyXML, voiceUri, destructionParams, mOnSendMessageListener, null, mIsPriority);
                 mChatInputFragment.closeDestructionPicker(true);
             } else {
                 final Calendar oneYear = Calendar.getInstance();
@@ -1157,7 +1157,7 @@ public abstract class BaseChatActivity
                     return;
                 } else {
                     checkChat();
-                    getChatController().sendVoice(this, mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML, voiceUri, destructionParams,
+                    getChatController().sendVoice(this, mTargetGuid, mPublicKeyXML, voiceUri, destructionParams,
                             mOnSendMessageListener, mSelfdestructionFragment.getTimerDate(), mIsPriority);
                 }
             }
@@ -1242,7 +1242,7 @@ public abstract class BaseChatActivity
     // OnClick of menu in attachment dialog (dialog_attachment_selection_layout.xml)
     //@SuppressLint("NewApi")
     public void handleAttachPhotoClick(final View view) {
-        if (SystemUtil.hasMarshmallow()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
                     new PermissionUtil.PermissionResultCallback() {
@@ -1273,7 +1273,7 @@ public abstract class BaseChatActivity
 
     // OnClick of menu in attachment dialog (dialog_attachment_selection_layout.xml)
     public void handleAttachVideoClick(final View view) {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
                     new PermissionUtil.PermissionResultCallback() {
@@ -1535,8 +1535,6 @@ public abstract class BaseChatActivity
                             }
                             getChatController().sendVCard(mTargetGuid,
                                     mPublicKeyXML,
-                                    mTempDeviceGuid,
-                                    mTempDevicePublicKeyXML,
                                     vCard,
                                     null,
                                     null,
@@ -1579,8 +1577,6 @@ public abstract class BaseChatActivity
                         }
                         getChatController().sendVCard(mTargetGuid,
                                 mPublicKeyXML,
-                                mTempDeviceGuid,
-                                mTempDevicePublicKeyXML,
                                 vCard.write(),
                                 contact.getSimsmeId(),
                                 contactGuid,
@@ -1613,7 +1609,7 @@ public abstract class BaseChatActivity
                         if (mChatAdapter != null && mChatAdapter.getCount() == 0) {
                             mPreferencesController.incNumberOfStartedChats();
                         }
-                        getChatController().sendLocation(mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML, longitude, latitude, screenshot,
+                        getChatController().sendLocation(mTargetGuid, mPublicKeyXML, longitude, latitude, screenshot,
                                 mOnSendMessageListener);
                         setResult(RESULT_OK);
                         break;
@@ -1643,7 +1639,7 @@ public abstract class BaseChatActivity
                             if (mChatAdapter != null && mChatAdapter.getCount() == 0) {
                                 mPreferencesController.incNumberOfStartedChats();
                             }
-                            getChatController().sendImage(this, mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML, Uri.parse(imageUris.get(i)), imageTexts.get(i), params,
+                            getChatController().sendImage(this, mTargetGuid, mPublicKeyXML, Uri.parse(imageUris.get(i)), imageTexts.get(i), params,
                                     mOnSendMessageListener/*, ocdul*/, timerDate, isPriority, buildCitationFromSelectedChatItem(), true);
                             mPlayTimdMessagesAnimation = true;
                         }
@@ -1679,7 +1675,7 @@ public abstract class BaseChatActivity
                             if (mChatAdapter != null && mChatAdapter.getCount() == 0) {
                                 mPreferencesController.incNumberOfStartedChats();
                             }
-                            getChatController().sendVideo(this, mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML, Uri.parse(videoUris.get(i)), videoTexts.get(i), params,
+                            getChatController().sendVideo(this, mTargetGuid, mPublicKeyXML, Uri.parse(videoUris.get(i)), videoTexts.get(i), params,
                                     mOnSendMessageListener, timerDate, isPriority, true);
                         }
                         closeCommentView();
@@ -1722,7 +1718,7 @@ public abstract class BaseChatActivity
                                 if (mChatAdapter != null && mChatAdapter.getCount() == 0) {
                                     mPreferencesController.incNumberOfStartedChats();
                                 }
-                                getChatController().sendText(mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML, text, null, mOnSendMessageListener,
+                                getChatController().sendText(mTargetGuid, mPublicKeyXML, text, null, mOnSendMessageListener,
                                         null, isPriority, buildCitationFromSelectedChatItem());
 
                                 mCitatedChatItem = null;
@@ -1738,7 +1734,7 @@ public abstract class BaseChatActivity
                                     if (mChatAdapter != null && mChatAdapter.getCount() == 0) {
                                         mPreferencesController.incNumberOfStartedChats();
                                     }
-                                    getChatController().sendImage(this, mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML, Uri.parse(imageUris.get(i)), imageTexts.get(i), params,
+                                    getChatController().sendImage(this, mTargetGuid, mPublicKeyXML, Uri.parse(imageUris.get(i)), imageTexts.get(i), params,
                                             mOnSendMessageListener/*, ocdul*/, timerDate, isPriority, buildCitationFromSelectedChatItem(), true);
                                     mPlayTimdMessagesAnimation = true;
                                 }
@@ -2250,7 +2246,7 @@ public abstract class BaseChatActivity
             }
 
             if (selectionOverlay != null) {
-                selectionOverlay.setBackgroundColor(getResources().getColor(R.color.color2_20));
+                selectionOverlay.setBackgroundColor(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()));
             }
         }
     }
@@ -2263,7 +2259,7 @@ public abstract class BaseChatActivity
             }
             final View selectionOverlay = mClickedView.findViewById(R.id.chat_item_selection_overlay);
             if (selectionOverlay != null) {
-                selectionOverlay.setBackgroundColor(getResources().getColor(R.color.transparent));
+                selectionOverlay.setBackgroundColor(ColorUtil.getInstance().getTransparentColor(getSimsMeApplication()));
             }
         }
     }
@@ -2358,7 +2354,7 @@ public abstract class BaseChatActivity
                             ? getString(R.string.chat_message_failed_update)
                             : getString(R.string.chat_group_oldversion, countNotSendMessages);
 
-                    getChatController().sendSystemInfo(contactsGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML, notSendMsg, -1);
+                    getChatController().sendSystemInfo(contactsGuid, mPublicKeyXML, notSendMsg, -1);
                 }
 
                 try {
@@ -2666,7 +2662,7 @@ public abstract class BaseChatActivity
                                             if (mChatAdapter != null && mChatAdapter.getCount() == 0) {
                                                 mPreferencesController.incNumberOfStartedChats();
                                             }
-                                            getChatController().sendFile(BaseChatActivity.this, mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML,
+                                            getChatController().sendFile(BaseChatActivity.this, mTargetGuid, mPublicKeyXML,
                                                     fileUri, true, null, null, mOnSendMessageListener, buildCitationFromSelectedChatItem());
                                             mActionContainer = null;
                                             setResult(RESULT_OK);

@@ -244,10 +244,7 @@ public class DeviceDao
 
     @Override
     protected boolean hasKey(Device entity) {
-        if (entity != null && entity.getId() != null) {
-            return true;
-        }
-        return false;
+        return entity != null && entity.getId() != null;
     }
 
     /**

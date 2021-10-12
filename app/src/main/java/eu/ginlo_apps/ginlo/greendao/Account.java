@@ -355,11 +355,7 @@ public class Account
         synchronized (this) {
             final String auto = (String) GreenDAOSecurityLayer.getInstance().get(this, "Autorenewinglicence");
 
-            if (auto == null || auto.equalsIgnoreCase("false")) {
-                return false;
-            } else {
-                return true;
-            }
+            return auto != null && !auto.equalsIgnoreCase("false");
         }
     }
 
@@ -378,11 +374,7 @@ public class Account
         synchronized (this) {
             final Long licenceDate = (Long) GreenDAOSecurityLayer.getInstance().get(this, "licenceDate");
 
-            if (licenceDate == null || licenceDate <= new Date().getTime()) {
-                return false;
-            } else {
-                return true;
-            }
+            return licenceDate != null && licenceDate > new Date().getTime();
         }
     }
 

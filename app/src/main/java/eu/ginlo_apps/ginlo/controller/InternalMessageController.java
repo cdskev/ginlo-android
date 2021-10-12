@@ -282,8 +282,6 @@ public class InternalMessageController
                                         mApp.getSingleChatController()
                                                 .sendSystemInfo(message.getFrom(),
                                                         contactByGuid.getPublicKey(),
-                                                        null,
-                                                        null,
                                                         String.format(mApp.getResources().getString(R.string.chat_absence_title), statusText),
                                                         -1, null, true);
                                     }

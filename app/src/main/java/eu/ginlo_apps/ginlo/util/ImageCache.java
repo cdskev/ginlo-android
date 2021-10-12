@@ -210,9 +210,7 @@ public class ImageCache {
         if (mMemoryCache != null) {
             final Bitmap memBitmap = mMemoryCache.get(data);
 
-            if (memBitmap != null) {
-                return memBitmap;
-            }
+            return memBitmap;
         }
         return null;
     }

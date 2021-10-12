@@ -6,15 +6,6 @@
     <string name="administration_request_dialog_message">You\'re invited to join the team of \"%1$s\". If you accept, your team admin will manage your account and provide you with a license.</string>
     <string name="administration_request_dialog_title">Accept Team Invitation?</string>
     <string name="android_notification_newMessage_message">You have %1$d new messages.</string>
-	
-	<string name="askBrabblerSwitch_labelDescription">As we\'ve recently informed you, SIMSme Business (now ginlo Business) has been handed over to Brabbler AG. That\'s why we\'d like to ask for your consent (a) to transfer your contract and (b) to transfer your inventory, traffic, and message data to Brabbler Secure Message and Data Exchange AG (Brabbler AG) so that you can continue to use the messenger without restriction and to the same extent.\nYour consent is voluntary, but if you don\'t give this consent, sending messages will no longer be possible as of %1$s and your account will be deactivated by %2$s. Further information on consent and your rights can be found %3$s.\nThank you!\nYour SIMSme Team</string>
-	<string name="askBrabblerSwitch_labelDescription_link_url">http://sims.me/datenuebergang/business/en</string>
-	<string name="askBrabblerSwitch_reminder1_message">You\'d like to continue using SIMSme Business (now ginlo Business) in the future? We\'re happy about that! So, don\'t wait and switch to Brabbler AG now.</string>
-	<string name="askBrabblerSwitch_reminder2_message">Haven\'t had time yet to give your consent? Please take some time to agree to the provider change to Brabbler AG in order to continue using SIMSme Business (now ginlo Business).</string>
-	<string name="askBrabblerSwitch_reminder3_message">Please agree to the provider change to Brabbler AG. Otherwise, you\'ll no longer be able to send messages as of now. And that would be a real pity. If you no longer want to use ginlo Business, please create a backup of your data.</string>
-	<string name="askBrabblerSwitch_reminder4_message">If you want to send messages again with ginlo Business or create a backup of your data, please agree to the transfer of your contract to Brabbler AG now.</string>
-	
-	<string name="settings_brabblerSwitchInfo_cell_text">Your consent to the transfer of your data is required so that you can continue to use the messenger without restriction.</string>
     <string name="backup_button_guid_hint">You\'ll need this key to import your backup later. Please keep it in a safe place. Alternatively, you can use the QR code below.</string>
     <string name="backup_button_guid_title">Your Backup Key</string>
     <string name="backup_password_empty">Please set a password.</string>
@@ -70,10 +61,10 @@
     <string name="contacts_activity_company_addressbook_title">Link E-Mail Address &amp; Find Colleagues</string>
     <string name="contacts_activity_pager_company_addressbook_title">E-mail directory</string>
     <string name="contacts_activity_pager_contacts_title">Address book</string>
-	<string name="contacts_eMailMessageSubject">Join me on ginlo Business, the secure business messenger</string>
-    <string name="contacts_eMailMessageBody">Hello,\n\nJoin me on ginlo Business, the secure messenger for confidential and productive business communication. GDPR-compliant &amp; made in Germany - powered by Deutsche Post technology.\n\nHere\'s what ginlo Business has in store:\n\n- Start one-to-one and group chats, channels, and distribution lists.\n- Share documents, photos, videos, and audio messages.\n- Add comments, mark important messages, and use scheduled posting to make collaboration more efficient.\n- Work across multiple devices - both mobile and desktop.\n\nStart your 30-day trial now: ginlo.net/business-messenger\n\nKind regards,\n</string>
+	<string name="contacts_eMailMessageSubject">Invitation to ginlo, the specialist for absolute privacy and strictly confidential messaging</string>
+    <string name="contacts_eMailMessageBody">Join me on ginlo, the top secure messenger for confidential communication - made in Germany. Just scan the QR-Code below or click:</string>
     <string name="contacts_error_verifyingContactByQRCodeFailed">We\'re sorry, but something went wrong while validating the QR code. Please try again.</string>
-    <string name="contacts_smsMessageBody">Join me on ginlo, the secure messenger for private and confidential communication - made in Germany. Download it here: ginlo.net/join</string>
+    <string name="contacts_smsMessageBody">Join me on ginlo, the top secure messenger for confidential communication - made in Germany. Just scan the QR-Code below or click:</string>
     <string name="dialog_email_activiation_code_sent_text">We\'ve just sent an e-mail to %1$s.</string>
     <string name="dialog_email_verfication_code_too_short">This confirmation code doesn\'t seem right. Please try again.</string>
     <string name="dialog_email_verfication_succeeded">Perfect, it worked. The e-mail address %1$s is now linked to your account.</string>
@@ -104,8 +95,6 @@
     <string name="forgot_pwd_desc2">You\'ll receive the code once your admin has approved.</string>
     <string name="forgot_pwd_title">Request Recovery Code</string>
     <string name="gcm_notifcation_registration_failed">We\'re sorry, but something went wrong while registering your device for the push notifications. Please restart the app and try again.</string>
-    <string name="intro_descriptionTextForSecondScreen">Brabbler AG guarantees the security of your data. Powered by Deutsche Post technology. With true end-to-end encryption and hosting in Germany.</string>
-    <string name="intro_descriptionTextForThirdScreen">Now set up you ginlo Business account and set your password. Your password is not transmitted to us and cannot be reset. So please make sure to remember it.</string>
     <string name="intro_1_text_3">GDPR-compliant</string>
 	<string name="intro_2_text_link">Terms &amp; Conditions</string>
 	<string name="intro_skipwarning_terms">Please accept the Terms &amp; Conditions</string>
@@ -300,4 +289,5 @@
 	<string name="settings_termsandcondition_dp_url">https://app-help.ginlo.net/business/en/terms/</string>
     <string name="start_chat_with_company_contact_idle_text">Loading contact information...</string>
     <string name="unexpected_error_label_next">ginlo Business closed due to an unexpected error. Please restart the app.</string>
+    <string name="settings_termsandcondition">General terms and conditions</string>
 </resources>

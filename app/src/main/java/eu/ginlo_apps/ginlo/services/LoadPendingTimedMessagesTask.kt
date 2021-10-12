@@ -14,7 +14,7 @@ class LoadPendingTimedMessagesTask : JobIntentService() {
         val messageController = SimsMeApplication.getInstance().messageController
 
         try {
-            val timedMessageGuids = messageController.getTimedMessagesGuids()
+            val timedMessageGuids = messageController.timedMessagesGuids
 
             if (timedMessageGuids.size <= 0) {
                 return

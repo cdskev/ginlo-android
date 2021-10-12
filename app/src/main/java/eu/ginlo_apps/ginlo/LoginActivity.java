@@ -17,7 +17,9 @@ import androidx.appcompat.app.ActionBar;
 
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity;
 import eu.ginlo_apps.ginlo.activity.register.IntroActivity;
+import eu.ginlo_apps.ginlo.activity.register.IntroBaseActivity;
 import eu.ginlo_apps.ginlo.activity.register.ShowSimsmeIdActivity;
+import eu.ginlo_apps.ginlo.activity.register.device.WelcomeBackActivity;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.LoginController;
@@ -144,13 +146,6 @@ public class LoginActivity
                     finish();
                 } else {
                     mLoginActivitySettings.edit().putInt(PREFS_LOGIN_TRIES, mLoginTryCounter).apply();
-
-                    //pruefen ob eine Migration gestartet werden muss
-                    if (mAccountController.haveToStartMigration()) {
-                        startMigration(password);
-                        return false;
-                    }
-
                     startNextActivity(password);
                 }
             } catch (ClassNotFoundException | LocalizedException e) {
@@ -180,7 +175,7 @@ public class LoginActivity
             if (gos == null) {
                 if (mPreferencesController.getGinloOngoingServiceEnabled()) {
                     gos = new GinloOngoingService();
-                    gos.launch(this);
+                    GinloOngoingService.launch(this);
                 } else {
                     LogUtil.i(TAG, " onCreate: GinloOngoingService is disabled by BuildConfig or user!" );
                 }
@@ -320,8 +315,8 @@ public class LoginActivity
             mLoginButton.setText(getString(R.string.intro_nextButtonTitle));
 
             showLoginViews();
-
             showLoginMethod();
+
         } else {
             ActionBar actionBar = getSupportActionBar();
 
@@ -339,8 +334,6 @@ public class LoginActivity
             if (intent.getExtras() != null) {
                 mSavedExtras = intent.getExtras();
             }
-
-            LogUtil.d(TAG, "handleLoginState: mNextActivity: " + mNextActivity + ", mSavedExtras: " + mSavedExtras);
 
             if (mPreferencesController.getPasswordEnabled()) {
                 showLoginViews();
@@ -374,6 +367,8 @@ public class LoginActivity
                 mLoginController.loginWithoutPassword(this, mOnLoginCompleteListener);
             }
         }
+        LogUtil.d(TAG, "handleLoginState: mNextActivity: " + mNextActivity + ", mSavedExtras: " + mSavedExtras);
+
         final EditText editText = mPasswordFragment.getEditText();
 
         if (editText != null) {
@@ -425,15 +420,21 @@ public class LoginActivity
         switch (state) {
             case Account.ACCOUNT_STATE_FULL: {
                 nextActivityClass = getNextActivityClassForFullAccountState(password, extras);
+                LogUtil.d(TAG, "startNextActivity: ACCOUNT_STATE_FULL -> " + nextActivityClass.getName());
                 break;
             }
             case Account.ACCOUNT_STATE_CONFIRMED: {
                 nextActivityClass = getNextActivityClassForConfirmedAccountState(password, extras);
+                LogUtil.d(TAG, "startNextActivity: ACCOUNT_STATE_CONFIRMED -> " + nextActivityClass.getName());
                 break;
             }
             case Account.ACCOUNT_STATE_VALID_CONFIRM_CODE: {
                 try {
-                    if (mAccountController.getAccount() != null && mAccountController.getAccount().getAllServerAccountIDs() != null) {
+                    if (mAccountController.getAccount() != null
+                            && (mAccountController.getAccount().getAllServerAccountIDs() != null
+                            || mPreferencesController.getSharedPreferences().getInt(WelcomeBackActivity.WELCOME_BACK_MODE, WelcomeBackActivity.UNKNOWN) == WelcomeBackActivity.MODE_BACKUP)) {
+                        // One shot only
+                        mPreferencesController.getSharedPreferences().edit().remove(WelcomeBackActivity.WELCOME_BACK_MODE).apply();
                         nextActivityClass = RuntimeConfig.getClassUtil().getRestoreBackupActivityClass();
                     } else {
                         nextActivityClass = RuntimeConfig.getClassUtil().getIdentConfirmActivityClass();
@@ -442,21 +443,24 @@ public class LoginActivity
                     LogUtil.w(TAG, e.getMessage(), e);
                     nextActivityClass = RuntimeConfig.getClassUtil().getIdentConfirmActivityClass();
                 }
+                LogUtil.d(TAG, "startNextActivity: ACCOUNT_STATE_VALID_CONFIRM_CODE -> " + nextActivityClass.getName());
                 break;
             }
             case Account.ACCOUNT_STATE_NOT_CONFIRMED: {
                 nextActivityClass = RuntimeConfig.getClassUtil().getIdentConfirmActivityClass();
+                LogUtil.d(TAG, "startNextActivity: ACCOUNT_STATE_NOT_CONFIRMED -> " + nextActivityClass.getName());
                 break;
             }
             case Account.ACCOUNT_STATE_AUTOMATIC_MDM_PROGRESS: {
                 mAccountController.resetCreateAccountRegisterPhone();
                 getSimsMeApplication().safeDeleteAccount();
-
                 nextActivityClass = IntroActivity.class;
+                LogUtil.d(TAG, "startNextActivity: ACCOUNT_STATE_AUTOMATIC_MDM_PROGRESS -> " + nextActivityClass.getName());
                 break;
             }
             default: {
                 nextActivityClass = MainActivity.class;
+                LogUtil.d(TAG, "startNextActivity: No defined ACCOUNT_STATE -> " + nextActivityClass.getName());
             }
         }
 
@@ -468,49 +472,6 @@ public class LoginActivity
 
         mAccountController.clearPassword();
         LoginActivity.this.startActivity(intent);
-    }
-
-    private void startMigration(final String password) {
-        showIdleDialog(R.string.contact_list_refresh);
-        mAccountController.startMigration(new GenericUpdateListener<Integer>() {
-            @Override
-            public void onSuccess(Integer object) {
-                dismissIdleDialog();
-                try {
-                    if (LoginActivity.this.isActivityInForeground() && loginController.isLoggedIn()) {
-                        loginController.informListenerAfterLogin(LoginActivity.this);
-                        startNextActivity(password);
-                    }
-                } catch (LocalizedException | ClassNotFoundException e) {
-                    DialogBuilderUtil.buildErrorDialog(LoginActivity.this, getString(R.string.migration_task_error)).show();
-                }
-            }
-
-            @Override
-            public void onUpdate(String updateMessage) {
-                updateIdleDialog(updateMessage);
-            }
-
-            @Override
-            public void onFail(String message, String errorIdent) {
-                dismissIdleDialog();
-
-                DialogBuilderUtil.buildErrorDialog(LoginActivity.this, getString(R.string.migration_task_error), 0, new OnCloseListener() {
-                    @Override
-                    public void onClose(int ref) {
-                        try {
-                            if (LoginActivity.this.isActivityInForeground() && loginController.isLoggedIn()) {
-                                loginController.informListenerAfterLogin(LoginActivity.this);
-                                startNextActivity(password);
-                            }
-                        } catch (LocalizedException | ClassNotFoundException e) {
-                            DialogBuilderUtil.buildErrorDialog(LoginActivity.this, getString(R.string.migration_task_error)).show();
-                        }
-                    }
-                }).show();
-            }
-        });
-
     }
 
     public void handleConfirmResetClick(View unused_but_needed_for_xml) {

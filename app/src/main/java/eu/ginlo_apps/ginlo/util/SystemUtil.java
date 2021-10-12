@@ -44,20 +44,6 @@ public class SystemUtil {
         Process.killProcess(Process.myPid());
     }
 
-    public static boolean hasOreo() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
-        // KS: Test
-        // return false;
-    }
-
-    public static boolean hasNougat() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
-    }
-
-    public static boolean hasMarshmallow() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
-    }
-
     public static Class<?> getClassForBuildConfigClassname(String className)
             throws ClassNotFoundException {
         String packageName = BuildConfig.class.getPackage().getName();

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.view.View;
@@ -25,6 +26,7 @@ import eu.ginlo_apps.ginlo.controller.LocalBackupHelper;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.controller.contracts.DownloadBackupListener;
 import eu.ginlo_apps.ginlo.controller.contracts.OnConfirmAccountListener;
+import eu.ginlo_apps.ginlo.controller.contracts.OnCreateAccountListener;
 import eu.ginlo_apps.ginlo.data.network.AppConnectivity;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.fragment.BaseFragment;
@@ -43,6 +45,8 @@ import eu.ginlo_apps.ginlo.util.SystemUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
 import eu.ginlo_apps.ginlo.view.ProgressDownloadDialog;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
@@ -57,6 +61,7 @@ public class RestoreBackupActivity
         BaseFragment.OnFragmentInteractionListener,
         IOnFragmentViewClickable {
 
+    private static final String TAG = RestoreBackupActivity.class.getSimpleName();
     private static final String FRAGMENT_TAG = "restore_backup_fragment";
 
     private static final int STATE_SELECT_BACKUP = 4;
@@ -90,8 +95,27 @@ public class RestoreBackupActivity
     @Override
     protected void onResumeActivity() {
         if (this.mAfterCreate) {
-            showIdleDialog(-1);
-            showLocalBackups();
+            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+                requestPermission(PermissionUtil.PERMISSION_FOR_WRITE_EXTERNAL_STORAGE,
+                        Integer.MIN_VALUE,
+                        new PermissionUtil.PermissionResultCallback() {
+                            @Override
+                            public void permissionResult(int permission, boolean permissionGranted) {
+                                if ((permission == PermissionUtil.PERMISSION_FOR_WRITE_EXTERNAL_STORAGE)
+                                        && permissionGranted) {
+                                    showIdleDialog(-1);
+                                    showLocalBackups();
+                                } else {
+                                    updateActivity(STATE_NO_BACKUPS_FOUND, null);
+                                }
+                            }
+                        });
+
+            } else {
+                showIdleDialog(-1);
+                showLocalBackups();
+            }
+
         } else if (mNextState != null) {
             updateActivity(mNextState.state, mNextState.args);
         }
@@ -169,6 +193,8 @@ public class RestoreBackupActivity
         mState = state;
         Fragment nextFragment;
 
+        LogUtil.d(TAG, "updateActivity: mState = " + mState + ", args =" + args);
+
         switch (mState) {
             case STATE_NO_BACKUPS_FOUND: {
                 nextFragment = BackupRestoreBaseFragment.newInstance(BackupRestoreBaseFragment.TYPE_NO_BACKUPS_FOUND, args);
@@ -187,7 +213,7 @@ public class RestoreBackupActivity
                 break;
             }
             default: {
-                LogUtil.w(this.getClass().getName(), LocalizedException.UNDEFINED_ARGUMENT);
+                LogUtil.w(TAG, "updateActivity failed with " + LocalizedException.UNDEFINED_ARGUMENT);
                 return;
             }
         }
@@ -208,11 +234,12 @@ public class RestoreBackupActivity
     }
 
     private void showLocalBackups() {
-        dismissIdleDialog();
         LocalBackupHelper localBackupHelper = new LocalBackupHelper((SimsMeApplication) getApplication());
         List<Bundle> backupsFound = localBackupHelper.getBundleForLocalBackup();
 
         //TODO : Need to discuss how to handle to the scenario if no backups found on local external storage
+
+        dismissIdleDialog();
 
         if (backupsFound.size() > 0) {
             Bundle args = new Bundle();
@@ -233,10 +260,9 @@ public class RestoreBackupActivity
 
                 try {
                     final Intent intent = new Intent(RestoreBackupActivity.this, eu.ginlo_apps.ginlo.LoginActivity.class);
-
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
                     startActivity(intent);
+
                 } catch (Exception e) {
                     throw new IllegalStateException(e);
                 }
@@ -326,24 +352,28 @@ public class RestoreBackupActivity
     public void onFragmentInteraction(int action, Bundle arguments) {
         switch (action) {
             case AppConstants.BACKUP_RESTORE_ACTION_REGISTER_WO_BACKUP: {
+                LogUtil.d(TAG, "onFragmentInteraction: Action = BACKUP_RESTORE_ACTION_REGISTER_WO_BACKUP");
                 updateActivity(STATE_WO_CONFIRM, null);
                 break;
             }
             case AppConstants.BACKUP_RESTORE_ACTION_BACKUP_SELECTED: {
+                LogUtil.d(TAG, "onFragmentInteraction: Action = BACKUP_RESTORE_ACTION_BACKUP_SELECTED");
                 mSelectedBackup = arguments;
                 break;
             }
             case AppConstants.BACKUP_RESTORE_ACTION_BACKUP_DESELECTED: {
+                LogUtil.d(TAG, "onFragmentInteraction: Action = BACKUP_RESTORE_ACTION_BACKUP_DESELECTED");
                 mSelectedBackup = null;
                 break;
             }
             case AppConstants.BACKUP_RESTORE_ACTION_IMPORT_BACKUP: {
+                LogUtil.d(TAG, "onFragmentInteraction: Action = BACKUP_RESTORE_ACTION_IMPORT_BACKUP");
                 if (mSelectedBackup != null) {
                     final String localBackupPath = mSelectedBackup.getString(LocalBackupHelper.LOCAL_BACKUP_PATH);
                     if (localBackupPath != null && !localBackupPath.isEmpty()) {
                         createAndShowProgressDownloadDialog();
 
-                        if (SystemUtil.hasMarshmallow()) {
+                        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
                             requestPermission(PermissionUtil.PERMISSION_FOR_WRITE_EXTERNAL_STORAGE,
                                     Integer.MIN_VALUE,
                                     new PermissionUtil.PermissionResultCallback() {
@@ -368,6 +398,7 @@ public class RestoreBackupActivity
                 break;
             }
             case AppConstants.BACKUP_RESTORE_ACTION_BACKUP_SET_PASSWORD: {
+                LogUtil.d(TAG, "onFragmentInteraction: Action = BACKUP_RESTORE_ACTION_BACKUP_SET_PASSWORD");
                 if (arguments != null) {
                     String password = arguments.getString(AppConstants.ACTION_ARGS_VALUE);
                     if (!StringUtil.isNullOrEmpty(password)) {
@@ -377,11 +408,17 @@ public class RestoreBackupActivity
                 break;
             }
             case AppConstants.BACKUP_RESTORE_ACTION_REGISTER_WO_CONFIRM: {
+                LogUtil.d(TAG, "onFragmentInteraction: Action = BACKUP_RESTORE_ACTION_REGISTER_WO_CONFIRM");
                 try {
-                    String confirmCode = getSimsMeApplication().getPreferencesController().getRegConfirmCode();
-                    if (confirmCode != null) {
+                    if(BuildConfig.NEED_PHONENUMBER_VALIDATION) {
+                        String confirmCode = getSimsMeApplication().getPreferencesController().getRegConfirmCode();
+                        if (confirmCode != null) {
+                            showIdleDialog(-1);
+                            mAccountController.createAccountConfirmAccount(confirmCode, this);
+                        }
+                    } else {
                         showIdleDialog(-1);
-                        mAccountController.createAccountConfirmAccount(confirmCode, this);
+                        this.onConfirmAccountSuccess();
                     }
                 } catch (LocalizedException e) {
                     LogUtil.e(this.getClass().getName(), e.getMessage(), e);
@@ -389,11 +426,12 @@ public class RestoreBackupActivity
                 break;
             }
             case AppConstants.BACKUP_RESTORE_ACTION_REGISTER_WO_CONFIRM_CANCEL: {
+                LogUtil.d(TAG, "onFragmentInteraction: Action = BACKUP_RESTORE_ACTION_REGISTER_WO_CONFIRM_CANCEL");
                 onBackPressed();
                 break;
             }
             default: {
-                LogUtil.w(this.getClass().getName(), LocalizedException.UNDEFINED_ARGUMENT);
+                LogUtil.e(TAG, "onFragmentInteraction: Action = unknown (" + LocalizedException.UNDEFINED_ARGUMENT + ")");
                 finish();
                 break;
             }
@@ -477,23 +515,23 @@ public class RestoreBackupActivity
         public void onReceive(Context context, Intent intent) {
             switch (intent.getIntExtra(AppConstants.INTENT_EXTENDED_DATA_STATUS, -1)) {
                 case AppConstants.STATE_ACTION_RESTORE_BACKUP_STARTED: {
-                    LogUtil.d("RESTORE", "STATE_ACTION_RESTORE_BACKUP_STARTED");
+                    LogUtil.d(TAG, "BackupStateReceiver: STATE_ACTION_RESTORE_BACKUP_STARTED");
                     mProgressDownloadDialog.updateMessage(getString(R.string.backup_restore_progress_started_text));
                     mProgressDownloadDialog.updateSecondaryTextView("");
                     break;
                 }
                 case AppConstants.STATE_ACTION_RESTORE_BACKUP_ACCOUNT: {
-                    LogUtil.d("RESTORE", "STATE_ACTION_RESTORE_BACKUP_ACCOUNT");
+                    LogUtil.d(TAG, "BackupStateReceiver: STATE_ACTION_RESTORE_BACKUP_ACCOUNT");
                     mProgressDownloadDialog.updateMessage(getString(R.string.backup_restore_progress_account));
                     break;
                 }
                 case AppConstants.STATE_ACTION_RESTORE_BACKUP_CONTACTS: {
-                    LogUtil.d("RESTORE", "STATE_ACTION_RESTORE_BACKUP_CONTACTS");
+                    LogUtil.d(TAG, "BackupStateReceiver: STATE_ACTION_RESTORE_BACKUP_CONTACTS");
                     mProgressDownloadDialog.updateMessage(getString(R.string.backup_restore_progress_contacts));
                     break;
                 }
                 case AppConstants.STATE_ACTION_RESTORE_BACKUP_CHATS_STARTED: {
-                    LogUtil.d("RESTORE", "STATE_ACTION_RESTORE_BACKUP_CHATS_STARTED");
+                    LogUtil.d(TAG, "BackupStateReceiver: STATE_ACTION_RESTORE_BACKUP_CHATS_STARTED");
                     mChatsSize = intent.getIntExtra(AppConstants.INTENT_EXTENDED_DATA_EXTRA, -1);
                     if (mChatsSize > -1) {
                         mProgressDownloadDialog.setIndeterminate(false);
@@ -507,7 +545,7 @@ public class RestoreBackupActivity
                     break;
                 }
                 case AppConstants.STATE_ACTION_RESTORE_BACKUP_CHATS_UPDATE: {
-                    LogUtil.d("RESTORE", "STATE_ACTION_RESTORE_BACKUP_CHATS_UPDATE");
+                    LogUtil.d(TAG, "BackupStateReceiver: STATE_ACTION_RESTORE_BACKUP_CHATS_UPDATE");
                     int currentChat = intent.getIntExtra(AppConstants.INTENT_EXTENDED_DATA_EXTRA, -1);
                     if (currentChat > -1) {
                         mProgressDownloadDialog.updateProgress(currentChat);
@@ -516,14 +554,14 @@ public class RestoreBackupActivity
                     break;
                 }
                 case AppConstants.STATE_ACTION_RESTORE_BACKUP_TIMED_MESSAGES: {
-                    LogUtil.d("RESTORE", "STATE_ACTION_RESTORE_BACKUP_TIMED_MESSAGES");
+                    LogUtil.d(TAG, "BackupStateReceiver: STATE_ACTION_RESTORE_BACKUP_TIMED_MESSAGES");
                     mProgressDownloadDialog.setIndeterminate(true);
                     mProgressDownloadDialog.updateMessage(getString(R.string.backup_restore_progress_timed_messages));
                     mProgressDownloadDialog.updateSecondaryTextView("");
                     break;
                 }
                 case AppConstants.STATE_ACTION_RESTORE_BACKUP_CHANNELS_STARTED: {
-                    LogUtil.d("RESTORE", "STATE_ACTION_RESTORE_BACKUP_CHANNELS_STARTED");
+                    LogUtil.d(TAG, "BackupStateReceiver: STATE_ACTION_RESTORE_BACKUP_CHANNELS_STARTED");
                     mChannelSize = intent.getIntExtra(AppConstants.INTENT_EXTENDED_DATA_EXTRA, -1);
                     if (mChannelSize > -1) {
                         mProgressDownloadDialog.setIndeterminate(false);
@@ -538,7 +576,7 @@ public class RestoreBackupActivity
                 }
                 case AppConstants.STATE_ACTION_RESTORE_BACKUP_CHANNELS_UPDATE:
                 case AppConstants.STATE_ACTION_RESTORE_BACKUP_SERVICES_UPDATE: {
-                    LogUtil.d("RESTORE", "STATE_ACTION_RESTORE_BACKUP_CHANNELS/SERVICES_UPDATE");
+                    LogUtil.d(TAG, "BackupStateReceiver: STATE_ACTION_RESTORE_BACKUP_CHANNELS/SERVICES_UPDATE");
                     int currentChannel = intent.getIntExtra(AppConstants.INTENT_EXTENDED_DATA_EXTRA, -1);
                     if (currentChannel > -1) {
                         mProgressDownloadDialog.updateProgress(currentChannel);
@@ -548,7 +586,7 @@ public class RestoreBackupActivity
                     break;
                 }
                 case STATE_ACTION_RESTORE_BACKUP_SERVICES_STARTED: {
-                    LogUtil.d("RESTORE", "STATE_ACTION_RESTORE_BACKUP_SERVICES_STARTED");
+                    LogUtil.d(TAG, "BackupStateReceiver: STATE_ACTION_RESTORE_BACKUP_SERVICES_STARTED");
                     mChannelSize = intent.getIntExtra(AppConstants.INTENT_EXTENDED_DATA_EXTRA, -1);
                     if (mChannelSize > -1) {
                         mProgressDownloadDialog.setIndeterminate(false);
@@ -562,7 +600,7 @@ public class RestoreBackupActivity
                     break;
                 }
                 case AppConstants.STATE_ACTION_RESTORE_BACKUP_FINISHED: {
-                    LogUtil.d("RESTORE", "STATE_ACTION_RESTORE_BACKUP_FINISHED");
+                    LogUtil.d(TAG, "BackupStateReceiver: STATE_ACTION_RESTORE_BACKUP_FINISHED");
 
                     if (mBackupStateReceiver != null) {
                         LocalBroadcastManager.getInstance(RestoreBackupActivity.this).unregisterReceiver(mBackupStateReceiver);
@@ -586,7 +624,7 @@ public class RestoreBackupActivity
                         try {
                             getSimsMeApplication().getContactController().createAndFillFtsDB(true);
                         } catch (LocalizedException e) {
-                            LogUtil.w("RestoreBackupActivity", "createFTS", e);
+                            LogUtil.w(TAG, "BackupStateReceiver: createFTS failed with " + e.getMessage());
                         }
                     }
 
@@ -724,7 +762,7 @@ public class RestoreBackupActivity
                     }
 
                     if (e != null && createSilentException) {
-                        LogUtil.e(this.getClass().getSimpleName(), "Failed while restoring backup", e);
+                        LogUtil.e(TAG, "BackupStateReceiver: Failed while restoring backup with " + e.getMessage());
                     }
 
                     mProgressDownloadDialog.dismiss();
@@ -738,7 +776,7 @@ public class RestoreBackupActivity
                     break;
                 }
                 default: {
-                    LogUtil.w(this.getClass().getName(), LocalizedException.UNDEFINED_ARGUMENT);
+                    LogUtil.w(TAG, "BackupStateReceiver failed with " + LocalizedException.UNDEFINED_ARGUMENT);
                     finish();
                     break;
                 }

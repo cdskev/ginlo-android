@@ -3,6 +3,7 @@ package eu.ginlo_apps.ginlo.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 
@@ -82,13 +83,13 @@ public class FCMService extends FirebaseMessagingService {
             return;
         }
 
-        if (SystemUtil.hasMarshmallow()) {
-            LogUtil.i(TAG, "onMessageReceived: hasMarshmallow true");
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+            LogUtil.i(TAG, "onMessageReceived: (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) true");
 
             if (GCMIntentService.haveToStartAsForegroundService(app, intent)) {
                 LogUtil.i(TAG, "onMessageReceived: haveToStartAsForegroundService true");
 
-                if (SystemUtil.hasOreo()) {
+                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
                     LogUtil.i(TAG, "onMessageReceived: hasOreo true");
                     startForegroundService(intent);
                 } else {
@@ -100,7 +101,7 @@ public class FCMService extends FirebaseMessagingService {
                 GCMIntentService.showNotification(app, intent);
             }
         } else {
-            LogUtil.i(TAG, "onMessageReceived: hasMarshmallow false");
+            LogUtil.i(TAG, "onMessageReceived: (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) false");
             startService(intent);
         }
     }

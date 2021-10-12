@@ -16,6 +16,7 @@ import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity
 import eu.ginlo_apps.ginlo.controller.DeviceController
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.model.backend.DeviceModel
+import eu.ginlo_apps.ginlo.util.ColorUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener
 import eu.ginlo_apps.ginlo.util.RuntimeConfig
@@ -50,24 +51,22 @@ class DeviceDetailActivity : NewBaseActivity() {
 
         if (model.guid == deviceController.ownDevice?.guid) {
             device_detail_info_tv.setText(R.string.device_own_device)
-            device_detail_info_tv.setTextColor(ContextCompat.getColor(this, R.color.simsme_id_color))
+            device_detail_info_tv.setTextColor(ColorUtil.getInstance().getMediumColor(simsMeApplication))
             val deleteBtn = findViewById<View>(R.id.device_detail_delete_btn)
             deleteBtn.visibility = View.GONE
         } else {
             device_detail_info_tv.text = model.lastOnlineDateString
-            device_detail_info_tv.setTextColor(ContextCompat.getColor(this, R.color.color5))
+            device_detail_info_tv.setTextColor(ColorUtil.getInstance().getNamedColor("actionSecondary", simsMeApplication))
         }
 
         device_detail_version_tv.text = model.versionString
         device_detail_device_icon_iv.setImageResource(model.deviceImageRessource)
 
-        if (!model.isTempDevice) {
-            val t = findViewById<TextView>(R.id.device_detail_device_type)
-            t.setText(R.string.device_couple_perm_device)
+        val t = findViewById<TextView>(R.id.device_detail_device_type)
+        t.setText(R.string.device_couple_perm_device)
 
-            val desc = findViewById<TextView>(R.id.device_detail_device_type_descr)
-            desc.setText(R.string.device_couple_perm_descr)
-        }
+        val desc = findViewById<TextView>(R.id.device_detail_device_type_descr)
+        desc.setText(R.string.device_couple_perm_descr)
 
         device_detail_device_name_tv.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {

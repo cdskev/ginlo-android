@@ -431,18 +431,6 @@
                 </LinearLayout>
 
                 <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/settingsQrCodeSwitchButton"
-                    style="@style/BorderlessColoredButtonStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/activity_vertical_margin"
-                    android:onClick="handleQRCodeSwitchButton"
-                    android:text="@string/settings_profile_qr_code_btn_old"
-                    app:styledBackgroundColorFilter="action"
-                    app:styledButtonType="borderless"
-                    app:styledTextColor="action" />
-
-                <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/start_delete_account_btn"
                     style="@style/BorderlessColoredButtonStyle"
                     android:layout_width="match_parent"

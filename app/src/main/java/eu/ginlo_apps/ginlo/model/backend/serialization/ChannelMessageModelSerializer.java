@@ -11,6 +11,7 @@ import eu.ginlo_apps.ginlo.util.GuidUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Florian
@@ -52,7 +53,7 @@ public class ChannelMessageModelSerializer
                     byte[] encryptedDataFromAttachment = AttachmentController.loadEncryptedBase64AttachmentFile(channelMessageModel.attachment);
 
                     if ((encryptedDataFromAttachment != null) && (encryptedDataFromAttachment.length > 0)) {
-                        String attachment = new String(encryptedDataFromAttachment, "US-ASCII");
+                        String attachment = new String(encryptedDataFromAttachment, StandardCharsets.US_ASCII);
                         jsonArray.add(new JsonPrimitive(attachment));
                     }
                 } else {
@@ -62,7 +63,7 @@ public class ChannelMessageModelSerializer
                 if (jsonArray.size() > 0) {
                     channelMessageJsonObject.add("attachment", jsonArray);
                 }
-            } catch (LocalizedException | UnsupportedEncodingException e) {
+            } catch (LocalizedException e) {
                 return null;
             }
         }

@@ -77,7 +77,7 @@
             </intent-filter>
         </receiver>
         <receiver android:name=".broadcastreceiver.AlarmReceiver" />
-        <receiver android:name=".broadcastreceiver.BootCompletedReceiver" >
+        <receiver android:name=".broadcastreceiver.BootCompletedReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
@@ -85,7 +85,8 @@
         </receiver>
 
 
-        <uses-library android:name="com.google.android.maps"
+        <uses-library
+            android:name="com.google.android.maps"
             android:required="false" />
 
         <service android:name=".service.ClearKeysService" />
@@ -213,11 +214,17 @@
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:host="channel" android:scheme="${appScheme}${appSchemeSuffix}" />
+
+                <data
+                    android:host="channel"
+                    android:scheme="${appScheme}" />
                 <!-- This is for backward compatibility, TODO: Remove in future versions -->
-                <data android:host="channel" android:scheme="${oldScheme}${appSchemeSuffix}" />
+                <data
+                    android:host="channel"
+                    android:scheme="${oldScheme}" />
             </intent-filter>
         </activity>
         <activity
@@ -288,22 +295,6 @@
             android:label=""
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".SearchContactActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/search_contact_title"
-            android:windowSoftInputMode="stateHidden">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:host="contact" android:scheme="${appScheme}${appSchemeSuffix}" />
-                <data android:host="phone"  android:scheme="${appScheme}${appSchemeSuffix}" />
-                <!-- This is for backward compatibility, TODO: Remove in future versions -->
-                <data android:host="contact" android:scheme="${oldScheme}{appSchemeSuffix}" />
-                <data android:host="phone" android:scheme="${oldScheme}${appSchemeSuffix}" />
-            </intent-filter>
-        </activity>
-        <activity
             android:name=".NoContactFoundActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
@@ -317,11 +308,17 @@
             android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:host="message" android:scheme="${appScheme}${appSchemeSuffix}" />
+
+                <data
+                    android:host="message"
+                    android:scheme="${appScheme}" />
                 <!-- This is for backward compatibility, TODO: Remove in future versions -->
-                <data android:host="message" android:scheme="${oldScheme}${appSchemeSuffix}" />
+                <data
+                    android:host="message"
+                    android:scheme="${oldScheme}" />
             </intent-filter>
         </activity>
         <activity
@@ -336,21 +333,21 @@
             android:exported="false"
             android:launchMode="singleTop"
             android:label=""
-            android:windowSoftInputMode="stateUnchanged" />
+            android:windowSoftInputMode="stateUnchanged|adjustResize" />
         <activity
             android:name=".activity.chat.GroupChatActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
             android:launchMode="singleTop"
             android:label=""
-            android:windowSoftInputMode="stateUnchanged" />
+            android:windowSoftInputMode="stateUnchanged|adjustResize" />
         <activity
             android:name=".activity.chat.SystemChatActivity"
             android:configChanges="orientation|screenSize"
             android:exported="false"
             android:launchMode="singleTop"
             android:label=""
-            android:windowSoftInputMode="stateUnchanged" />
+            android:windowSoftInputMode="stateUnchanged|adjustPan" />
         <activity
             android:name=".activity.chat.ChannelChatActivity"
             android:configChanges="orientation|screenSize"
@@ -399,11 +396,6 @@
             android:configChanges="orientation|screenSize"
             android:exported="false"
             android:label="@string/settings_license" />
-        <activity
-            android:name=".CompanyDetailsActivity"
-            android:configChanges="orientation|screenSize"
-            android:exported="false"
-            android:label="@string/settings_companydetails" />
         <activity
             android:name=".LocationActivity"
             android:configChanges="orientation|screenSize"

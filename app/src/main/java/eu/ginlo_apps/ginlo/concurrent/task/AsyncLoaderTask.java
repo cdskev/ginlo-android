@@ -13,6 +13,7 @@ import eu.ginlo_apps.ginlo.util.StringUtil;
 public class AsyncLoaderTask<T>
         extends AsyncTask<Void, Void, String> {
 
+    private final static String TAG = AsyncLoaderTask.class.getSimpleName();
     private final AsyncLoaderCallback<T> mCallback;
     private String mErrorText;
     private T mResult;
@@ -29,16 +30,13 @@ public class AsyncLoaderTask<T>
             @Override
             public void onBackendResponse(final BackendResponse response) {
                 if (response.isError) {
-                    if (response.errorMessage == null) {
-                        mErrorText = "";
-                    } else {
-                        mErrorText = response.errorMessage;
-                    }
+                    mErrorText = response.errorMessage == null ? "" : response.errorMessage;
+                    LogUtil.e(TAG , "onBackendResponse: Error: " + mErrorText);
                 } else {
                     try {
                         mResult = mCallback.asyncLoaderServerResponse(response);
                     } catch (LocalizedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.e(TAG, "onBackendResponse: " + e.getMessage());
                         mErrorText = e.getMessage();
                     }
                 }

@@ -700,7 +700,7 @@ public class ChannelDetailActivity
 
                     app.getChatOverviewController().chatChanged(null, newChat.getChatGuid(), null, ChatOverviewController.CHAT_CHANGED_NEW_CHAT);
                     app.getChannelChatController().sendSystemInfo(newChat.getChatGuid(),
-                            null, null, null, message, -1, onSentMessageListener, false);
+                            null, message, -1, onSentMessageListener, false);
                 }
             }
 

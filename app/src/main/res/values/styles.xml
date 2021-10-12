@@ -27,6 +27,10 @@
         <item name="mainContrastColor">@color/mainContrast</item>
         <item name="mainContrast80Color">@color/mainContrast80</item>
         <item name="mainContrast50Color">@color/mainContrast50</item>
+        <item name="blackColor">#FF000000</item>
+        <item name="whiteColor">#FFFFFFFF</item>
+        <item name="transparentColor">#00000000</item>
+        <item name="alertColor">@color/kColorAlert</item>
         <item name="actionColor">@color/action</item> <!-- also named appAccentColor -->
         <item name="actionContrastColor">@color/actionContrast</item> <!-- also named appAccentContrastColor -->
         <item name="actionSecondaryColor">@color/actionSecondary</item> <!-- also named appAccentSecondaryColor -->
@@ -98,6 +102,10 @@
         <item name="mainContrastColor">@color/color7</item>
         <item name="mainContrast80Color">@color/color6</item>
         <item name="mainContrast50Color">@color/color5</item>
+        <item name="blackColor">#FF000000</item>
+        <item name="whiteColor">#FFFFFFFF</item>
+        <item name="transparentColor">#00000000</item>
+        <item name="alertColor">@color/kColorAlert</item>
         <item name="actionColor">@color/action</item> <!-- also named appAccentColor -->
         <item name="actionContrastColor">@color/actionContrast</item> <!-- also named appAccentContrastColor -->
         <item name="actionSecondaryColor">@color/actionSecondary</item> <!-- also named appAccentSecondaryColor -->
@@ -552,24 +560,6 @@
         <!-- Additionally if you want animations when dialog opening -->
         <!--<item name="android:windowEnterAnimation">@anim/slide_up</item>
 		<item name="android:windowExitAnimation">@anim/slide_down</item>-->
-    </style>
-
-    <style name="style_chat_item_info_right">
-        <item name="android:paddingStart">@dimen/half_padding</item>
-        <item name="android:paddingEnd">@dimen/half_padding</item>
-        <item name="android:paddingBottom">@dimen/small_padding</item>
-        <item name="android:paddingTop">@dimen/small_padding</item>
-        <item name="android:layout_marginEnd">@dimen/half_padding</item>
-    </style>
-
-    <style name="style_chat_item_info_left">
-        <item name="android:paddingStart">@dimen/half_padding</item>
-        <item name="android:paddingEnd">@dimen/half_padding</item>
-        <item name="android:paddingBottom">@dimen/small_padding</item>
-        <item name="android:layout_marginBottom">@dimen/standard_padding</item>
-        <item name="android:paddingTop">@dimen/small_padding</item>
-        <item name="android:layout_marginStart">@dimen/half_padding</item>
-
     </style>
 
     <style name="AppTheme.Transparent" parent="@style/Theme.AppCompat.Dialog">

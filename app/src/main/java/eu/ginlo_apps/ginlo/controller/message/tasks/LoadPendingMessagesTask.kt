@@ -125,7 +125,7 @@ class LoadPendingMessagesTask(
 
             queryBuilder.build().forCurrentThread().list()
         } catch (e: IllegalStateException) {
-            LogUtil.e(this.javaClass.getSimpleName(), e.message, e);
+            LogUtil.e(this.javaClass.simpleName, e.message, e)
             emptyList()
         }
     }

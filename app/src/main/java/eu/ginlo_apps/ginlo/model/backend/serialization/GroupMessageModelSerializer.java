@@ -13,6 +13,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Florian
@@ -86,25 +87,17 @@ public class GroupMessageModelSerializer
         if (groupMessageModel.signatureSha256Bytes != null) {
             JsonParser parser = new JsonParser();
 
-            try {
-                JsonElement element = parser.parse(new String(groupMessageModel.signatureSha256Bytes, Encoding.UTF8));
+            JsonElement element = parser.parse(new String(groupMessageModel.signatureSha256Bytes, StandardCharsets.UTF_8));
 
-                groupMessageJsonObject.add("signature-sha256", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
+            groupMessageJsonObject.add("signature-sha256", element);
         }
 
         if (groupMessageModel.signatureBytes != null) {
             JsonParser parser = new JsonParser();
 
-            try {
-                JsonElement element = parser.parse(new String(groupMessageModel.signatureBytes, Encoding.UTF8));
+            JsonElement element = parser.parse(new String(groupMessageModel.signatureBytes, StandardCharsets.UTF_8));
 
-                groupMessageJsonObject.add("signature", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
+            groupMessageJsonObject.add("signature", element);
         }
 
         if (groupMessageModel.mimeType != null) {

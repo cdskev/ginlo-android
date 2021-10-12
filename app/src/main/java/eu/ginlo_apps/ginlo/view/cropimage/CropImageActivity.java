@@ -9,7 +9,6 @@ import android.media.FaceDetector;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -17,12 +16,6 @@ import android.widget.Toast;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.view.cropimage.BitmapManager;
-import eu.ginlo_apps.ginlo.view.cropimage.CropImageView;
-import eu.ginlo_apps.ginlo.view.cropimage.HighlightView;
-import eu.ginlo_apps.ginlo.view.cropimage.MonitoredActivity;
-import eu.ginlo_apps.ginlo.view.cropimage.RotateBitmap;
-import eu.ginlo_apps.ginlo.view.cropimage.Util;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -179,10 +172,6 @@ public class CropImageActivity
                 mNumFaces = detector.findFaces(faceBitmap, mFaces);
             }
 
-            if ((faceBitmap != null) && (faceBitmap != mBitmap)) {
-                faceBitmap.recycle();
-            }
-
             mHandler.post(new Runnable() {
                 public void run() {
                     mWaitingToPick = mNumFaces > 1;
@@ -261,7 +250,7 @@ public class CropImageActivity
         }
 
         if (mBitmap == null) {
-            Log.d(TAG, "finish!!!");
+            LogUtil.d(TAG, "onCreateActivity: Bitmap is null!");
             finish();
             return;
         }
@@ -278,14 +267,11 @@ public class CropImageActivity
 
         findViewById(R.id.save).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                try {
-                    onSaveClicked();
-                } catch (Exception e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-                    finish();
-                }
+                onSaveClicked();
+                finish();
             }
         });
+
         findViewById(R.id.rotateLeft).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 mBitmap = eu.ginlo_apps.ginlo.view.cropimage.Util.rotateImage(mBitmap, -90);
@@ -315,7 +301,7 @@ public class CropImageActivity
 
         mImageView.setImageBitmapResetBase(mBitmap, true);
 
-        eu.ginlo_apps.ginlo.view.cropimage.Util.startBackgroundJob(this, new Runnable() {
+        Util.startBackgroundJob(this, new Runnable() {
             public void run() {
                 final CountDownLatch latch = new CountDownLatch(1);
                 final Bitmap b = mBitmap;
@@ -324,7 +310,6 @@ public class CropImageActivity
                     public void run() {
                         if ((b != null) && (!b.equals(mBitmap))) {
                             mImageView.setImageBitmapResetBase(b, true);
-                            mBitmap.recycle();
                             mBitmap = b;
                         }
                         if (mImageView.getScale() == 1F)
@@ -371,19 +356,17 @@ public class CropImageActivity
             croppedImage = Bitmap.createBitmap(width, height,
                     mCircleCrop ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
         } catch (Exception e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            throw e;
+            LogUtil.e(TAG, "onSaveClicked: createBitmap failed with " + e.getMessage());
+            return;
         }
+
         if (croppedImage == null) {
             return;
         }
 
-        {
-            Canvas canvas = new Canvas(croppedImage);
-            Rect dstRect = new Rect(0, 0, width, height);
-
-            canvas.drawBitmap(mBitmap, r, dstRect, null);
-        }
+        Canvas cv = new Canvas(croppedImage);
+        Rect dr = new Rect(0, 0, width, height);
+        cv.drawBitmap(mBitmap, r, dr, null);
 
         if (mCircleCrop) {
             // OK, so what's all this about?
@@ -405,10 +388,7 @@ public class CropImageActivity
                 /* Scale the image to the required dimensions */
                 Bitmap old = croppedImage;
 
-                croppedImage = eu.ginlo_apps.ginlo.view.cropimage.Util.transform(new Matrix(), croppedImage, mOutputX, mOutputY, mScaleUp);
-                if (old != croppedImage) {
-                    old.recycle();
-                }
+                croppedImage = Util.transform(new Matrix(), croppedImage, mOutputX, mOutputY, mScaleUp);
             } else {
                 /* Don't scale the image crop it to the size requested.
                  * Create an new image with the cropped image in the center and
@@ -436,17 +416,14 @@ public class CropImageActivity
                 canvas.drawBitmap(mBitmap, srcRect, dstRect, null);
 
                 /* Set the cropped bitmap as the new bitmap */
-                croppedImage.recycle();
                 croppedImage = b;
             }
         }
 
         //FPL: es wird das Bild nur im Intent zurückgegeben, Keine Speichern!
         Bundle extras = new Bundle();
-
         extras.putParcelable(RETURN_DATA_AS_BITMAP, croppedImage);
         setResult(RESULT_OK, (new Intent()).setAction(ACTION_INLINE_DATA).putExtras(extras));
-        finish();
     }
 
     @Override
@@ -461,10 +438,6 @@ public class CropImageActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        if (mBitmap != null) {
-            mBitmap.recycle();
-        }
     }
 
     @Override

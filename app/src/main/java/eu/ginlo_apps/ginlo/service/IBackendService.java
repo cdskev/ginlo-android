@@ -108,10 +108,6 @@ public interface IBackendService {
 
     void getTimedMessages(final String guids, final OnBackendResponseListener listener);
 
-    void getServices(final OnBackendResponseListener listener);
-
-    void getServiceDetailsBatch(final String serviceGuids, final OnBackendResponseListener listener);
-
     void getKnownAccounts(final JsonArray data,
                           final String salt,
                           final String tenant,
@@ -126,7 +122,6 @@ public interface IBackendService {
                         final int withProfileInfo,
                         final boolean withMandant,
                         final boolean checkReadonly,
-                        final boolean withTempDevice,
                         final OnBackendResponseListener listener);
 
     void getAccountImage(final String accountGuid,
@@ -395,15 +390,6 @@ public interface IBackendService {
 
     void insUpdPrivateIndexEntry(@NonNull final JsonObject entry, final OnBackendResponseListener listener);
 
-    void getTempDeviceInfo(final String accountGuid,
-                           final OnBackendResponseListener listener);
-
-    void setTempDeviceInfo(final String keys,
-                           final String createdAt,
-                           final String nextUpdate,
-                           final String sig,
-                           final OnBackendResponseListener listener);
-
     void initialiseCoupling(final String transactionID,
                             final String timestamp,
                             final String encTan,
@@ -429,16 +415,6 @@ public interface IBackendService {
                             final OnBackendResponseListener listener);
 
     void setChatDeleted(final String guid, final OnBackendResponseListener listener);
-
-    /**
-     * [!INTERFACE_DESCRIPTION!]
-     *
-     * @param state OptInState (notSet, auto, accepted, delayedPopup0, delayedPopup1, delayedPopup2, delayedPopup3, delayedPopup4)
-     * @param listener response listener
-     */
-    void setOptInState(final String state, final OnBackendResponseListener listener);
-
-    void getOptInState(final OnBackendResponseListener listener);
 
     void requestEncryptionInfo(final OnBackendResponseListener listener);
 

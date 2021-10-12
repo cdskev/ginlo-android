@@ -383,8 +383,7 @@ class PreferencesChatsActivity : PreferencesBaseActivity(), BackupUploadListener
 
                 preferences_chats_textview_backup_hint.text = text
             }
-            //preferences_chats_textview_backup_hint.setTextColor(resources.getColor(R.color.kColorSecLevelHigh))
-            preferences_chats_textview_backup_hint.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelHigh))
+            preferences_chats_textview_backup_hint.setTextColor(ColorUtil.getInstance().getHighColor(simsMeApplication))
         } else {
             preferences_chats_textview_backup_hint.text =
                 getString(R.string.settings_chats_create_backup)

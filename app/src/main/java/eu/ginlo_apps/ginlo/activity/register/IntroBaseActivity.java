@@ -2,53 +2,94 @@
 
 package eu.ginlo_apps.ginlo.activity.register;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
+import android.text.Html;
 import android.text.TextWatcher;
+import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatEditText;
 import androidx.appcompat.widget.AppCompatSpinner;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+
+import com.google.zxing.integration.android.IntentIntegrator;
+
 import eu.ginlo_apps.ginlo.BaseActivity;
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
+import eu.ginlo_apps.ginlo.SearchContactActivity;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
+import eu.ginlo_apps.ginlo.activity.register.device.DeviceRequestTanActivity;
 import eu.ginlo_apps.ginlo.activity.register.device.WelcomeBackActivity;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
+import eu.ginlo_apps.ginlo.controller.LoginController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
+import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.QRCodeModel;
+import eu.ginlo_apps.ginlo.model.ResultContainer;
+import eu.ginlo_apps.ginlo.util.FileUtil;
+import eu.ginlo_apps.ginlo.util.GinloNowUtil;
 import eu.ginlo_apps.ginlo.util.IManagedConfigUtil;
+import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static eu.ginlo_apps.ginlo.util.RuntimeConfig.getBaseUrl;
 import static eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty;
 
 public abstract class IntroBaseActivity
         extends BaseActivity {
+    public static final String TAG = IntroBaseActivity.class.getSimpleName();
     private boolean mNextWasClicked;
+    SimsMeApplication simsMeApplication = null;
+    PreferencesController preferencesController = null;
+    private GinloNowUtil mGinloNowUtil;
 
     @Override
-    protected void onCreateActivity(Bundle savedInstanceState) {
-        PreferencesController preferencesController = ((SimsMeApplication) getApplication()).getPreferencesController();
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-        ((SimsMeApplication) getApplication()).getKeyController().clearKeys();
-        ((SimsMeApplication) getApplication()).getKeyController().purgeKeys();
+        simsMeApplication = (SimsMeApplication) getApplication();
+        if (simsMeApplication == null) {
+            LogUtil.e(TAG, "No main application!");
+            return;
+        }
+        preferencesController =  simsMeApplication.getPreferencesController();
+        simsMeApplication.getKeyController().clearKeys();
+        simsMeApplication.getKeyController().purgeKeys();
+
+        mGinloNowUtil = new GinloNowUtil();
+
+        // Since preferences are going to be cleared, we must save a pending invitation
+        String possibleGinloInvitation = mGinloNowUtil.getGinloNowInvitationString();
+        LogUtil.d(TAG, "onCreate: Saving possible GinloInvitation = " + possibleGinloInvitation);
 
         preferencesController.getSharedPreferences().edit().clear().apply();
         preferencesController.clearAll();
 
+        mGinloNowUtil.setGinloNowInvitationString(possibleGinloInvitation);
+    }
+
+    @Override
+    protected void onCreateActivity(Bundle savedInstanceState) {
         // Wenn Automatische Registrierungskeys da sind, dann gleich auf díe zweite Seit wechseln
         final IManagedConfigUtil managedConfigUtil = RuntimeConfig.getClassUtil().getManagedConfigUtil((SimsMeApplication) getApplication());
         if (managedConfigUtil != null && managedConfigUtil.hasAutomaticMdmRegistrationKeys()) {
@@ -70,11 +111,37 @@ public abstract class IntroBaseActivity
     }
 
     @Override
+    public void onContentChanged() {
+        super.onContentChanged();
+        if(!RuntimeConfig.isB2c()) {
+            // Hide ginlo now
+            final View ginloNowLayout = findViewById(R.id.intro_2_ginlo_now);
+            if(ginloNowLayout != null) {
+                ginloNowLayout.setVisibility(View.GONE);
+            }
+        }
+        final TextView mTermsAcceptTV = findViewById(R.id.intro_registration_label_accept);
+        if(mTermsAcceptTV != null) {
+            mTermsAcceptTV.setText(Html.fromHtml(getString(R.string.registration_label_accept)));
+            mTermsAcceptTV.setClickable(true);
+            mTermsAcceptTV.setMovementMethod(LinkMovementMethod.getInstance());
+        }
+    }
+
+    @Override
     protected void onSaveInstanceState(Bundle bundle) {
         super.onSaveInstanceState(bundle);
     }
 
     public void handleNextClick(View view) {
+        if(mGinloNowUtil.haveGinloNowInvitation()) {
+            // Proceed with ginlo now invitation process.
+            Class<?> classForNextIntent = RuntimeConfig.getClassUtil().getActivityAfterIntro((SimsMeApplication) getApplication());
+            Intent intentProceed = new Intent(this, classForNextIntent);
+            startActivity(intentProceed);
+            return;
+        }
+
         if (BuildConfig.MULTI_DEVICE_SUPPORT) {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.intro_fragment, new IntroSecondFragment());
@@ -86,9 +153,50 @@ public abstract class IntroBaseActivity
         }
     }
 
+    public void handleGinloNowClick(View view) {
+        requestPermission(PermissionUtil.PERMISSION_FOR_CAMERA,
+                R.string.permission_rationale_camera,
+                new PermissionUtil.PermissionResultCallback() {
+                @Override
+                public void permissionResult(int permission,
+                                             boolean permissionGranted) {
+                    if ((permission == PermissionUtil.PERMISSION_FOR_CAMERA) && permissionGranted) {
+                        IntentIntegrator intentIntegrator = new IntentIntegrator(IntroBaseActivity.this);
+                        Intent intent = intentIntegrator.createScanIntent();
+                        startActivityForResult(intent, SearchContactActivity.SCAN_CONTACT_RESULT_CODE);
+                    }
+                }
+            });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (requestCode == SearchContactActivity.SCAN_CONTACT_RESULT_CODE) {
+            if (resultCode == RESULT_OK) {
+                final String qrCodeString = intent.getStringExtra("SCAN_RESULT");
+                QRCodeModel qrm = QRCodeModel.parseQRString(qrCodeString);
+
+                if(qrm.getVersion().equals(QRCodeModel.TYPE_V3)) {
+                    // Git invitation QR code - keep it!
+                    preferencesController.getSharedPreferences().edit().putString(GinloNowUtil.GINLO_NOW_INVITATION, qrm.getPayload()).apply();
+
+                    Class<?> classForNextIntent = RuntimeConfig.getClassUtil().getActivityAfterIntro((SimsMeApplication) getApplication());
+                    Intent intentProceed = new Intent(this, classForNextIntent);
+                    startActivity(intentProceed);
+                } else {
+                    LogUtil.w(TAG, "onActivityResult: No valid QR code: " + qrm.getPayload());
+                    Toast.makeText(this,
+                            getString(R.string.device_request_tan_error_coupling_qrcode_failed),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }
+
+
     public void handleRegisterClick(View view) {
         Class<?> classForNextIntent = RuntimeConfig.getClassUtil().getActivityAfterIntro((SimsMeApplication) getApplication());
-
         Intent intent = new Intent(this, classForNextIntent);
         startActivity(intent);
     }
@@ -208,6 +316,16 @@ public abstract class IntroBaseActivity
     }
 
     public static class IntroSecondFragment extends Fragment {
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            Activity introActivity = this.getActivity();
+            if(introActivity != null) {
+                introActivity.onContentChanged();
+            }
+        }
+
         @Nullable
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

@@ -117,10 +117,6 @@ class Util {
 
         Bitmap b2 = Bitmap.createBitmap(b1, dx1 / 2, dy1 / 2, targetWidth, targetHeight);
 
-        if (b1 != source) {
-            b1.recycle();
-        }
-
         return b2;
     }
 

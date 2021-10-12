@@ -5,6 +5,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import eu.ginlo_apps.ginlo.BaseActivity;
@@ -47,7 +49,7 @@ public class PermissionUtil {
                 break;
             }
             case PERMISSION_FOR_CAMERA: {
-                if (eu.ginlo_apps.ginlo.util.SystemUtil.hasMarshmallow()) {
+                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
                     manifestPermissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE};
                 } else {
                     manifestPermissions = new String[]{Manifest.permission.CAMERA};
@@ -71,7 +73,7 @@ public class PermissionUtil {
                 break;
             }
             case PERMISSION_FOR_VIDEO: {
-                if (eu.ginlo_apps.ginlo.util.SystemUtil.hasMarshmallow()) {
+                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
                     manifestPermissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE};
                 } else {
                     manifestPermissions = new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO};
@@ -79,7 +81,7 @@ public class PermissionUtil {
                 break;
             }
             case PERMISSION_FOR_FINGERPRINT: {
-                if (eu.ginlo_apps.ginlo.util.SystemUtil.hasMarshmallow()) {
+                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
                     manifestPermissions = new String[]{Manifest.permission.USE_FINGERPRINT};
                 } else {
                     manifestPermissions = null;
@@ -123,7 +125,7 @@ public class PermissionUtil {
      *                               Wenn keine Meldung angezeigt werden soll, dann {@link Integer#MIN_VALUE} uebergeben
      */
     public void requestPermission(final int permission, final int permissionRationaleMsg) {
-        if (!SystemUtil.hasMarshmallow()) {
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             mCallback.permissionResult(permission, true);
             return;
         }

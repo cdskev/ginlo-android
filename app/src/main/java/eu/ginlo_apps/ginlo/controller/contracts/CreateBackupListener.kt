@@ -15,6 +15,6 @@ interface CreateBackupListener {
         const val STATE_SAVE_BACKUP_FILE = 3
         const val STATE_FINISHED = 4
         const val STATE_SAVE_SERVICES = 5
-        const val STATE_ERROR = 6;
+        const val STATE_ERROR = 6
     }
 }

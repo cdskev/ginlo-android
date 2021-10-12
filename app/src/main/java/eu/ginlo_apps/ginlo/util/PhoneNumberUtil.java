@@ -133,7 +133,7 @@ public class PhoneNumberUtil {
         try {
             Phonenumber.PhoneNumber numberProto = phoneUtil.parse(phoneNumber, "");
 
-            countryCode = "+" + String.valueOf(numberProto.getCountryCode());
+            countryCode = "+" + numberProto.getCountryCode();
             boolean isValid = phoneUtil.isValidNumber(numberProto);
         } catch (NumberParseException e) {
             System.err.println("NumberParseException was thrown: " + e.toString());

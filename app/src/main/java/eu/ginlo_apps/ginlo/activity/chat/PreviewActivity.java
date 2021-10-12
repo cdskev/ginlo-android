@@ -9,6 +9,7 @@ import android.graphics.PorterDuff;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
@@ -59,6 +60,7 @@ import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.ImageLoader;
@@ -356,9 +358,9 @@ public class PreviewActivity
                             mChatInputFragment.requestFocusForInput();
                             if (RuntimeConfig.isBAMandant()) {
                                 if (selected) {
-                                    vh.mBorderView.getBackground().setColorFilter(getResources().getColor(R.color.app_accent), PorterDuff.Mode.SRC_ATOP);
+                                    vh.mBorderView.getBackground().setColorFilter(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()), PorterDuff.Mode.SRC_ATOP);
                                 } else {
-                                    vh.mBorderView.getBackground().setColorFilter(getResources().getColor(R.color.chat_input_text_active),
+                                    vh.mBorderView.getBackground().setColorFilter(ColorUtil.getInstance().getNamedColor("actionSecondary", getSimsMeApplication()),
                                             PorterDuff.Mode.SRC_ATOP);
                                 }
                             }
@@ -651,7 +653,8 @@ public class PreviewActivity
                 if (vh != null) {
                     vh.mBorderView.setSelected(false);
                     if (RuntimeConfig.isBAMandant()) {
-                        vh.mBorderView.getBackground().setColorFilter(getResources().getColor(R.color.chat_input_text_active), PorterDuff.Mode.SRC_ATOP);
+                        vh.mBorderView.getBackground().setColorFilter(ColorUtil.getInstance().getNamedColor("actionSecondary", getSimsMeApplication()),
+                                PorterDuff.Mode.SRC_ATOP);
                     }
                 }
             }
@@ -701,7 +704,7 @@ public class PreviewActivity
 
     //@SuppressLint("NewApi")
     private void startSelectPhotosAction() {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
                     new PermissionUtil.PermissionResultCallback() {
@@ -728,7 +731,7 @@ public class PreviewActivity
     }
 
     private void startSelectVideosAction() {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
                     new PermissionUtil.PermissionResultCallback() {
@@ -1160,9 +1163,9 @@ public class PreviewActivity
                 holder.mBorderView.setSelected(selected);
                 if (RuntimeConfig.isBAMandant()) {
                     if (selected) {
-                        holder.mBorderView.getBackground().setColorFilter(getResources().getColor(R.color.app_accent), PorterDuff.Mode.SRC_ATOP);
+                        holder.mBorderView.getBackground().setColorFilter(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()), PorterDuff.Mode.SRC_ATOP);
                     } else {
-                        holder.mBorderView.getBackground().setColorFilter(getResources().getColor(R.color.chat_input_text_active),
+                        holder.mBorderView.getBackground().setColorFilter(ColorUtil.getInstance().getNamedColor("actionSecondary", getSimsMeApplication()),
                                 PorterDuff.Mode.SRC_ATOP);
                     }
                 }

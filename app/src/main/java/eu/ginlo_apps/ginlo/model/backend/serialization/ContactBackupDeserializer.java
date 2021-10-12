@@ -133,11 +133,7 @@ public class ContactBackupDeserializer implements JsonDeserializer<Contact> {
             }
 
             String value = JsonUtil.stringFromJO(JsonConstants.VISIBLE, joContact);
-            if (!StringUtil.isNullOrEmpty(value) && StringUtil.isEqual(value, JsonConstants.VALUE_TRUE)) {
-                contact.setIsHidden(false);
-            } else {
-                contact.setIsHidden(true);
-            }
+            contact.setIsHidden(StringUtil.isNullOrEmpty(value) || !StringUtil.isEqual(value, JsonConstants.VALUE_TRUE));
 
             return contact;
         } catch (LocalizedException e) {

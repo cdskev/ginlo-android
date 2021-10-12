@@ -12,7 +12,7 @@ public class AsyncMultiTask<T>
         extends AsyncTask<Void, Void, String> {
     private final AsyncMultiCallback<T> mCallback;
 
-    private List<T> mObjects;
+    private final List<T> mObjects;
 
     public AsyncMultiTask(final List<T> objects,
                           final SimsMeApplication context,
