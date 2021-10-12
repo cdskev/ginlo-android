@@ -86,7 +86,6 @@ public class FloatingActionButton
         mSize = attr.getInt(R.styleable.FloatingActionButton_fab_size, SIZE_NORMAL);
         mIcon = attr.getResourceId(R.styleable.FloatingActionButton_fab_icon, 0);
         mStrokeVisible = attr.getBoolean(R.styleable.FloatingActionButton_fab_stroke_visible, true);
-        attr.recycle();
 
         updateCircleSize();
         mShadowRadius = getDimension(R.dimen.fab_shadow_radius);

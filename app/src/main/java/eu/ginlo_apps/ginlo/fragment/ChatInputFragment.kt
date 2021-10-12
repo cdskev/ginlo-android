@@ -1,6 +1,7 @@
 // Copyright (c) 2020-2021 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.fragment
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.media.MediaRecorder
 import android.os.Bundle
@@ -126,6 +127,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun initClickListeners() {
         chat_add_button.setOnClickListener {
             activity.handleAddAttachmentClick()
@@ -170,6 +172,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun initChatBoxListener() {
         chat_edit_text_input.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
             if (isLandscape() && event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
@@ -180,19 +183,33 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
             false
         })
 
-        chat_edit_text_input.setOnTouchListener { _, event ->
-            if (event.action == MotionEvent.ACTION_DOWN) {
-                var didHandleEvent = false
-                if (!KeyboardUtil.isKeyboardVisible(requireActivity())) {
-                    showKeyboard(true)
-                    didHandleEvent = true
+        chat_edit_text_input.setOnTouchListener { view, event ->
+            var didHandleEvent = false
+
+            when(event.action) {
+                MotionEvent.ACTION_DOWN -> {
+
+                    activity.scrollIfLastChatItemIsNotShown()
+
+                    if (!KeyboardUtil.isKeyboardVisible(requireActivity())) {
+                        showKeyboard(true)
+                        // KS: Setting this to true often shows text selector on newer devices (?)
+                        //didHandleEvent = true
+                    }
+                    if (emojiEnabled) {
+                        showEmojiPicker(false)
+                        didHandleEvent = true
+                    }
                 }
-                if (emojiEnabled) {
-                    showEmojiPicker(false)
-                    didHandleEvent = true
+
+                /*
+                MotionEvent.ACTION_UP -> {
+                    view.performClick()
                 }
-                didHandleEvent
-            } else false
+                 */
+            }
+
+            didHandleEvent
         }
 
         chat_edit_text_input.addTextChangedListener(object : TextWatcher {
@@ -513,8 +530,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
             }
             is VCardChatItemVO -> {
                 comment_text.text =
-                    "${activity.resources.getString(R.string.chat_input_reply_contact)}" +
-                        " \"" + item.displayInfo + "\""
+                    "${activity.resources.getString(R.string.chat_input_reply_contact)}" + " \"" + item.displayInfo + "\""
                 comment_image.visibility = View.GONE
             }
             is LocationChatItemVO -> {
@@ -562,7 +578,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
                 comment_image.setBackgroundResource(R.drawable.data_placeholder)
                 val resID = MimeUtil.getIconForMimeType(item.fileMimeType)
 
-                if (resID != MimeUtil.MIMETYPE_NOT_FOUND) comment_image.setImageResource(resID)
+                if (resID != MIMETYPE_NOT_FOUND) comment_image.setImageResource(resID)
                 else comment_image.setImageResource(R.drawable.data_placeholder)
 
                 comment_image.visibility = View.VISIBLE

@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
+
+import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.log.LogUtil;
@@ -55,7 +57,7 @@ public class GinloOngoingService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Notification notification = notificationController.buildOngoingServiceNotification();
+        Notification notification = notificationController.buildOngoingServiceNotification(this.getApplicationContext().getString(R.string.notification_gos_running));
         if (notification != null && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
                 startForeground(NotificationController.INFO_NOTIFICATION_ID, notification);
         }
@@ -82,16 +84,11 @@ public class GinloOngoingService extends Service {
             return START_NOT_STICKY;
         }
         if (Actions.START.equals(action)) {
-            Notification notification = notificationController.buildOngoingServiceNotification();
-            if (notification == null) {
-                LogUtil.w(TAG, "Couldn't start GinloOngoingService, notification is null.");
-                stopSelf();
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForeground(NotificationController.INFO_NOTIFICATION_ID, notification);
-                }
-                LogUtil.i(TAG, "GinloOngoingService started.");
+            Notification notification = notificationController.buildOngoingServiceNotification(this.getApplicationContext().getString(R.string.notification_gos_running));
+            if (notification != null && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
+                startForeground(NotificationController.INFO_NOTIFICATION_ID, notification);
             }
+            LogUtil.i(TAG, "GinloOngoingService started.");
         } else if (Actions.STOP.equals(action)) {
             notificationController.dismissOngoingNotification();
             LogUtil.i(TAG, "onStartCommand: Stop requested");

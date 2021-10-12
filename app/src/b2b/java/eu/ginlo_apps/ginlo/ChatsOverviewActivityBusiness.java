@@ -49,6 +49,8 @@ public class ChatsOverviewActivityBusiness extends ChatsOverviewActivity impleme
     private boolean mFirstRun = true;
     private boolean mActvityWasStart;
     private boolean mNoticeCancelPressed;
+    private View noticeView = null;
+
 
     @Override
     protected void onCreateActivity(final Bundle savedInstanceState) {
@@ -58,6 +60,7 @@ public class ChatsOverviewActivityBusiness extends ChatsOverviewActivity impleme
 
         accountControllerBusiness.registerOnCompanyLayoutChangeListener(this);
         accountControllerBusiness.setOnCompanyLogoChangeListener(this);
+        noticeView = findViewById(R.id.chat_overview_notice_view_layout);
     }
 
     @Override
@@ -412,41 +415,47 @@ public class ChatsOverviewActivityBusiness extends ChatsOverviewActivity impleme
 
     @Override
     public void licenseDaysLeftHasCalculate(int daysLeft) {
+        LogUtil.d(TAG, "licenseDaysLeftHasCalculate: Listener called with " + daysLeft + " days left value.");
         if (mActvityWasStart && mNoticeCancelPressed) {
+            if(noticeView != null) {
+                noticeView.setVisibility(View.GONE);
+            }
             return;
         }
 
         if (mLicenseDaysLeft != daysLeft && daysLeft != LICENSE_DAYS_LEFT_NO_VALUE) {
             mLicenseDaysLeft = daysLeft;
-            View noticeView = findViewById(R.id.chat_overview_notice_view_layout);
 
             if (mLicenseDaysLeft != 0) {
                 if (noticeView != null) {
                     TextView infoTV = noticeView.findViewById(R.id.chat_overview_notice_tv);
                     int value = mLicenseDaysLeft < 0 ? 0 : mLicenseDaysLeft;
                     infoTV.setText(getString(R.string.chats_overview_warning_license, String.valueOf(value)));
-
                     noticeView.setVisibility(View.VISIBLE);
+                    LogUtil.w(TAG, "licenseDaysLeftHasCalculate: User warning shows " + value + " days left until license expiration!");
                 }
             } else {
                 try {
+                    LogUtil.w(TAG, "licenseDaysLeftHasCalculate: License has expired!");
                     if (!mAccountController.haveToShowManagementRequest() || mManagementDialog == null || !mManagementDialog.isShowing()) {
                         final Intent intent = new Intent(this, PurchaseLicenseActivity.class);
                         intent.putExtra(PurchaseLicenseActivity.EXTRA_DONT_FORWARD_TO_OVERVIEW, true);
                         startActivity(intent);
                     }
                 } catch (LocalizedException e) {
-                    LogUtil.w(TAG, "licenseDaysLeftHasCalculate", e);
+                    LogUtil.w(TAG, "licenseDaysLeftHasCalculate: " + e.getMessage());
                 }
             }
 
+        } else {
+            if(noticeView != null) {
+                noticeView.setVisibility(View.GONE);
+            }
         }
     }
 
     @Override
     public void onCloseButtonNoticeLayoutClick(View v) {
-        View noticeView = findViewById(R.id.chat_overview_notice_view_layout);
-
         if (noticeView != null) {
             noticeView.setVisibility(View.GONE);
             mNoticeCancelPressed = true;

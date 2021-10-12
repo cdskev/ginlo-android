@@ -58,7 +58,7 @@ class LoadPendingAttachmentTask : JobIntentService() {
                 messages = getNextMessages(application, messageId)
             }
         } catch (e: LocalizedException) {
-            LogUtil.e(LoadPendingAttachmentTask::javaClass.name, "Failed to download attachment.", e);
+            LogUtil.e(LoadPendingAttachmentTask::javaClass.name, "Failed to download attachment.", e)
         }
     }
 

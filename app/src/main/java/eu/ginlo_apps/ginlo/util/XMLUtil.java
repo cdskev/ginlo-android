@@ -136,7 +136,7 @@ public class XMLUtil {
 
     public static PrivateKey getPrivateKeyFromXML(String xml) {
         try {
-            InputStream is = new ByteArrayInputStream(xml.getBytes("UTF-8"));
+            InputStream is = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
 
             Map<String, String> pkMap = parse(is);
 

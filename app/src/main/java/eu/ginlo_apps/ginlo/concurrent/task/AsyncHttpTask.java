@@ -14,6 +14,7 @@ import eu.ginlo_apps.ginlo.util.StringUtil;
 public class AsyncHttpTask<T>
         extends AsyncTask<Void, Void, String> {
 
+    private final static String TAG = AsyncHttpTask.class.getSimpleName();
     private final AsyncHttpCallback<T> mCallback;
     private String mErrorText;
     private T mResult;
@@ -31,16 +32,13 @@ public class AsyncHttpTask<T>
             @Override
             public void onBackendResponse(final BackendResponse response) {
                 if (response.isError) {
-                    if (StringUtil.isNullOrEmpty(response.errorMessage)) {
-                        LogUtil.e(AsyncLoaderTask.class.getSimpleName(), "Server response is null or empty.");
-                    }
-
-                    mErrorText = response.errorMessage;
+                    mErrorText = response.errorMessage == null ? "" : response.errorMessage;
+                    LogUtil.e(TAG , "onBackendResponse: Error: " + mErrorText);
                 } else {
                     try {
                         mResult = mCallback.asyncLoaderServerResponse(response);
                     } catch (LocalizedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.e(TAG, "onBackendResponse: " + e.getMessage());
                         mErrorText = e.getMessage() + " (" + e.getIdentifier() + ")";
                     }
                 }

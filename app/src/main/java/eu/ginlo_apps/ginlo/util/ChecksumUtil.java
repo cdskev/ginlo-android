@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -33,12 +34,8 @@ public class ChecksumUtil {
         String hash = null;
         byte[] data;
 
-        try {
-            data = str.getBytes(Encoding.UTF8);
-            hash = getSHA1ChecksumForData(data);
-        } catch (UnsupportedEncodingException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
-        }
+        data = str.getBytes(StandardCharsets.UTF_8);
+        hash = getSHA1ChecksumForData(data);
         return hash;
     }
 
@@ -46,12 +43,8 @@ public class ChecksumUtil {
         String hash = null;
         byte[] data;
 
-        try {
-            data = str.getBytes(Encoding.UTF8);
-            hash = getSHA256ChecksumForData(data);
-        } catch (UnsupportedEncodingException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
-        }
+        data = str.getBytes(StandardCharsets.UTF_8);
+        hash = getSHA256ChecksumForData(data);
         return hash;
     }
 
@@ -125,12 +118,8 @@ public class ChecksumUtil {
         byte[] hash = null;
         byte[] data;
 
-        try {
-            data = str.getBytes(Encoding.UTF8);
-            hash = getSHA256ChecksumBytesForData(data);
-        } catch (UnsupportedEncodingException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
-        }
+        data = str.getBytes(StandardCharsets.UTF_8);
+        hash = getSHA256ChecksumBytesForData(data);
         return hash;
     }
 
@@ -307,7 +296,7 @@ public class ChecksumUtil {
             throw new IOException("MD5 unbekannt", e);
         }
 
-        md5.update(inputData.getBytes(Encoding.UTF8));
+        md5.update(inputData.getBytes(StandardCharsets.UTF_8));
 
         final byte[] array = md5.digest();
         final StringBuilder sb = new StringBuilder();

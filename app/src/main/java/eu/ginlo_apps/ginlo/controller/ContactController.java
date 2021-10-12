@@ -18,6 +18,7 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.provider.ContactsContract;
@@ -49,6 +50,7 @@ import java.security.PublicKey;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -72,11 +74,7 @@ import eu.ginlo_apps.ginlo.concurrent.manager.SerialExecutor;
 import eu.ginlo_apps.ginlo.concurrent.task.AsyncHttpTask;
 import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
-import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
-import eu.ginlo_apps.ginlo.controller.LoginController;
 import eu.ginlo_apps.ginlo.controller.LoginController.AppLockLifecycleCallbacks;
-import eu.ginlo_apps.ginlo.controller.TaskManagerController;
 import eu.ginlo_apps.ginlo.controller.contracts.AppLifecycleCallbacks;
 import eu.ginlo_apps.ginlo.controller.message.PrivateInternalMessageController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -91,6 +89,7 @@ import eu.ginlo_apps.ginlo.greendao.DaoSession;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.DecryptedMessage;
 import eu.ginlo_apps.ginlo.model.Mandant;
+import eu.ginlo_apps.ginlo.model.QRCodeModel;
 import eu.ginlo_apps.ginlo.model.backend.BackendResponse;
 import eu.ginlo_apps.ginlo.model.backend.ResponseModel;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
@@ -111,7 +110,6 @@ import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.SecurityUtil;
 import eu.ginlo_apps.ginlo.util.StreamUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
 import eu.ginlo_apps.ginlo.util.XMLUtil;
 
 public class ContactController
@@ -149,11 +147,8 @@ public class ContactController
                     ContactsContract.Data.MIMETYPE + "='" + ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE + "'))";
 
     public static final String ONLINE_STATE_INVALID = "invalid";
-
     public static final String ONLINE_STATE_ONLINE = "online";
-
     public static final String ONLINE_STATE_WRITING = "writing";
-
     public static final String ONLINE_STATE_ABSENT = "absent";
 
     private static final int DATA1_PHONE_MAIL = 0;
@@ -165,32 +160,21 @@ public class ContactController
     private static final int MIMETYPE = 6;
 
     private static final SerialExecutor ONLINE_SERIAL_EXECUTOR = new SerialExecutor();
-
     private static final SerialExecutor CONTACT_PROFILE_INFO_SERIAL_EXECUTOR = new SerialExecutor();
 
     private final ContactDao contactDao;
-
     final SimsMeApplication mApplication;
-
     private ConcurrentTask mSyncContactsTask;
-
     private OnlineStateTask mGetOnlineStateTask;
-
     private LoadContactsListener mSyncContactsListener;
-
     private final List<OnContactProfileInfoChangeNotification> mOnContactProfileInfoChangeNotificationList;
-
     private LoadPrivateIndexTask mLoadPrivateIndexEntries;
-
     private UpdatePrivateIndexTask mUpdatePrivateIndexEntries;
-
     private boolean mStartUpdatePrivateIndexTaskAgain;
-
     private Timer mContactTimer;
-
     private final HashMap<String, JsonObject> mTempDeviceCache;
-
     private String mOnlineStateGuid;
+    private OnContactsChangedListener mOnContactsChangedListener;
 
     public ContactController(final SimsMeApplication application) {
         mTempDeviceCache = new HashMap<>();
@@ -265,12 +249,22 @@ public class ContactController
         void onLoadCompanyContactsUpdate(final int count);
     }
 
-    public ContactDao getDao() {
-        return contactDao;
+    public interface GetAddressInformationsListener {
+        void onSuccess();
+
+        void onFail();
     }
 
-    public boolean isSyncingContacts() {
-        return mSyncContactsTask != null;
+    public interface OnContactsChangedListener {
+        void onContactsChanged();
+    }
+
+    public void setOnContactsChangedListener(final OnContactsChangedListener listener) {
+        mOnContactsChangedListener = listener;
+    }
+
+    public void removeOnContactsChangedListener() {
+        mOnContactsChangedListener = null;
     }
 
     public void addOnLoadContactsListener(OnLoadContactsListener listener) {
@@ -289,6 +283,14 @@ public class ContactController
         if (mSyncContactsListener != null) {
             mSyncContactsListener.removeLoadContactsListener(listener);
         }
+    }
+
+    public ContactDao getDao() {
+        return contactDao;
+    }
+
+    public boolean isSyncingContacts() {
+        return mSyncContactsTask != null;
     }
 
     public ArrayList<Contact> loadNonSimsMeContacts()
@@ -684,12 +686,12 @@ public class ContactController
                 try {
                     Uri contactVCardUri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_VCARD_URI,
                             lookupKey);
-                    if (SystemUtil.hasNougat()) {
+                    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)) {
                         try (final InputStream inputStream = activity.getContentResolver().openInputStream(contactVCardUri)) {
                             if (inputStream != null) {
                                 byte[] buffer = new byte[inputStream.available()];
                                 StreamUtil.safeRead(inputStream, buffer, buffer.length);
-                                vCard = new String(buffer, Encoding.UTF8);
+                                vCard = new String(buffer, StandardCharsets.UTF_8);
                                 return vCard;
                             }
                         }
@@ -699,7 +701,7 @@ public class ContactController
                                 try (final FileInputStream fileInputStream = assetFileDescriptor.createInputStream()) {
                                     byte[] buffer = new byte[(int) assetFileDescriptor.getDeclaredLength()];
                                     StreamUtil.safeRead(fileInputStream, buffer, buffer.length);
-                                    vCard = new String(buffer, Encoding.UTF8);
+                                    vCard = new String(buffer, StandardCharsets.UTF_8);
                                     return vCard;
                                 }
                             }
@@ -721,6 +723,10 @@ public class ContactController
                 contactDao.update(contact);
             } else {
                 contactDao.insert(contact);
+
+            }
+            if(mOnContactsChangedListener != null) {
+                mOnContactsChangedListener.onContactsChanged();
             }
         }
     }
@@ -995,81 +1001,7 @@ public class ContactController
             }
         };
         BackendService.withAsyncConnection(mApplication)
-                .getAccountInfo(contact.getAccountGuid(), 1, false, true, false, listener);
-    }
-
-    public void getTempDeviceInfo(final String accountGuid,
-                                  final OnLoadPublicKeyListener onLoadPublicKeyListener)
-            throws LocalizedException {
-        final Contact contact = getContactByGuid(accountGuid);
-
-        String publicKey = null;
-        if (contact == null || contact.getPublicKey() == null) {
-            AccountController ownAccountController = mApplication.getAccountController();
-            if (ownAccountController.getAccount() != null && ownAccountController.getAccount().getAccountGuid().equals(accountGuid)) {
-                publicKey = ownAccountController.getAccount().getPublicKey();
-            } else {
-                onLoadPublicKeyListener.onLoadPublicKeyError("No such contact.");
-            }
-        } else {
-            publicKey = contact.getPublicKey();
-        }
-
-        final PublicKey pubKey = XMLUtil.getPublicKeyFromXML(publicKey);
-
-        IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
-            @Override
-            public void onBackendResponse(BackendResponse response) {
-                if (response.isError) {
-                    if (onLoadPublicKeyListener != null) {
-                        onLoadPublicKeyListener.onLoadPublicKeyError(response.errorMessage);
-                    }
-                } else {
-                    JsonArray responseArray = response.jsonArray;
-
-                    try {
-                        // TempDeviceInfos laden und cachen
-                        if (responseArray != null) {
-                            for (int i = 0; i < responseArray.size(); i++) {
-                                JsonObject entry = responseArray.get(i).getAsJsonObject();
-                                JsonObject keyList = entry.get("AccountKeysList").getAsJsonObject();
-                                String signature = keyList.get("sig").getAsString();
-                                String deviceDataRaw = keyList.get("keys").getAsString();
-                                String createdAt = keyList.get("createdAt").getAsString();
-                                String nextUpdate = keyList.get("nextUpdate").getAsString();
-
-                                try {
-                                    String dataForSig = deviceDataRaw + createdAt + nextUpdate;
-                                    // Signature prüfen
-                                    if (SecurityUtil.verifyData(pubKey, Base64.decode(signature, Base64.DEFAULT), dataForSig.getBytes("utf-8"), true)) {
-                                        JsonArray deviceData = JsonUtil.getJsonArrayFromString(deviceDataRaw);
-                                        if (deviceData != null) {
-                                            for (int j = 0; j < deviceData.size(); j++) {
-                                                JsonObject d = deviceData.get(j).getAsJsonObject();
-                                                if (d.has("deviceGuid")) {
-                                                    String deviceGuid = d.get("deviceGuid").getAsString();
-                                                    mTempDeviceCache.put(deviceGuid, d);
-                                                }
-                                            }
-                                        }
-                                    }
-                                } catch (IOException ex) {
-                                    LogUtil.w(TAG, ex.getMessage(), ex);
-                                }
-                            }
-                        }
-                    } catch (LocalizedException le) {
-                        LogUtil.e(TAG, le.getIdentifier(), le);
-                    }
-
-                    if (onLoadPublicKeyListener != null) {
-                        onLoadPublicKeyListener.onLoadPublicKeyComplete(contact);
-                    }
-                }
-            }
-        };
-        BackendService.withAsyncConnection(mApplication)
-                .getTempDeviceInfo(accountGuid, listener);
+                .getAccountInfo(contact.getAccountGuid(), 1, false, true, listener);
     }
 
     public void loadPublicKeys(final List<Contact> contacts,
@@ -1188,20 +1120,6 @@ public class ContactController
 
                             insertOrUpdateContact(contact);
                         }
-                        if (accountObject.has("tempDeviceGuid") && accountObject.has("publicKeyTempDevice") && accountObject.has("pkSign256TempDevice")) {
-                            //  Signature prüfen
-                            String tempDeviceGuid = accountObject.get("tempDeviceGuid").getAsString();
-                            String publicKeyTempDevice = accountObject.get("publicKeyTempDevice").getAsString();
-                            String pkSign256TempDevice = accountObject.get("pkSign256TempDevice").getAsString();
-
-                            PublicKey pubKey = XMLUtil.getPublicKeyFromXML(contact.getPublicKey());
-                            if (SecurityUtil.verifyData(pubKey, Base64.decode(pkSign256TempDevice, Base64.DEFAULT), publicKeyTempDevice.getBytes(StandardCharsets.UTF_8), true)) {
-                                contact.setTempDeviceInfo(tempDeviceGuid, publicKeyTempDevice);
-                            }
-                        } else {
-                            contact.removeTempDeviceInfo();
-                        }
-
                         if (accountObject.has("readOnly") && !accountObject.get("readOnly").isJsonNull()) {
                             boolean readOnly = StringUtil.isEqual("1", accountObject.get("readOnly").getAsString());
                             contact.setTempReadonly(readOnly);
@@ -1225,7 +1143,7 @@ public class ContactController
             }
         };
         BackendService.withAsyncConnection(mApplication)
-                .getAccountInfo(contact.getAccountGuid(), 0, false, true, true, listener);
+                .getAccountInfo(contact.getAccountGuid(), 0, false, true, listener);
     }
 
     public void loadContactsAccountInfo(final List<String> contactGuids)
@@ -1573,7 +1491,14 @@ public class ContactController
             ownContact = contact;
         }
 
-        boolean hasChanges = fillOwnContactWithAccountInfosLocally(ownContact);
+        // KS: This should not cause backup restore failure!
+        //boolean hasChanges = fillOwnContactWithAccountInfosLocally(ownContact);
+        boolean hasChanges = false;
+        try {
+            hasChanges = fillOwnContactWithAccountInfosLocally(ownContact);
+        } catch (LocalizedException e) {
+            LogUtil.w(TAG, "fillOwnContactWithAccountInfos: Could not fillOwnContactWithAccountInfosLocally(): " + e.getMessage());
+        }
 
         if (hasChanges) {
             insertOrUpdateContact(ownContact);
@@ -1627,7 +1552,7 @@ public class ContactController
         }
     }
 
-    public void syncContacts(final OnLoadContactsListener onLoadContactsListener, final boolean mergeOldContacts, final boolean hasPermission) {
+    public void syncContacts(final OnLoadContactsListener onLoadContactsListener, final boolean mergeOldContacts, final boolean hasPermission, final boolean onlyTenants) {
         if (onLoadContactsListener != null) {
             LogUtil.i(TAG, "syncContacts start:" + onLoadContactsListener.getClass().getName());
         }
@@ -1646,6 +1571,10 @@ public class ContactController
         }
     }
 
+    public void syncContacts(final OnLoadContactsListener onLoadContactsListener, final boolean mergeOldContacts, final boolean hasPermission) {
+        syncContacts(onLoadContactsListener, mergeOldContacts, hasPermission,false);
+    }
+
     /**
      * updateContactProfileInfosFromServer
      *
@@ -1654,8 +1583,8 @@ public class ContactController
     public void updateContactProfileInfosFromServer(final String guid) {
         try {
             Contact contact = getContactByGuid(guid);
-
             if (contact == null) {
+                LogUtil.w(TAG, "updateContactProfileInfosFromServer: No contact found for " + guid);
                 return;
             }
 
@@ -1663,7 +1592,7 @@ public class ContactController
                 @Override
                 public void asyncLoaderServerRequest(IBackendService.OnBackendResponseListener listener) {
                     BackendService.withSyncConnection(mApplication)
-                            .getAccountInfo(guid, 1, false, true, false, listener);
+                            .getAccountInfo(guid, 1, false, true, listener);
                 }
 
                 @Override
@@ -1672,6 +1601,7 @@ public class ContactController
                     JsonObject jo = response.jsonObject;
 
                     if (jo == null || !jo.has(JsonConstants.ACCOUNT)) {
+                        LogUtil.d(TAG, "updateContactProfileInfosFromServer: asyncLoaderServerResponse is null");
                         return null;
                     }
 
@@ -1679,16 +1609,15 @@ public class ContactController
                     JsonObject accountObject = jo.getAsJsonObject(JsonConstants.ACCOUNT);
 
                     if (StringUtil.isNullOrEmpty(contact.getProfileInfoAesKey())) {
+                        LogUtil.d(TAG, "updateContactProfileInfosFromServer: Data is still encrypted.");
                         //erstmal nur die profilsachen speichern
                         setEncryptedProfileInfosToContact(accountObject, contact);
                         insertOrUpdateContact(contact);
-
                         return "encrypted";
                     } else {
                         //entschlüsseln und speichern
                         decryptedAndSetProfilInfosToContact(accountObject, contact, true);
                         insertOrUpdateContact(contact);
-
                         return "decrypted";
                     }
                 }
@@ -1696,20 +1625,23 @@ public class ContactController
                 @Override
                 public void asyncLoaderFinished(String result) {
                     if (StringUtil.isEqual(result, "decrypted")) {
+                        LogUtil.d(TAG, "updateContactProfileInfosFromServer: Profile info changed for " + guid);
                         notifyOnContactProfileInfoChangeNotificationListener(guid);
                     }
                 }
 
                 @Override
                 public void asyncLoaderFailed(String errorMessage) {
-                    //
+                    LogUtil.w(TAG, "updateContactProfileInfosFromServer: asyncLoaderFailed for " + guid);
                 }
             };
+
+            LogUtil.d(TAG, "updateContactProfileInfosFromServer: Start AsyncHttpTask for " + guid);
 
             AsyncHttpTask<String> task = new AsyncHttpTask<>(httpCallback);
             task.executeOnExecutor(CONTACT_PROFILE_INFO_SERIAL_EXECUTOR);
         } catch (LocalizedException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "updateContactProfileInfosFromServer: Got exception " + e.getMessage());
         }
     }
 
@@ -1725,7 +1657,7 @@ public class ContactController
             @Override
             public void asyncLoaderServerRequest(final IBackendService.OnBackendResponseListener listener) {
                 BackendService.withSyncConnection(mApplication)
-                        .getAccountInfo(guid, 1, true, true, false, listener);
+                        .getAccountInfo(guid, 1, true, true, listener);
             }
 
             @Override
@@ -1797,7 +1729,10 @@ public class ContactController
 
     private boolean decryptedAndSetProfilInfosToContact(JsonObject accountObject, Contact contact, boolean loadImage)
             throws LocalizedException {
+        LogUtil.d(TAG, "decryptedAndSetProfilInfosToContact: Start with loadimage = " + loadImage);
+
         if (StringUtil.isNullOrEmpty(contact.getProfileInfoAesKey())) {
+            LogUtil.d(TAG, "decryptedAndSetProfilInfosToContact: No profileAESKey for " + contact.getAccountGuid());
             return false;
         }
 
@@ -1829,11 +1764,16 @@ public class ContactController
             if (loadImage) {
                 String oldChecksum = contact.getProfileImageChecksum();
 
+                /////////////////////
+                //LogUtil.d(TAG, "decryptedAndSetProfilInfosToContact: Retrieve image from server for checksum " + checksum + " (oldChecksum is " + oldChecksum + ").");
+                //loadContactProfileImageFromServer(contact.getAccountGuid(), checksum);
                 if (!StringUtil.isEqual(oldChecksum, checksum)) {
                     //bild laden
+                    LogUtil.d(TAG, "decryptedAndSetProfilInfosToContact: Retrieve image from server for checksum " + checksum + " (oldChecksum is " + oldChecksum + ").");
                     loadContactProfileImageFromServer(contact.getAccountGuid(), checksum);
                 }
             } else {
+                LogUtil.d(TAG, "decryptedAndSetProfilInfosToContact: Just set image for checksum " + checksum);
                 contact.setProfileImageChecksum(checksum);
             }
         }
@@ -1911,50 +1851,64 @@ public class ContactController
                     return null;
                 }
 
+                LogUtil.d(TAG, "loadContactProfileImageFromServer: Got response from backend " + response.jsonArray.toString());
+
                 String imageBase64String = response.jsonArray.get(0).getAsString();
 
                 if (imageBase64String == null) {
                     return null;
                 }
-                Contact contact = getContactByGuid(contactGuid);
 
-                if (contact == null) {
-                    return null;
+                if (imageBase64String.length() > 0) {
+
+                    Contact contact = getContactByGuid(contactGuid);
+
+                    if (contact == null) {
+                        return null;
+                    }
+
+                    String aesKeyString = contact.getProfileInfoAesKey();
+                    if (StringUtil.isNullOrEmpty(aesKeyString)) {
+                        return null;
+                    }
+
+                    SecretKey aesKey = SecurityUtil.getAESKeyFromBase64String(aesKeyString);
+
+                    if (aesKey == null) {
+                        return null;
+                    }
+
+                    byte[] encryptedBytes = Base64.decode(imageBase64String, Base64.NO_WRAP);
+                    byte[] decryptedBytes = SecurityUtil.decryptMessageWithAES(encryptedBytes, aesKey);
+
+                    return Base64.decode(decryptedBytes, Base64.NO_WRAP);
                 }
 
-                String aesKeyString = contact.getProfileInfoAesKey();
-                if (StringUtil.isNullOrEmpty(aesKeyString)) {
-                    return null;
-                }
-
-                SecretKey aesKey = SecurityUtil.getAESKeyFromBase64String(aesKeyString);
-
-                if (aesKey == null) {
-                    return null;
-                }
-
-                byte[] encryptedBytes = Base64.decode(imageBase64String, Base64.NO_WRAP);
-                byte[] decryptedBytes = SecurityUtil.decryptMessageWithAES(encryptedBytes, aesKey);
-
-                return Base64.decode(decryptedBytes, Base64.NO_WRAP);
+                return null;
             }
 
             @Override
             public void asyncLoaderFinished(byte[] result) {
                 try {
-                    if (result != null && result.length > 0) {
-                        ChatImageController chatImageController = mApplication.getChatImageController();
-                        chatImageController.saveImage(contactGuid, result);
+                    ChatImageController chatImageController = mApplication.getChatImageController();
                         chatImageController.removeFromCache(contactGuid);
-
                         Contact contact = getContactByGuid(contactGuid);
-                        contact.setProfileImageChecksum(checksum);
+
+                        if (result != null && result.length > 0) {
+                            chatImageController.saveImage(contactGuid, result);
+                            contact.setProfileImageChecksum(checksum);
+                        } else {
+                            // If backend has no image information we consider that as "no profile image set".
+                            // This is important because users could otherwise never delete their profile image.
+                            // We have no "flag" indicating a deletion.
+                            chatImageController.deleteImage(contactGuid);
+                            contact.setProfileImageChecksum("TODO");
+                        }
 
                         insertOrUpdateContact(contact);
                         notifyOnContactProfileImageChangeNotificationListener(contactGuid);
-                    }
                 } catch (LocalizedException e) {
-                    LogUtil.e(TAG, e.getMessage(), e);
+                    LogUtil.e(TAG, "loadContactProfileImageFromServer: asyncLoaderFinished got exception " + e.getMessage());
                 }
             }
 
@@ -2094,53 +2048,17 @@ public class ContactController
         return filteredContacts;
     }
 
-    private boolean processContactVerificationResult(Contact contact,
-                                                     String qrCodeString)
+    private boolean processContactVerificationResult(Contact contact, String qrCodeString)
             throws LocalizedException {
         try {
-            boolean checkV1 = false;
             boolean verified = false;
-            try {
-                if (!StringUtil.isNullOrEmpty(qrCodeString) && qrCodeString.startsWith("V2")) {
-                    int backspaceIndex = qrCodeString.indexOf("\r");
-                    if (backspaceIndex < 0) {
-                        throw new LocalizedException(LocalizedException.VERIFY_DATA_FAILED, "First Backspace not found");
-                    }
 
-                    int backspaceIndex2 = qrCodeString.indexOf("\r", backspaceIndex + 1);
+            QRCodeModel qrm = QRCodeModel.parseQRString(qrCodeString);
+            final String codeVersion = qrm.getVersion();
 
-                    if (backspaceIndex2 < 0) {
-                        throw new LocalizedException(LocalizedException.VERIFY_DATA_FAILED, "Second Backspace not found");
-                    }
-
-                    byte[] checksumContact = ChecksumUtil.getSHA256ChecksumAsBytesForString(contact.getPublicKey());
-                    String checksumQrCodeBase64 = qrCodeString.substring(backspaceIndex2 + 1);
-
-                    if (checksumContact != null) {
-                        String checksumContactBase64 = Base64.encodeToString(checksumContact, Base64.NO_WRAP);
-
-                        if (StringUtil.isEqual(checksumContactBase64, checksumQrCodeBase64)) {
-                            verified = true;
-                        }
-                    }
-                } else {
-                    checkV1 = true;
-                }
-            } catch (LocalizedException e) {
-                checkV1 = true;
-            }
-
-            if (checkV1) {
-                byte[] qrCodeData = Base64.decode(qrCodeString, Base64.DEFAULT);
-                byte[] data = contact.getAccountGuid().getBytes(Encoding.UTF8);
-
-                PublicKey key = XMLUtil.getPublicKeyFromXML(contact.getPublicKey());
-
-                if (key == null) {
-                    return false;
-                }
-
-                verified = SecurityUtil.verifyData(key, qrCodeData, data, false);
+            if(codeVersion.equals(QRCodeModel.TYPE_V2) || codeVersion.equals(QRCodeModel.TYPE_V3)) {
+                byte[] checksumContact = ChecksumUtil.getSHA256ChecksumAsBytesForString(contact.getPublicKey());
+                verified = Arrays.equals(checksumContact, qrm.getPublicKeySHA256());
             }
 
             if (verified) {
@@ -2148,8 +2066,8 @@ public class ContactController
             }
 
             return verified;
-        } catch (UnsupportedEncodingException | IllegalArgumentException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+        } catch (Exception e) {
+            LogUtil.e(TAG, "processContactVerificationResult: Got Exception " + e.getMessage(), e);
             throw new LocalizedException(LocalizedException.VERIFY_DATA_FAILED, e);
         }
     }
@@ -2208,7 +2126,7 @@ public class ContactController
 
                     if (StringUtil.isNullOrEmpty(bcrypt)) {
                         bcrypt = BCrypt.hashpw(normalizedPhoneNumber, mandant.salt);
-                        bcrypt = bcrypt.substring(mandant.salt.length(), bcrypt.length());
+                        bcrypt = bcrypt.substring(mandant.salt.length());
                         contact.setBcryptForSalt(mandant.salt, bcrypt);
                     }
 
@@ -2674,11 +2592,10 @@ public class ContactController
         if (StringUtil.isNullOrEmpty(contact.getClassEntryName())) {
             contact.setClassEntryName(Contact.CLASS_PRIVATE_ENTRY);
         }
+
         if (hasChanges || forceUpdate) {
             contact.setChecksum("");
-
             insertOrUpdateContact(contact);
-
             updatePrivateIndexEntriesAsync();
         }
 
@@ -2738,9 +2655,13 @@ public class ContactController
                 JsonObject dataJO = contact.exportPrivateIndexEntryData();
 
                 byte[] imgBytes = application.getChatImageController().loadImage(contact.getAccountGuid());
-                if (imgBytes != null && imgBytes.length > 0) {
-                    String imgBase64 = Base64.encodeToString(imgBytes, Base64.DEFAULT);
-                    dataJO.addProperty(JsonConstants.IMAGE, imgBase64);
+                if (imgBytes != null) {
+                    if (imgBytes.length > 0) {
+                        String imgBase64 = Base64.encodeToString(imgBytes, Base64.DEFAULT);
+                        dataJO.addProperty(JsonConstants.IMAGE, imgBase64);
+                    } else {
+                        dataJO.addProperty(JsonConstants.IMAGE, "");
+                    }
                 }
 
                 byte[] encData = SecurityUtil.encryptStringWithAES(dataJO.toString(), key, iv);
@@ -2792,6 +2713,11 @@ public class ContactController
                 if (migrationTaskListener != null) {
                     migrationTaskListener.onUpdate(mApplication.getResources().getString(R.string.insupd_private_index_update, (i + 1), localContacts.size()));
                 }
+
+                if(mOnContactsChangedListener != null) {
+                    mOnContactsChangedListener.onContactsChanged();
+                }
+
             }
         } finally {
             application.getLoginController().setPKTaskIsRunning(this, false);
@@ -2982,8 +2908,7 @@ public class ContactController
                                 name);
 
                         mApplication.getSingleChatController()
-                                .sendSystemInfo(contact.getAccountGuid(), contact.getPublicKey(), null, null,
-                                        logMessage, -1);
+                                .sendSystemInfo(contact.getAccountGuid(), contact.getPublicKey(), logMessage, -1);
                     }
                 }
             } else LogUtil.e(TAG, "Null contact. Failed to notify chat controller.");
@@ -3097,7 +3022,7 @@ public class ContactController
         @Override
         public void onStateChanged(ConcurrentTask task,
                                    int state) {
-            LogUtil.i(TAG, "loadContacts finished State:" + state);
+            LogUtil.i(TAG, "loadContacts finished State: " + state);
             synchronized (ContactController.this) {
                 if (state == ConcurrentTask.STATE_COMPLETE) {
                     mSyncContactsTask = null;
@@ -3127,13 +3052,13 @@ public class ContactController
                     mApplication.getChatOverviewController().chatChanged(null, null, null, ChatOverviewController.CHAT_CHANGED_TITLE);
 
                     for (int i = 0; i < mOnLoadContactsListeners.size(); i++) {
-                        LogUtil.i(TAG, "loadContacts call:" + mOnLoadContactsListeners.get(i).getClass().getName());
+                        LogUtil.i(TAG, "loadContacts call: " + mOnLoadContactsListeners.get(i).getClass().getName());
                         mOnLoadContactsListeners.get(i).onLoadContactsComplete();
                     }
                 } else if (state == ConcurrentTask.STATE_CANCELED) {
                     mSyncContactsTask = null;
                     for (int i = 0; i < mOnLoadContactsListeners.size(); i++) {
-                        LogUtil.i(TAG, "loadContacts call:" + mOnLoadContactsListeners.get(i).getClass().getName());
+                        LogUtil.i(TAG, "loadContacts call: " + mOnLoadContactsListeners.get(i).getClass().getName());
                         mOnLoadContactsListeners.get(i).onLoadContactsCanceled();
                     }
                 } else if (state == ConcurrentTask.STATE_ERROR) {
@@ -3142,9 +3067,13 @@ public class ContactController
                     String errorMessage = (String) task.getResults()[0];
 
                     for (int i = 0; i < mOnLoadContactsListeners.size(); i++) {
-                        LogUtil.i(TAG, "loadContacts call:" + mOnLoadContactsListeners.get(i).getClass().getName());
+                        LogUtil.i(TAG, "loadContacts call: " + mOnLoadContactsListeners.get(i).getClass().getName());
                         mOnLoadContactsListeners.get(i).onLoadContactsError(errorMessage);
                     }
+                }
+
+                if(mOnContactsChangedListener != null) {
+                    mOnContactsChangedListener.onContactsChanged();
                 }
             }
         }
@@ -3297,7 +3226,7 @@ public class ContactController
                         byte[] ivBytes = Base64.decode(keyIv, Base64.DEFAULT);
                         byte[] decryptedDataBytes = SecurityUtil.decryptMessageWithAES(dataBytes, key, new IvParameterSpec(ivBytes));
 
-                        String decryptedData = new String(decryptedDataBytes, Encoding.UTF8);
+                        String decryptedData = new String(decryptedDataBytes, StandardCharsets.UTF_8);
 
                         JsonObject entryJO = JsonUtil.getJsonObjectFromString(decryptedData);
 
@@ -3320,7 +3249,7 @@ public class ContactController
                             }
                         }
 
-                        if (imported.indexOf(accountGuid) > -1) {
+                        if (imported.contains(accountGuid)) {
                             //Pruefen ob wir mehr als ein OwnAccountEntry haben
                             if (StringUtil.isEqual(mOwnAccountGuid, accountGuid)
                                     && StringUtil.isEqual(Contact.CLASS_OWN_ACCOUNT_ENTRY, JsonUtil.stringFromJO(JsonConstants.CLASS, entryJO))) {
@@ -3380,10 +3309,15 @@ public class ContactController
                         boolean updatePicuture = false;
 
                         String imgData = JsonUtil.stringFromJO(JsonConstants.IMAGE, entryJO);
-                        if (!StringUtil.isNullOrEmpty(imgData)) {
-                            byte[] imgBytes = Base64.decode(imgData, Base64.DEFAULT);
-                            if (imgBytes != null) {
-                                mApplication.getChatImageController().saveImage(accountGuid, imgBytes);
+                        if (imgData != null) {
+                            if (imgData.length() > 0) {
+                                byte[] imgBytes = Base64.decode(imgData, Base64.DEFAULT);
+                                if (imgBytes != null) {
+                                    mApplication.getChatImageController().saveImage(accountGuid, imgBytes);
+                                    updatePicuture = true;
+                                }
+                            } else {
+                                mApplication.getChatImageController().deleteImage(accountGuid);
                                 updatePicuture = true;
                             }
                         }
@@ -3403,13 +3337,10 @@ public class ContactController
                         }
 
                         imported.add(accountGuid);
-
                         insertOrUpdateContact(localContact);
-
-                        // TODO : Refresh UI with updated contact info
-
                         addLoadedGuid(guid);
-                    } catch (UnsupportedEncodingException | LocalizedException e) {
+
+                    } catch (LocalizedException e) {
                         LogUtil.w(TAG, "Import Private Index Entry", e);
                     }
                 }
@@ -3897,9 +3828,4 @@ public class ContactController
         }
     }
 
-    public interface GetAddressInformationsListener {
-        void onSuccess();
-
-        void onFail();
-    }
 }

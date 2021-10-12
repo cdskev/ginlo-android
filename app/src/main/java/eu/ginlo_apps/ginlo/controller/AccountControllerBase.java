@@ -11,12 +11,15 @@ import android.content.res.Resources;
 import android.database.sqlite.SQLiteException;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Base64;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -25,6 +28,27 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
+
+import org.greenrobot.greendao.database.Database;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.security.KeyPair;
+import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.Executor;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.UseCases.DeleteLocalBackupsUseCase;
@@ -33,13 +57,7 @@ import eu.ginlo_apps.ginlo.concurrent.manager.SerialExecutor;
 import eu.ginlo_apps.ginlo.concurrent.task.AsyncHttpTask;
 import eu.ginlo_apps.ginlo.concurrent.task.MigrationTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
-import eu.ginlo_apps.ginlo.controller.DeviceController;
-import eu.ginlo_apps.ginlo.controller.KeyController;
 import eu.ginlo_apps.ginlo.controller.KeyController.OnKeyPairsInitiatedListener;
-import eu.ginlo_apps.ginlo.controller.LocalBackupHelper;
-import eu.ginlo_apps.ginlo.controller.LoginController;
-import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.controller.contracts.AccountOnServerWasDeleteListener;
 import eu.ginlo_apps.ginlo.controller.contracts.AsyncBackupKeysCallback;
 import eu.ginlo_apps.ginlo.controller.contracts.BackupUploadListener;
@@ -84,31 +102,10 @@ import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.Listener.GenericUpdateListener;
+import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.SecurityUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
 import eu.ginlo_apps.ginlo.util.XMLUtil;
-import org.greenrobot.greendao.database.Database;
-import org.json.JSONException;
-import org.json.JSONObject;
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.Executor;
 
 public class AccountControllerBase
         implements LoginController.AppLockLifecycleCallbacks {
@@ -165,9 +162,6 @@ public class AccountControllerBase
     private AsyncTask<Void, Void, LocalizedException> mCoupleDeviceGetCouplingTask;
     private MigrationTask mMigrationTask;
     private GenericUpdateListener<Integer> mMigrationListener;
-    // Eigenes TempDevices
-    private String mTempDeviceGuid;
-    private String mTempDevicePublicKeyXML;
     // Coupling Request
     private CouplingRequestModel couplingRequestModel;
     private AsyncTask<Void, Void, LocalizedException> mCoupleGetCouplingRequestTask;
@@ -314,9 +308,10 @@ public class AccountControllerBase
         OnKeyPairsInitiatedListener listener = new OnKeyPairsInitiatedListener() {
             @Override
             public void onKeyPairsInitiated() {
-                PreferencesController preferencesController = mApplication.getPreferencesController();
-                preferencesController.clearAll();
-                preferencesController.getSharedPreferences().edit().clear().apply();
+                // KS: No! That is done in IntroBaseActivity!
+                //PreferencesController preferencesController = mApplication.getPreferencesController();
+                //preferencesController.clearAll();
+                //preferencesController.getSharedPreferences().edit().clear().apply();
                 createAccountRegisterPhoneInternal(createAccountListener);
             }
 
@@ -331,12 +326,6 @@ public class AccountControllerBase
 
     private void createAccountRegisterPhoneInternal(
             @NonNull final OnCreateAccountListener createAccountListener) {
-        // TODO gyan what is this check for? mBackendService should never be null
-//        if (mBackendService == null) {
-//            resetCreateAccountRegisterPhone();
-//            createAccountListener.onCreateAccountFail(null, false);
-//            return;
-//        }
         try {
             String accountGuid = GuidUtil.generateAccountGuid();
             String deviceGuid = GuidUtil.generateDeviceGuid();
@@ -367,7 +356,7 @@ public class AccountControllerBase
                     .createAccountEx(dataJson, mCreateAccountModel.accountModel.phone,
                             mCreateAccountModel.deviceModel.language, null, null, listener);
         } catch (LocalizedException e) {
-            LogUtil.w(TAG, e.getMessage(), e);
+            LogUtil.w(TAG, "createAccountRegisterPhoneInternal: " + e.getMessage());
             resetCreateAccountRegisterPhone();
 
             createAccountListener.onCreateAccountFail(null, false);
@@ -379,11 +368,9 @@ public class AccountControllerBase
             @Override
             public void onBackendResponse(BackendResponse response) {
                 if (response.isError) {
-                    LogUtil.i(TAG, "Create account request failed.");
-
+                    LogUtil.w(TAG, "onBackendResponse: Create account request failed with " + response.errorMessage);
                     String errorMsg = mApplication.getResources()
                             .getString(R.string.service_tryAgainLater);
-
                     if (response.errorMessage != null) {
                         errorMsg = response.errorMessage;
                     }
@@ -392,9 +379,9 @@ public class AccountControllerBase
                     createAccountListener.onCreateAccountFail(errorMsg, false);
                 } else {
                     try {
-                        LogUtil.i(TAG, "Create account request succeeded.");
-
                         if (response.jsonArray != null) {
+                            LogUtil.d(TAG, "onBackendResponse: Create account request returned " + response.jsonArray.toString());
+
                             List<String> serverAccountIds = new ArrayList<>(response.jsonArray.size());
                             for (JsonElement je : response.jsonArray) {
                                 JsonObject accountJO = JsonUtil.searchJsonObjectRecursive(je, JsonConstants.ACCOUNT);
@@ -424,14 +411,10 @@ public class AccountControllerBase
                             }
                         }
 
-                        // TODO gyan whatis this setting for?
-//                        mBackendService.elevateRights(mCreateAccountModel.deviceModel.guid,
-//                                mCreateAccountModel.accountModel.guid,
-//                                mCreateAccountModel.deviceModel.passtoken);
-
                         saveNotConfirmedAccount(createAccountListener, nextAccountState);
                         mApplication.getDeviceController().createDeviceFromModel(mCreateAccountModel.deviceModel, true);
                     } catch (LocalizedException e) {
+                        LogUtil.e(TAG, "onBackendResponse: Caught exception " + e.getMessage() + " -> resetCreateAccount!");
                         resetCreateAccountRegisterPhone();
                         createAccountListener.onCreateAccountFail(mApplication.getString(R.string.service_tryAgainLater), false);
                     }
@@ -452,16 +435,14 @@ public class AccountControllerBase
             @Override
             public void onKeysSaveFailed() {
                 resetCreateAccountRegisterPhone();
-
-                LogUtil.i(TAG, "Keys save failed.");
-
+                LogUtil.w(TAG, "Keys save failed.");
                 createAccountListener.onCreateAccountFail(null, false);
             }
 
             @Override
             public void onKeysSaveComplete() {
                 try {
-                    LogUtil.i(TAG, "Keys saved successful.");
+                    LogUtil.d(TAG, "onKeysSaveComplete()");
 
                     mAccount.setPasstoken(mCreateAccountModel.deviceModel.passtoken);
                     if (mCreateAccountModel.allServerAccountIDs != null) {
@@ -481,7 +462,7 @@ public class AccountControllerBase
 
                     createAccountListener.onCreateAccountSuccess();
                 } catch (LocalizedException e) {
-                    LogUtil.e(TAG, e.getMessage(), e);
+                    LogUtil.e(TAG, "onKeysSaveComplete: " + e.getMessage());
                     resetCreateAccountRegisterPhone();
                     createAccountListener.onCreateAccountFail(null, false);
                 }
@@ -491,7 +472,7 @@ public class AccountControllerBase
             initInternalSecurityAndSavePasswordSettings(mCreateAccountModel.isPwdOnStartEnabled, mCreateAccountModel.isSimplePassword, mCreateAccountModel.password);
             mApplication.getKeyController().saveKeys(mCreateAccountModel.password, keysSavedListener);
         } catch (LocalizedException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "saveNotConfirmedAccount: " + e.getMessage());
         }
     }
 
@@ -555,10 +536,7 @@ public class AccountControllerBase
                 } else {
                     LogUtil.i(TAG, "check confirm code successful.");
 
-                    mAccount.setState(Account.ACCOUNT_STATE_VALID_CONFIRM_CODE);
-
-                    saveOrUpdateAccount(mAccount);
-
+                    setAccountStateToConfirmationCodeValid();
                     confirmListener.onValidateConfirmCodeSuccess();
                 }
             }
@@ -633,6 +611,12 @@ public class AccountControllerBase
 
     }
 
+    public void setAccountStateToConfirmationCodeValid() {
+        mAccount.setState(Account.ACCOUNT_STATE_VALID_CONFIRM_CODE);
+        saveOrUpdateAccount(mAccount);
+
+    }
+
     public void configureNewAccount() {
 
         PreferencesController preferencesController = mApplication.getPreferencesController();
@@ -644,25 +628,12 @@ public class AccountControllerBase
         //set login state to STATE_LOGGED_IN
         mApplication.getLoginController().loginCompleteSuccess(null, null, null);
 
-        // KS: Set optInState on backend but do nothing locally - keep that for now!
-        setOptInState("auto", new OptInStateListener() {
-            @Override
-            public void optInStateSuccess() {
-                LogUtil.i(TAG, "Set OPTIN_STATE on backend to 'auto'.");
-            }
-
-            @Override
-            public void optInStateFailed() {
-                LogUtil.e(TAG, "Could not set OPTIN_STATE on backend to 'auto'.");
-            }
-        });
-
         try {
             mApplication.getContactController().createAndFillFtsDB(true);
             preferencesController.setNotificationPreviewEnabled(true, true);
             preferencesController.setSendProfileNameSet();
         } catch (LocalizedException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "configureNewAccount: " + e.getMessage());
         }
     }
 
@@ -676,7 +647,7 @@ public class AccountControllerBase
                         if (response.jsonArray != null && response.jsonArray.size() != 0) {
                             result = response.jsonArray.get(0).getAsString();
 
-                            if (mAccount.getAccountGuid().equals(response.jsonArray.get(0).getAsString())) {
+                            if (mAccount.getAccountGuid().equals(result)) {
                                 if (listener != null) {
                                     listener.onSuccess(result);
                                 }
@@ -743,7 +714,9 @@ public class AccountControllerBase
             @Override
             public void onBackendResponse(final BackendResponse response) {
                 if (!response.isError) {
-                    if (mAccount.getAccountGuid().equals(response.jsonArray.get(0).getAsString())) {
+                    if (response.jsonArray != null && mAccount.getAccountGuid().equals(response.jsonArray.get(0).getAsString())) {
+                        LogUtil.d(TAG, "confirmConfirmPhone: Got valid Reponse: " + response.jsonArray.toString());
+
                         try {
                             final String pendingPhoneNumber = mAccount.getCustomStringAttribute(PENDING_PHONE_NUMBER);
                             if (StringUtil.isNullOrEmpty(pendingPhoneNumber)) {
@@ -771,6 +744,9 @@ public class AccountControllerBase
                             LogUtil.w(TAG, "confirmConfirmPhone failed", e);
                         }
                     } else {
+                        if(response.jsonArray != null) {
+                            LogUtil.d(TAG, "confirmConfirmPhone: Got invalid Reponse: " + response.jsonArray.toString());
+                        }
                         if (listener != null) {
                             listener.onFail(getResources().getString(R.string.change_phone_number_error), false);
                         }
@@ -857,66 +833,6 @@ public class AccountControllerBase
         } catch (final LocalizedException e) {
             LogUtil.w(TAG, "removeConfirmedPhone failed", e);
         }
-    }
-
-    private void setTempDeviceInfo(String guid, String publicKey) {
-        mTempDeviceGuid = guid;
-        mTempDevicePublicKeyXML = publicKey;
-    }
-
-    private void removeTempDeviceInfo() {
-        mTempDeviceGuid = null;
-        mTempDevicePublicKeyXML = null;
-    }
-
-    public String getTempDeviceGuid() {
-        return mTempDeviceGuid;
-    }
-
-    public String getTempDevicePublicKeyXML() {
-        return mTempDevicePublicKeyXML;
-    }
-
-    public void fetchOwnTempDevice() {
-        final IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
-            @Override
-            public void onBackendResponse(BackendResponse response) {
-                try {
-                    if (response == null || response.jsonObject == null) {
-                        return;
-                    }
-                    if (response.isError) {
-                        return;
-                    }
-
-                    JsonObject responseJSON = response.jsonObject;
-                    JsonObject accountObject = responseJSON.get(JsonConstants.ACCOUNT).getAsJsonObject();
-
-                    if (accountObject.has("tempDeviceGuid") && accountObject.has("publicKeyTempDevice") && accountObject.has("pkSign256TempDevice")) {
-                        //  Signature prüfen
-                        String tempDeviceGuid = accountObject.get("tempDeviceGuid").getAsString();
-                        String publicKeyTempDevice = accountObject.get("publicKeyTempDevice").getAsString();
-                        String pkSign256TempDevice = accountObject.get("pkSign256TempDevice").getAsString();
-
-                        PublicKey pubKey = XMLUtil.getPublicKeyFromXML(mAccount.getPublicKey());
-                        try {
-                            if (SecurityUtil.verifyData(pubKey, Base64.decode(pkSign256TempDevice, Base64.DEFAULT), publicKeyTempDevice.getBytes("utf-8"), true)) {
-                                setTempDeviceInfo(tempDeviceGuid, publicKeyTempDevice);
-                            }
-                        } catch (IOException ex) {
-                            LogUtil.e(TAG, ex.getMessage(), ex);
-                        }
-                    } else {
-                        removeTempDeviceInfo();
-                    }
-                } catch (LocalizedException e) {
-                    LogUtil.e(TAG, e.getMessage(), e);
-                }
-            }
-        };
-
-        BackendService.withAsyncConnection(mApplication)
-                .getAccountInfo(mAccount.getAccountGuid(), 1, false, false, true, listener);
     }
 
     /**
@@ -1045,7 +961,7 @@ public class AccountControllerBase
                     if (StringUtil.isNullOrEmpty(mCoupleDeviceModel.deviceName)) {
                         throw new LocalizedException(LocalizedException.COUPLE_DEViCE_FAILED, "Device name is null");
                     }
-                    String encodedDeviceName = Base64.encodeToString(mCoupleDeviceModel.deviceName.getBytes(Encoding.UTF8), Base64.NO_WRAP);
+                    String encodedDeviceName = Base64.encodeToString(mCoupleDeviceModel.deviceName.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
                     JsonObject deviceDataJO = new JsonObject();
                     deviceDataJO.addProperty(JsonConstants.DEVICE_NAME, encodedDeviceName);
                     deviceDataJO.addProperty(JsonConstants.DEVICE_GUID, mCoupleDeviceModel.deviceModel.guid);
@@ -1072,7 +988,7 @@ public class AccountControllerBase
                     String requestType = "0x0101";
                     String concatSignature = mCoupleDeviceModel.accountModel.guid + transId + publicKeyString + encryptedVerifyBase64 + requestType + appData;
 
-                    byte[] signBytes = SecurityUtil.signData(mApplication.getKeyController().getDeviceKeyPair().getPrivate(), concatSignature.getBytes(Encoding.UTF8), true);
+                    byte[] signBytes = SecurityUtil.signData(mApplication.getKeyController().getDeviceKeyPair().getPrivate(), concatSignature.getBytes(StandardCharsets.UTF_8), true);
                     if (signBytes == null) {
                         throw new LocalizedException(LocalizedException.COUPLE_DEViCE_FAILED, "signature bytes are null");
                     }
@@ -1093,8 +1009,6 @@ public class AccountControllerBase
                         throw new LocalizedException(LocalizedException.COUPLE_DEViCE_FAILED, "Server response is not correct");
                     }
                     mCoupleDeviceModel.couplingTransactionID = rm.response.getAsString();
-                } catch (UnsupportedEncodingException ue) {
-                    return new LocalizedException(LocalizedException.UNSUPPORTED_ENCODING_EXCEPTION, ue.getMessage(), ue);
                 } catch (LocalizedException e) {
                     return e;
                 }
@@ -1248,7 +1162,7 @@ public class AccountControllerBase
 
                     byte[] decKek = Base64.decode(mCoupleDeviceModel.couplingResponse.kek, Base64.NO_WRAP);
                     decKek = SecurityUtil.decryptMessageWithRSA(decKek, privKey);
-                    String jsonString = new String(decKek, Encoding.UTF8);
+                    String jsonString = new String(decKek, StandardCharsets.UTF_8);
                     JsonObject aesKeyJO = JsonUtil.getJsonObjectFromString(jsonString);
 
                     if (aesKeyJO == null) {
@@ -1301,8 +1215,6 @@ public class AccountControllerBase
                     mainHandler.post(myRunnable);
                 } catch (LocalizedException e) {
                     return e;
-                } catch (UnsupportedEncodingException ue) {
-                    return new LocalizedException(LocalizedException.UNSUPPORTED_ENCODING_EXCEPTION, ue.getMessage(), ue);
                 }
 
                 return null;
@@ -1372,11 +1284,11 @@ public class AccountControllerBase
 
                     String timeStamp = DateUtil.dateToUtcString(new Date());
 
-                    String encTan = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(tan.getBytes("utf-8"), mApplication.getKeyController().getUserKeyPair().getPublic()), Base64.NO_WRAP);
+                    String encTan = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(tan.getBytes(StandardCharsets.UTF_8), mApplication.getKeyController().getUserKeyPair().getPublic()), Base64.NO_WRAP);
 
                     String concatSignature = transId + encTan + timeStamp + appData;
 
-                    byte[] signBytes = SecurityUtil.signData(mApplication.getKeyController().getUserKeyPair().getPrivate(), concatSignature.getBytes(Encoding.UTF8), true);
+                    byte[] signBytes = SecurityUtil.signData(mApplication.getKeyController().getUserKeyPair().getPrivate(), concatSignature.getBytes(StandardCharsets.UTF_8), true);
                     if (signBytes == null) {
                         throw new LocalizedException(LocalizedException.COUPLE_DEViCE_FAILED, "signature bytes are null");
                     }
@@ -1396,8 +1308,6 @@ public class AccountControllerBase
                     if (rm.response.isJsonNull() || !rm.response.isJsonPrimitive()) {
                         throw new LocalizedException(LocalizedException.COUPLE_DEViCE_FAILED, "Server response is not correct");
                     }
-                } catch (UnsupportedEncodingException ue) {
-                    return new LocalizedException(LocalizedException.UNSUPPORTED_ENCODING_EXCEPTION, ue.getMessage(), ue);
                 } catch (LocalizedException e) {
                     return e;
                 }
@@ -1487,7 +1397,7 @@ public class AccountControllerBase
                     String deviceKeySig = Base64.encodeToString(signBytesPk, Base64.NO_WRAP);
 
                     // Minibackup erstellen
-                    JsonArray ja = mApplication.getBackupController().createMiniBackup(couplingRequest.isTempDevice());
+                    JsonArray ja = mApplication.getBackupController().createMiniBackup();
                     String miniBackup = ja.toString();
 
                     JsonObject key = SecurityUtil.generateGCMKey();
@@ -1509,11 +1419,7 @@ public class AccountControllerBase
                     String concatSignature = transId + devicePublicKey + deviceKeySig + kek + kekIv + miniBackupEnc + appData;
 
                     byte[] signBytes;
-                    try {
-                        signBytes = SecurityUtil.signData(mApplication.getKeyController().getUserKeyPair().getPrivate(), concatSignature.getBytes(Encoding.UTF8), true);
-                    } catch (IOException e) {
-                        throw new LocalizedException(LocalizedException.STREAMING_ERROR, e);
-                    }
+                    signBytes = SecurityUtil.signData(mApplication.getKeyController().getUserKeyPair().getPrivate(), concatSignature.getBytes(StandardCharsets.UTF_8), true);
                     if (signBytes == null) {
                         throw new LocalizedException(LocalizedException.COUPLE_DEViCE_FAILED, "signature bytes are null");
                     }
@@ -1532,94 +1438,6 @@ public class AccountControllerBase
 
                     if (rm.response.isJsonNull() || !rm.response.isJsonPrimitive()) {
                         throw new LocalizedException(LocalizedException.COUPLE_DEViCE_FAILED, "Server response is not correct");
-                    }
-                    if (couplingRequest.isTempDevice()) {
-                        ResponseModel tempInfo = getCouplingTempDevice(mAccount.getAccountGuid());
-                        if (tempInfo.isError) {
-                            throw new LocalizedException(tempInfo.errorIdent, tempInfo.errorMsg);
-                        }
-
-                        if (tempInfo.responseException != null) {
-                            throw tempInfo.responseException;
-                        }
-
-                        JsonArray deviceData = new JsonArray();
-                        if (!tempInfo.response.isJsonNull() && tempInfo.response.isJsonArray()) {
-                            // TempDeviceInfos laden
-                            JsonArray responseArray = tempInfo.response.getAsJsonArray();
-                            if (responseArray != null) {
-                                for (int i = 0; i < responseArray.size(); i++) {
-                                    JsonObject entry = responseArray.get(i).getAsJsonObject();
-                                    JsonObject keyList = entry.get("AccountKeysList").getAsJsonObject();
-                                    String signature = keyList.get("sig").getAsString();
-                                    String deviceDataRaw = keyList.get("keys").getAsString();
-                                    String createdAt = keyList.get("createdAt").getAsString();
-                                    String nextUpdate = keyList.get("nextUpdate").getAsString();
-
-                                    PublicKey pubKey = XMLUtil.getPublicKeyFromXML(mAccount.getPublicKey());
-                                    try {
-                                        String dataForSig = deviceDataRaw + createdAt + nextUpdate;
-                                        // Signature prüfen
-                                        if (SecurityUtil.verifyData(pubKey, Base64.decode(signature, Base64.DEFAULT), dataForSig.getBytes("utf-8"), true)) {
-                                            deviceData = JsonUtil.getJsonArrayFromString(deviceDataRaw);
-                                        }
-                                    } catch (IOException ex) {
-                                        LogUtil.e(TAG, ex.getMessage(), ex);
-                                    }
-                                }
-                            }
-                        }
-
-                        if (deviceData != null) {
-                            // TempDeviceData erweitern
-                            JsonObject tempDeviceData = new JsonObject();
-                            tempDeviceData.addProperty("deviceGuid", couplingRequest.getDeviceGuid());
-                            tempDeviceData.addProperty("pubKey", couplingRequest.getPublicKey());
-                            tempDeviceData.addProperty("fingerPrint", couplingRequest.getPublicKeySha());
-
-                            Date now = new Date();
-                            String start = DateUtil.dateToUtcStringWithoutMillis(now);
-                            Calendar cal = DateUtil.getCalendarFromDate(now);
-                            cal.add(Calendar.HOUR, 6);
-                            String end = DateUtil.dateToUtcStringWithoutMillis(cal.getTime());
-                            tempDeviceData.addProperty("type", "0x0201");
-                            JsonObject validity = new JsonObject();
-                            validity.addProperty("start", start);
-                            validity.addProperty("end", end);
-
-                            tempDeviceData.add("validity", validity);
-
-                            deviceData.add(tempDeviceData);
-
-                            String deviceDataRaw = deviceData.toString();
-
-                            String dataForSig = deviceDataRaw + start + end;
-
-                            try {
-                                signBytes = SecurityUtil.signData(mApplication.getKeyController().getUserKeyPair().getPrivate(), dataForSig.getBytes(Encoding.UTF8), true);
-                            } catch (IOException e) {
-                                throw new LocalizedException(LocalizedException.STREAMING_ERROR, e);
-                            }
-                            if (signBytes == null) {
-                                throw new LocalizedException(LocalizedException.COUPLE_DEViCE_FAILED, "signature bytes are null");
-                            }
-
-                            String sig = Base64.encodeToString(signBytes, Base64.NO_WRAP);
-
-                            ResponseModel rm2 = setCouplingTempDeviceInfo(deviceDataRaw, start, end, sig);
-                            if (rm2.isError) {
-                                throw new LocalizedException(rm2.errorIdent, rm2.errorMsg);
-                            }
-
-                            if (rm2.responseException != null) {
-                                throw rm2.responseException;
-                            }
-                        } else {
-                            throw new LocalizedException(LocalizedException.COUPLE_DEViCE_FAILED, "device data is null");
-                        }
-
-                        /**/
-
                     }
                 } catch (LocalizedException e) {
                     return e;
@@ -1981,71 +1799,6 @@ public class AccountControllerBase
         return rm;
     }
 
-    // Kopplung / Freigebendes Gerät
-
-    @NonNull
-    private ResponseModel getCouplingTempDevice(
-            final String accountGuid
-    )
-            throws LocalizedException {
-        final ResponseModel rm = new ResponseModel();
-
-        IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
-            @Override
-            public void onBackendResponse(BackendResponse response) {
-                if (response.isError) {
-                    rm.setError(response);
-                    return;
-                }
-
-                if (response.jsonArray == null) {
-                    rm.responseException = new LocalizedException(LocalizedException.NO_DATA_FOUND, "Response is null");
-                    return;
-                }
-
-                rm.response = response.jsonArray;
-            }
-        };
-
-        BackendService.withSyncConnection(mApplication)
-                .getTempDeviceInfo(accountGuid, listener);
-
-        return rm;
-    }
-
-    @NonNull
-    private ResponseModel setCouplingTempDeviceInfo(
-            final String keys,
-            final String createdAt,
-            final String nextUpdate,
-            final String sig
-    )
-            throws LocalizedException {
-        final ResponseModel rm = new ResponseModel();
-
-        IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
-            @Override
-            public void onBackendResponse(BackendResponse response) {
-                if (response.isError) {
-                    rm.setError(response);
-                    return;
-                }
-
-                if (response.jsonArray == null || response.jsonArray.size() < 1) {
-                    rm.responseException = new LocalizedException(LocalizedException.NO_DATA_FOUND, "Response is null");
-                    return;
-                }
-
-                rm.response = response.jsonArray.get(0);
-            }
-        };
-
-        BackendService.withSyncConnection(mApplication)
-                .setTempDeviceInfo(keys, createdAt, nextUpdate, sig, listener);
-
-        return rm;
-    }
-
     public JsonObject getCompanyMDMConfig() {
         // Wird in der AccountControllerBusiness implementiert
         return null;
@@ -2199,7 +1952,7 @@ public class AccountControllerBase
                     accountDao.update(mAccount);
                 }
             } catch (LocalizedException e) {
-                LogUtil.e(TAG, e.getMessage(), e);
+                LogUtil.e(TAG, "saveAccountKeyPair: " + e.getMessage(), e);
                 return false;
             }
             return true;
@@ -2258,6 +2011,11 @@ public class AccountControllerBase
                 ownContact.setStatusText(status);
             }
 
+            // KS: May be we've deleted the profile image. So force update to be sure.
+            if(imageBytes == null) {
+                bForce = true;
+            }
+
             mApplication.getContactController().saveContactInformation(ownContact, lastName, firstName, null, null, null, department, oooStatus, imageBytes, -1, bForce || isInitialSave);
         } catch (LocalizedException e) {
             LogUtil.w(getClass().getSimpleName(), "save own contact infos failed", e);
@@ -2308,12 +2066,17 @@ public class AccountControllerBase
                                 aesKey,
                                 new IvParameterSpec(new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
                         imageBytesForServer = Base64.encodeToString(encodeBytes, Base64.NO_WRAP);
+                    } else {
+                        // KS: This means the image should be deleted.
+                        imageBytesForServer = "";
                     }
 
+                    // KS: imageBytesForServer is never null!
                     if (nicknameForServer != null
                             || statusForServer != null
                             || imageBytesForServer != null
                             || !StringUtil.isNullOrEmpty(encryptedOooStatus)) {
+
                         final String guids = mApplication.getContactController().getGuidsAsStringFromSimsMeContacts();
 
                         BackendService.withSyncConnection(mApplication)
@@ -2325,7 +2088,7 @@ public class AccountControllerBase
                                         listener);
                     }
                 } catch (LocalizedException e) {
-                    LogUtil.e(TAG, e.getMessage(), e);
+                    LogUtil.e(TAG, "updateAccountInfo: asyncLoaderServerRequest: " + e.getMessage());
                     isFailed = true;
                 }
             }
@@ -2405,8 +2168,12 @@ public class AccountControllerBase
 
                     ChatImageController chatImageController = mApplication.getChatImageController();
 
-                    if (imageBytes != null && imageBytes.length > 0) {
-                        chatImageController.saveImage(mAccount.getAccountGuid(), imageBytes);
+                    if (imageBytes != null) {
+                        if(imageBytes.length > 0) {
+                            chatImageController.saveImage(mAccount.getAccountGuid(), imageBytes);
+                        } else {
+                            chatImageController.deleteImage(mAccount.getAccountGuid());
+                        }
 
                         if (oldContacts != null && oldContacts.size() > 0) {
                             privateInternalMessageController
@@ -2418,7 +2185,7 @@ public class AccountControllerBase
 
                     callback.updateAccountInfoFinished();
                 } catch (LocalizedException e) {
-                    LogUtil.e(TAG, e.getMessage(), e);
+                    LogUtil.e(TAG, "updateAccountInfo: asyncLoaderFinished: " + e.getMessage(), e);
                     callback.updateAccountInfoFailed(null);
                 }
             }
@@ -2465,7 +2232,7 @@ public class AccountControllerBase
                 }
             }
         } catch (LocalizedException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.w(TAG, "appIsUnlock: " + e.getMessage());
         }
     }
 
@@ -2480,6 +2247,8 @@ public class AccountControllerBase
             @Override
             public void onBackendResponse(BackendResponse response) {
                 if (!response.isError && response.jsonObject != null) {
+                    LogUtil.d(TAG, "updateAccountInfoFromServer: Got response: " + response.jsonObject.toString());
+
                     JsonObject responseJSON = response.jsonObject;
 
                     if (!responseJSON.has(JsonConstants.ACCOUNT)) {
@@ -2533,8 +2302,11 @@ public class AccountControllerBase
 
                         saveOrUpdateAccount(getAccount());
                     } catch (Exception e) {
-                        LogUtil.e(TAG, e.getMessage(), e);
+                        LogUtil.e(TAG, "updateAccountInfoFromServer: " + e.getMessage(), e);
                     }
+                } else {
+                    LogUtil.w(TAG, "updateAccountInfoFromServer: Got error: " + response.errorMessage);
+
                 }
             }
         };
@@ -2542,7 +2314,7 @@ public class AccountControllerBase
         final int withProfileInfo = (updateProfileInfo ? 1 : 0) + (updateOooStatus ? 2 : 0);
 
         BackendService.withAsyncConnection(mApplication)
-                .getAccountInfo(getAccount().getAccountGuid(), withProfileInfo, false, false, false, listener);
+                .getAccountInfo(getAccount().getAccountGuid(), withProfileInfo, false, false, listener);
     }
 
     private void loadAccountProfileImageFromServer(final Account account, final SecretKey aesKey) {
@@ -2552,25 +2324,32 @@ public class AccountControllerBase
             public void onBackendResponse(BackendResponse response) {
                 if (!response.isError) {
                     try {
-                        if (response.jsonArray == null || response.jsonArray.size() < 1) {
-                            return;
+                        if (response.jsonArray != null && response.jsonArray.size() >= 1) {
+                            LogUtil.d(TAG, "loadAccountProfileImageFromServer: Got response " + response.jsonArray.toString());
+
+                            String imageBase64String = response.jsonArray.get(0).getAsString();
+
+                            if (!StringUtil.isNullOrEmpty(imageBase64String) && aesKey != null) {
+                                byte[] encryptedBytes = Base64.decode(imageBase64String, Base64.NO_WRAP);
+                                byte[] decryptedBytes = SecurityUtil.decryptMessageWithAES(encryptedBytes, aesKey);
+                                byte[] imageBytes = Base64.decode(decryptedBytes, Base64.NO_WRAP);
+
+                                mApplication.getChatImageController().saveImage(account.getAccountGuid(), imageBytes);
+                                return;
+                            }
                         }
 
-                        String imageBase64String = response.jsonArray.get(0).getAsString();
+                        // If backend has no image information we consider that as "no profile image set".
+                        // This is important because users could otherwise never delete their profile image.
+                        // We have no "flag" indicating a deletion.
+                        mApplication.getChatImageController().deleteImage(account.getAccountGuid());
 
-                        if (StringUtil.isNullOrEmpty(imageBase64String) || aesKey == null) {
-                            return;
-                        }
 
-                        byte[] encryptedBytes = Base64.decode(imageBase64String, Base64.NO_WRAP);
-                        byte[] decryptedBytes = SecurityUtil.decryptMessageWithAES(encryptedBytes, aesKey);
-
-                        byte[] imageBytes = Base64.decode(decryptedBytes, Base64.NO_WRAP);
-
-                        mApplication.getChatImageController().saveImage(account.getAccountGuid(), imageBytes);
                     } catch (Exception e) {
-                        LogUtil.e(TAG, e.getMessage(), e);
+                        LogUtil.w(TAG, "loadAccountProfileImageFromServer: " + e.getMessage());
                     }
+                } else {
+                    LogUtil.w(TAG, "loadAccountProfileImageFromServer: Got error from backend" + response.errorMessage);
                 }
             }
         };
@@ -2591,13 +2370,14 @@ public class AccountControllerBase
 
     }
 
-    private boolean checkBackupInterval() throws LocalizedException {
+    public boolean checkBackupInterval() throws LocalizedException {
         PreferencesController preferencesController = mApplication.getPreferencesController();
         long latestBackupDate = preferencesController.getLatestBackupDate();
         final long millisToAdd;
 
         switch (preferencesController.getBackupInterval()) {
             case PreferencesController.BACKUP_INTERVAL_DAILY: {
+                // If set to daily and we are in DEBUG mode, use 5 minute interval.
                 millisToAdd = BuildConfig.DEBUG ? (5 * 60 * 1000) : (24 * 60 * 60 * 1000); // sonarcube moechte Klammern
                 break;
             }
@@ -2610,20 +2390,22 @@ public class AccountControllerBase
                 break;
             }
             default: {
-                millisToAdd = 0;
-                LogUtil.w(TAG, LocalizedException.UNDEFINED_ARGUMENT);
-                break;
+                LogUtil.w(TAG, "checkBackupInterval: Invalid interval argument (" + LocalizedException.UNDEFINED_ARGUMENT + ").");
+                return false;
             }
         }
 
         long current = new Date().getTime();
 
         if (latestBackupDate + millisToAdd < current) {
+            LogUtil.i(TAG, "checkBackupInterval: Backup to be started "
+                    + (BuildConfig.DEBUG ? "(triggered by DEBUG)." : "(triggered by time)."));
             startBackup();
             return true;
-        } else {
-            return false;
         }
+
+        LogUtil.d(TAG, "checkBackupInterval: No need for a new backup now.");
+        return false;
     }
 
     /**
@@ -2640,7 +2422,7 @@ public class AccountControllerBase
 
             preferencesController.getDisableConfirmRead();
         } catch (final LocalizedException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "doActionsAfterRestoreAccountFromBackup: " + e.getMessage(), e);
         }
     }
 
@@ -2670,8 +2452,11 @@ public class AccountControllerBase
     public void startBackup() {
         if (!mIsBackupStarted) {
             mIsBackupStarted = true;
+            LogUtil.i(TAG, "startBackup: Starting backup service ...");
             Intent buServiceIntent = new Intent(mApplication, BackupService.class);
             mApplication.startService(buServiceIntent);
+        } else {
+            LogUtil.i(TAG, "startBackup: Backup running - ignore request.");
         }
     }
 
@@ -2706,7 +2491,7 @@ public class AccountControllerBase
 
     @SuppressLint("NewApi")
     public boolean isBiometricAuthAvailable() {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             final KeyguardManager keyGuardManager = mApplication.getSystemService(KeyguardManager.class);
             final FingerprintManager fingerprintManager = mApplication.getSystemService(FingerprintManager.class);
             if (fingerprintManager == null || keyGuardManager == null) {
@@ -2724,7 +2509,7 @@ public class AccountControllerBase
     }
 
     public void enableBiometricAuthenticationPre28(@NonNull final Cipher encryptCipher, final eu.ginlo_apps.ginlo.controller.KeyController.OnKeysSavedListener listener) {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             final KeyguardManager keyGuardManager = mApplication.getSystemService(KeyguardManager.class);
             final FingerprintManager fingerprintManager = mApplication.getSystemService(FingerprintManager.class);
             if (fingerprintManager == null || keyGuardManager == null) {
@@ -2791,11 +2576,8 @@ public class AccountControllerBase
                 final JsonElement element = parser.parse(eMailDataJson);
                 final JsonObject jsonObject = element.getAsJsonObject();
 
-                if (jsonObject != null) {
-                    return jsonObject;
-                }
+                return jsonObject;
             }
-            return null;
         }
 
         return null;
@@ -2865,7 +2647,7 @@ public class AccountControllerBase
                                     final String serverPublicKeyString = publicRsaKeyJson.getAsString();
                                     final PublicKey publicKey = XMLUtil.getPublicKeyFromXML(serverPublicKeyString);
 
-                                    final byte[] recoveryTokenBytes = SecurityUtil.encryptMessageWithRSA(recoveryCode.getBytes("UTF-8"), publicKey);
+                                    final byte[] recoveryTokenBytes = SecurityUtil.encryptMessageWithRSA(recoveryCode.getBytes(StandardCharsets.UTF_8), publicKey);
                                     final String encodedRecoveryToken = Base64.encodeToString(recoveryTokenBytes, Base64.NO_WRAP);
 
                                     // RecoveryCode mit ServerPublicKey verschluesseln unf ins Filesystem schreiben
@@ -2880,8 +2662,8 @@ public class AccountControllerBase
                                     final PreferencesController preferencesController = mApplication.getPreferencesController();
                                     final String phoneNumber = mAccount.getPhoneNumber();
                                     if (!StringUtil.isNullOrEmpty(phoneNumber)) {
-                                        final byte[] encryptedPhoneNumberBytes = SecurityUtil.encryptMessageWithRSA(phoneNumber.getBytes("UTF-8"), publicKey);
-                                        final byte[] signatureBytes = SecurityUtil.signData(userKeyPair.getPrivate(), sigString.getBytes("UTF-8"), true);
+                                        final byte[] encryptedPhoneNumberBytes = SecurityUtil.encryptMessageWithRSA(phoneNumber.getBytes(StandardCharsets.UTF_8), publicKey);
+                                        final byte[] signatureBytes = SecurityUtil.signData(userKeyPair.getPrivate(), sigString.getBytes(StandardCharsets.UTF_8), true);
 
                                         final JSONObject json = new JSONObject();
                                         json.put("transId", transId);
@@ -2896,8 +2678,8 @@ public class AccountControllerBase
 
                                     final String emailAddress = mApplication.getContactController().getOwnContact().getEmail();
                                     if (!StringUtil.isNullOrEmpty(emailAddress)) {
-                                        final byte[] encryptedEmailAddressBytes = SecurityUtil.encryptMessageWithRSA(emailAddress.getBytes("UTF-8"), publicKey);
-                                        final byte[] signatureBytes = SecurityUtil.signData(userKeyPair.getPrivate(), sigString.getBytes("UTF-8"), true);
+                                        final byte[] encryptedEmailAddressBytes = SecurityUtil.encryptMessageWithRSA(emailAddress.getBytes(StandardCharsets.UTF_8), publicKey);
+                                        final byte[] signatureBytes = SecurityUtil.signData(userKeyPair.getPrivate(), sigString.getBytes(StandardCharsets.UTF_8), true);
 
                                         final JSONObject json = new JSONObject();
                                         json.put("transId", transId);
@@ -2923,8 +2705,8 @@ public class AccountControllerBase
                                     createRecoveryCodeListener.onCreateFailed(getResources().getString(R.string.settings_recovery_code_creation_failed));
                                 }
                             }
-                        } catch (final LocalizedException | IOException | JSONException e) {
-                            LogUtil.e(TAG, e.getMessage(), e);
+                        } catch (final LocalizedException | JSONException e) {
+                            LogUtil.e(TAG, "createRecoveryPassword: " + e.getMessage(), e);
                             if (createRecoveryCodeListener != null) {
                                 createRecoveryCodeListener.onCreateFailed(getResources().getString(R.string.settings_recovery_code_creation_failed));
                             }
@@ -2973,18 +2755,19 @@ public class AccountControllerBase
                 public void onBackendResponse(final BackendResponse response) {
                     if (response.isError) {
                         onRequestRecoveryCodeListener.onRequestFailed(getResources().getString(R.string.recover_password_recovery_key_error));
-                        LogUtil.e(TAG, "requestRecoveryCode failed 1");
+                        LogUtil.e(TAG, "requestRecoveryCode failed with " + response.errorMessage);
                     } else {
                         if (response.jsonArray == null || response.jsonArray.size() == 0) {
                             onRequestRecoveryCodeListener.onRequestFailed(getResources().getString(R.string.recover_password_recovery_key_error));
-                            LogUtil.e(TAG, "requestRecoveryCode failed 2");
+                            LogUtil.e(TAG, "requestRecoveryCode failed with response null.");
                         } else {
                             final String transIdServer = response.jsonArray.get(0).getAsString();
                             if (StringUtil.isEqual(transId, transIdServer)) {
                                 onRequestRecoveryCodeListener.onRequestSuccess();
                             } else {
                                 onRequestRecoveryCodeListener.onRequestFailed(getResources().getString(R.string.recover_password_recovery_key_error));
-                                LogUtil.e(TAG, "requestRecoveryCode failed 3");
+                                LogUtil.e(TAG, "requestRecoveryCode failed with transId ("
+                                        + transId + ") != transIdSever (" + transIdServer + ")");
                             }
                         }
                     }
@@ -2993,7 +2776,7 @@ public class AccountControllerBase
             BackendService.withAsyncConnection(mApplication)
                     .requestSimsmeRecoveryKey(listener, transId, recoveryToken, recoveryChannel, sig);
         } catch (final JsonSyntaxException e) {
-            LogUtil.e(TAG, "requestRecoveryCode failed", e);
+            LogUtil.e(TAG, "requestRecoveryCode failed with " + e.getMessage());
         }
     }
 
@@ -3272,61 +3055,6 @@ public class AccountControllerBase
     }
 
     /**
-     * KS: Following is all the rest of optIn code to keep for now.
-     * Put it all together and will remove later.
-     */
-
-    public static final String OPT_IN_STATE_OBJECT = "OptInState";
-    public static final String OPT_IN_STATE = "state";
-
-    public interface OptInStateListener {
-        void optInStateSuccess();
-
-        void optInStateFailed();
-    }
-
-    public void setOptInState(final String state, @Nullable final OptInStateListener optInStateListener) {
-        IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
-            @Override
-            public void onBackendResponse(BackendResponse response) {
-                if (response.isError) {
-                    if (optInStateListener != null) {
-                        optInStateListener.optInStateFailed();
-                    }
-                    return;
-                }
-
-                if (response.jsonObject != null) {
-                    JsonObject jo = JsonUtil.jsonObjectFromJO(OPT_IN_STATE_OBJECT, response.jsonObject);
-                    if (jo == null) {
-                        if (optInStateListener != null) {
-                            optInStateListener.optInStateFailed();
-                        }
-                        return;
-                    }
-                    String responseOptInState = JsonUtil.stringFromJO(OPT_IN_STATE, jo);
-                    if (!StringUtil.isNullOrEmpty(responseOptInState) && StringUtil.isEqual(responseOptInState, state)) {
-                        if (optInStateListener != null) {
-                            optInStateListener.optInStateSuccess();
-                        }
-                    } else {
-                        if (optInStateListener != null) {
-                            optInStateListener.optInStateFailed();
-                        }
-                    }
-                } else {
-                    if (optInStateListener != null) {
-                        optInStateListener.optInStateFailed();
-                    }
-                }
-            }
-        };
-
-        BackendService.withAsyncConnection(mApplication)
-                .setOptInState(state, listener);
-    }
-
-    /**
      * [!CLASS_DESCRIPTION!]
      *
      * @author Florian
@@ -3479,7 +3207,7 @@ public class AccountControllerBase
 
                 return null;
             } catch (LocalizedException e) {
-                LogUtil.w(TAG, e.getMessage(), e);
+                LogUtil.e(TAG, "AsyncBackupKeysTask: " + e.getMessage());
                 return e;
             }
         }
@@ -3547,9 +3275,10 @@ public class AccountControllerBase
         }
     }
 
-    private ArrayList<CreateBackupListener> backupListeners = new ArrayList<>();
+    private final ArrayList<CreateBackupListener> backupListeners = new ArrayList<>();
 
     private void setBackupState(int state) {
+        LogUtil.d(TAG, "setBackupState: state = " + state);
         if (state == CreateBackupListener.STATE_STARTED) {
             mApplication.getLoginController().setPKTaskIsRunning(this, true);
         }
@@ -3569,6 +3298,7 @@ public class AccountControllerBase
             mApplication.getLoginController().setPKTaskIsRunning(this, false);
             mIsBackupStarted = false;
         }
+        LogUtil.d(TAG, "setBackupState: mIsBackupStarted = " + mIsBackupStarted);
     }
 
     protected class CreateAccountModel {
@@ -3657,10 +3387,10 @@ public class AccountControllerBase
                 String concatSignature = transId + publicKey + publicKeySig + kek + kekIV + encSyncData + appData;
 
                 byte[] sigBytes = Base64.decode(signature, Base64.NO_WRAP);
-                byte[] concatBytes = concatSignature.getBytes(Encoding.UTF8);
+                byte[] concatBytes = concatSignature.getBytes(StandardCharsets.UTF_8);
 
                 return SecurityUtil.verifyData(key, sigBytes, concatBytes, true);
-            } catch (UnsupportedEncodingException | LocalizedException e) {
+            } catch (LocalizedException e) {
                 LogUtil.w(getClass().getSimpleName(), "checkSignature()", e);
                 return false;
             }

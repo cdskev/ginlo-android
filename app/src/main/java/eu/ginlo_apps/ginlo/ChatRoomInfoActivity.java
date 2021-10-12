@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
@@ -91,6 +92,7 @@ public class ChatRoomInfoActivity
         View.OnLongClickListener,
         EmojiPickerCallback {
 
+    public static final String TAG = ChatRoomInfoActivity.class.getSimpleName();
     public static final String EXTRA_MODE = "ChatRoomInfoActivity.extraMode";
     public static final String EXTRA_CHAT_GUID = "ChatRoomInfoActivity.extraChat";
     public static final int MODE_CREATE = 0;
@@ -232,7 +234,7 @@ public class ChatRoomInfoActivity
                     } catch (LocalizedException e) {
                         Toast.makeText(ChatRoomInfoActivity.this, R.string.settings_save_setting_failed, Toast.LENGTH_LONG)
                                 .show();
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.e(TAG, e.getMessage(), e);
                     }
                 } else {
                     if (!isRoomDuringCreation) {
@@ -564,7 +566,7 @@ public class ChatRoomInfoActivity
             }
 
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             finish();
         }
     }
@@ -588,7 +590,7 @@ public class ChatRoomInfoActivity
                     setTrustColor(getSimsMeApplication().getGroupChatController().getStateForGroupChat(mChat.getChatGuid()));
                 }
             } catch (LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
 
             mGroupInfoChangedListener = new GroupInfoChangedListener() {
@@ -607,7 +609,7 @@ public class ChatRoomInfoActivity
                         mGroupImageView.setImageBitmap(chatImageController.getImageByGuid(mChatGuid,
                                 ChatImageController.SIZE_GROUP_INFO_BIG));
                     } catch (LocalizedException e) {
-                        LogUtil.e(ChatRoomInfoActivity.this.getClass().getName(), e.toString());
+                        LogUtil.e(TAG, e.toString());
                     }
                 }
             };
@@ -627,7 +629,7 @@ public class ChatRoomInfoActivity
                                 try {
                                     setTimeTextView();
                                 } catch (final LocalizedException le) {
-                                    LogUtil.w(MuteChatActivity.class.getSimpleName(), le.getMessage(), le);
+                                    LogUtil.w(TAG, le.getMessage(), le);
                                 }
                             }
                         });
@@ -636,7 +638,7 @@ public class ChatRoomInfoActivity
                 mRefreshTimer.scheduleAtFixedRate(refreshTask, 0, 5000);
             }
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
 
         if (mContactDetailsStarted && selectedContactsAdapter != null && selectedAdminsAdapter != null) {
@@ -692,7 +694,7 @@ public class ChatRoomInfoActivity
                     removeGroup();
                     dialog.dismiss();
                 } catch (LocalizedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                     Toast.makeText(ChatRoomInfoActivity.this, R.string.chat_group_delete_failed, Toast.LENGTH_LONG).show();
                 }
             }
@@ -770,7 +772,7 @@ public class ChatRoomInfoActivity
                                     takenPhotoFile = fu.createTmpImageFileAddInIntent(intent);
                                     router.startExternalActivityForResult(intent, TAKE_PICTURE_RESULT_CODE);
                                 } catch (LocalizedException e) {
-                                    LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                                    LogUtil.w(TAG, e.getMessage(), e);
                                 }
                             }
                             closeBottomSheet(null);
@@ -780,7 +782,7 @@ public class ChatRoomInfoActivity
     }
 
     public void handleTakeFromGalleryClick(View view) {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
                     new PermissionUtil.PermissionResultCallback() {
@@ -808,6 +810,11 @@ public class ChatRoomInfoActivity
         }
     }
 
+    public void handleDeleteProfileImageClick(View view) {
+        LogUtil.d(TAG, "handleDeleteProfileImageClick: Called from " + this.getLocalClassName());
+        // Do nothing
+    }
+
     public void handleAddMemberClick(View view) {
         ArrayList<String> selectedContactGuids = new ArrayList<>();
 
@@ -825,7 +832,7 @@ public class ChatRoomInfoActivity
             try {
                 intent.putExtra(ContactsActivity.EXTRA_GROUP_CHAT_OWNER_GUID, mChat.getOwner());
             } catch (LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
         }
 
@@ -854,7 +861,7 @@ public class ChatRoomInfoActivity
 
             startActivityForResult(intent, REQUEST_REMOVE_CONTACT_SELECT);
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
     }
 
@@ -872,7 +879,7 @@ public class ChatRoomInfoActivity
             try {
                 selectedContactGuids.remove(mChat.getOwner());
             } catch (LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
         }
 
@@ -917,7 +924,7 @@ public class ChatRoomInfoActivity
             try {
                 updateCountLabel();
             } catch (final LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
         }
         closeBottomSheet(null);
@@ -965,7 +972,7 @@ public class ChatRoomInfoActivity
                         addContactsToList(contacts);
                         updateCountLabel();
                     } catch (LocalizedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.e(TAG, e.getMessage(), e);
                     }
                     break;
                 }
@@ -987,7 +994,7 @@ public class ChatRoomInfoActivity
                         addContactsToList((List<Contact>) mSelectedContacts.clone());
                         updateCountLabel();
                     } catch (LocalizedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.e(TAG, e.getMessage(), e);
                     }
 
                     break;
@@ -1012,7 +1019,7 @@ public class ChatRoomInfoActivity
                             updateCountLabel();
                         }
                     } catch (LocalizedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.e(TAG, e.getMessage(), e);
                     }
 
                     break;
@@ -1044,18 +1051,17 @@ public class ChatRoomInfoActivity
                             router.cropImage(internalUri.toString());
                         }
                     } catch (LocalizedException e) {
-                        LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.w(TAG, e.getMessage(), e);
                         Toast.makeText(this, R.string.chats_addAttachments_some_imports_fails, Toast.LENGTH_LONG).show();
                     }
                     break;
                 }
                 case RouterConstants.ADJUST_PICTURE_RESULT_CODE: {
-                    Bitmap bm = returnIntent.getParcelableExtra(CropImageActivity.RETURN_DATA_AS_BITMAP);
-
+                    final Bitmap bm = returnIntent.getParcelableExtra(CropImageActivity.RETURN_DATA_AS_BITMAP);
                     if (bm != null) {
+                        mGroupImageView.setImageBitmap(bm);
                         imageBytes = BitmapUtil.compress(bm, 100);
                         groupImageAfterEdit = bm;
-                        mGroupImageView.setImageBitmap(bm);
                     }
 
                     break;
@@ -1429,7 +1435,7 @@ public class ChatRoomInfoActivity
                 return true;
             }
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
 
         return false;

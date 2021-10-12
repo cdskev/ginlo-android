@@ -128,12 +128,14 @@ public abstract class ChatInputActivity
         extends BaseActivity
         implements AdapterView.OnItemClickListener, AttachmentController.OnAttachmentLoadedListener {
     private final static String TAG = ChatInputActivity.class.getSimpleName();
-    static final String EXTRA_CITATED_MSG_MODEL_ID = "ChatInputActivity.ExtraCitatedMsgId";
     private static final int SMALL_DEVICE_DPI_LIMIT = 250;
     private static final int POSITION_FAB_TIME = 0;
     private static final int POSITION_FAB_BOMB = 1;
     private static final int POSITION_FAB_PRIO = 2;
     private final HashMap<String, String> mDownloadProgress = new HashMap<>();
+
+    static final String EXTRA_CITATED_MSG_MODEL_ID = "ChatInputActivity.ExtraCitatedMsgId";
+
     ChatInputFragment mChatInputFragment;
     SelfdestructionFragment mSelfdestructionFragment;
     // Emojis
@@ -158,21 +160,8 @@ public abstract class ChatInputActivity
     Animation mAnimationSlideOutSevenLines;
     String mTargetGuid;
     String mPublicKeyXML;
-
-    /**
-     * Device GUID des temporären Gerätes beim Empfänger (oder null)
-     */
-    String mTempDeviceGuid;
-
-    /**
-     * Device PublicKey des temporären Gerätes beim Empfänger (oder null)
-     */
-    String mTempDevicePublicKeyXML;
-
     String mTitle;
-
     Chat mChat;
-
     MessageController mMessageController;
 
     OnSendMessageListener mOnSendMessageListener;
@@ -674,7 +663,7 @@ public abstract class ChatInputActivity
                 }
             } else if (baseChatItemVO instanceof VCardChatItemVO) {
                 LogUtil.d(TAG, "onItemClick: VCardChatItemVO");
-                if (getSimsMeApplication().getPreferencesController().isSendContactsDisabled()) {
+                if (mPreferencesController.isSendContactsDisabled()) {
                     Toast.makeText(getSimsMeApplication(), getResources().getString(R.string.error_mdm_contact_access_not_allowed), Toast.LENGTH_SHORT).show();
                 } else {
                     final VCardChatItemVO vCardChatItemVO = (VCardChatItemVO) baseChatItemVO;
@@ -1140,7 +1129,7 @@ public abstract class ChatInputActivity
                 public void onClick(DialogInterface dialog, int which) {
                     try {
                         checkChat();
-                        getChatController().sendFile(ChatInputActivity.this, mTargetGuid, mPublicKeyXML, mTempDeviceGuid, mTempDevicePublicKeyXML,
+                        getChatController().sendFile(ChatInputActivity.this, mTargetGuid, mPublicKeyXML,
                                 fileUri, false, filename, mimeType, mOnSendMessageListener, buildCitationFromSelectedChatItem());
                         closeCommentView();
                         setResult(RESULT_OK);
@@ -1231,7 +1220,7 @@ public abstract class ChatInputActivity
         if (size != 0) {
             if (mToolbarOptionsLayout != null) {
                 mToolbarOptionsLayout.setVisibility(View.VISIBLE);
-                mToolbarOptionsLayout.setBackgroundColor(ContextCompat.getColor(mToolbarOptionsLayout.getContext(), R.color.actionbar_color));
+                mToolbarOptionsLayout.setBackgroundColor(ColorUtil.getInstance().getToolbarColor(getSimsMeApplication()));
                 getToolbar().setVisibility(View.GONE);
                 for (int i = 0; i < size; ++i) {
                     final ToolbarOptionsItemModel model = toolbarOptionsItemModels.get(i);
@@ -1394,14 +1383,23 @@ public abstract class ChatInputActivity
 
                 // Initial signal that we could not determine a filesize.
                 if(mFilesize == -1) {
-                    progressBar.setIndeterminate(true);
-                    mFilesize = 0;
+                    try { // This may be called by other than UI thread!
+                        progressBar.setIndeterminate(true);
+                    } catch (Exception e) {
+                        LogUtil.e(TAG, "mFilesize = -1: " + e.getMessage(), e);
+                    } finally {
+                        mFilesize = 0;
+                    }
                 }
 
                 final int percent = mFilesize == 0 ? 0 : (int) (value * 100 / mFilesize);
                 if (percent < 100) {
                     if(percent != 0) {
-                        progressBar.setProgress(percent);
+                        try { // This may be called by other than UI thread!
+                            progressBar.setProgress(percent);
+                        } catch (Exception e) {
+                            LogUtil.e(TAG, "setProgress to " + percent + ": " + e.getMessage(), e);
+                        }
                     }
                 } else {
                     final Handler handler = new Handler(ChatInputActivity.this.getMainLooper());
@@ -1417,12 +1415,12 @@ public abstract class ChatInputActivity
                                     final ImageView imageView = parent.findViewById(R.id.chat_item_data_placeholder_bg);
                                     if (imageView != null) {
 
-                                        final Drawable backgrounds[] = new Drawable[2];
+                                        final Drawable[] backgrounds = new Drawable[2];
                                         final Resources res = getResources();
 
                                         final int color;
                                         if (isPriority) {
-                                            color = getResources().getColor(R.color.kColorAlert);
+                                            color = ColorUtil.getInstance().getAlertColor(getSimsMeApplication());
                                         } else {
                                             color = ColorUtil.getInstance().getChatItemColor(getSimsMeApplication());
                                         }
@@ -1607,7 +1605,7 @@ public abstract class ChatInputActivity
     }
 
     public void handleCopyMessageClick(final View view) {
-        if (getSimsMeApplication().getPreferencesController().isCopyPasteDisabled()) {
+        if (mPreferencesController.isCopyPasteDisabled()) {
             Toast.makeText(getSimsMeApplication(), getResources().getString(R.string.error_mdm_Location_copypaste_not_allowed), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -1850,9 +1848,12 @@ public abstract class ChatInputActivity
     }
 
     void getOnlineState() {
+
+        LogUtil.d(TAG, "getOnlineState: getOnlineState for target guid: " + mTargetGuid);
+
         try {
             if (StringUtil.isNullOrEmpty(mTargetGuid)
-                    || !getSimsMeApplication().getPreferencesController().getPublicOnlineState()) {
+                    || !mPreferencesController.getPublicOnlineState()) {
                 return;
             }
 

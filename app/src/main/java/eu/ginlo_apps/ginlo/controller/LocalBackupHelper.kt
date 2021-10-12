@@ -4,6 +4,7 @@ package eu.ginlo_apps.ginlo.controller
 
 import android.os.Bundle
 import android.os.Environment
+import eu.ginlo_apps.ginlo.BuildConfig
 import eu.ginlo_apps.ginlo.context.SimsMeApplication
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.constant.AppConstants
@@ -28,7 +29,7 @@ class LocalBackupHelper(val application: SimsMeApplication) {
 
         val accountId = application.accountController.account.accountID
         if(accountId.isNullOrEmpty())
-            return false;
+            return false
 
         val basePath = File(Environment.getExternalStorageDirectory(), LOCAL_BACKUP_DIRECTORY)
 
@@ -43,7 +44,7 @@ class LocalBackupHelper(val application: SimsMeApplication) {
             return false
         }
 
-        val accountDirectoryPath = File(backupPath, accountId);
+        val accountDirectoryPath = File(backupPath, accountId)
         if (!accountDirectoryPath.exists() && !accountDirectoryPath.mkdirs() && !accountDirectoryPath.canWrite()) {
             LogUtil.w(TAG, "Backup accountId directory path couldn't be set up correctly.")
             return false
@@ -77,7 +78,7 @@ class LocalBackupHelper(val application: SimsMeApplication) {
 
         val accountId = application.accountController.account.accountID
         if(accountId.isNullOrEmpty())
-            return null;
+            return null
 
         val basePath = File(Environment.getExternalStorageDirectory(), LOCAL_BACKUP_DIRECTORY)
         if (!basePath.exists() && !basePath.mkdirs() && !basePath.canWrite()) {
@@ -91,7 +92,7 @@ class LocalBackupHelper(val application: SimsMeApplication) {
             return null
         }
 
-        val accountDirectoryPath = File(backupPath, accountId);
+        val accountDirectoryPath = File(backupPath, accountId)
         if (!accountDirectoryPath.exists() && !accountDirectoryPath.mkdirs() && !accountDirectoryPath.canWrite()) {
             LogUtil.w(TAG, "Backup accountId directory path  couldn't be set up correctly.")
             return null
@@ -122,29 +123,63 @@ class LocalBackupHelper(val application: SimsMeApplication) {
             return emptyList()
         }
 
-        val backupServerAccountIDs = fetchBackUpServerAccountIDs()
+        if(BuildConfig.NEED_PHONENUMBER_VALIDATION) {
+            // KS: Traditional code
+            val backupServerAccountIDs = fetchBackUpServerAccountIDs()
 
-        if (backupServerAccountIDs.isNullOrEmpty()) {
-            return emptyList();
-        }
-
-        return backupServerAccountIDs.mapNotNull{accountID ->
-            val accountDirectoryPath = File(backupPath, accountID)
-                    .takeIf { dir -> dir.exists()}
-                    ?: return@mapNotNull null
-
-            val backupInfo = getBackupInfo(accountDirectoryPath)
-                    ?:return@mapNotNull null
-
-            Bundle().apply {
-                putString(AppConstants.LOCAL_BACKUP_ITEM_NAME, backupInfo.file.name)
-                putString(AppConstants.LOCAL_BACKUP_FLAVOUR, backupInfo.flavor)
-                putLong(AppConstants.LOCAL_BACKUP_ITEM_MOD_DATE, backupInfo.file.lastModified())
-                putLong(AppConstants.LOCAL_BACKUP_ITEM_SIZE, backupInfo.file.length())
-                putString(LOCAL_BACKUP_PATH, backupInfo.file.absolutePath)
+            if (backupServerAccountIDs.isNullOrEmpty()) {
+                return emptyList()
             }
+
+            return backupServerAccountIDs.mapNotNull{accountID ->
+                val accountDirectoryPath = File(backupPath, accountID)
+                        .takeIf { dir -> dir.exists()}
+                        ?: return@mapNotNull null
+
+                val backupInfo = getBackupInfo(accountDirectoryPath)
+                        ?:return@mapNotNull null
+
+                Bundle().apply {
+                    putString(AppConstants.LOCAL_BACKUP_ITEM_NAME, backupInfo.file.name)
+                    putString(AppConstants.LOCAL_BACKUP_FLAVOUR, backupInfo.flavor)
+                    putLong(AppConstants.LOCAL_BACKUP_ITEM_MOD_DATE, backupInfo.file.lastModified())
+                    putLong(AppConstants.LOCAL_BACKUP_ITEM_SIZE, backupInfo.file.length())
+                    putString(LOCAL_BACKUP_PATH, backupInfo.file.absolutePath)
+                }
+            }
+        } else {
+            // KS: Show all possible backup content in dir
+            LogUtil.d(TAG, "getBundleForLocalBackup: Looking for user backups in $backupPath")
+
+            val files = backupPath.listFiles()
+            val bl : ArrayList<Bundle> = ArrayList<Bundle>()
+            if(files != null && files.size > 0) {
+                for(dir in files) {
+                    LogUtil.d(TAG, "getBundleForLocalBackup: Found $dir")
+                    if(dir.isDirectory && dir.name.length == 8) {
+                        LogUtil.d(TAG, "getBundleForLocalBackup: Possible BackupInfo for $dir")
+                        val backupInfo = getBackupInfo(dir) ?: continue
+                        val b = Bundle().apply {
+                            putString(AppConstants.BACKUP_DRIVE_ITEM_ID, dir.name)
+                            putString(AppConstants.LOCAL_BACKUP_ITEM_NAME, backupInfo.file.name)
+                            putString(AppConstants.LOCAL_BACKUP_FLAVOUR, backupInfo.flavor)
+                            putLong(AppConstants.LOCAL_BACKUP_ITEM_MOD_DATE, backupInfo.file.lastModified())
+                            putLong(AppConstants.LOCAL_BACKUP_ITEM_SIZE, backupInfo.file.length())
+                            putString(LOCAL_BACKUP_PATH, backupInfo.file.absolutePath)
+                        }
+                        bl.add(b)
+                        LogUtil.d(TAG, "getBundleForLocalBackup: Found $b")
+                    }
+                }
+            } else {
+                LogUtil.i(TAG, "getBundleForLocalBackup: Backup directory is empty.")
+                return emptyList()
+            }
+
+            return bl
         }
     }
+
     private fun getBackupInfo(basePath: File): BackupInfo? =
             File(basePath, "${flavor}_$LOCAL_BACKUP_FILE")
                     .takeIf { file -> file.exists() }
@@ -153,5 +188,3 @@ class LocalBackupHelper(val application: SimsMeApplication) {
 }
 
 private class BackupInfo(val file: File, val flavor: String)
-{
-}

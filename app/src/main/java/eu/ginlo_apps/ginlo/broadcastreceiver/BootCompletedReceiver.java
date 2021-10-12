@@ -21,7 +21,7 @@ public class BootCompletedReceiver extends BroadcastReceiver {
             LogUtil.i(TAG, "onReceive: Got a boot completed broadcast. Try to start ginlo services ...");
             LogUtil.i(TAG, "onReceive: Intent action received: " + arg1.getAction());
             GinloOngoingService gos = new GinloOngoingService();
-            gos.launch(context);
+            GinloOngoingService.launch(context);
         } else {
             LogUtil.i(TAG, "onReceive: Got a boot completed broadcast but BuildConfig says not to do anything.");
         }

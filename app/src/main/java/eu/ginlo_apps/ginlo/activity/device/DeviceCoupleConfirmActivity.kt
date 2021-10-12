@@ -65,11 +65,8 @@ class DeviceCoupleConfirmActivity : NewBaseActivity() {
         }
 
         device_couple_device_name.text = accountController.currentCouplingRequest.deviceName
-
-        if (!accountController.currentCouplingRequest.isTempDevice) {
-            device_couple_device_type.setText(R.string.device_couple_perm_device)
-            device_couple_device_type_descr.setText(R.string.device_couple_perm_descr)
-        }
+        device_couple_device_type.setText(R.string.device_couple_perm_device)
+        device_couple_device_type_descr.setText(R.string.device_couple_perm_descr)
         device_couple_device_img.setImageResource(accountController.currentCouplingRequest.deviceImageResource)
     }
 

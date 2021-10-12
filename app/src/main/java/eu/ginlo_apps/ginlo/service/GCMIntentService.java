@@ -6,6 +6,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import com.google.gson.JsonArray;
@@ -278,7 +279,7 @@ public class GCMIntentService
             sendWithPreview = false;
         } else if (loginController.isLoggedIn()) {
             sendWithPreview = true;
-        } else if (SystemUtil.hasMarshmallow()) {
+        } else if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             try {
                 //message mit externen Key entschluesseln
                 final KeyController keyController = application.getKeyController();
@@ -467,7 +468,7 @@ public class GCMIntentService
         SimsMeApplication application = (SimsMeApplication) getApplication();
 
         boolean wasStartAsForeground = false;
-        if (haveToStartAsForegroundService(application, intent) && SystemUtil.hasOreo()) {
+        if (haveToStartAsForegroundService(application, intent) && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
             wasStartAsForeground = true;
             startService();
         }
@@ -478,13 +479,13 @@ public class GCMIntentService
     }
 
     private void startService() {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             this.startForeground(FOREGROUND_ID, NotificationController.getLoadMessageNotification(this));
         }
     }
 
     private void finishService(boolean hasStartForeground, Intent intent) {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             if (hasStartForeground) {
                 this.stopForeground(true);
             }

@@ -964,7 +964,7 @@ public class SecurityUtil {
             JsonObject dataObject = new JsonObject();
             dataObject.addProperty("data", base64Key);
             dataObject.addProperty("iv", ivData);
-            if (eu.ginlo_apps.ginlo.util.SystemUtil.hasMarshmallow()) {
+            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
                 JsonObject innerKey = encryptWithAndroidKeystore(dataObject.toString().getBytes(StandardCharsets.UTF_8), KeyController.RECOVERY_KEY_ALIAS);
                 dataObject = new JsonObject();
                 dataObject.add("innerKey", innerKey);
@@ -1016,7 +1016,7 @@ public class SecurityUtil {
 
     public static void writeNotificationKeyToDisc(final SecretKey secretKey, final Context context)
             throws LocalizedException {
-        if (!eu.ginlo_apps.ginlo.util.SystemUtil.hasMarshmallow()) {
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             return;
         }
 
@@ -1105,7 +1105,7 @@ public class SecurityUtil {
                     .setUserAuthenticationRequired(true)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE);
 
-            if (eu.ginlo_apps.ginlo.util.SystemUtil.hasNougat()) {
+            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)) {
                 builder.setInvalidatedByBiometricEnrollment(true);
             }
 
@@ -1309,7 +1309,7 @@ public class SecurityUtil {
             byte[] keystoreData = outputStream.toByteArray();
 
             //Ticket SIMSME-5110 - Unter HUAWEI - Android 6 gibt es probleme speichern des KeyStores (Absturz beim registrieren)
-            if (!Build.DEVICE.equals("generic_x86") && ((eu.ginlo_apps.ginlo.util.SystemUtil.hasMarshmallow() && !Build.MANUFACTURER.equals("HUAWEI")) || SystemUtil.hasNougat())) {
+            if (!Build.DEVICE.equals("generic_x86") && (((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) && !Build.MANUFACTURER.equals("HUAWEI")) || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N))) {
                 saveKeysAndroidKeyStore(keyStoreName, keystoreData, context);
                 deleteKeyFile(context, keyStoreName);
             } else {

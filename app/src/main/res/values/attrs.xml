@@ -31,6 +31,10 @@
     <attr name="mainContrastColor" format="color" />
     <attr name="mainContrast50Color" format="color" />
     <attr name="mainContrast80Color" format="color" />
+    <attr name="blackColor" format="color" />
+    <attr name="whiteColor" format="color" />
+    <attr name="transparentColor" format="color" />
+    <attr name="alertColor" format="color" />
     <attr name="actionColor" format="color" />
     <attr name="actionContrastColor" format="color" />
     <attr name="actionSecondaryColor" format="color" />

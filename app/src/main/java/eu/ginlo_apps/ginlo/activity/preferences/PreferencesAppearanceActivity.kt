@@ -136,7 +136,7 @@ class PreferencesAppearanceActivity : PreferencesBaseActivity() {
                     if(!isChecked) {
                         notificationController.dismissOngoingNotification()
                     } else {
-                        notificationController.showOngoingServiceNotification()
+                        notificationController.showOngoingServiceNotification(simsMeApplication.getString(R.string.notification_gos_running))
                     }
                 } catch (e: LocalizedException) {
                     setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)

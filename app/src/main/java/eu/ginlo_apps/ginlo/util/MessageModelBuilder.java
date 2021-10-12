@@ -87,12 +87,8 @@ public class MessageModelBuilder {
 
     private BaseMessageModel prepareMessage(int type,
                                             Account fromAccount,
-                                            String fromTempDeviceGuid,
-                                            String fromTempDevicePublicKeyXML,
                                             String toGuid,
                                             String toPublicKeyXML,
-                                            String toTempDeviceGuid,
-                                            String toTempDevicePublicKeyXML,
                                             KeyPair userKeyPair,
                                             SecretKey aesKey,
                                             IvParameterSpec iv,
@@ -105,7 +101,7 @@ public class MessageModelBuilder {
         switch (type) {
             case Message.TYPE_PRIVATE:
             case Message.TYPE_PRIVATE_INTERNAL:
-                messageModel = createPrivateMessageModelBase(new PrivateMessageModel(), fromAccount, fromTempDeviceGuid, fromTempDevicePublicKeyXML, toGuid, toPublicKeyXML, toTempDeviceGuid, toTempDevicePublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
+                messageModel = createPrivateMessageModelBase(new PrivateMessageModel(), fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
                 break;
             case Message.TYPE_GROUP:
             case Message.TYPE_GROUP_INVITATION:
@@ -132,12 +128,8 @@ public class MessageModelBuilder {
     public BaseMessageModel buildAVCMessage(int type,
                                              String roomInfo,
                                              Account fromAccount,
-                                             String fromTempDeviceGuid,
-                                             String fromTempDevicePublicKeyXML,
                                              String toGuid,
                                              String toPublicKeyXML,
-                                             String toTempDeviceGuid,
-                                             String toTempDevicePublicKeyXML,
                                              KeyPair userKeyPair,
                                              SecretKey aesKey,
                                              IvParameterSpec iv,
@@ -147,11 +139,7 @@ public class MessageModelBuilder {
             throws LocalizedException {
         BaseMessageModel messageModel = prepareMessage(type,
                 fromAccount,
-                fromTempDeviceGuid,
-                fromTempDevicePublicKeyXML,
                 toGuid, toPublicKeyXML,
-                toTempDeviceGuid,
-                toTempDevicePublicKeyXML,
                 userKeyPair,
                 aesKey,
                 iv,
@@ -204,23 +192,15 @@ public class MessageModelBuilder {
     public BaseMessageModel buildAppGinloControlMessage(int type,
                                             AppGinloControlMessage controlMessage,
                                             Account fromAccount,
-                                            String fromTempDeviceGuid,
-                                            String fromTempDevicePublicKeyXML,
                                             String toGuid,
                                             String toPublicKeyXML,
-                                            String toTempDeviceGuid,
-                                            String toTempDevicePublicKeyXML,
                                             KeyPair userKeyPair,
                                             SecretKey aesKey,
                                             IvParameterSpec iv)
             throws LocalizedException {
         BaseMessageModel messageModel = prepareMessage(type,
                 fromAccount,
-                fromTempDeviceGuid,
-                fromTempDevicePublicKeyXML,
                 toGuid, toPublicKeyXML,
-                toTempDeviceGuid,
-                toTempDevicePublicKeyXML,
                 userKeyPair,
                 aesKey,
                 iv,
@@ -240,12 +220,8 @@ public class MessageModelBuilder {
     public BaseMessageModel buildTextMessage(int type,
                                              String message,
                                              Account fromAccount,
-                                             String fromTempDeviceGuid,
-                                             String fromTempDevicePublicKeyXML,
                                              String toGuid,
                                              String toPublicKeyXML,
-                                             String toTempDeviceGuid,
-                                             String toTempDevicePublicKeyXML,
                                              KeyPair userKeyPair,
                                              SecretKey aesKey,
                                              IvParameterSpec iv,
@@ -254,7 +230,7 @@ public class MessageModelBuilder {
                                              boolean isPriority,
                                              CitationModel citation)
             throws LocalizedException {
-        BaseMessageModel messageModel = prepareMessage(type, fromAccount, fromTempDeviceGuid, fromTempDevicePublicKeyXML, toGuid, toPublicKeyXML, toTempDeviceGuid, toTempDevicePublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
+        BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
         messageModel.mimeType = MimeType.TEXT_PLAIN;
         if (destructionParams != null) {
             attachSelfDestruction(messageModel, destructionParams);
@@ -372,18 +348,14 @@ public class MessageModelBuilder {
                                                  double longitude,
                                                  double latitude,
                                                  Account fromAccount,
-                                                 String fromTempDeviceGuid,
-                                                 String fromTempDevicePublicKeyXML,
                                                  String toGuid,
                                                  String toPublicKeyXML,
-                                                 String toTempDeviceGuid,
-                                                 String toTempDevicePublicKeyXML,
                                                  KeyPair userKeyPair,
                                                  SecretKey aesKey,
                                                  IvParameterSpec iv
     )
             throws LocalizedException {
-        BaseMessageModel messageModel = prepareMessage(type, fromAccount, fromTempDeviceGuid, fromTempDevicePublicKeyXML, toGuid, toPublicKeyXML, toTempDeviceGuid, toTempDevicePublicKeyXML, userKeyPair, aesKey, iv, null, false);
+        BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, null, false);
 
         messageModel.mimeType = MimeType.MODEL_LOCATION;
 
@@ -399,12 +371,8 @@ public class MessageModelBuilder {
     public BaseMessageModel buildVCardMessage(final int type,
                                               final String vCard,
                                               final Account fromAccount,
-                                              final String fromTempDeviceGuid,
-                                              final String fromTempDevicePublicKeyXML,
                                               final String toGuid,
                                               final String toPublicKeyXML,
-                                              final String toTempDeviceGuid,
-                                              final String toTempDevicePublicKeyXML,
                                               final KeyPair userKeyPair,
                                               final SecretKey aesKey,
                                               final IvParameterSpec iv,
@@ -415,12 +383,8 @@ public class MessageModelBuilder {
             throws LocalizedException {
         final BaseMessageModel messageModel = prepareMessage(type,
                 fromAccount,
-                fromTempDeviceGuid,
-                fromTempDevicePublicKeyXML,
                 toGuid,
                 toPublicKeyXML,
-                toTempDeviceGuid,
-                toTempDevicePublicKeyXML,
                 userKeyPair,
                 aesKey,
                 iv,
@@ -447,19 +411,15 @@ public class MessageModelBuilder {
                                              String description,
                                              String mimeType,
                                              Account fromAccount,
-                                             String fromTempDeviceGuid,
-                                             String fromTempDevicePublicKeyXML,
                                              String toGuid,
                                              String toPublicKeyXML,
-                                             String toTempDeviceGuid,
-                                             String toTempDevicePublicKeyXML,
                                              KeyPair userKeyPair,
                                              SecretKey aesKey,
                                              IvParameterSpec iv,
                                              CitationModel citation
     )
             throws LocalizedException {
-        BaseMessageModel messageModel = prepareMessage(type, fromAccount, fromTempDeviceGuid, fromTempDevicePublicKeyXML, toGuid, toPublicKeyXML, toTempDeviceGuid, toTempDevicePublicKeyXML, userKeyPair, aesKey, iv, null, false);
+        BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, null, false);
 
         messageModel.mimeType = MimeType.APP_OCTET_STREAM;
 
@@ -478,12 +438,8 @@ public class MessageModelBuilder {
                                               Uri imageUri,
                                               String description,
                                               Account fromAccount,
-                                              String fromTempDeviceGuid,
-                                              String fromTempDevicePublicKeyXML,
                                               String toGuid,
                                               String toPublicKeyXML,
-                                              String toTempDeviceGuid,
-                                              String toTempDevicePublicKeyXML,
                                               KeyPair userKeyPair,
                                               SecretKey aesKey,
                                               IvParameterSpec iv,
@@ -493,7 +449,7 @@ public class MessageModelBuilder {
                                               CitationModel citation
     )
             throws LocalizedException {
-        BaseMessageModel messageModel = prepareMessage(type, fromAccount, fromTempDeviceGuid, fromTempDevicePublicKeyXML, toGuid, toPublicKeyXML, toTempDeviceGuid, toTempDevicePublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
+        BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
 
         messageModel.mimeType = MimeType.IMAGE_JPEG;
 
@@ -524,12 +480,8 @@ public class MessageModelBuilder {
                                               Uri imageUri,
                                               String description,
                                               Account fromAccount,
-                                              String fromTempDeviceGuid,
-                                              String fromTempDevicePublicKeyXML,
                                               String toGuid,
                                               String toPublicKeyXML,
-                                              String toTempDeviceGuid,
-                                              String toTempDevicePublicKeyXML,
                                               KeyPair userKeyPair,
                                               SecretKey aesKey,
                                               IvParameterSpec iv,
@@ -538,7 +490,7 @@ public class MessageModelBuilder {
                                               boolean isPriority
     )
             throws LocalizedException {
-        BaseMessageModel messageModel = prepareMessage(type, fromAccount, fromTempDeviceGuid, fromTempDevicePublicKeyXML, toGuid, toPublicKeyXML, toTempDeviceGuid, toTempDevicePublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
+        BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
 
         messageModel.mimeType = MimeType.VIDEO_MPEG;
 
@@ -559,12 +511,8 @@ public class MessageModelBuilder {
                                               Activity activity,
                                               Uri voiceUri,
                                               Account fromAccount,
-                                              String fromTempDeviceGuid,
-                                              String fromTempDevicePublicKeyXML,
                                               String toGuid,
                                               String toPublicKeyXML,
-                                              String toTempDeviceGuid,
-                                              String toTempDevicePublicKeyXML,
                                               KeyPair userKeyPair,
                                               SecretKey aesKey,
                                               IvParameterSpec iv,
@@ -573,7 +521,7 @@ public class MessageModelBuilder {
                                               boolean isPriority
     )
             throws LocalizedException {
-        BaseMessageModel messageModel = prepareMessage(type, fromAccount, fromTempDeviceGuid, fromTempDevicePublicKeyXML, toGuid, toPublicKeyXML, toTempDeviceGuid, toTempDevicePublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
+        BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
 
         messageModel.mimeType = MimeType.AUDIO_MPEG;
 
@@ -597,15 +545,12 @@ public class MessageModelBuilder {
                                                         Account fromAccount,
                                                         String toGuid,
                                                         String toPublicKeyXML,
-                                                        String toTempDeviceGuid,
-                                                        String toTempDevicePublicKeyXML,
                                                         KeyPair userKeyPair,
                                                         SecretKey aesKey,
                                                         IvParameterSpec iv,
                                                         Date dateSendTimed
     )
             throws LocalizedException {
-        // TODO : Gruppeneinladungen an Temp Geräte senden
         GroupInvMessageModel groupInviteMessageModel = null;
 
         if (toPublicKeyXML != null) {
@@ -613,8 +558,6 @@ public class MessageModelBuilder {
                     fromAccount,
                     toGuid,
                     toPublicKeyXML,
-                    toTempDeviceGuid,
-                    toTempDevicePublicKeyXML,
                     userKeyPair,
                     aesKey, iv, dateSendTimed);
 
@@ -643,8 +586,6 @@ public class MessageModelBuilder {
                         fromAccount,
                         toGuid,
                         toPublicKeyXML,
-                        null,
-                        null,
                         userKeyPair,
                         aesKey,
                         iv,
@@ -1046,9 +987,6 @@ public class MessageModelBuilder {
         //final byte[] imageBytes = BitmapUtil.compress(image, imageCompressionRatio);
         final File tempImageFile = BitmapUtil.compress(activity, image, imageCompressionRatio);
 
-        previewImage.recycle();
-        image.recycle();
-
         // Bug 37967 Bilder sollen erts bei Kompression geprueft werden
         if (tempImageFile.length() > activity.getApplication().getResources().getInteger(R.integer.attachment_file_max_size)) {
             final String errorMsg = activity.getApplication().getResources().getString(R.string.chats_addAttachment_too_big);
@@ -1091,8 +1029,6 @@ public class MessageModelBuilder {
         byte[] previewImageBytes = BitmapUtil.compress(previewImage, 100);
 
         String previewImageBase64 = Base64.encodeToString(previewImageBytes, Base64.DEFAULT);
-
-        previewImage.recycle();
 
         dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.VIDEO_MPEG);
         dataJson.addProperty(DataContainer.CONTENT, previewImageBase64);
@@ -1171,35 +1107,19 @@ public class MessageModelBuilder {
         signature.initWithMessage(messageModel, useSha256);
 
         {
-            String concatSignatureString = signature.getCombinedHashes(false);
+            String concatSignatureString = signature.getCombinedHashes();
 
             if (useSha256) {
                 byte[] signatureSha256Data = SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), true);
 
                 signature.setSignature(Base64.encodeToString(signatureSha256Data, Base64.DEFAULT));
 
-                messageModel.signatureSha256Bytes = signature.getModel(false).toString().getBytes(StandardCharsets.UTF_8);
+                messageModel.signatureSha256Bytes = signature.getModel().toString().getBytes(StandardCharsets.UTF_8);
             } else {
                 byte[] signatureData = SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), false);
                 signature.setSignature(Base64.encodeToString(signatureData, Base64.DEFAULT));
 
-                messageModel.signatureBytes = signature.getModel(false).toString().getBytes(StandardCharsets.UTF_8);
-            }
-        }
-
-        if (signature.hasTempDeviceInfo()) {
-            String concatSignatureString = signature.getCombinedHashes(true);
-
-            if (useSha256) {
-                byte[] signatureSha256Data = SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), true);
-                signature.setSignatureWithTempInfo(Base64.encodeToString(signatureSha256Data, Base64.DEFAULT));
-
-                messageModel.signatureTempSha256Bytes = signature.getModel(true).toString().getBytes(StandardCharsets.UTF_8);
-            } else {
-                byte[] signatureData = SecurityUtil.signData(key, concatSignatureString.getBytes(StandardCharsets.UTF_8), false);
-                signature.setSignatureWithTempInfo(Base64.encodeToString(signatureData, Base64.DEFAULT));
-
-                messageModel.signatureTempBytes = signature.getModel(true).toString().getBytes(StandardCharsets.UTF_8);
+                messageModel.signatureBytes = signature.getModel().toString().getBytes(StandardCharsets.UTF_8);
             }
         }
     }
@@ -1302,12 +1222,8 @@ public class MessageModelBuilder {
 
     private PrivateMessageModel createPrivateMessageModelBase(final PrivateMessageModel privateMessage,
                                                               final Account fromAccount,
-                                                              final String fromTempDeviceGuid,
-                                                              final String fromTempDevicePublicKeyXML,
                                                               final String toGuid,
                                                               final String toPublicKeyXML,
-                                                              final String toTempDeviceGuid,
-                                                              final String toTempDevicePublicKeyXML,
                                                               final KeyPair userKeyPair,
                                                               final SecretKey aesKey,
                                                               final IvParameterSpec iv,
@@ -1326,11 +1242,6 @@ public class MessageModelBuilder {
             toPublicKey = getToPublicKey(toPublicKeyXML);
         }
 
-        // Bei temporären Devices nicht die AES - Schlüssel wiederverwenden
-        if (toTempDeviceGuid != null) {
-            contact = null;
-        }
-
         // TODO: Correct signature!
         byte[] aesKeyBytes = aesKey.getEncoded();
         byte[] ivBytes = iv.getIV();
@@ -1346,15 +1257,6 @@ public class MessageModelBuilder {
         byte[] keyContainerBytes = IOSMessageConversionUtil.convertJsonToXML(keyJson).getBytes(StandardCharsets.UTF_8);
         byte[] fromEncryptedKeyBytes = SecurityUtil.encryptMessageWithRSA(keyContainerBytes, userKeyPair.getPublic());
         String fromEncodedEncryptedKey = Base64.encodeToString(fromEncryptedKeyBytes, Base64.NO_WRAP);
-
-        String fromTempDeviceKey = null;
-        String fromTempDeviceKey2 = null;
-
-        if (fromTempDevicePublicKeyXML != null) {
-            PublicKey tempDevicePublicKey = getToPublicKey(fromTempDevicePublicKeyXML);
-            fromTempDeviceKey = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(keyContainerBytes, tempDevicePublicKey), Base64.NO_WRAP);
-            fromTempDeviceKey2 = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), tempDevicePublicKey), Base64.NO_WRAP);
-        }
 
         String contactFromKey2;
         String contactToKey2;
@@ -1391,17 +1293,8 @@ public class MessageModelBuilder {
         byte[] toEncryptedKeyBytes = SecurityUtil.encryptMessageWithRSA(keyContainerBytes, toPublicKey);
         String toEncodedEncryptedKey = Base64.encodeToString(toEncryptedKeyBytes, Base64.NO_WRAP);
 
-        String toTempDeviceKey = null;
-        String toTempDeviceKey2 = null;
-
-        if (toTempDevicePublicKeyXML != null) {
-            PublicKey tempDevicePublicKey = getToPublicKey(toTempDevicePublicKeyXML);
-            toTempDeviceKey = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(keyContainerBytes, tempDevicePublicKey), Base64.NO_WRAP);
-            toTempDeviceKey2 = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), tempDevicePublicKey), Base64.NO_WRAP);
-        }
-
-        privateMessage.from = new KeyContainerModel(fromAccount.getAccountGuid(), fromEncodedEncryptedKey, contactFromKey2, fromTempDeviceGuid, fromTempDeviceKey, fromTempDeviceKey2);
-        privateMessage.to = new KeyContainerModel[]{new KeyContainerModel(toGuid, toEncodedEncryptedKey, contactToKey2, toTempDeviceGuid, toTempDeviceKey, toTempDeviceKey2)};
+        privateMessage.from = new KeyContainerModel(fromAccount.getAccountGuid(), fromEncodedEncryptedKey, contactFromKey2);
+        privateMessage.to = new KeyContainerModel[]{new KeyContainerModel(toGuid, toEncodedEncryptedKey, contactToKey2)};
         privateMessage.datesend = new Date();
         privateMessage.dateSendTimed = dateSendTimed;
         attachContactInfo(fromAccount, privateMessage);
@@ -1416,8 +1309,6 @@ public class MessageModelBuilder {
                                                                       Account fromAccount,
                                                                       String toGuid,
                                                                       String toPublicKeyXML,
-                                                                      String toTempDeviceGuid,
-                                                                      String toTempDevicePublicKeyXML,
                                                                       KeyPair userKeyPair,
                                                                       SecretKey aesKey,
                                                                       IvParameterSpec iv,
@@ -1444,17 +1335,8 @@ public class MessageModelBuilder {
         byte[] toEncryptedKeyBytes = SecurityUtil.encryptMessageWithRSA(keyContainerBytes, toPublicKey);
         String toEncodedEncryptedKey = Base64.encodeToString(toEncryptedKeyBytes, Base64.NO_WRAP);
 
-        String toTempDeviceKey = null;
-        String toTempDeviceKey2 = null;
-
-        if (toTempDevicePublicKeyXML != null) {
-            PublicKey tempDevicePublicKey = getToPublicKey(toTempDevicePublicKeyXML);
-            toTempDeviceKey = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(keyContainerBytes, tempDevicePublicKey), Base64.NO_WRAP);
-            toTempDeviceKey2 = Base64.encodeToString(SecurityUtil.encryptMessageWithRSA(encodedAesKeyBytes.getBytes(StandardCharsets.UTF_8), tempDevicePublicKey), Base64.NO_WRAP);
-        }
-
         privateMessage.from = new KeyContainerModel(fromAccount.getAccountGuid(), fromEncodedEncryptedKey, null);
-        privateMessage.to = new KeyContainerModel[]{new KeyContainerModel(toGuid, toEncodedEncryptedKey, null, toTempDeviceGuid, toTempDeviceKey, toTempDeviceKey2)};
+        privateMessage.to = new KeyContainerModel[]{new KeyContainerModel(toGuid, toEncodedEncryptedKey, null)};
         privateMessage.datesend = new Date();
         privateMessage.dateSendTimed = dateSendTimed;
         attachContactInfo(fromAccount, privateMessage);

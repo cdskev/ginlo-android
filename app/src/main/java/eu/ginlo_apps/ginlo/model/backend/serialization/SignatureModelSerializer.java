@@ -20,6 +20,6 @@ public class SignatureModelSerializer
     public JsonElement serialize(SignatureModel signatureModel,
                                  Type type,
                                  JsonSerializationContext context) {
-        return signatureModel.getModel(false);
+        return signatureModel.getModel();
     }
 }

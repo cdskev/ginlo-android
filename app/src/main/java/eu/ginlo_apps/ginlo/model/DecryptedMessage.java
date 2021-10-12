@@ -33,7 +33,7 @@ public class DecryptedMessage {
     private static final String TAG = DecryptedMessage.class.getSimpleName();
     private static final String EXCEPTION_PREFIX = "Can't use this method with Content-Type: ";
 
-    private JsonObject mDecryptedDataContainer;
+    private final JsonObject mDecryptedDataContainer;
     private String text;
     private String avcRoom;
     private String appGinloControl;
@@ -49,7 +49,7 @@ public class DecryptedMessage {
     private Location location;
     private MessageDestructionParams messageDestructionParams;
     private String contentType;
-    private Message mMessage;
+    private final Message mMessage;
     private String mSection;
     private String mProfilKey;
     private String mFilename;

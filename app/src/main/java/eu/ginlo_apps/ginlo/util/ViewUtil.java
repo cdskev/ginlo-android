@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.os.Build;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.SpannableString;
@@ -29,7 +30,7 @@ import eu.ginlo_apps.ginlo.util.SystemUtil;
 public class ViewUtil {
     @ColorInt
     public static int getColor(@ColorRes final int color, final Context context) {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             return context.getColor(color);
         } else {
             return context.getResources().getColor(color);

@@ -196,10 +196,7 @@ public class ChannelCategoryDao
 
     @Override
     protected boolean hasKey(ChannelCategory entity) {
-        if (entity != null && entity.getId() != null) {
-            return true;
-        }
-        return false;
+        return entity != null && entity.getId() != null;
     }
 
     /**

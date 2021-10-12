@@ -13,6 +13,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Florian
@@ -91,37 +92,17 @@ public class PrivateMessageModelSerializer
         if (privateMessageModel.signatureSha256Bytes != null) {
             JsonParser parser = new JsonParser();
 
-            try {
-                JsonElement element = parser.parse(new String(privateMessageModel.signatureSha256Bytes, Encoding.UTF8));
+            JsonElement element = parser.parse(new String(privateMessageModel.signatureSha256Bytes, StandardCharsets.UTF_8));
 
-                privateMessageJsonObject.add("signature-sha256", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
+            privateMessageJsonObject.add("signature-sha256", element);
         }
 
         if (privateMessageModel.signatureBytes != null) {
             JsonParser parser = new JsonParser();
 
-            try {
-                JsonElement element = parser.parse(new String(privateMessageModel.signatureBytes, Encoding.UTF8));
+            JsonElement element = parser.parse(new String(privateMessageModel.signatureBytes, StandardCharsets.UTF_8));
 
-                privateMessageJsonObject.add("signature", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
-        }
-
-        if (privateMessageModel.signatureTempSha256Bytes != null) {
-            JsonParser parser = new JsonParser();
-
-            try {
-                JsonElement element = parser.parse(new String(privateMessageModel.signatureTempSha256Bytes, Encoding.UTF8));
-
-                privateMessageJsonObject.add("signature-temp256", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
+            privateMessageJsonObject.add("signature", element);
         }
 
         if (privateMessageModel.mimeType != null) {

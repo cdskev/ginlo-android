@@ -13,6 +13,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Florian
@@ -55,7 +56,7 @@ public class GroupInvMessageModelSerializer
                     byte[] encryptedDataFromAttachment = AttachmentController.loadEncryptedBase64AttachmentFile(groupInvMessageModel.attachment);
 
                     if ((encryptedDataFromAttachment != null) && (encryptedDataFromAttachment.length > 0)) {
-                        String attachment = new String(encryptedDataFromAttachment, "US-ASCII");
+                        String attachment = new String(encryptedDataFromAttachment, StandardCharsets.US_ASCII);
                         jsonArray.add(new JsonPrimitive(attachment));
                     }
                 } else {
@@ -65,7 +66,7 @@ public class GroupInvMessageModelSerializer
                 if (jsonArray.size() > 0) {
                     groupInvMessageJsonObject.add("attachment", jsonArray);
                 }
-            } catch (LocalizedException | UnsupportedEncodingException e) {
+            } catch (LocalizedException e) {
                 return null;
             }
         }
@@ -76,25 +77,17 @@ public class GroupInvMessageModelSerializer
         if (groupInvMessageModel.signatureSha256Bytes != null) {
             JsonParser parser = new JsonParser();
 
-            try {
-                JsonElement element = parser.parse(new String(groupInvMessageModel.signatureSha256Bytes, Encoding.UTF8));
+            JsonElement element = parser.parse(new String(groupInvMessageModel.signatureSha256Bytes, StandardCharsets.UTF_8));
 
-                groupInvMessageJsonObject.add("signature-sha256", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
+            groupInvMessageJsonObject.add("signature-sha256", element);
         }
 
         if (groupInvMessageModel.signatureBytes != null) {
             JsonParser parser = new JsonParser();
 
-            try {
-                JsonElement element = parser.parse(new String(groupInvMessageModel.signatureBytes, Encoding.UTF8));
+            JsonElement element = parser.parse(new String(groupInvMessageModel.signatureBytes, StandardCharsets.UTF_8));
 
-                groupInvMessageJsonObject.add("signature", element);
-            } catch (UnsupportedEncodingException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            }
+            groupInvMessageJsonObject.add("signature", element);
         }
 
         if (groupInvMessageModel.mimeType != null) {

@@ -50,7 +50,7 @@ public class ComplexPasswordFragment
             final Button nextButton = activity.findViewById(R.id.next_button);
 
             if (RuntimeConfig.isBAMandant() && nextButton != null) {
-                nextButton.getBackground().setColorFilter(getResources().getColor(R.color.app_accent), PorterDuff.Mode.SRC_ATOP);
+                nextButton.getBackground().setColorFilter(ColorUtil.getInstance().getAppAccentColor(activity.getApplication()), PorterDuff.Mode.SRC_ATOP);
                 nextButton.setTextColor(ColorUtil.getInstance().getAppAccentContrastColor(activity.getApplication()));
             }
 

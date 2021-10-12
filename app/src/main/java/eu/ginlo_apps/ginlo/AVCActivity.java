@@ -22,8 +22,8 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 public class AVCActivity extends JitsiMeetActivity  {
     private static final String TAG = "AVCActivity";
 
-    private SimsMeApplication mApplication;
-    private AVChatController avChatController;
+    private final SimsMeApplication mApplication;
+    private final AVChatController avChatController;
 
     private static final String ACTION_JITSI_MEET_CONFERENCE = "org.jitsi.meet.CONFERENCE";
     private static final String JITSI_MEET_CONFERENCE_OPTIONS = "JitsiMeetConferenceOptions";

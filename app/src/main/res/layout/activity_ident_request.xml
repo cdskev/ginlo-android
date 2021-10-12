@@ -61,18 +61,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/layout_padding_left_right" />
-
-                <androidx.appcompat.widget.AppCompatTextView
-                    android:id="@+id/intro_ident_request_registration_label_accept"
-                    style="@style/CaptionTextViewStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingTop="8dp"
-                    android:text="@string/registration_label_accept"
-                    android:textColor="@color/mainContrast80"
-                    android:textColorLink="@color/actionSecondary"
-                    app:styledTextColor="mainContrast80" />
-
             </LinearLayout>
         </ScrollView>
 

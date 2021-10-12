@@ -16,9 +16,10 @@ import kotlinx.android.synthetic.main.activity_welcome_back.next_button
 class WelcomeBackActivity : NewBaseActivity() {
 
     companion object {
-        private const val UNKNOWN = -1
-        private const val MODE_BACKUP = 1
-        private const val MODE_COUPLE = 2
+        const val WELCOME_BACK_MODE = "WelcomeBackActivity.Mode"
+        const val UNKNOWN = -1
+        const val MODE_BACKUP = 1
+        const val MODE_COUPLE = 2
     }
 
     private var mCurrentMode = -1
@@ -65,12 +66,14 @@ class WelcomeBackActivity : NewBaseActivity() {
     }
 
     fun handleNextClick(@Suppress("UNUSED_PARAMETER") v: View?) {
+        val prefs = simsMeApplication.preferencesController
         try {
             when (mCurrentMode) {
                 MODE_BACKUP -> {
                     val classForNextIntent =
                         SystemUtil.getClassForBuildConfigClassname(BuildConfig.ACTIVITY_AFTER_INTRO)
                     val intent = Intent(this, classForNextIntent)
+                    prefs?.getSharedPreferences()?.edit()?.putInt(WELCOME_BACK_MODE, MODE_BACKUP)?.apply()
                     startActivity(intent)
                 }
                 MODE_COUPLE -> {
@@ -79,6 +82,7 @@ class WelcomeBackActivity : NewBaseActivity() {
                         PasswordActivity.REGISTER_TYPE,
                         PasswordActivity.REGISTER_TYPE_COUPLE_DEVICE
                     )
+                    prefs?.getSharedPreferences()?.edit()?.putInt(WELCOME_BACK_MODE, MODE_COUPLE)?.apply()
                     startActivity(intent)
                 }
             }

@@ -181,9 +181,6 @@ abstract class ActivityModuleBase {
     abstract fun contributeLicensesActivity(): LicensesActivity
 
     @ContributesAndroidInjector
-    abstract fun contributeCompanyDetailsActivity(): CompanyDetailsActivity
-
-    @ContributesAndroidInjector
     abstract fun contributeLocationActivity(): LocationActivity
 
     @ContributesAndroidInjector

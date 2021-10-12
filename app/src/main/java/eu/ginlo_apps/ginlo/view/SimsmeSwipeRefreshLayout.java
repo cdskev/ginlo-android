@@ -62,7 +62,6 @@ public class SimsmeSwipeRefreshLayout
             case MotionEvent.ACTION_DOWN:
                 final MotionEvent obtain = MotionEvent.obtain(event);
                 mPrevX = obtain.getX();
-                obtain.recycle();
                 break;
 
             case MotionEvent.ACTION_MOVE:

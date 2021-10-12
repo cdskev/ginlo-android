@@ -28,7 +28,7 @@ import net.sqlcipher.Cursor;
 
 public abstract class CursorRecycleViewAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
 
-    private Context mContext;
+    private final Context mContext;
 
     private Cursor mCursor;
 
@@ -36,7 +36,7 @@ public abstract class CursorRecycleViewAdapter<VH extends RecyclerView.ViewHolde
 
     private int mRowIdColumn;
 
-    private DataSetObserver mDataSetObserver;
+    private final DataSetObserver mDataSetObserver;
 
     public CursorRecycleViewAdapter(Context context, Cursor cursor) {
         mContext = context;

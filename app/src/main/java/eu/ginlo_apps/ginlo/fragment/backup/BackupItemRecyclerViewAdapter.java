@@ -1,6 +1,7 @@
 // Copyright (c) 2020-2021 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.fragment.backup;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -9,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.LocalBackupHelper;
@@ -17,6 +20,7 @@ import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.fragment.BaseFragment.OnFragmentInteractionListener;
 import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
+import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -42,7 +46,11 @@ public class BackupItemRecyclerViewAdapter extends RecyclerView.Adapter<BackupIt
         mListener = listener;
         mClickableItems = new ArrayList<>(items.size());
         mPreferencesController = application.getPreferencesController();
-        mShowMandant = true;
+        if(BuildConfig.NEED_PHONENUMBER_VALIDATION) {
+            mShowMandant = true;
+        } else {
+            mShowMandant = false;
+        }
         mContext = nContext;
     }
 
@@ -79,8 +87,18 @@ public class BackupItemRecyclerViewAdapter extends RecyclerView.Adapter<BackupIt
                     else if(flavour.equals(LocalBackupHelper.B2C))
                         backupFlavour = mContext.getString(R.string.backup_restore_select_private_label);
                     holder.mMandantView.setText(backupFlavour);
+                    holder.mMandantView.setAllCaps(true);
+                    holder.mMandantView.setTextColor(ColorUtil.getInstance().getAppAccentContrastColor((Application) mContext.getApplicationContext()));
+                    holder.mMandantView.setBackgroundColor(ColorUtil.getInstance().getAppAccentColor((Application) mContext.getApplicationContext()));
                     holder.mMandantView.setVisibility(View.VISIBLE);
                 }
+            } else {
+                String id = holder.mItem.getString(AppConstants.BACKUP_DRIVE_ITEM_ID);
+                holder.mMandantView.setText(id);
+                holder.mMandantView.setAllCaps(true);
+                holder.mMandantView.setTextColor(ColorUtil.getInstance().getMainColor((Application) mContext.getApplicationContext()));
+                holder.mMandantView.setBackgroundColor(ColorUtil.getInstance().getMainContrastColor((Application) mContext.getApplicationContext()));
+                holder.mMandantView.setVisibility(View.VISIBLE);
             }
 
             holder.mSelectIconView.setVisibility(View.INVISIBLE);

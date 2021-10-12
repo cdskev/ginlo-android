@@ -2,10 +2,8 @@
 
 package eu.ginlo_apps.ginlo.controller;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import org.jitsi.meet.sdk.JitsiMeetConferenceOptions;
 import org.jitsi.meet.sdk.JitsiMeetUserInfo;
@@ -19,7 +17,6 @@ import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.message.contracts.OnSendMessageListener;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
-import eu.ginlo_apps.ginlo.greendao.Chat;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.AppGinloControlMessage;
@@ -65,8 +62,7 @@ public class AVChatController {
 
     private static AVChatController instance;
 
-    private AVCActivity mAVC = null;
-    private JitsiMeetConferenceOptions mJitopts = null;
+    private JitsiMeetConferenceOptions mJitopts;
 
     // For AppGinloControlMessage
     private String mTargetGuid;
@@ -116,7 +112,6 @@ public class AVChatController {
     }
 
     public void resetAVC() {
-        mAVC = null;
         mJitopts = null;
         mMyName = "";
         mTargetGuid = "";
@@ -365,13 +360,6 @@ public class AVChatController {
             }
         }
 
-        /*
-        if(mAVC == null) {
-            mAVC = new AVCActivity();
-        }
-        mAVC.startAVC(context, mJitopts);
-         */
-
         Intent intent = new Intent(context, AVCActivity.class);
         intent.setAction(ACTION_JITSI_MEET_CONFERENCE);
         intent.putExtra(JITSI_MEET_CONFERENCE_OPTIONS, mJitopts);
@@ -429,31 +417,24 @@ public class AVChatController {
         LogUtil.d(TAG, "sendAppGinloControlMessage(): Sending " + controlMessage.toString() + " to "  + targetGuid);
 
         Contact contact = null;
-
         try {
             contact = SimsMeApplication.getInstance().getContactController().getContactByGuid(targetGuid);
-
         } catch (LocalizedException e) {
-            LogUtil.e(TAG, "sendAppGinloControlMessage(): Cannot get contact for " + targetGuid, e);
+            LogUtil.i(TAG, "sendAppGinloControlMessage(): No contact for " + targetGuid);
         }
 
         if(contact != null) {
             SimsMeApplication.getInstance().getSingleChatController().sendAppGinloControl(targetGuid,
-                                                                            contact.getPublicKey(),
-                                                                            null,
-                                                                            null,
-                                                                            controlMessage,
-                                                                            onSendMessageListener);
+                    contact.getPublicKey(),
+                    controlMessage,
+                    onSendMessageListener);
         } else {
             LogUtil.w(TAG, "sendAppGinloControlMessage(): Send AGC message to group!");
             SimsMeApplication.getInstance().getGroupChatController().sendAppGinloControl(targetGuid,
                     null,
-                    null,
-                    null,
                     controlMessage,
                     onSendMessageListener);
         }
-
     }
 
     public void sendCallAcceptMessage(final String targetGuid, final OnSendMessageListener onSendMessageListener) {

@@ -70,9 +70,6 @@ class CouplingRequestModel constructor(couplingRequestJson: JsonObject, private 
             return null
         }
 
-    val isTempDevice: Boolean
-        get() = StringUtil.isEqual(reqType, "0x0201")
-
     val deviceImageResource: Int
         get() {
             val parser = JsonParser()

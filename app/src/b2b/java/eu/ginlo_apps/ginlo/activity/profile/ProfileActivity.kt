@@ -144,13 +144,12 @@ class ProfileActivity : ProfileActivityBase() {
             val phoneNumber = ownContact.phoneNumber
 
             if (phoneNumber.isNullOrBlank()) {
-                profile_phoneNumberState.visibility = View.GONE
+                //profile_phoneNumberState.visibility = View.GONE
                 profile_phoneNumberState.text = ""
             } else {
                 if (AccountController.PENDING_PHONE_STATUS_WAIT_CONFIRM == accountController.pendingPhoneStatus) {
                     profile_phoneNumberState.visibility = View.VISIBLE
-                    //profile_phoneNumberState.setTextColor(resources.getColor(R.color.kColorSecLevelLow))
-                    profile_phoneNumberState.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelLow))
+                    profile_phoneNumberState.setTextColor(ColorUtil.getInstance().getLowColor(simsMeApplication))
                     profile_phoneNumberState.text = getString(R.string.profile_info_email_address_waiting_for_confirm)
 
                     profile_top_warning.visibility = View.VISIBLE
@@ -226,16 +225,14 @@ class ProfileActivity : ProfileActivityBase() {
                 if (isWaitingForEmailConfirmation) {
                     emailAddress = accountController.pendingEmailAddress
                     profile_emailAddressState.visibility = View.VISIBLE
-                    //profile_emailAddressState.setTextColor(resources.getColor(R.color.kColorSecLevelLow))
-                    profile_emailAddressState.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelLow))
+                    profile_emailAddressState.setTextColor(ColorUtil.getInstance().getLowColor(simsMeApplication))
                     profile_emailAddressState.text =
                         resources.getString(R.string.profile_info_email_address_waiting_for_confirm)
                     profile_top_warning.visibility = View.VISIBLE
                     profile_top_warning_text.text = resources.getText(R.string.profile_email_waiting_for_confirmation)
                 } else {
                     profile_emailAddressState.visibility = View.VISIBLE
-                    //profile_emailAddressState.setTextColor(resources.getColor(R.color.kColorSecLevelHigh))
-                    profile_emailAddressState.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelHigh))
+                    profile_emailAddressState.setTextColor(ColorUtil.getInstance().getHighColor(simsMeApplication))
                     profile_emailAddressState.text = resources.getString(R.string.profile_info_email_address_confirmed)
                 }
                 profile_email_address_edittext.setText(emailAddress)
@@ -247,18 +244,16 @@ class ProfileActivity : ProfileActivityBase() {
             var phone = simsMeApplication.contactController.ownContact!!.phoneNumber
 
             if (phone.isNullOrBlank()) {
-                profile_phoneNumberState.visibility = View.GONE
+                //profile_phoneNumberState.visibility = View.GONE
                 profileTextViewPhoneNumber.setText("")
             } else {
                 if (!isWaitingForPhoneConfirmation) {
                     profile_phoneNumberState.visibility = View.VISIBLE
-                    //profile_phoneNumberState.setTextColor(resources.getColor(R.color.kColorSecLevelHigh))
-                    profile_phoneNumberState.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelHigh))
+                    profile_phoneNumberState.setTextColor(ColorUtil.getInstance().getHighColor(simsMeApplication))
                     profile_phoneNumberState.text = resources.getString(R.string.profile_info_email_address_confirmed)
                 } else {
                     profile_phoneNumberState.visibility = View.VISIBLE
-                    //profile_phoneNumberState.setTextColor(resources.getColor(R.color.kColorSecLevelLow))
-                    profile_phoneNumberState.setTextColor(ContextCompat.getColor(this, R.color.kColorSecLevelLow))
+                    profile_phoneNumberState.setTextColor(ColorUtil.getInstance().getLowColor(simsMeApplication))
                     profile_phoneNumberState.text =
                         resources.getString(R.string.profile_info_email_address_waiting_for_confirm)
                     phone = accountController.pendingPhoneNumber

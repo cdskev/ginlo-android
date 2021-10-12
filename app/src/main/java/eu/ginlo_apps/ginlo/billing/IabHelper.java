@@ -198,10 +198,10 @@ public class IabHelper {
             if ((index >= 0) && (index < iabhelper_msgs.length)) {
                 return iabhelper_msgs[index];
             } else {
-                return String.valueOf(code) + ":Unknown IAB Helper Error";
+                return code + ":Unknown IAB Helper Error";
             }
         } else if ((code < 0) || (code >= iab_msgs.length)) {
-            return String.valueOf(code) + ":Unknown";
+            return code + ":Unknown";
         } else {
             return iab_msgs[code];
         }
@@ -581,7 +581,7 @@ public class IabHelper {
                 mPurchaseListener.onIabPurchaseFinished(result, null);
             }
         } else {
-            logError("Purchase failed. Result code: " + Integer.toString(resultCode) + ". Response: "
+            logError("Purchase failed. Result code: " + resultCode + ". Response: "
                     + getResponseDesc(responseCode));
             result = new IabResult(IABHELPER_UNKNOWN_PURCHASE_RESPONSE, "Unknown purchase response.");
             if (mPurchaseListener != null) {
@@ -888,7 +888,7 @@ public class IabHelper {
 
             int response = getResponseCodeFromBundle(ownedItems);
 
-            logDebug("Owned items response: " + String.valueOf(response));
+            logDebug("Owned items response: " + response);
             if (response != BILLING_RESPONSE_RESULT_OK) {
                 logDebug("getPurchases() failed: " + getResponseDesc(response));
                 return response;

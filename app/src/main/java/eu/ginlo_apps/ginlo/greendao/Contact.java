@@ -70,51 +70,26 @@ public class Contact
     private static final String CONFIRMED_STATE_BLOCKED = "blocked";
 
     private Long mId;
-
     private String mAccountGuid;
-
     private String mLookupKey;
-
     private String mHash;
-
     private String mBcrypt;
-
     private String mPublicKey;
-
     private Long mTimestamp;
-
     private Long mLastKnownRowId;
-
     private Boolean mIsHidden;
-
     private Boolean mIsFirstContact;
-
     private Boolean mIsBlocked;
-
     private Boolean mIsReadonly;
-
     private Boolean mIsSimsMeContact;
-
     private byte[] mEncryptedData;
-
     private byte[] mIv;
-
     private String mMandant;
-
     private String mChecksum;
-
     private String mAttributes;
-
     private Long mVersion;
-
     private JsonObject mAttributesJO;
-
     private String mSimsmeId;
-
-    private String mTempDeviceGuid;
-
-    private String mTempDevicePublicKeyXML;
-
     private Boolean mTempReadonly;
 
     /**
@@ -1558,11 +1533,7 @@ public class Contact
         hasChangesForFtsDb = setTrustState(privateIndexEntryJO);
 
         String value = JsonUtil.stringFromJO(JsonConstants.DELETED, privateIndexEntryJO);
-        if (!StringUtil.isNullOrEmpty(value) && StringUtil.isEqual(value, JsonConstants.VALUE_TRUE)) {
-            setIsDeletedHidden(true);
-        } else {
-            setIsDeletedHidden(false);
-        }
+        setIsDeletedHidden(!StringUtil.isNullOrEmpty(value) && StringUtil.isEqual(value, JsonConstants.VALUE_TRUE));
 
         setConfirmedState(privateIndexEntryJO);
 
@@ -1636,11 +1607,7 @@ public class Contact
         setEncryptedAttribute(JsonConstants.FAVORITE, privateIndexEntryJO);
 
         value = JsonUtil.stringFromJO(JsonConstants.VISIBLE, privateIndexEntryJO);
-        if (!StringUtil.isNullOrEmpty(value) && StringUtil.isEqual(value, JsonConstants.VALUE_TRUE)) {
-            setIsHidden(false);
-        } else {
-            setIsHidden(true);
-        }
+        setIsHidden(StringUtil.isNullOrEmpty(value) || !StringUtil.isEqual(value, JsonConstants.VALUE_TRUE));
 
         setIsSimsMeContact(true);
 
@@ -1779,24 +1746,6 @@ public class Contact
         }
 
         privateIndexEntryJO.addProperty(JsonConstants.CONFIRMED, value);
-    }
-
-    public void setTempDeviceInfo(String guid, String publicKey) {
-        mTempDeviceGuid = guid;
-        mTempDevicePublicKeyXML = publicKey;
-    }
-
-    public void removeTempDeviceInfo() {
-        mTempDeviceGuid = null;
-        mTempDevicePublicKeyXML = null;
-    }
-
-    public String getTempDeviceGuid() {
-        return mTempDeviceGuid;
-    }
-
-    public String getTempDevicePublicKeyXML() {
-        return mTempDevicePublicKeyXML;
     }
 
     /**

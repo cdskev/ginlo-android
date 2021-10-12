@@ -31,6 +31,7 @@ import eu.ginlo_apps.ginlo.util.SecurityUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.XMLUtil;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
@@ -471,14 +472,14 @@ public abstract class MessageDataResolver {
         }
 
         try {
-            SignatureModel signatureModel = gson.fromJson(new String(message.getSignature(), Encoding.UTF8), SignatureModel.class);
+            SignatureModel signatureModel = gson.fromJson(new String(message.getSignature(), StandardCharsets.UTF_8), SignatureModel.class);
 
             boolean matchingHashes = signatureModel.checkMessage(message, false);
 
-            String conatString = signatureModel.getCombinedHashes(false);
+            String conatString = signatureModel.getCombinedHashes();
 
             byte[] originalSignatureBytes = Base64.decode(signatureModel.getSignature(), Base64.DEFAULT);
-            byte[] calculatedSignatureBytes = conatString.getBytes(Encoding.UTF8);
+            byte[] calculatedSignatureBytes = conatString.getBytes(StandardCharsets.UTF_8);
 
             ContactController contactController = mApplication.getContactController();
 
@@ -531,7 +532,7 @@ public abstract class MessageDataResolver {
             mApplication.getMessageController().saveMessage(message);
 
             return isSignatureValid;
-        } catch (JsonSyntaxException | NullPointerException | InterruptedException | UnsupportedEncodingException e) {
+        } catch (JsonSyntaxException | NullPointerException | InterruptedException e) {
             LogUtil.e(this.getClass().getName(), e.getMessage(), e);
             throw new LocalizedException(LocalizedException.CHECK_SIGNATURE_FAILED, e);
         }
@@ -558,29 +559,18 @@ public abstract class MessageDataResolver {
 
         try {
             String signature = null;
-            boolean bWithTempInfo = false;
-            if (message.getSignatureTemp256() != null) {
-                bWithTempInfo = true;
-                signature = message.getSignatureTemp256();
-            } else {
-                signature = new String(message.getSignatureSha256(), Encoding.UTF8);
-            }
+            signature = new String(message.getSignatureSha256(), StandardCharsets.UTF_8);
             SignatureModel signatureModel = gson.fromJson(signature, SignatureModel.class);
 
             boolean matchingHashes = signatureModel.checkMessage(message, true);
-
-            String conatString = signatureModel.getCombinedHashes(bWithTempInfo);
-
+            String conatString = signatureModel.getCombinedHashes();
             byte[] originalSignatureBytes = Base64.decode(signatureModel.getSignature(), Base64.DEFAULT);
 
-            byte[] tempdeviceSignatureBytes = null;
-            String tempDeviceGuid = null;
-
             if ((originalSignatureBytes == null) || (originalSignatureBytes.length == 0)) {
-                tempdeviceSignatureBytes = Base64.decode(signatureModel.getSignatureTempDevice(), Base64.DEFAULT);
-                tempDeviceGuid = message.getFromTempDeviceGuid();
+                throw new LocalizedException(LocalizedException.CHECK_SIGNATURE_FAILED, "No signature");
             }
-            byte[] calculatedSignatureBytes = conatString.getBytes(Encoding.UTF8);
+
+            byte[] calculatedSignatureBytes = conatString.getBytes(StandardCharsets.UTF_8);
 
             ContactController contactController = mApplication.getContactController();
 
@@ -592,96 +582,36 @@ public abstract class MessageDataResolver {
 
             if (message.getFrom().equals(accountController.getAccount().getAccountGuid())
                     || message.getFrom().equals(AppConstants.GUID_SYSTEM_CHAT)) {
-                if (tempdeviceSignatureBytes == null) {
-                    normalKey = mApplication.getKeyController().getUserKeyPair().getPublic();
-                    verifyUser = SecurityUtil.verifyData(normalKey, originalSignatureBytes, calculatedSignatureBytes, true);
-                    systemChatKey = contactController.getPublicKeyForContact(AppConstants.GUID_SYSTEM_CHAT);
-                } else {
-                    normalKey = contactController.getPublicKeyForContact(tempDeviceGuid, DateUtil.getDateFromMillis(message.getDateSend()));
-
-                    if (normalKey == null) {
-                        final CountDownLatch latch = new CountDownLatch(1);
-                        OnLoadPublicKeyListener onLoadPublicKeyListener = new OnLoadPublicKeyListener() {
-                            @Override
-                            public void onLoadPublicKeyError(String message) {
-                                latch.countDown();
-                            }
-
-                            @Override
-                            public void onLoadPublicKeyComplete(Contact contact) {
-                                latch.countDown();
-                            }
-                        };
-                        contactController.getTempDeviceInfo(message.getFrom(), onLoadPublicKeyListener);
-                        if (!latch.await(CHECK_SIGNATURE_TIMEOUT, TimeUnit.SECONDS)) {
-                            return true;
-                        }
-                        normalKey = contactController.getPublicKeyForContact(tempDeviceGuid, DateUtil.getDateFromMillis(message.getDateSend()));
-                    }
-                    if (normalKey != null) {
-                        verifyUser = SecurityUtil.verifyData(normalKey, tempdeviceSignatureBytes, calculatedSignatureBytes, true);
-                    } else {
-                        // Temporäres Gerät ist unbekannt --> Nachricht nicht valide
-                        return false;
-                    }
-                }
+                normalKey = mApplication.getKeyController().getUserKeyPair().getPublic();
+                verifyUser = SecurityUtil.verifyData(normalKey, originalSignatureBytes, calculatedSignatureBytes, true);
+                systemChatKey = contactController.getPublicKeyForContact(AppConstants.GUID_SYSTEM_CHAT);
             } else {
-                if (tempdeviceSignatureBytes == null) {
-                    normalKey = contactController.getPublicKeyForContact(message.getFrom());
+                normalKey = contactController.getPublicKeyForContact(message.getFrom());
 
-                    if (normalKey == null) {
-                        final CountDownLatch latch = new CountDownLatch(1);
-                        OnLoadPublicKeyListener onLoadPublicKeyListener = new OnLoadPublicKeyListener() {
-                            @Override
-                            public void onLoadPublicKeyError(String message) {
-                                latch.countDown();
-                            }
-
-                            @Override
-                            public void onLoadPublicKeyComplete(Contact contact) {
-                                latch.countDown();
-                            }
-                        };
-                        contactController.loadPublicKey(message.getFrom(), onLoadPublicKeyListener);
-                        if (!latch.await(CHECK_SIGNATURE_TIMEOUT, TimeUnit.SECONDS)) {
-                            return true;
+                if (normalKey == null) {
+                    final CountDownLatch latch = new CountDownLatch(1);
+                    OnLoadPublicKeyListener onLoadPublicKeyListener = new OnLoadPublicKeyListener() {
+                        @Override
+                        public void onLoadPublicKeyError(String message) {
+                            latch.countDown();
                         }
-                        normalKey = contactController.getPublicKeyForContact(message.getFrom());
-                    }
-                    if (normalKey != null) {
-                        verifyUser = SecurityUtil.verifyData(normalKey, originalSignatureBytes, calculatedSignatureBytes, true);
-                    } else {
-                        // Nutzer hat sich abgemeldet --> keine Chance mehr zu prüfen
+
+                        @Override
+                        public void onLoadPublicKeyComplete(Contact contact) {
+                            latch.countDown();
+                        }
+                    };
+                    contactController.loadPublicKey(message.getFrom(), onLoadPublicKeyListener);
+                    if (!latch.await(CHECK_SIGNATURE_TIMEOUT, TimeUnit.SECONDS)) {
                         return true;
                     }
+                    normalKey = contactController.getPublicKeyForContact(message.getFrom());
+                }
+                if (normalKey != null) {
+                    verifyUser = SecurityUtil.verifyData(normalKey, originalSignatureBytes, calculatedSignatureBytes, true);
                 } else {
-                    normalKey = contactController.getPublicKeyForContact(tempDeviceGuid, DateUtil.getDateFromMillis(message.getDateSend()));
-
-                    if (normalKey == null) {
-                        final CountDownLatch latch = new CountDownLatch(1);
-                        OnLoadPublicKeyListener onLoadPublicKeyListener = new OnLoadPublicKeyListener() {
-                            @Override
-                            public void onLoadPublicKeyError(String message) {
-                                latch.countDown();
-                            }
-
-                            @Override
-                            public void onLoadPublicKeyComplete(Contact contact) {
-                                latch.countDown();
-                            }
-                        };
-                        contactController.getTempDeviceInfo(message.getFrom(), onLoadPublicKeyListener);
-                        if (!latch.await(CHECK_SIGNATURE_TIMEOUT, TimeUnit.SECONDS)) {
-                            return true;
-                        }
-                        normalKey = contactController.getPublicKeyForContact(tempDeviceGuid, DateUtil.getDateFromMillis(message.getDateSend()));
-                    }
-                    if (normalKey != null) {
-                        verifyUser = SecurityUtil.verifyData(normalKey, tempdeviceSignatureBytes, calculatedSignatureBytes, true);
-                    } else {
-                        // Temporäres Gerät ist unbekannt --> Nachricht nicht valide
-                        return false;
-                    }
+                    // Nutzer hat sich abgemeldet --> keine Chance mehr zu prüfen
+                    return true;
                 }
             }
 
@@ -696,7 +626,7 @@ public abstract class MessageDataResolver {
             mApplication.getMessageController().saveMessage(message);
 
             return isSignatureValid;
-        } catch (JsonSyntaxException | NullPointerException | InterruptedException | UnsupportedEncodingException e) {
+        } catch (JsonSyntaxException | NullPointerException | InterruptedException e) {
             LogUtil.e(this.getClass().getName(), e.getMessage(), e);
             throw new LocalizedException(LocalizedException.CHECK_SIGNATURE_FAILED, e);
         }

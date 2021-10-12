@@ -3,11 +3,8 @@ package eu.ginlo_apps.ginlo.util
 
 object ConfigUtil : ConfigUtilBase() {
     const val SERVER_VERSION_GET_CHANNELS = "getChannels"
-
     const val SERVER_VERSION_GET_SERVICES = "getServices"
-
     const val SERVER_VERSION_GET_CONFIGURATION = "getConfiguration"
-
     const val SERVER_VERSION_GET_MANADANTEN = "getMandanten"
 
     override fun getServerVersionKeys(): Array<String> {

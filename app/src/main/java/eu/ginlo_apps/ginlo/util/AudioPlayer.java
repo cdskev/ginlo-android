@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.ParcelFileDescriptor;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 
@@ -60,7 +61,7 @@ public class AudioPlayer {
             try {
                 mPlayer.setDataSource(mContext, uri);
             } catch (IOException | IllegalArgumentException | SecurityException | IllegalStateException | UnsupportedOperationException e) {
-                if (SystemUtil.hasNougat() && path != null) {
+                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) && path != null) {
                     File f = new File(path);
 
                     if (f.exists()) {

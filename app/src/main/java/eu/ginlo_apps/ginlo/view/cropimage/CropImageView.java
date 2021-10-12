@@ -182,7 +182,7 @@ public class CropImageView
                 }
                 break;
             default:
-                ;// NO_PMD
+                // NO_PMD
                 break;
         }
 

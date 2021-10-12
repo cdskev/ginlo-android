@@ -41,7 +41,6 @@ import eu.ginlo_apps.ginlo.greendao.DaoMaster;
 import eu.ginlo_apps.ginlo.greendao.DaoSession;
 import eu.ginlo_apps.ginlo.greendao.NotificationDao;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.service.FCMService;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -52,23 +51,20 @@ import java.util.regex.Pattern;
 import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.query.QueryBuilder;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 public class NotificationController {
     private final static String TAG = NotificationController.class.getSimpleName();
 
     public static final int NEW_PRIVATE_MESSAGE = 1;
     public static final int NEW_PRIVATE_MESSAGE_AVC = 1366;
     public static final int NEW_CHANNEL_MESSAGE = 2;
-    public static final int MESSAGE_NOTIFICATION_ID = 219711;
-    public static final int AVC_NOTIFICATION_ID = 131966;
-    public static final int AVC_NOTIFICATION_ID_AUDIO = 131967;
-    public static final int AVC_NOTIFICATION_ID_VIDEO = 131968;
-    public static final int AVC_NOTIFICATION_ID_DISMISS = 131969;
-    public static final int AVC_NOTIFICATION_ID_OPEN = 131970;
     public static final int GROUP_NOTIFICATION_ID = 199089;
     public static final int INFO_NOTIFICATION_ID = 199090;
+    public static final int MESSAGE_NOTIFICATION_ID = 219711;
+    public static final int AVC_NOTIFICATION_ID = 131966;
+    public static final int AVC_REQUEST_ID_AUDIO = 131967;
+    public static final int AVC_REQUEST_ID_VIDEO = 131968;
+    public static final int AVC_REQUEST_ID_DISMISS = 131969;
+    public static final int AVC_REQUEST_ID_OPEN = 131970;
 
     public static final int DISMISS_NOTIFICATION_TIMEOUT = 30000; //Millis
 
@@ -129,7 +125,7 @@ public class NotificationController {
         // the NotificationChannel class is new and not in the support library
 
         // Take care of channel groups first ...
-        if (SystemUtil.hasOreo()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
             try {
                 String groupId;
                 CharSequence channelName;
@@ -450,17 +446,17 @@ public class NotificationController {
         Intent intentCancel = null;
         RemoteViews view = null;
         if(!fullscreen) {
-            LogUtil.d(TAG, "buildAVCInvitationNotification: Build regular notification.");
+            LogUtil.i(TAG, "buildAVCInvitationNotification: Build regular notification.");
             intentAudio = mAVChatController.prepareAudioAVCall(senderGuid, AVC_NOTIFICATION_ID, mApplication);
-            PendingIntent pendingIntentAudio = PendingIntent.getActivity(mApplication, AVC_NOTIFICATION_ID_AUDIO, intentAudio,
+            PendingIntent pendingIntentAudio = PendingIntent.getActivity(mApplication, AVC_REQUEST_ID_AUDIO, intentAudio,
                     PendingIntent.FLAG_UPDATE_CURRENT);
 
             intentVideo = mAVChatController.prepareVideoAVCall(senderGuid, AVC_NOTIFICATION_ID, mApplication);
-            PendingIntent pendingIntentVideo = PendingIntent.getActivity(mApplication, AVC_NOTIFICATION_ID_VIDEO, intentVideo,
+            PendingIntent pendingIntentVideo = PendingIntent.getActivity(mApplication, AVC_REQUEST_ID_VIDEO, intentVideo,
                     PendingIntent.FLAG_UPDATE_CURRENT);
 
             intentCancel = mAVChatController.prepareDismissCall(senderGuid, AVC_NOTIFICATION_ID, mApplication);
-            PendingIntent pendingIntentCancel = PendingIntent.getActivity(mApplication, AVC_NOTIFICATION_ID_DISMISS, intentCancel,
+            PendingIntent pendingIntentCancel = PendingIntent.getActivity(mApplication, AVC_REQUEST_ID_DISMISS, intentCancel,
                     PendingIntent.FLAG_UPDATE_CURRENT);
 
             openIntent = new Intent(mApplication, AVCallMenuActivity.class);
@@ -478,7 +474,7 @@ public class NotificationController {
             }
 
         } else {
-            LogUtil.d(TAG, "buildAVCInvitationNotification: Build fullscreen notification.");
+            LogUtil.i(TAG, "buildAVCInvitationNotification: Build fullscreen notification.");
             openIntent = new Intent(mApplication, AVCallMenuActivity.class);
             openIntent.putExtra(AVCallMenuActivity.EXTRA_FROM_NOTIFICATION, AVC_NOTIFICATION_ID);
             openIntent.putExtra(AVCallMenuActivity.EXTRA_FROM_GUID, senderGuid);
@@ -486,7 +482,7 @@ public class NotificationController {
 
         }
         //openIntent.putExtra(SingleChatActivity.EXTRA_TARGET_GUID, senderGuid);
-        PendingIntent pOpenIntent = PendingIntent.getActivity(mApplication, AVC_NOTIFICATION_ID_OPEN, openIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pOpenIntent = PendingIntent.getActivity(mApplication, AVC_REQUEST_ID_OPEN, openIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // KS: Task stack improvisation
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(mApplication);
@@ -674,8 +670,8 @@ public class NotificationController {
         return builder.build();
     }
 
-    // Create an ongoing notification to keep ginlo alive
-    public Notification buildOngoingServiceNotification() {
+    // Create an ongoing notification
+    public Notification buildOngoingServiceNotification(String notificationInfo) {
         Context context = mApplication;
         if (context == null) {
             LogUtil.w(TAG, " Cannot create notification: no current context");
@@ -694,7 +690,7 @@ public class NotificationController {
 
         builder
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
-                .setContentTitle(mApplication.getString(R.string.notification_gos_running))
+                .setContentTitle((CharSequence) notificationInfo)
                 //.setContentText("")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
@@ -702,7 +698,6 @@ public class NotificationController {
                 .setAutoCancel(false)
                 .setVisibility(NotificationCompat.VISIBILITY_SECRET)
                 .setSmallIcon(R.drawable.ginlo_avatar)
-                .setColor(context.getResources().getColor(R.color.business_trial_background))
                 .setUsesChronometer(true)
                 .setOnlyAlertOnce(true);
 
@@ -922,8 +917,8 @@ public class NotificationController {
         }
     }
 
-    public void showOngoingServiceNotification() {
-        final Notification notification = buildOngoingServiceNotification();
+    public void showOngoingServiceNotification(String notificationInfo) {
+        final Notification notification = buildOngoingServiceNotification(notificationInfo);
         if(notification != null) {
             notificationManager.notify(INFO_NOTIFICATION_ID, notification);
         }
@@ -1013,10 +1008,10 @@ public class NotificationController {
      */
     public void dismissNotification(int notificationId) {
         if (notificationId == -1) {
-            LogUtil.d(TAG, "Got dismiss all notifications request.");
+            LogUtil.i(TAG, "Got dismiss all notifications request.");
             notificationManager.cancelAll();
         } else if (notificationId >= 0) {
-            LogUtil.d(TAG, "Got dismiss notification request for id " + notificationId);
+            LogUtil.i(TAG, "Got dismiss notification request for id " + notificationId);
             notificationManager.cancel(notificationId);
         }
     }

@@ -128,18 +128,18 @@ class ChatOverviewServiceItemVH(
         var textViewDrawables = setDefaultCompoundDrawables(previewTextView, mediaIcon)
 
         if (chatOverviewItemVO.hasSendError) {
-            textViewDrawables[2].setLevel(Message.MESSAGE_STATUS_ERROR)
+            textViewDrawables[2].level = Message.MESSAGE_STATUS_ERROR
         } else if (chatOverviewItemVO is ChatOverviewItemVO) {
 
             if (chatOverviewItemVO.isSentMessage) {
                 val isSystemInfo = chatOverviewItemVO.isSystemInfo
 
                 if (chatOverviewItemVO.hasRead) {
-                    textViewDrawables[2].setLevel(Message.MESSAGE_STATUS_READ)
+                    textViewDrawables[2].level = Message.MESSAGE_STATUS_READ
                 } else if (chatOverviewItemVO.hasDownloaded) {
-                    textViewDrawables[2].setLevel(Message.MESSAGE_STATUS_DOWNLOADED)
+                    textViewDrawables[2].level = Message.MESSAGE_STATUS_DOWNLOADED
                 } else if (chatOverviewItemVO.isSendConfirm && !isSystemInfo) {
-                    textViewDrawables[2].setLevel(Message.MESSAGE_STATUS_SENT)
+                    textViewDrawables[2].level = Message.MESSAGE_STATUS_SENT
                 } else {
                     textViewDrawables = previewTextView.compoundDrawables
                     previewTextView.setCompoundDrawablesWithIntrinsicBounds(

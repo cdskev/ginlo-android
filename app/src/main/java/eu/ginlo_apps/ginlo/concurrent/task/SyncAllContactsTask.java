@@ -33,7 +33,6 @@ import javax.crypto.SecretKey;
 
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
@@ -122,9 +121,11 @@ public class SyncAllContactsTask extends ConcurrentTask {
     private Map<String, String> mBcryptMap;
     private long mTimestamp;
     private boolean mHasCompanyContacts;
+    private boolean mTenantsOnly = false;
 
     public SyncAllContactsTask(final SimsMeApplication context,
-                               boolean mergeOldContacts, final boolean hasPhonebookPermission) {
+                               boolean mergeOldContacts, final boolean hasPhonebookPermission,
+                               boolean syncTenantsOnly) {
         super();
 
         mContext = context;
@@ -132,7 +133,7 @@ public class SyncAllContactsTask extends ConcurrentTask {
         mChatImageController = mContext.getChatImageController();
 
         mMergeOldContacts = mergeOldContacts;
-
+        mTenantsOnly = syncTenantsOnly;
         mHasPhonebookePermission = hasPhonebookPermission;
 
         mContactDao = mContactController.getDao();
@@ -146,6 +147,11 @@ public class SyncAllContactsTask extends ConcurrentTask {
         mFileUtil = new FileUtil(context);
         mFtsRefreshGuids = new ArrayList<>();
 
+    }
+
+    public SyncAllContactsTask(final SimsMeApplication context,
+                               boolean mergeOldContacts, final boolean hasPhonebookPermission) {
+        this(context, mergeOldContacts, hasPhonebookPermission, false);
     }
 
     /**
@@ -201,7 +207,7 @@ public class SyncAllContactsTask extends ConcurrentTask {
 
             synchronizeMandantsWithServer();
 
-            if (this.isCanceled()) {
+            if (this.isCanceled() || mTenantsOnly) {
                 return;
             }
 
@@ -369,18 +375,22 @@ public class SyncAllContactsTask extends ConcurrentTask {
                                     final JsonElement identJson = mandantJson.getAsJsonObject().get("ident");
                                     final JsonElement saltJson = mandantJson.getAsJsonObject().get("salt");
 
-                                    final String mandantName = identJson.getAsString();
-                                    final String salt = saltJson.getAsString();
+                                    if(identJson != null && saltJson != null) {
+                                        final String mandantName = identJson.getAsString();
+                                        final String salt = saltJson.getAsString();
 
-                                    if (!StringUtil.isNullOrEmpty(mandantName) && !StringUtil.isNullOrEmpty(salt)) {
-                                        mServerSalts.put(mandantName, salt);
+                                        if (!StringUtil.isNullOrEmpty(mandantName) && !StringUtil.isNullOrEmpty(salt)) {
+                                            mServerSalts.put(mandantName, salt);
+                                        }
                                     }
                                 }
                             }
 
                             mContext.getPreferencesController().setMandantenJson(responseArray.toString());
 
-                            syncWithMandants();
+                            if(!mTenantsOnly) {
+                                syncTenantContacts();
+                            }
                         }
                     }
                 } catch (LocalizedException e) {
@@ -404,11 +414,14 @@ public class SyncAllContactsTask extends ConcurrentTask {
                     mServerSalts.put(mandant.ident, mandant.salt);
                 }
             }
-            syncWithMandants();
+
+            if(!mTenantsOnly) {
+                syncTenantContacts();
+            }
         }
     }
 
-    private void syncWithMandants()
+    private void syncTenantContacts()
             throws LocalizedException {
         if (this.isCanceled()) {
             return;
@@ -695,8 +708,7 @@ public class SyncAllContactsTask extends ConcurrentTask {
                                 name);
             }
             mContext.getSingleChatController()
-                    .sendSystemInfo(contact.getAccountGuid(), contact.getPublicKey(), null, null,
-                            logMessage, -1);
+                    .sendSystemInfo(contact.getAccountGuid(), contact.getPublicKey(), logMessage, -1);
 
         } catch (LocalizedException le) {
             LogUtil.e(TAG, "Failed to notify chat controller of removed account:" + le.getMessage(), le);
@@ -874,28 +886,32 @@ public class SyncAllContactsTask extends ConcurrentTask {
                                             return;
                                         }
 
-                                        String aesKeyString = contact.getProfileInfoAesKey();
-                                        if (StringUtil.isNullOrEmpty(aesKeyString)) {
-                                            return;
-                                        }
+                                        if(imageBase64String.length() > 0) {
+                                            String aesKeyString = contact.getProfileInfoAesKey();
+                                            if (StringUtil.isNullOrEmpty(aesKeyString)) {
+                                                return;
+                                            }
 
-                                        SecretKey aesKey = SecurityUtil.getAESKeyFromBase64String(aesKeyString);
+                                            SecretKey aesKey = SecurityUtil.getAESKeyFromBase64String(aesKeyString);
 
-                                        if (aesKey == null) {
-                                            return;
-                                        }
+                                            if (aesKey == null) {
+                                                return;
+                                            }
 
-                                        byte[] encryptedBytes = Base64
-                                                .decode(imageBase64String, Base64.NO_WRAP);
-                                        byte[] decryptedBytes = SecurityUtil
-                                                .decryptMessageWithAES(encryptedBytes, aesKey);
+                                            byte[] encryptedBytes = Base64
+                                                    .decode(imageBase64String, Base64.NO_WRAP);
+                                            byte[] decryptedBytes = SecurityUtil
+                                                    .decryptMessageWithAES(encryptedBytes, aesKey);
 
-                                        byte[] decodeBytes = Base64.decode(decryptedBytes, Base64.NO_WRAP);
+                                            byte[] decodeBytes = Base64.decode(decryptedBytes, Base64.NO_WRAP);
 
-                                        if (decodeBytes != null && decodeBytes.length > 0) {
-                                            mChatImageController.saveImage(accountGuid, decodeBytes);
-
-                                            contact.setProfileImageChecksum(checksum);
+                                            if (decodeBytes != null && decodeBytes.length > 0) {
+                                                mChatImageController.saveImage(accountGuid, decodeBytes);
+                                                contact.setProfileImageChecksum(checksum);
+                                            }
+                                        } else {
+                                            mChatImageController.deleteImage(accountGuid);
+                                            contact.setProfileImageChecksum("TODO");
                                         }
                                     } catch (LocalizedException e) {
                                         LogUtil.e(TAG, e.getMessage(), e);

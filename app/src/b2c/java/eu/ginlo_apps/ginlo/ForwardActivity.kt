@@ -2,6 +2,4 @@
 
 package eu.ginlo_apps.ginlo
 
-class ForwardActivity : ForwardActivityBase(){
-
-}
+class ForwardActivity : ForwardActivityBase()

@@ -76,41 +76,25 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
         }
     }
 
-    val TAG = ContactsFragment::class.java.simpleName
-
+    private val TAG = ContactsFragment::class.java.simpleName
     private val contactController: ContactController by lazy { (context as BaseActivity).simsMeApplication.contactController }
-
     private val chatImageController: ChatImageController by lazy { (context as BaseActivity).simsMeApplication.chatImageController }
-
     private var contacts: List<Contact>? = null
-
     private var imageLoader: ImageLoader? = null
-
     private var onItemClickListener: AdapterView.OnItemClickListener? = null
-
     private var layout: Int = 0
-
     private var suppressNextError: Boolean = false
-
     private var firstLoad: Boolean = false
-
     private var lastSelectedItem: Int = 0
-
     private var setCheckedAsDefault: Boolean = false
-
     var contactsAdapter: ContactsAdapter? = null
         private set
 
     private var groupContacts: MutableList<Contact>? = null
-
     private val themedInflater: LayoutInflater by lazy { LayoutInflater.from(context).themedInflater(context) }
-
     private var headerView: View? = null
-
     private lateinit var rootView: View
-
     override val coroutineContext: CoroutineContext = Dispatchers.Default
-
     private lateinit var supervisorJob : Job
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -122,7 +106,6 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
 
         firstLoad = true
         lastSelectedItem = 0
-
         suppressNextError = false
     }
 
@@ -144,13 +127,9 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
 
             rootView.swipe_refresh_contacts.isEnabled = true
             rootView.swipe_refresh_contacts.setOnRefreshListener(this)
-
-            if (groupContacts == null) {
-                loadContacts()
-            }
-
             rootView.contacts_list_view.adapter = contactsAdapter
             rootView.contacts_list_view.choiceMode = ListView.CHOICE_MODE_MULTIPLE
+
         } catch (e: LocalizedException) {
             LogUtil.e(this.javaClass.name, e.message, e)
             activity?.finish()
@@ -194,6 +173,7 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
     }
 
     override fun onResume() {
+        LogUtil.d(TAG, "onResume called.")
         super.onResume()
 
         if (contacts == null) {
@@ -206,6 +186,10 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
         }
 
         contactController.registerOnContactProfileInfoChangeNotification(this)
+
+        if (groupContacts == null) {
+            loadContacts()
+        }
     }
 
     override fun onPause() {
@@ -449,9 +433,7 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
     private fun initForMode(mode: Int) {
         when (mode) {
             MODE_ALL, MODE_SEND_CONTACT -> initForModeAll()
-            MODE_SIMSME_SINGLE ->
-
-                initForModeSimsmeSingle()
+            MODE_SIMSME_SINGLE -> initForModeSimsmeSingle()
             MODE_SIMSME_GROUP -> initForModeSimsmeGroup()
             MODE_SIMSME_DISTRIBUTOR -> initForModeSimsmeGroup()
             MODE_NON_SIMSME -> initForModeNonSimsme()

@@ -13,6 +13,7 @@ import org.json.JSONObject;
 
 import javax.crypto.spec.IvParameterSpec;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Florian
@@ -118,32 +119,27 @@ public class GreenDAOSecurityLayer {
     public void encryptCache(final eu.ginlo_apps.ginlo.greendao.AbstractSecureModel model,
                              final JSONObject json)
             throws LocalizedException {
-        try {
-            if (mKeyController == null) {
-                LogUtil.e(this.getClass().getName(), "NO_INIT_ERROR");
+        if (mKeyController == null) {
+            LogUtil.e(this.getClass().getName(), "NO_INIT_ERROR");
 
-                throw new LocalizedException(LocalizedException.NO_INIT_CALLED, "keycontroller is null");
-            }
-
-            byte[] ivBytes = model.getIv();
-            IvParameterSpec iv;
-
-            if (ivBytes != null) {
-                iv = SecurityUtil.getIvFromBytes(ivBytes);
-            } else {
-                iv = SecurityUtil.generateIV();
-                model.setIv(iv.getIV());
-            }
-
-            byte[] encryptedData = SecurityUtil.encryptMessageWithAES(json.toString().getBytes(Encoding.UTF8),
-                    mKeyController.getInternalEncryptionKey(),
-                    iv);
-
-            model.setEncryptedData(encryptedData);
-        } catch (UnsupportedEncodingException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            throw new LocalizedException(LocalizedException.CHARSET_NOT_SUPPORTED, e);
+            throw new LocalizedException(LocalizedException.NO_INIT_CALLED, "keycontroller is null");
         }
+
+        byte[] ivBytes = model.getIv();
+        IvParameterSpec iv;
+
+        if (ivBytes != null) {
+            iv = SecurityUtil.getIvFromBytes(ivBytes);
+        } else {
+            iv = SecurityUtil.generateIV();
+            model.setIv(iv.getIV());
+        }
+
+        byte[] encryptedData = SecurityUtil.encryptMessageWithAES(json.toString().getBytes(StandardCharsets.UTF_8),
+                mKeyController.getInternalEncryptionKey(),
+                iv);
+
+        model.setEncryptedData(encryptedData);
     }
 
     /**
@@ -175,12 +171,9 @@ public class GreenDAOSecurityLayer {
                 return null;
             }
 
-            String decryptedString = new String(decryptedData, Encoding.UTF8);
+            String decryptedString = new String(decryptedData, StandardCharsets.UTF_8);
 
             return new JSONObject(decryptedString);
-        } catch (UnsupportedEncodingException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            throw new LocalizedException(LocalizedException.CHARSET_NOT_SUPPORTED, e);
         } catch (JSONException e) {
             LogUtil.e(this.getClass().getName(), e.getMessage(), e);
             throw new LocalizedException(LocalizedException.JSON_OBJECT_INVALID, e);

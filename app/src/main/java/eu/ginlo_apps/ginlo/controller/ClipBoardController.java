@@ -16,6 +16,7 @@ import eu.ginlo_apps.ginlo.util.SecurityUtil;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Florian
@@ -50,26 +51,21 @@ public class ClipBoardController {
             return;
         }
 
-        try {
-            SecretKey internalKey = keyController.getInternalEncryptionKey();
-            Editor editor = sharedPrefs.edit();
-            IvParameterSpec iv = SecurityUtil.generateIV();
-            byte[] valueBytes = value.getBytes(Encoding.UTF8);
-            byte[] ivBytes = iv.getIV();
-            byte[] encryptedValueBytes = SecurityUtil.encryptMessageWithAES(valueBytes, internalKey, iv);
-            byte[] containerBytes = new byte[ivBytes.length + encryptedValueBytes.length];
+        SecretKey internalKey = keyController.getInternalEncryptionKey();
+        Editor editor = sharedPrefs.edit();
+        IvParameterSpec iv = SecurityUtil.generateIV();
+        byte[] valueBytes = value.getBytes(StandardCharsets.UTF_8);
+        byte[] ivBytes = iv.getIV();
+        byte[] encryptedValueBytes = SecurityUtil.encryptMessageWithAES(valueBytes, internalKey, iv);
+        byte[] containerBytes = new byte[ivBytes.length + encryptedValueBytes.length];
 
-            System.arraycopy(ivBytes, 0, containerBytes, 0, ivBytes.length);
-            System.arraycopy(encryptedValueBytes, 0, containerBytes, ivBytes.length, encryptedValueBytes.length);
+        System.arraycopy(ivBytes, 0, containerBytes, 0, ivBytes.length);
+        System.arraycopy(encryptedValueBytes, 0, containerBytes, ivBytes.length, encryptedValueBytes.length);
 
-            String encodedEncryptedValue = Base64.encodeToString(containerBytes, Base64.DEFAULT);
+        String encodedEncryptedValue = Base64.encodeToString(containerBytes, Base64.DEFAULT);
 
-            editor.putString(key, encodedEncryptedValue);
-            editor.commit();
-        } catch (UnsupportedEncodingException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-            throw new LocalizedException(LocalizedException.CLIPBOARD_PUT_FAILED, e);
-        }
+        editor.putString(key, encodedEncryptedValue);
+        editor.commit();
     }
 
     /**
@@ -95,8 +91,8 @@ public class ClipBoardController {
                 byte[] decryptedValueBytes = SecurityUtil.decryptMessageWithAES(encryptedValueBytes, internalKey,
                         iv);
 
-                value = new String(decryptedValueBytes, Encoding.UTF8);
-            } catch (UnsupportedEncodingException | NullPointerException | NegativeArraySizeException e) {
+                value = new String(decryptedValueBytes, StandardCharsets.UTF_8);
+            } catch (NullPointerException | NegativeArraySizeException e) {
                 LogUtil.e(this.getClass().getName(), e.getMessage(), e);
                 throw new LocalizedException(LocalizedException.CLIPBOARD_GET_FAILED, e);
             }

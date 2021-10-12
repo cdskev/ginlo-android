@@ -2,10 +2,18 @@
 
 package eu.ginlo_apps.ginlo.util;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.util.ArrayMap;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import eu.ginlo_apps.ginlo.concurrent.task.SyncAllContactsTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -13,6 +21,9 @@ import eu.ginlo_apps.ginlo.greendao.CompanyContact;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.Mandant;
+import eu.ginlo_apps.ginlo.model.backend.BackendResponse;
+import eu.ginlo_apps.ginlo.service.BackendService;
+import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
 import eu.ginlo_apps.ginlo.util.CompanyContactUtil;
 import eu.ginlo_apps.ginlo.util.ImageLoader;
@@ -23,7 +34,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
+import javax.annotation.Nullable;
+
 public class ContactUtil {
+    private static final String TAG = ContactUtil.class.getSimpleName();
     public static final int SORT_ASCENDING = 1;
 
     private ContactUtil() {
@@ -50,7 +64,7 @@ public class ContactUtil {
 
                     return lastName1.compareTo(lastName2);
                 } catch (LocalizedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                     return 0;
                 }
             }
@@ -80,7 +94,7 @@ public class ContactUtil {
 
                     return name1.compareTo(name2) * sortOrder;
                 } catch (LocalizedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                     return 0;
                 }
             }
@@ -240,6 +254,81 @@ public class ContactUtil {
 
         // If the decoding failed, returns null
         return null;
+    }
+
+    /**
+     * Copied from SyncAllContactsTask (synchronizeMandantsWithServer):
+     * (Typos in old code "Mandants" vs. tenants)
+     * Ensure we have a tenant list in preferences. Synchronize with backend if necessary.
+     * This version is with async connection!
+     * Set salts if ArrayMap is given.
+     *
+     * @param application
+     * @return
+     * @throws LocalizedException
+     */
+    public static List<Mandant> getTenantList(SimsMeApplication application, @Nullable  ArrayMap<String, String> serverSalts) throws LocalizedException {
+        final IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
+
+            @Override
+            public void onBackendResponse(final BackendResponse response) {
+                try {
+                    if (response.isError) {
+                        LogUtil.w(TAG, "getTenantList: Backend returned error:" + response.errorMessage);
+                    } else {
+                        final JsonArray responseArray = response.jsonArray;
+                        if (responseArray != null && responseArray.size() > 0) {
+                            final int responseArraySize = responseArray.size();
+
+                            for (int i = 0; i < responseArraySize; i++) {
+                                final JsonObject json = responseArray.get(i).getAsJsonObject();
+                                final JsonElement mandantJson = json.get("Mandant");
+                                if (mandantJson != null) {
+                                    final JsonElement identJson = mandantJson.getAsJsonObject().get("ident");
+                                    final JsonElement saltJson = mandantJson.getAsJsonObject().get("salt");
+
+                                    if(identJson != null && saltJson != null) {
+                                        final String mandantName = identJson.getAsString();
+
+                                        if(!StringUtil.isNullOrEmpty(mandantName) && serverSalts != null) {
+                                            final String salt = saltJson.getAsString();
+                                            if (!StringUtil.isNullOrEmpty(mandantName) && !StringUtil.isNullOrEmpty(salt)) {
+                                                serverSalts.put(mandantName, salt);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            application.getPreferencesController().setMandantenJson(responseArray.toString());
+                            LogUtil.i(TAG, "getTenantList: Successfully retrieved tenant list from backend.");
+                        }
+                    }
+                } catch (LocalizedException e) {
+                    LogUtil.e(TAG, "getTenantList: Got " + e.getMessage());
+                }
+            }
+        };
+
+        LogUtil.d(TAG, "getTenantList: Start");
+
+        List<Mandant> tenants = null;
+        try {
+            tenants = application.getPreferencesController().getMandantenList();
+        } catch (LocalizedException e) {
+            LogUtil.e(TAG, "getTenantList: getMandantenList returned " + e.getMessage());
+        }
+
+        if (tenants == null || tenants.size() < 1) {
+            LogUtil.w(TAG, "getTenantList: Tenant list is empty! Trying to get it from the backend ...");
+            BackendService.withAsyncConnection(application).getTenants(listener);
+        } else if(serverSalts != null) {
+            for (Mandant tenant : tenants) {
+                if (!StringUtil.isNullOrEmpty(tenant.ident) && !StringUtil.isNullOrEmpty(tenant.salt)) {
+                    serverSalts.put(tenant.ident, tenant.salt);
+                }
+            }
+        }
+        return tenants;
     }
 
     public static List<Contact> sortContactsByMandantPriority(final List<Contact> contacts, final PreferencesController preferencesController) {

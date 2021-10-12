@@ -38,17 +38,13 @@ public class SearchContactsCursorAdapter extends CursorRecycleViewAdapter<Search
     private ImageLoader mImageLoader;
     private LayoutInflater mInflater;
 
-    private int mHighLevelColor;
-
-    private int mMediumLevelColor;
-
-    private int mLowLevelColor;
-    private int mMainColor;
+    private final int mHighLevelColor;
+    private final int mMediumLevelColor;
+    private final int mLowLevelColor;
+    private final int mMainColor;
 
     private Drawable mCheckDrawable;
-
     private View.OnClickListener mOnItemClickListener;
-
     private ContactsAdapter.ISelectedContacts mSelectedContacts;
 
     public SearchContactsCursorAdapter(@NonNull final Context context, final Cursor cursor, final ImageLoader imageLoader) {
@@ -114,27 +110,15 @@ public class SearchContactsCursorAdapter extends CursorRecycleViewAdapter<Search
                 try {
                     switch (Integer.parseInt(item.trustState)) {
                         case Contact.STATE_HIGH_TRUST:
-                            if (mHighLevelColor != 0) {
-                                viewHolder.trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getHighColor((Application) getContext().getApplicationContext()));
-                            } else {
-                                viewHolder.trustedStateDivider.setBackgroundColor(getContext().getResources().getColor(R.color.kColorSecLevelHigh));
-                            }
+                            viewHolder.trustedStateDivider.setBackgroundColor(mHighLevelColor);
                             viewHolder.trustedStateDivider.setVisibility(View.VISIBLE);
                             break;
                         case Contact.STATE_MIDDLE_TRUST:
-                            if (mMediumLevelColor != 0) {
-                                viewHolder.trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getMediumColor((Application) getContext().getApplicationContext()));
-                            } else {
-                                viewHolder.trustedStateDivider.setBackgroundColor(getContext().getResources().getColor(R.color.kColorSecLevelMed));
-                            }
+                            viewHolder.trustedStateDivider.setBackgroundColor(mMediumLevelColor);
                             viewHolder.trustedStateDivider.setVisibility(View.VISIBLE);
                             break;
                         case Contact.STATE_LOW_TRUST:
-                            if (mLowLevelColor != 0) {
-                                viewHolder.trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getLowColor((Application) getContext().getApplicationContext()));
-                            } else {
-                                viewHolder.trustedStateDivider.setBackgroundColor(getContext().getResources().getColor(R.color.kColorSecLevelLow));
-                            }
+                            viewHolder.trustedStateDivider.setBackgroundColor(mLowLevelColor);
                             viewHolder.trustedStateDivider.setVisibility(View.VISIBLE);
                             break;
                         case Contact.STATE_UNSIMSABLE: {

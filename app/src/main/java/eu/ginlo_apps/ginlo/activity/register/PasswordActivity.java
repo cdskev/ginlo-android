@@ -33,9 +33,11 @@ import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
 public class PasswordActivity
         extends NewBaseActivity
         implements OnPageChangeListener {
-    public final static String REGISTER_TYPE = "RegisterType";
-    public final static int REGISTER_TYPE_COUPLE_DEVICE = 2;
+
+    private final static String TAG = PasswordActivity.class.getSimpleName();
     private final static int REGISTER_TYPE_CREATE_ACCOUNT = 1;
+    public final static int REGISTER_TYPE_COUPLE_DEVICE = 2;
+    public final static String REGISTER_TYPE = "RegisterType";
 
     private String mPassw1;
     private boolean isSimplePassword;
@@ -59,6 +61,7 @@ public class PasswordActivity
         int pagerStupidPwFragmentPosition = 1;
 
         if (savedInstanceState != null) {
+            LogUtil.d(TAG, "onCreateActivity: Have savedInstanceState: " + savedInstanceState.toString());
             isSimplePassword = savedInstanceState.getBoolean("isSimplePassword");
             mPwEnabled = savedInstanceState.getBoolean("mPwEnabled");
 
@@ -72,6 +75,7 @@ public class PasswordActivity
             mConfirmPasswordFragment = (PasswordFragment) getSupportFragmentManager().getFragment(savedInstanceState,
                     "mConfirmPasswordFragment");
         } else {
+            LogUtil.d(TAG, "onCreateActivity: Have savedInstanceState: null");
             mSetPasswordFragment = new PasswordFragment();
             mSetPasswordFragment.setMode(PasswordFragment.SET_MODE);
 
@@ -208,6 +212,7 @@ public class PasswordActivity
 
     void createAccount() {
         Intent intent;
+        LogUtil.d(TAG, "createAccount: mRegisterType = " + mRegisterType);
         if (mRegisterType == REGISTER_TYPE_CREATE_ACCOUNT) {
             intent = new Intent(PasswordActivity.this, IdentRequestActivity.class);
             mAccountController.createAccountSetPassword(mPassw1, isSimplePassword, mPwEnabled);
@@ -216,6 +221,7 @@ public class PasswordActivity
             mAccountController.coupleDeviceSetPassword(mPassw1, isSimplePassword, mPwEnabled);
         }
         clearPasswords();
+        LogUtil.d(TAG, "createAccount: startActivity " + intent.getComponent().getShortClassName());
         startActivity(intent);
     }
 
@@ -338,7 +344,7 @@ public class PasswordActivity
     }
 
     private void resetPasswordInputs() {
-        LogUtil.i(this.getClass().getName(), "resetting simple pw inputs");
+        LogUtil.i(TAG, "resetting simple pw inputs");
 
         for (int i = 0; i < pagerAdapter.getCount(); i++) {
             Fragment fragment = pagerAdapter.getItem(i);

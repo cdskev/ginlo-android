@@ -1,6 +1,7 @@
 // Copyright (c) 2020-2021 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.preferences
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.CompoundButton
@@ -86,7 +87,7 @@ class PreferencesNotificationsActivity : PreferencesBaseActivity() {
     override fun onResumeActivity() {}
 
     private fun configurePreviewSwitch() {
-        if (SystemUtil.hasMarshmallow() && !preferencesController.isNotificationPreviewDisabledByAdmin()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) && !preferencesController.isNotificationPreviewDisabledByAdmin()) {
             preferences_notifications_switch_show_preview.setOnCheckedChangeListener { buttonView, isChecked ->
                 if (!settingsSwitch) {
                     try {
@@ -119,7 +120,7 @@ class PreferencesNotificationsActivity : PreferencesBaseActivity() {
             isSingleNotificationOn
         )
 
-        if (!SystemUtil.hasOreo()) {
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
 
             val isSingleSoundNotificationOn = preferencesController.getSoundForSingleChatEnabled()
             setCompoundButtonWithoutTriggeringListener(
@@ -266,7 +267,7 @@ class PreferencesNotificationsActivity : PreferencesBaseActivity() {
             isGroupNotificationOn
         )
 
-        if (!SystemUtil.hasOreo()) {
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
             val isGroupSoundNotificationOn = preferencesController.getSoundForGroupChatEnabled()
             setCompoundButtonWithoutTriggeringListener(
                 preferences_notifications_switch_sounds_groups,
@@ -408,7 +409,7 @@ class PreferencesNotificationsActivity : PreferencesBaseActivity() {
             preferences_notifications_switch_notifications_channels,
             isChannelNotificationOn
         )
-        if (!SystemUtil.hasOreo()) {
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
             val isChannelSoundNotificationOn = preferencesController.getSoundForChannelChatEnabled()
 
             setCompoundButtonWithoutTriggeringListener(
@@ -551,7 +552,7 @@ class PreferencesNotificationsActivity : PreferencesBaseActivity() {
             isServiceNotificationOn
         )
 
-        if (!SystemUtil.hasOreo()) {
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
 
             val isServiceSoundNotificationOn = preferencesController.getSoundForServiceChatEnabled()
 

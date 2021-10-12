@@ -7,6 +7,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.AnimationDrawable;
 import android.text.Layout;
 import android.text.Spannable;
@@ -34,6 +35,7 @@ import androidx.collection.SparseArrayCompat;
 import androidx.core.content.ContextCompat;
 import androidx.emoji.widget.EmojiAppCompatTextView;
 import com.google.zxing.Dimension;
+
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.OnLinkClickListener;
 import eu.ginlo_apps.ginlo.R;
@@ -43,9 +45,13 @@ import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
 import eu.ginlo_apps.ginlo.controller.ChatImageController;
+import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.TaskManagerController;
 import eu.ginlo_apps.ginlo.greendao.Channel;
+import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.greendao.Message;
+import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.model.backend.ChannelModel;
 import eu.ginlo_apps.ginlo.model.chat.AppGinloControlChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.BaseChatItemVO;
@@ -62,13 +68,12 @@ import eu.ginlo_apps.ginlo.model.chat.AVChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VideoChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VoiceChatItemVO;
 import eu.ginlo_apps.ginlo.model.constant.MimeType;
-import static eu.ginlo_apps.ginlo.model.constant.NumberConstants.FLOAT_05;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
 import eu.ginlo_apps.ginlo.util.ChannelColorUtil;
 import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
-import eu.ginlo_apps.ginlo.util.FileUtil;
+import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.MetricsUtil;
 import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
@@ -85,13 +90,17 @@ public class ChatAdapter
         extends ArrayAdapter<BaseChatItemVO> {
 
     private static final int LOCATION_WIDTH_OFFSET = 15;
+    private static final String TAG = ChatAdapter.class.getSimpleName();
 
     private final TaskManagerController taskManagerController;
     private final String[] directionMapping;
     private final Map<String, String> itemToTagMapping;
     private final String mChatGuid;
+    private final SimsMeApplication mApplication;
     private final AttachmentController mAttachmentController;
     private final AVChatController avChatController;
+    private final ContactController mContactController;
+    private final ChatImageController mChatImageController;
     private final SparseArrayCompat<ProgressBar> mProgressBarsMap;
     private final SparseArrayCompat<View> mPositionToViewMapping;
     private boolean mShowTimedMessages;
@@ -99,7 +108,7 @@ public class ChatAdapter
     private CustomLinkMovementMethod mMovementMethod;
     private OnLinkClickListener mLinkClickListener;
     private ChannelColorUtil mCcu;
-    private Context mContext;
+    private final Context mContext;
 
     public ChatAdapter(final Activity activity,
                        final Application application,
@@ -113,8 +122,11 @@ public class ChatAdapter
         mContext = context;
         this.taskManagerController = taskManagerController;
         mChatGuid = chatGuid;
-        mAttachmentController = ((SimsMeApplication) application).getAttachmentController();
-        avChatController = ((SimsMeApplication) application).getAVChatController();
+        mApplication = (SimsMeApplication) application;
+        mAttachmentController = mApplication.getAttachmentController();
+        avChatController = mApplication.getAVChatController();
+        mContactController = mApplication.getContactController();
+        mChatImageController = mApplication.getChatImageController();
 
         directionMapping = new String[2];
         directionMapping[BaseChatItemVO.DIRECTION_LEFT] = "left";
@@ -173,7 +185,7 @@ public class ChatAdapter
                 View selectionOverlay = chatItemLayout.findViewById(R.id.chat_item_selection_overlay);
                 if(selectionOverlay != null)
                 {
-                    selectionOverlay.setBackgroundColor(mContext.getResources().getColor(chatItemVO.isSelected() ? R.color.color2_20 : R.color.transparent));
+                    selectionOverlay.setBackgroundColor(chatItemVO.isSelected() ? ColorUtil.getInstance().getAppAccentColor(mApplication) : ColorUtil.getInstance().getTransparentColor(mApplication));
                 }
                 mPositionToViewMapping.put(position, chatItemLayout);
                 return chatItemLayout;
@@ -458,6 +470,116 @@ public class ChatAdapter
                 }
             }
         }
+
+        // Get sender image and set their avatar
+        if (chatItemVO.type != BaseChatItemVO.TYPE_CHANNEL) {
+            final MaskImageView maskedAvatarView = linearLayout.findViewById(R.id.chat_item_mask_image_view_chat_image);
+            Bitmap avatarBmp = null;
+
+            if (GuidUtil.isSystemChat(chatItemVO.getFromGuid())) {
+                avatarBmp = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ginlo_avatar);
+            } else {
+                try {
+                    avatarBmp = mChatImageController.getImageByGuid(chatItemVO.getFromGuid(), -1);
+
+                    // Set up trust level information
+                    if (chatItemVO.direction == BaseChatItemVO.DIRECTION_LEFT) {
+                        final TextView contactTypeTextView = linearLayout.findViewById(R.id.chat_item_contact_type);
+
+                        // Default fillings
+                        int indicatorColor = ColorUtil.getInstance().getLowColor(mApplication);
+                        int indicatorContrastColor = ColorUtil.getInstance().getLowContrastColor(mApplication);
+                        String tmpTextViewText = "     ";
+
+                        final Contact contact = mContactController.getContactByGuid(chatItemVO.getFromGuid());
+                        if(contact != null) {
+                            switch(contact.getState()) {
+                                case Contact.STATE_HIGH_TRUST:
+                                    indicatorColor = ColorUtil.getInstance().getHighColor(mApplication);
+                                    indicatorContrastColor = ColorUtil.getInstance().getHighContrastColor(mApplication);
+                                    break;
+                                case Contact.STATE_MIDDLE_TRUST:
+                                    indicatorColor = ColorUtil.getInstance().getMediumColor(mApplication);
+                                    indicatorContrastColor = ColorUtil.getInstance().getMediumContrastColor(mApplication);
+                                    break;
+                                case Contact.STATE_LOW_TRUST:
+                                default:
+                                    // Special filling for red green blindness
+                                    tmpTextViewText = " !!! ";
+                            }
+
+                            // KS: These may be user settings in the future
+                            final boolean showAccountLabel = true;
+                            final boolean onlyShowForeignAccountTypes = true;
+
+                            String contactTypeIdent;
+                            if(showAccountLabel && (contactTypeIdent = contact.getMandant()) != null) {
+                                final Mandant contactType = mApplication.getPreferencesController().getMandantFromIdent(contactTypeIdent);
+
+                                if (contactTypeTextView != null && contactType != null) {
+                                    // Show some user information including account type (business/private)
+                                    if (StringUtil.isNullOrEmpty(contactType.ident) || StringUtil.isEqual(BuildConfig.SIMSME_MANDANT_DEFAULT, contactType.ident)) {
+                                        if (onlyShowForeignAccountTypes) {
+                                            // Only show "private" label if we are a business account type
+                                            if (RuntimeConfig.isBAMandant()) {
+                                                tmpTextViewText = (String) mApplication.getResources().getText(R.string.private_contact_label_text);
+                                            }
+                                        } else {
+                                            // Always show account label
+                                            tmpTextViewText = (String) mApplication.getResources().getText(R.string.private_contact_label_text);
+                                        }
+                                    } else if (!StringUtil.isNullOrEmpty(contactType.label)) {
+                                        if (onlyShowForeignAccountTypes) {
+                                            // Only show label if contact account type differs from ours
+                                            if (!BuildConfig.SIMSME_MANDANT.equals(contactType.ident)) {
+                                                tmpTextViewText = contactType.label;
+                                            }
+                                        } else {
+                                            // Always show account label
+                                            tmpTextViewText = contactType.label;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (contactTypeTextView != null) {
+                            contactTypeTextView.setText(tmpTextViewText);
+                            contactTypeTextView.setTextColor(indicatorContrastColor);
+                            contactTypeTextView.getBackground().setColorFilter(indicatorColor, PorterDuff.Mode.SRC_ATOP);
+                            contactTypeTextView.setVisibility(View.VISIBLE);
+                        }
+                    }
+                } catch (Exception e) {
+                    LogUtil.w(TAG, "setMessageDetails: Could not set avatar/info for Guid " + chatItemVO.getFromGuid() + ": " + e.getMessage());
+                }
+            }
+
+            if(avatarBmp == null) {
+                avatarBmp = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.gfx_profil_placeholder);
+            }
+
+            if(maskedAvatarView != null) {
+                maskedAvatarView.setMaskRatio(1.0f);
+                maskedAvatarView.setImageBitmap(avatarBmp);
+            }
+
+            /*
+            mProfileClickListener = new OnClickListener() {
+                @Override
+                public void onClick(final View v) {
+                    final Intent intent = new Intent(SingleChatActivity.this, ContactDetailActivity.class);
+
+                    intent.putExtra(ContactDetailActivity.EXTRA_CONTACT, mContact);
+                    intent.putExtra(ContactDetailActivity.EXTRA_MODE, ContactDetailActivity.MODE_NO_SEND_BUTTON);
+                    startActivity(intent);
+                }
+            };
+            final View titleContainer = getToolbar().findViewById(R.id.toolbar_title_container);
+                titleContainer.setOnClickListener(mProfileClickListener);
+
+             */
+        }
     }
 
     private void fillInvalidChatItem(final LinearLayout linearLayout) {
@@ -471,12 +593,13 @@ public class ChatAdapter
                                   final TextChatItemVO textChatItemVO) {
         final TextView textView = linearLayout.findViewById(R.id.chat_item_text_view_message);
         if (textView != null) {
-            Pattern pattern = Pattern.compile(RuntimeConfig.getScheme() + ":\\/\\/\\S*");
+            //Pattern pattern = Pattern.compile(RuntimeConfig.getScheme() + ":\\/\\/\\S*");
+            //KS: Linkify *all* URLs
+            Pattern pattern = Pattern.compile("[A-Za-z0-9_.\\-~]+" + ":\\/\\/\\S*");
             String text = textChatItemVO.message;
             Matcher m = pattern.matcher(text);
             if (m.find()) {
                 String replaceBy = text.substring(m.start(), m.end());
-
                 textView.setText(StringUtil.replaceUrlNew(text, replaceBy, pattern, false));
             } else {
                 textView.setText(textChatItemVO.message);
@@ -603,7 +726,7 @@ public class ChatAdapter
 
         if (textView != null) {
             float dpScale = getContext().getResources().getDisplayMetrics().density;
-            textView.setPadding((int) (19 * dpScale + FLOAT_05), textView.getPaddingTop(), textView.getPaddingRight(), textView.getPaddingBottom());
+            textView.setPadding((int) (19 * dpScale + 0.5f), textView.getPaddingTop(), textView.getPaddingRight(), textView.getPaddingBottom());
 
             if (!StringUtil.isNullOrEmpty(channelChatItemVO.messageContent)) {
                 if (channelChatItemVO.shortLinkText != null) {
@@ -723,7 +846,7 @@ public class ChatAdapter
         if (imageChatItemVO.isPriority) {
             if (importantView != null) {
                 importantView.setVisibility(View.VISIBLE);
-                description.setTextColor(ContextCompat.getColor(getContext(), R.color.kColorAlert));
+                description.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
             }
         } else {
             if (importantView != null) {
@@ -770,7 +893,7 @@ public class ChatAdapter
         if (videoChatItemVO.isPriority) {
             if (importantView != null) {
                 importantView.setVisibility(View.VISIBLE);
-                description.setTextColor(ContextCompat.getColor(getContext(), R.color.kColorAlert));
+                description.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
             }
         } else {
             if (importantView != null) {
@@ -793,12 +916,12 @@ public class ChatAdapter
                 }
 
                 if (voiceChatItemVO.isPriority) {
-                    background.setImageBitmapFormColor(ContextCompat.getColor(getContext(), R.color.kColorAlert));
+                    background.setImageBitmapFormColor(ColorUtil.getInstance().getAlertColor(mApplication));
 
                     final TextView label = linearLayout.findViewById(R.id.chat_item_text_view_type);
                     final TextView clockView = linearLayout.findViewById(R.id.chat_item_text_view_clock);
-                    label.setTextColor(ContextCompat.getColor(getContext(), R.color.kColorAlert));
-                    clockView.setTextColor(ContextCompat.getColor(getContext(), R.color.kColorAlert));
+                    label.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
+                    clockView.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
                 } else {
                     background.setImageBitmapFormColor(ColorUtil.getInstance().getChatItemColor((SimsMeApplication) getContext().getApplicationContext()));
                 }
@@ -857,10 +980,7 @@ public class ChatAdapter
                     clockView.setVisibility(View.GONE);
                 }
             }
-
-            // Always use black - ColorUtil is Theme dependent!
-            // background.setImageBitmapFormColor(ColorUtil.getInstance().getChatItemColor((SimsMeApplication) getContext().getApplicationContext()));
-            background.setImageBitmapFormColor(ContextCompat.getColor(getContext(), R.color.black));
+            background.setImageBitmapFormColor(ColorUtil.getInstance().getBlackColor(mApplication));
         }
     }
 
@@ -928,13 +1048,15 @@ public class ChatAdapter
         } else {
             final TextView textView = linearLayout.findViewById(R.id.chat_item_text_view_message);
             // Erkennen der Simsme Patter
-            Pattern pattern = Pattern.compile(RuntimeConfig.getScheme() + ":\\/\\/\\S*");
+            //Pattern pattern = Pattern.compile(RuntimeConfig.getScheme() + ":\\/\\/\\S*");
+            //KS: Linkify *all* URLs
+            Pattern pattern = Pattern.compile("[A-Za-z0-9_.\\-~]+" + ":\\/\\/\\S*");
+
             String text = systemInfoChatItemVO.infoText;
             Matcher m = pattern.matcher(text);
             if (textView != null) {
                 if (m.find()) {
                     String replaceBy = text.substring(m.start(), m.end());
-
                     textView.setText(StringUtil.replaceUrlNew(text, replaceBy, pattern, false));
                 } else {
                     textView.setText(text);
@@ -1001,10 +1123,10 @@ public class ChatAdapter
 
         if (selfDestructionChatItemVO.isPriority) {
             if (background != null) {
-                background.setImageBitmapFormColor(ContextCompat.getColor(getContext(), R.color.kColorAlert));
+                background.setImageBitmapFormColor(ColorUtil.getInstance().getAlertColor(mApplication));
             }
-            destructionType.setTextColor(ContextCompat.getColor(getContext(), R.color.kColorAlert));
-            destructionLabel.setTextColor(ContextCompat.getColor(getContext(), R.color.kColorAlert));
+            destructionType.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
+            destructionLabel.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
         } else {
             if (background != null) {
                 background.setImageBitmapFormColor(ColorUtil.getInstance().getChatItemColor((Application) getContext().getApplicationContext()));

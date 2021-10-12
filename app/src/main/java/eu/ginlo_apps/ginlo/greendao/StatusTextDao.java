@@ -168,10 +168,7 @@ public class StatusTextDao
 
     @Override
     protected boolean hasKey(StatusText entity) {
-        if (entity != null && entity.getId() != null) {
-            return true;
-        }
-        return false;
+        return entity != null && entity.getId() != null;
     }
 
     /**

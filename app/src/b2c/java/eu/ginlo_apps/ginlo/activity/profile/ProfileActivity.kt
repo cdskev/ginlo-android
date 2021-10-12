@@ -81,11 +81,10 @@ class ProfileActivity : ProfileActivityBase() {
     override fun onResumeActivity() {
         val phoneNumber = simsMeApplication.contactController.ownContact?.phoneNumber
 
+        profileTextViewPhoneNumber.visibility = View.VISIBLE
         if (phoneNumber.isNullOrBlank()) {
-            profileTextViewPhoneNumber.visibility = View.GONE
             profileTextViewPhoneNumber.setText("")
         } else {
-            profileTextViewPhoneNumber.visibility = View.VISIBLE
             profileTextViewPhoneNumber.setText(phoneNumber)
         }
     }

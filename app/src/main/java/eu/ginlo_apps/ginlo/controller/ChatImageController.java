@@ -115,6 +115,16 @@ public class ChatImageController implements LowMemoryCallback {
         }
     }
 
+    public void deleteImage(String guid) {
+        File file = new File(profileImageDir, guid);
+
+        if (file.exists()) {
+            file.delete();
+        }
+        removeFromCache(guid);
+        notifyListener(guid);
+    }
+
     public void resetBackground() {
         background = null;
         if (backgroundFile.exists()) {
@@ -186,7 +196,6 @@ public class ChatImageController implements LowMemoryCallback {
             StreamUtil.closeStream(fileOutputStream);
         }
         removeFromCache(guid);
-
         notifyListener(guid);
     }
 
@@ -238,16 +247,16 @@ public class ChatImageController implements LowMemoryCallback {
                 ContactController contactController = context.getContactController();
                 if(System.currentTimeMillis() > (lastAsyncRefresh + 10000)) {
                     lastAsyncRefresh = System.currentTimeMillis();
-                    LogUtil.i(TAG, "Initialize async to get profile data from server." + guid);
+                    LogUtil.i(TAG, "getImageInOriginalSize: Initialize async to get profile data from server for " + guid);
                     contactController.updateContactProfileInfosFromServer(guid);
                 }
 
-                LogUtil.i(TAG, "Load fallback image for Guid " + guid);
+                LogUtil.i(TAG, "getImageInOriginalSize Load fallback image for " + guid);
 
                 // Fallback des Contact-Image Fallbacks sollte die Farbe sein ...
                 bitmap = contactController.getFallbackImageByGuid(context, guid, 0);
                 if (bitmap != null) {
-                    LogUtil.i(TAG, "Got Fallback Image for Guid " + guid);
+                    LogUtil.i(TAG, "getImageInOriginalSize Got Fallback Image for " + guid);
                 }
             }
         }

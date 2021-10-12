@@ -26,14 +26,14 @@ public class SkuDetails {
 
     private final String mItemType;
     private final String mJson;
-    private String mSku;
-    private String mType;
-    private String mPrice;
-    private String mTitle;
-    private String mDescription;
-    private String mPriceCurrency;
+    private final String mSku;
+    private final String mType;
+    private final String mPrice;
+    private final String mTitle;
+    private final String mDescription;
+    private final String mPriceCurrency;
 
-    private long mPriceMicros;
+    private final long mPriceMicros;
 
     /**
      *

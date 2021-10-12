@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.NumberPicker
@@ -135,7 +136,7 @@ class PreferencesPasswordActivity : PreferencesBaseActivity(), FingerprintFragme
     }
 
     private fun configureFingerprintSwitch() {
-        if (!SystemUtil.hasMarshmallow() || !accountController.isBiometricAuthAvailable) {
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) || !accountController.isBiometricAuthAvailable) {
             preferences_password_fingerprint_switch.visibility = View.GONE
             return
         }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+	android:paddingStart="@dimen/half_padding"
+	android:paddingEnd="@dimen/half_padding"
+	android:paddingTop="@dimen/small_padding"
+	android:paddingBottom="@dimen/small_padding"
+	android:layout_marginStart="28dp"
+	android:layout_marginEnd="@dimen/half_padding"
+	android:layout_width="30dp"
+	android:layout_height="wrap_content"
+	android:layout_gravity="bottom"
+	android:orientation="vertical">
+
+	<FrameLayout
+		android:id="@+id/chat_item_frame_layout_message_status"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_gravity="bottom|end"
+		android:layout_marginBottom="2dp"
+		android:background="@drawable/message_status" />
+
+</LinearLayout>

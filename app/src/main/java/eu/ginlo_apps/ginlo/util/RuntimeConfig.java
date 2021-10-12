@@ -119,14 +119,6 @@ public class RuntimeConfig {
         }
     }
 
-    public static String getScheme() {
-        if (getInstance().isProd()) {
-            return BuildConfig.APP_URL_SCHEME;
-        } else {
-            return BuildConfig.APP_URL_SCHEME + "debug";
-        }
-    }
-
     public static boolean isB2c() {
         return StringUtil.isEqual("default", getInstance().getMandantInternal());
     }

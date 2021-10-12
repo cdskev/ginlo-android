@@ -4,6 +4,7 @@ package eu.ginlo_apps.ginlo.activity.register;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.view.KeyEvent;
@@ -14,11 +15,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import eu.ginlo_apps.ginlo.BuildConfig;
+import eu.ginlo_apps.ginlo.LoginActivity;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity;
 import eu.ginlo_apps.ginlo.activity.reregister.ChangePhoneActivity;
 import eu.ginlo_apps.ginlo.activity.reregister.ConfirmPhoneActivity;
 import eu.ginlo_apps.ginlo.controller.ContactController.OnSystemChatCreatedListener;
+import eu.ginlo_apps.ginlo.controller.AccountController;
+import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.controller.contracts.OnConfirmAccountListener;
 import eu.ginlo_apps.ginlo.controller.contracts.OnValidateConfirmCodeListener;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -26,6 +30,7 @@ import eu.ginlo_apps.ginlo.greendao.Account;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.constant.NumberConstants;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
+import eu.ginlo_apps.ginlo.util.GinloNowUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
@@ -38,11 +43,14 @@ import static eu.ginlo_apps.ginlo.model.constant.NumberConstants.INT_60;
 
 public class IdentConfirmActivity
         extends NewBaseActivity implements OnValidateConfirmCodeListener, OnConfirmAccountListener {
+    public static final String TAG = IdentConfirmActivity.class.getSimpleName();
     public static final String REGISTRATION_TYPE = "IdentConfirmActivity.RegistrationType";
     public static final int REGISTRATION_TYPE_PHONE = 1;
     public static final int REGISTRATION_TYPE_MAIL = 2;
     public static final String FAKE_PHONENUMBER = "IdentConfirmActivity.FakePhonenumber";
 
+    private AccountController mAccountController;
+    private GinloNowUtil mGinloNowUtil;
     protected String mConfirmCode;
     protected EditText mConfirmCodeEditText1;
     protected EditText mConfirmCodeEditText2;
@@ -52,11 +60,23 @@ public class IdentConfirmActivity
     private EditText mConfirmCodeMailEditText;
     private TextView countdownTextView;
     private int mRegistrationType = -1;
-    private String mFakePhonenumber = "+99901010101";
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
 
     @Override
     protected void onCreateActivity(final Bundle savedInstanceState) {
+
+        mAccountController = getSimsMeApplication().getAccountController();
+        if(mAccountController == null) {
+            return;
+        }
+
         nextClicked = false;
+        mGinloNowUtil = new GinloNowUtil();
 
         if (getIntent().hasExtra(REGISTRATION_TYPE)) {
             mRegistrationType = getIntent().getIntExtra(REGISTRATION_TYPE, REGISTRATION_TYPE_PHONE);
@@ -67,24 +87,11 @@ public class IdentConfirmActivity
 
         // A little bit unhandy, but IdentConfirmActivity is being re-used by ConfirmPhoneActivity <sigh!>,
         // so we need to do the instance check.
-        if (!BuildConfig.NEED_PHONENUMBER_VALIDATION && !(this instanceof ConfirmPhoneActivity)) {
-            View myView = findViewById(R.id.activity_ident_confirm);
-            myView.setVisibility(View.GONE);
+        if (!(this instanceof ConfirmPhoneActivity) && (!BuildConfig.NEED_PHONENUMBER_VALIDATION
+                || mGinloNowUtil.haveGinloNowInvitation())) {
 
-            mFakePhonenumber = getIntent().getStringExtra(FAKE_PHONENUMBER);
-            nextClicked = true;
-            mConfirmCode = mFakePhonenumber.substring(mFakePhonenumber.length() - 6);
-
-            if (getSimsMeApplication().getAccountController() == null || getSimsMeApplication().getAccountController().getAccount() == null) {
-                return;
-            }
-
-            if (getSimsMeApplication().getAccountController().getAccountState() == Account.ACCOUNT_STATE_VALID_CONFIRM_CODE) {
-                getSimsMeApplication().getAccountController().createAccountConfirmAccount(mConfirmCode, this);
-            } else {
-                getSimsMeApplication().getAccountController().createAccountValidateConfirmCode(mConfirmCode, this);
-            }
-
+            continueExpressRegistration();
+            return;
         }
 
         mIdentConfirmLabel = findViewById(R.id.ident_confirm_text_view_label);
@@ -114,7 +121,7 @@ public class IdentConfirmActivity
 
         if (mRegistrationType == REGISTRATION_TYPE_PHONE) {
             if (mIdentConfirmLabel != null) {
-                final String phoneNumber = getSimsMeApplication().getAccountController().getCreateAccountPhoneNumber();
+                final String phoneNumber = mAccountController.getCreateAccountPhoneNumber();
                 mIdentConfirmLabel.setText(getResources().getString(R.string.registration_textView_killTextView, phoneNumber));
             }
 
@@ -138,7 +145,7 @@ public class IdentConfirmActivity
                     String email = getSimsMeApplication().getContactController().getOwnContact().getEmail();
                     mIdentConfirmLabel.setText(getResources().getString(R.string.registration_confirm_mail_text, email));
                 } catch (LocalizedException e) {
-                    LogUtil.w(IdentConfirmActivity.class.getSimpleName(), e.getIdentifier(), e);
+                    LogUtil.w(TAG, e.getIdentifier(), e);
                 }
             }
 
@@ -185,6 +192,36 @@ public class IdentConfirmActivity
         }.start();
     }
 
+    /**
+     * This is for invitations and other ways of registrations where phone number validation
+     * should be skipped.
+     */
+    private void continueExpressRegistration() {
+        LogUtil.d(TAG, "continueExpressRegistration: Skip all validation.");
+        View myView = findViewById(R.id.activity_ident_confirm);
+        myView.setVisibility(View.GONE);
+        mRegistrationType = IdentConfirmActivity.REGISTRATION_TYPE_PHONE;
+        nextClicked = true;
+        mConfirmCode = "NOT_USED";
+
+        if(mAccountController.getAccountState() != Account.ACCOUNT_STATE_VALID_CONFIRM_CODE
+                && !BuildConfig.NEED_PHONENUMBER_VALIDATION
+                && !mGinloNowUtil.haveGinloNowInvitation()) {
+
+            // We must have this for a possible backup restore.
+            // LoginActivity then expects a pre-confirmed account.
+            mAccountController.setAccountStateToConfirmationCodeValid();
+            LogUtil.d(TAG, "continueExpressRegistration: Starting  LoginActivity ...");
+            final Intent intent = new Intent(IdentConfirmActivity.this, RuntimeConfig.getClassUtil().getLoginActivityClass());
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            return;
+        }
+        mAccountController.setAccountStateToConfirmed();
+        mAccountController.configureNewAccount();
+        onConfirmAccountSuccess();
+    }
+
     @Override
     protected int getActivityLayout() {
         return R.layout.activity_ident_confirm;
@@ -215,12 +252,12 @@ public class IdentConfirmActivity
 
     @Override
     public void onBackPressed() {
-        if (getSimsMeApplication().getAccountController() == null || getSimsMeApplication().getAccountController().getAccount() == null) {
+        if (mAccountController.getAccount() == null) {
             // Reset gerade im Gang ....
             return;
         }
 
-        if (Account.ACCOUNT_STATE_NOT_CONFIRMED != getSimsMeApplication().getAccountController().getAccount().getState()) {
+        if (Account.ACCOUNT_STATE_NOT_CONFIRMED != mAccountController.getAccount().getState()) {
             // falls wir durch abgeleitete Klassen - z.B. Telefonnummer aendern - hier rein rutschen, nicht den Account loeschen
             super.onBackPressed();
             return;
@@ -232,7 +269,7 @@ public class IdentConfirmActivity
                 DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        getSimsMeApplication().getAccountController().resetCreateAccountRegisterPhone();
+                        mAccountController.resetCreateAccountRegisterPhone();
                         Intent intent = new Intent(IdentConfirmActivity.this, IntroActivity.class);
                         startActivity(intent);
                         finish();
@@ -248,7 +285,7 @@ public class IdentConfirmActivity
                         null
                 ).show();
             } else {
-                getSimsMeApplication().getAccountController().resetCreateAccountRegisterPhone();
+                mAccountController.resetCreateAccountRegisterPhone();
                 super.onBackPressed();
             }
         } else {
@@ -257,24 +294,16 @@ public class IdentConfirmActivity
     }
 
     public void handleNextClick(View view) {
-        if (getSimsMeApplication().getAccountController() == null || getSimsMeApplication().getAccountController().getAccount() == null) {
+        if (mAccountController.getAccount() == null) {
             // Reset gerade im Gang ....
             return;
         }
 
         if (mRegistrationType == REGISTRATION_TYPE_PHONE) {
-            // A little bit unhandy, but IdentConfirmActivity is being re-used by ConfirmPhoneActivity <sigh!>,
-            // so we need to do the instance check.
-            if (!BuildConfig.NEED_PHONENUMBER_VALIDATION && !(this instanceof ConfirmPhoneActivity)) {
-                // KS: This is really bad, but ... ;)
-                mConfirmCode = mFakePhonenumber.substring(mFakePhonenumber.length() - 6);
-            } else {
-                if (mConfirmCodeEditText1 == null || mConfirmCodeEditText2 == null) {
-                    return;
-                }
-                mConfirmCode = mConfirmCodeEditText1.getText().toString() + mConfirmCodeEditText2.getText().toString();
+            if (mConfirmCodeEditText1 == null || mConfirmCodeEditText2 == null) {
+                return;
             }
-
+            mConfirmCode = mConfirmCodeEditText1.getText().toString() + mConfirmCodeEditText2.getText().toString();
         } else {
             if (mConfirmCodeMailEditText == null) {
                 return;
@@ -296,17 +325,24 @@ public class IdentConfirmActivity
         if (!nextClicked) {
             nextClicked = true;
 
-            if (getSimsMeApplication().getAccountController().getAccountState() == Account.ACCOUNT_STATE_VALID_CONFIRM_CODE) {
-                getSimsMeApplication().getAccountController().createAccountConfirmAccount(mConfirmCode, this);
-            } else {
-                getSimsMeApplication().getAccountController().createAccountValidateConfirmCode(mConfirmCode, this);
+            switch(mAccountController.getAccountState()) {
+                case Account.ACCOUNT_STATE_CONFIRMED:
+                    onConfirmAccountSuccess();
+                    break;
+                case Account.ACCOUNT_STATE_VALID_CONFIRM_CODE:
+                    mAccountController.createAccountConfirmAccount(mConfirmCode, this);
+                    // Set account state to ACCOUNT_STATE_CONFIRMED on success.
+                    break;
+                default:
+                    mAccountController.createAccountValidateConfirmCode(mConfirmCode, this);
+                    // Set account state to ACCOUNT_STATE_VALID_CONFIRM_CODE on success.
             }
         }
     }
 
     private void validateMail() {
         try {
-            getSimsMeApplication().getAccountController().validateOwnEmailAsync(new GenericActionListener<Void>() {
+            mAccountController.validateOwnEmailAsync(new GenericActionListener<Void>() {
                 @Override
                 public void onSuccess(Void object) {
                     nextStepAfterValidate();
@@ -327,7 +363,8 @@ public class IdentConfirmActivity
         try {
             getSimsMeApplication().getPreferencesController().getSharedPreferences().edit().remove(REGISTRATION_TYPE).apply();
 
-            if (getSimsMeApplication().getAccountController().getAccount() != null && getSimsMeApplication().getAccountController().getAccount().getAllServerAccountIDs() != null) {
+            if (mAccountController.getAccount() != null && mAccountController.getAccount().getAllServerAccountIDs() != null) {
+                LogUtil.d(TAG, "nextStepAfterValidate: Starting  RestoreBackupActivity ...");
                 dismissIdleDialog();
                 getSimsMeApplication().getPreferencesController().setRegConfirmCode(mConfirmCode);
 
@@ -335,10 +372,11 @@ public class IdentConfirmActivity
 
                 startActivity(intent);
             } else {
-                getSimsMeApplication().getAccountController().createAccountConfirmAccount(mConfirmCode, this);
+                LogUtil.d(TAG, "nextStepAfterValidate: Starting  createAccountConfirmAccount ...");
+                mAccountController.createAccountConfirmAccount(mConfirmCode, this);
             }
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             dismissIdleDialog();
         }
     }
@@ -360,7 +398,7 @@ public class IdentConfirmActivity
         DialogInterface.OnClickListener clickListener = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                getSimsMeApplication().getAccountController().deleteAccount();
+                mAccountController.deleteAccount();
             }
         };
 
@@ -386,6 +424,7 @@ public class IdentConfirmActivity
                 dismissIdleDialog();
 
                 try {
+                    LogUtil.d(TAG, "onConfirmAccountSuccess: Starting  LoginActivity ...");
                     final Intent intent = new Intent(IdentConfirmActivity.this, RuntimeConfig.getClassUtil().getLoginActivityClass());
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
@@ -398,7 +437,7 @@ public class IdentConfirmActivity
             public void onSystemChatCreatedError(String message) {
                 dismissIdleDialog();
                 nextClicked = false;
-                getSimsMeApplication().getAccountController().resetCreateAccountValidateConfirmCode();
+                mAccountController.resetCreateAccountValidateConfirmCode();
                 DialogBuilderUtil.buildErrorDialog(IdentConfirmActivity.this, message).show();
             }
         };

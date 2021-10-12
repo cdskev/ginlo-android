@@ -24,14 +24,14 @@ public class Purchase {
 
     final String mItemType;  // ITEM_TYPE_INAPP or ITEM_TYPE_SUBS
     private final String mOriginalJson;
-    private String mOrderId;
-    private String mPackageName;
-    private String mSku;
-    private long mPurchaseTime;
-    private int mPurchaseState;
-    private String mDeveloperPayload;
-    private String mToken;
-    private String mSignature;
+    private final String mOrderId;
+    private final String mPackageName;
+    private final String mSku;
+    private final long mPurchaseTime;
+    private final int mPurchaseState;
+    private final String mDeveloperPayload;
+    private final String mToken;
+    private final String mSignature;
 
     /**
      *

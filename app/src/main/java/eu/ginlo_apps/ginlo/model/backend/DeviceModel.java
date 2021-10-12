@@ -130,8 +130,4 @@ public class DeviceModel
 
         return version;
     }
-
-    public boolean isTempDevice() {
-        return StringUtil.isEqual("tempDevice", type);
-    }
 }

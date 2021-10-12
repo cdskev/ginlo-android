@@ -11,6 +11,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 /**
@@ -76,11 +77,7 @@ public class GroupInvMessageModelDeserializer
         groupInvMessageModel.datesend = datesend;
 
         //    groupInvMessageModel.signature = signature;
-        try {
-            groupInvMessageModel.signatureBytes = jsonObject.get("signature").toString().getBytes(Encoding.UTF8);
-        } catch (UnsupportedEncodingException e) {
-            LogUtil.w(GroupInvMessageModel.class.getSimpleName(), e.getMessage(), e);
-        }
+        groupInvMessageModel.signatureBytes = jsonObject.get("signature").toString().getBytes(StandardCharsets.UTF_8);
         //groupInvMessageModel.requestGuid = requestGuid;
         return groupInvMessageModel;
     }

@@ -423,10 +423,7 @@ public class ChannelDao
 
     @Override
     protected boolean hasKey(Channel entity) {
-        if (entity != null && entity.getId() != null) {
-            return true;
-        }
-        return false;
+        return entity != null && entity.getId() != null;
     }
 
     /**

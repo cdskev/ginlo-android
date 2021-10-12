@@ -246,10 +246,7 @@ public class CompanyContactDao
 
     @Override
     protected boolean hasKey(CompanyContact entity) {
-        if (entity != null && entity.getId() != null) {
-            return true;
-        }
-        return false;
+        return entity != null && entity.getId() != null;
     }
 
     public int countEntries(final ContactController.IndexType indexType) {

@@ -9,6 +9,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Florian
@@ -43,11 +44,7 @@ public class InternalMessageModelDeserializer
         internalMessageModel.from = from;
         internalMessageModel.to = to;
 
-        try {
-            internalMessageModel.data = (data != null) ? data.getBytes(Encoding.UTF8) : null;
-        } catch (UnsupportedEncodingException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-        }
+        internalMessageModel.data = (data != null) ? data.getBytes(StandardCharsets.UTF_8) : null;
 
         return internalMessageModel;
     }

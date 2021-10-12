@@ -198,10 +198,7 @@ public class ProductDao
 
     @Override
     protected boolean hasKey(Product entity) {
-        if (entity != null && entity.getId() != null) {
-            return true;
-        }
-        return false;
+        return entity != null && entity.getId() != null;
     }
 
     /**

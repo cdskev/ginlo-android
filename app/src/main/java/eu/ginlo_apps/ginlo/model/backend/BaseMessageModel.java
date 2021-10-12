@@ -27,12 +27,6 @@ public class BaseMessageModel
     //public SignatureModel Sha256 ssignature;
     public byte[] signatureSha256Bytes;
 
-    //public SignatureModel signature;
-    public byte[] signatureTempBytes;
-
-    //public SignatureModel Sha256 ssignature;
-    public byte[] signatureTempSha256Bytes;
-
     public Date datesend;
 
     public Date datedownloaded;

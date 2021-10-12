@@ -81,11 +81,4 @@ public class RotateBitmap {
             return mBitmap.getWidth();
         }
     }
-
-    public void recycle() {
-        if (mBitmap != null) {
-            mBitmap.recycle();
-            mBitmap = null;
-        }
-    }
 }

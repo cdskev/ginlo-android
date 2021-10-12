@@ -3,11 +3,11 @@ package eu.ginlo_apps.ginlo.model.drawer;
 
 public class DrawerListItemVO {
     private final String mContentDescription;
-    private String mTitle;
-    private String mHint;
-    private Class mNextActivity;
-    private int mImageID;
-    private boolean mIsAbsent;
+    private final String mTitle;
+    private final String mHint;
+    private final Class mNextActivity;
+    private final int mImageID;
+    private final boolean mIsAbsent;
 
     public DrawerListItemVO(String title,
                             String hint,

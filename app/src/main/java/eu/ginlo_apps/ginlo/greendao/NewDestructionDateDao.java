@@ -168,10 +168,7 @@ public class NewDestructionDateDao
 
     @Override
     protected boolean hasKey(NewDestructionDate entity) {
-        if (entity != null && entity.getId() != null) {
-            return true;
-        }
-        return false;
+        return entity != null && entity.getId() != null;
     }
 
     /**

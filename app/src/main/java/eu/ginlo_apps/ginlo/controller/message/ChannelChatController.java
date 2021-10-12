@@ -181,7 +181,7 @@ public class ChannelChatController extends ChatController {
     }
 
     @Override
-    public AESKeyDataContainer getEncryptionData(String recipientGuid, String temporaryDeviceGuid) throws LocalizedException {
+    public AESKeyDataContainer getEncryptionData(String recipientGuid) throws LocalizedException {
 
         final Chat chat = getChatByGuid(recipientGuid);
 

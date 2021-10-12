@@ -9,5 +9,5 @@ interface GinloLifecycleObserver : LifecycleObserver {
     fun startLogoutService(isMinimumOneMinute: Boolean)
     fun isAppInBackground(): Boolean
     fun registeredAppLifecycleCallbacks(callbacks: AppLifecycleCallbacks)
-    fun setAvoidLogoutWhenGoesInBackground();
+    fun setAvoidLogoutWhenGoesInBackground()
 }

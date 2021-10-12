@@ -38,6 +38,8 @@ import eu.ginlo_apps.ginlo.adapter.ContactsAdapter;
 import eu.ginlo_apps.ginlo.adapter.PageAdapterItemInfo;
 import eu.ginlo_apps.ginlo.adapter.SimsmeFragmentPagerAdapter;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
+import eu.ginlo_apps.ginlo.controller.AccountController;
+import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.fragment.BaseContactsFragment;
 import eu.ginlo_apps.ginlo.fragment.ContactsFragment;
@@ -62,15 +64,19 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 
 public class ContactsActivity
-        extends BaseActivity implements ContactsAdapter.ISelectedContacts {
+        extends BaseActivity
+        implements ContactsAdapter.ISelectedContacts,
+        ContactController.OnContactsChangedListener {
+
+    private static final String TAG = ContactsActivity.class.getSimpleName();
+    private static final String EXTRA_FORWARD_USE = "ContactsActivity.forward.use";
+    private static final int REQUEST_ACTION_SEND_CODE = 111;
+    private final int REQUEST_ADD_CONTACT = 267;
+
     public static final String EXTRA_MODE = "ContactsActivity.modeExtra";
-
     public static final String EXTRA_SELECTED_CONTACTS = "ContactsActivity.selectedContacts";
-
     public static final String EXTRA_SELECTED_CONTACTS_FROM_GROUP = "ContactsActivity.selectedContacts.from.group";
-
     public static final String EXTRA_GROUP_CONTACTS = "ContactsActivity.group.contacts";
-
     public static final String EXTRA_GROUP_CHAT_OWNER_GUID = "ContactsActivity.group.chat.guid";
     public static final String EXTRA_MAX_SELECTED_CONTACTS_SIZE = "ChatRoomInfoActivity.maxSelectedContactSize";
     public static final int MODE_ALL = 0;
@@ -81,10 +87,7 @@ public class ContactsActivity
     public static final int MODE_ADD_CONTACT = 5;
     public static final int MODE_SEND_CONTACT = 6;
     public static final String EXTRA_ADD_CONTACTS_LIST = "ContactsActivity.add.contacts.list";
-    private static final String EXTRA_FORWARD_USE = "ContactsActivity.forward.use";
 
-    private static final int REQUEST_ACTION_SEND_CODE = 111;
-    private final int REQUEST_ADD_CONTACT = 267;
     @Inject
     public Router router;
     protected MenuItem mSearchItem;
@@ -101,12 +104,14 @@ public class ContactsActivity
      */
     private ArrayList<String> mSelectedContactsGuids;
     private int mMaxSelectableContactSize;
+    private AccountController mAccountController;
+    private ContactController mContactController;
 
     public void onOptionsMenuClick(final View v) {
         try {
             View menuRoot = ViewExtensionsKt.themedInflate(LayoutInflater.from(this), this, R.layout.menu_overflow_contacts, null);
 
-            if (getSimsMeApplication().getAccountController().getManagementCompanyIsUserRestricted()) {
+            if (mAccountController.getManagementCompanyIsUserRestricted()) {
                 final TextView firstItem = menuRoot.findViewById(R.id.menu_contacs_first_item);
                 final TextView secondItem = menuRoot.findViewById(R.id.menu_contacs_second_item);
                 firstItem.setVisibility(View.GONE);
@@ -151,6 +156,20 @@ public class ContactsActivity
 
     @Override
     protected void onCreateActivity(Bundle savedInstanceState) {
+        mAccountController = getSimsMeApplication().getAccountController();
+        if(mAccountController == null) {
+            LogUtil.e(TAG, "onCreateActivity: mAccountController = null");
+            return;
+        }
+
+        mContactController = getSimsMeApplication().getContactController();
+        if(mContactController == null) {
+            LogUtil.e(TAG, "onCreateActivity: mContactController = null");
+            return;
+        }
+
+        mContactController.setOnContactsChangedListener(this);
+
         try {
             setTitle(R.string.contacts_overViewViewControllerTitle);
 
@@ -173,20 +192,19 @@ public class ContactsActivity
             //<----------- Oeffnen In -----------
 
             mTabLayout = findViewById(R.id.contacts_activity_tab_layout);
-
             mViewPager = findViewById(R.id.contatcs_activity_viewpager);
+
             SimsmeFragmentPagerAdapter pagerAdapter = new SimsmeFragmentPagerAdapter(getSupportFragmentManager());
             mViewPager.setAdapter(pagerAdapter);
 
             initFragments(pagerAdapter);
-
 
             mTabLayout.setupWithViewPager(mViewPager);
             mTabLayout.addOnTabSelectedListener(getTabSelectedListener());
 
             mFabButton = findViewById(R.id.fab_image_button_contacts);
 
-            if (mIsSendAction || getSimsMeApplication().getAccountController().getManagementCompanyIsUserRestricted() || mMode == MODE_ADD_CONTACT || mMode == MODE_NON_SIMSME) {
+            if (mIsSendAction || mAccountController.getManagementCompanyIsUserRestricted() || mMode == MODE_ADD_CONTACT || mMode == MODE_NON_SIMSME) {
                 mFabButton.setVisibility(View.GONE);
             }
             if (mMode == MODE_NON_SIMSME) {
@@ -205,8 +223,8 @@ public class ContactsActivity
             if (mSelectedContactsGuids == null) {
                 mSelectedContactsGuids = new ArrayList<>();
             }
-
             handleTabLayout(pagerAdapter);
+
         } catch (LocalizedException e) {
             String identifier = e.getIdentifier();
             if (!StringUtil.isNullOrEmpty(identifier)) {
@@ -232,7 +250,12 @@ public class ContactsActivity
 
     @Override
     protected void onResumeActivity() {
+        LogUtil.d(TAG, "onResumeActivity called.");
+    }
 
+    @Override
+    public void onContactsChanged() {
+        LogUtil.d(TAG, "onContactsChanged called.");
     }
 
     private void handleTabLayout(SimsmeFragmentPagerAdapter pagerAdapter) {
@@ -603,7 +626,7 @@ public class ContactsActivity
 
     protected void showFabButon(final boolean show) {
         try {
-            if (mIsSendAction || getSimsMeApplication().getAccountController().getManagementCompanyIsUserRestricted() || mMode == MODE_ADD_CONTACT || mMode == MODE_NON_SIMSME) {
+            if (mIsSendAction || mAccountController.getManagementCompanyIsUserRestricted() || mMode == MODE_ADD_CONTACT || mMode == MODE_NON_SIMSME) {
                 mFabButton.setVisibility(View.GONE);
             } else {
                 mFabButton.setVisibility(show ? View.VISIBLE : View.GONE);
@@ -647,8 +670,7 @@ public class ContactsActivity
                         }
 
                         if (returnImage == null) {
-                            returnImage = getSimsMeApplication().getContactController().getFallbackImageByContact(getSimsMeApplication(), contact
-                            );
+                            returnImage = mContactController.getFallbackImageByContact(getSimsMeApplication(), contact);
                         }
 
                         if (returnImage == null) {
@@ -679,4 +701,5 @@ public class ContactsActivity
 
         return imageLoader;
     }
+
 }

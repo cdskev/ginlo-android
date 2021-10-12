@@ -27,44 +27,14 @@ import java.util.Map;
 public class SignatureModel {
 
     private String fromGuid;
-
     private String fromGuidHash;
-
     private String fromKeyHash;
-
-    private String fromTempDeviceGuid;
-
-    private String fromTempDeviceGuidHash;
-
-    private String fromTempDeviceKeyHash;
-
     private String toGuid;
-
     private String toGuidHash;
-
     private String toKeyHash;
-
-    private String toTempDeviceGuid;
-
-    private String toTempDeviceGuidHash;
-
-    private String toTempDeviceKeyHash;
-
     private String dataHash;
-
     private String[] attachments;
-
     private String signature;
-
-    /**
-     * signature inklusive der Felder über die neuen felder für das Temp-Device
-     */
-    private String signatureWithTempInfo;
-
-    /**
-     * Signature über die Daten mit dem Schlüssel des Temp-Device
-     */
-    private String signatureTempDevice;
 
     public SignatureModel() {
     }
@@ -125,22 +95,6 @@ public class SignatureModel {
                     signatureModel.toKeyHash = value;
                 }
             }
-
-            if (keyParts.length == 4) {
-                if (keyParts[0].equals("from") && keyParts[2].equals("tempDevice") && keyParts[3].equals("guid")) {
-                    signatureModel.fromTempDeviceGuidHash = value;
-                }
-                if (keyParts[0].equals("from") && keyParts[2].equals("tempDevice") && keyParts[3].equals("key")) {
-                    signatureModel.fromTempDeviceKeyHash = value;
-                }
-
-                if (keyParts[0].equals("to") && keyParts[2].equals("tempDevice") && keyParts[3].equals("guid")) {
-                    signatureModel.toTempDeviceGuidHash = value;
-                }
-                if (keyParts[0].equals("to") && keyParts[2].equals("tempDevice") && keyParts[3].equals("key")) {
-                    signatureModel.toTempDeviceKeyHash = value;
-                }
-            }
         }
 
         signatureModel.attachments = attachments.toArray(new String[]{});
@@ -148,10 +102,6 @@ public class SignatureModel {
         if (jsonObject.has("signature") && !jsonObject.get("signature").isJsonNull()) {
 
             signatureModel.signature = jsonObject.get("signature").getAsString();
-        }
-
-        if (jsonObject.has("signature-tempdevice") && !jsonObject.get("signature-tempdevice").isJsonNull()) {
-            signatureModel.signatureTempDevice = jsonObject.get("signature-tempdevice").getAsString();
         }
 
         return signatureModel;
@@ -165,18 +115,6 @@ public class SignatureModel {
         this.signature = signature;
     }
 
-    public String getSignatureWithTempInfo() {
-        return signatureWithTempInfo;
-    }
-
-    public void setSignatureWithTempInfo(String signatureWithTempInfo) {
-        this.signatureWithTempInfo = signatureWithTempInfo;
-    }
-
-    public String getSignatureTempDevice() {
-        return signatureTempDevice;
-    }
-
     public void initWithMessage(BaseMessageModel messageModel, boolean useSha256) throws LocalizedException {
         if (messageModel instanceof PrivateMessageModel) {
             PrivateMessageModel singleMessageModel = (PrivateMessageModel) messageModel;
@@ -188,11 +126,6 @@ public class SignatureModel {
             this.fromKeyHash = getChecksum(singleMessageModel.from.keyContainer, useSha256);
             this.toGuidHash = getChecksum(singleMessageModel.to[0].guid, useSha256);
             this.toKeyHash = getChecksum(singleMessageModel.to[0].keyContainer, useSha256);
-            if (singleMessageModel.to[0].tempDeviceGuid != null) {
-                this.toTempDeviceGuid = singleMessageModel.to[0].tempDeviceGuid;
-                this.toTempDeviceGuidHash = getChecksum(this.toTempDeviceGuid, useSha256);
-                this.toTempDeviceKeyHash = getChecksum(singleMessageModel.to[0].tempDeviceKey, useSha256);
-            }
         } else if (messageModel instanceof GroupMessageModel) {
             GroupMessageModel groupMessageModel = (GroupMessageModel) messageModel;
 
@@ -217,33 +150,17 @@ public class SignatureModel {
         this.dataHash = getChecksum(messageModel.data, useSha256);
     }
 
-    public String getCombinedHashes(boolean bWithTempDevice) {
+    public String getCombinedHashes() {
         final StringBuilder concatSignatureString = new StringBuilder();
         concatSignatureString.append(this.dataHash);
         concatSignatureString.append(this.fromGuidHash);
         if (this.fromKeyHash != null) {
             concatSignatureString.append(this.fromKeyHash);
         }
-        if (bWithTempDevice) {
-            if (this.fromTempDeviceGuidHash != null) {
-                concatSignatureString.append(this.fromTempDeviceGuidHash);
-            }
-            if (this.fromTempDeviceKeyHash != null) {
-                concatSignatureString.append(this.fromTempDeviceKeyHash);
-            }
-        }
 
         concatSignatureString.append(this.toGuidHash);
         if (this.toKeyHash != null) {
             concatSignatureString.append(this.toKeyHash);
-        }
-        if (bWithTempDevice) {
-            if (this.toTempDeviceGuidHash != null) {
-                concatSignatureString.append(this.toTempDeviceGuidHash);
-            }
-            if (this.toTempDeviceKeyHash != null) {
-                concatSignatureString.append(this.toTempDeviceKeyHash);
-            }
         }
         if (this.attachments != null) {
             for (int i = 0; i < this.attachments.length; i++) {
@@ -254,11 +171,7 @@ public class SignatureModel {
         return concatSignatureString.toString();
     }
 
-    public boolean hasTempDeviceInfo() {
-        return (this.fromTempDeviceGuid != null || this.toTempDeviceGuid != null);
-    }
-
-    public JsonObject getModel(boolean bWithTempInfo) {
+    public JsonObject getModel() {
         final JsonObject signatureModelObject = new JsonObject();
         final JsonObject hashesObject = new JsonObject();
 
@@ -266,12 +179,6 @@ public class SignatureModel {
         hashesObject.addProperty("from/" + this.fromGuid + "/key", this.fromKeyHash);
         hashesObject.addProperty("to/" + this.toGuid, this.toGuidHash);
         hashesObject.addProperty("to/" + this.toGuid + "/key", this.toKeyHash);
-
-        if (bWithTempInfo && this.toTempDeviceGuid != null) {
-            hashesObject.addProperty("to/" + this.toGuid + "/tempDevice/guid", this.toTempDeviceGuidHash);
-            hashesObject.addProperty("to/" + this.toGuid + "/tempDevice/key", this.toTempDeviceKeyHash);
-        }
-
         hashesObject.addProperty("data", this.dataHash);
 
         if (this.attachments != null) {
@@ -281,11 +188,7 @@ public class SignatureModel {
         }
 
         signatureModelObject.add("hashes", hashesObject);
-        if (bWithTempInfo) {
-            signatureModelObject.addProperty("signature", this.signatureWithTempInfo);
-        } else {
-            signatureModelObject.addProperty("signature", this.signature);
-        }
+        signatureModelObject.addProperty("signature", this.signature);
 
         return signatureModelObject;
     }

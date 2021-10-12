@@ -122,10 +122,7 @@ public class NotificationDao
 
     @Override
     protected boolean hasKey(final Notification entity) {
-        if (entity != null && entity.getId() != null) {
-            return true;
-        }
-        return false;
+        return entity != null && entity.getId() != null;
     }
 
     @Override

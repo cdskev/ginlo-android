@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.FingerprintManager.AuthenticationCallback;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.view.LayoutInflater;
@@ -62,7 +63,7 @@ public class FingerprintFragment extends DialogFragment implements View.OnClickL
 
         final TextView hintText = view.findViewById(R.id.fragment_fingerprint_hint_textview);
 
-        if (!SystemUtil.hasMarshmallow()) {
+        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             FingerprintFragment.this.dismiss();
             return view;
         }

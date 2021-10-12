@@ -22,13 +22,13 @@ public class CustomTextView
 
     private float mMaxTextSize = 0;
 
-    private float mMinTextSize = MIN_TEXT_SIZE;
+    private final float mMinTextSize = MIN_TEXT_SIZE;
 
     private float mSpacingMult = 1.0f;
 
     private float mSpacingAdd = 0.0f;
 
-    private boolean mAddEllipsis = true;
+    private final boolean mAddEllipsis = true;
 
     public CustomTextView(final Context context) {
         this(context, null);

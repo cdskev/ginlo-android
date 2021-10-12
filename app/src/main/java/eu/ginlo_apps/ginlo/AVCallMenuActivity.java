@@ -48,11 +48,10 @@ public class AVCallMenuActivity extends AppCompatActivity {
     private String mSenderGuid;
     private int mFromNotification;
     private int mAction;
-    private View mView;
 
-    private SimsMeApplication mApplication;
-    private AVChatController avChatController;
-    private NotificationController notificationController;
+    private final SimsMeApplication mApplication;
+    private final AVChatController avChatController;
+    private final NotificationController notificationController;
 
     public AVCallMenuActivity() {
         mApplication = SimsMeApplication.getInstance();
@@ -61,7 +60,6 @@ public class AVCallMenuActivity extends AppCompatActivity {
 
         mFromNotification = -1;
         mAction = ACTION_NONE;
-        mView = null;
     }
 
     // Turn screen on, if device is sleeping/locked
@@ -120,7 +118,7 @@ public class AVCallMenuActivity extends AppCompatActivity {
                         }
                     };
                     dismissHandler.postDelayed(dismissRunner, NotificationController.DISMISS_NOTIFICATION_TIMEOUT);
-                    LogUtil.d(TAG, "Runner for fullscreen notification cancellation initialized!");
+                    LogUtil.i(TAG, "Runner for fullscreen notification cancellation initialized!");
                 }
                 return;
             case ACTION_AUDIO_CALL:

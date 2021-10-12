@@ -643,10 +643,9 @@ public class RestoreBackupService extends IntentService {
                 }
             }
         };
-        if (GuidUtil.isChatService(guid)) {
-            BackendService.withSyncConnection(mApplication)
-                    .getServiceDetailsBatch(guid, listener);
-        } else {
+
+        // KS: Service functionality is deprecated and has been removed.
+        if (!GuidUtil.isChatService(guid)) {
             BackendService.withSyncConnection(mApplication)
                     .getChannelDetails(guid, listener);
         }
@@ -921,8 +920,13 @@ public class RestoreBackupService extends IntentService {
         };
 
         BackendService.withSyncConnection(mApplication)
+                .createDevice(accountModel.guid, accountModel.backupPasstoken, deviceJson, null, listener);
+
+        /*
+        BackendService.withSyncConnection(mApplication)
                 .createDevice(accountModel.guid, accountModel.backupPasstoken, deviceJson, accountModel.phone, listener);
 
+         */
         if (!StringUtil.isNullOrEmpty(mErrorText)) {
             throw new LocalizedException(LocalizedException.BACKUP_RESTORE_ACCOUNT_SERVER_CONNECTION_FAILED, mErrorText);
         }

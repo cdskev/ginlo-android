@@ -79,8 +79,8 @@ class SimplePasswordFragment : BasePasswordFragment() {
         rootView.simple_password_edit_text_field.setTextLength(rootView.simple_password_hidden_text_field.text.length)
         openKeyboard()
         val nextButton = requireActivity().findViewById<Button>(R.id.next_button)
-        if (RuntimeConfig.isBAMandant() && nextButton != null) {
-            ColorUtil.setColorFilter(nextButton.background, ContextCompat.getColor(requireContext(), R.color.app_accent))
+        if (RuntimeConfig.isBAMandant() && nextButton != null && activity != null) {
+            ColorUtil.setColorFilter(nextButton.background, ColorUtil.getInstance().getAppAccentColor(activity?.application))
         }
 
         return rootView

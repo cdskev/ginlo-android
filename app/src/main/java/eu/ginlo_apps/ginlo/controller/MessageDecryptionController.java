@@ -38,6 +38,10 @@ public class MessageDecryptionController {
         mApplication = application;
     }
 
+
+    // KS: Returns null if only key2 is available in key container.
+    // Bad as key2 should be the first choice!
+    // TODO: Investigate this!
     public @Nullable
     DecryptedMessage decryptMessage(Message message,
                                     boolean returnObjIfMsgHasNoData)
@@ -107,9 +111,7 @@ public class MessageDecryptionController {
             byte[] ivBytes;
             byte[] aesKeyBytes;
 
-            String key2 = ((message.getIsSentMessage() != null) && (message.getIsSentMessage()))
-                    ? message.getEncryptedFromKey2()
-                    : message.getEncryptedToKey2();
+            String key2 = message.getIsSentMessage() ? message.getEncryptedFromKey2() : message.getEncryptedToKey2();
 
             //wenn ein key2 vorhanden ist
             if (key2 != null) {
@@ -142,10 +144,7 @@ public class MessageDecryptionController {
                     }
                 }
             } else {
-                byte[] decodedEncryptedContainerBytes = ((message.getIsSentMessage() != null) && (message.getIsSentMessage()))
-                        ? message.getEncryptedFromKey()
-                        : message.getEncryptedToKey();
-
+                byte[] decodedEncryptedContainerBytes = message.getIsSentMessage() ? message.getEncryptedFromKey() : message.getEncryptedToKey();
                 byte[] decodedDecryptedContainerBytes = SecurityUtil.decryptMessageWithRSA(decodedEncryptedContainerBytes, keyController.getUserKeyPair().getPrivate());
 
                 if (decodedDecryptedContainerBytes == null) {
@@ -208,7 +207,7 @@ public class MessageDecryptionController {
 
         if (aesKeyDataContainer == null) {
             ChannelChatController channelChatController = mApplication.getChannelChatController();
-            aesKeyDataContainer = channelChatController.getEncryptionData(message.getTo(), null);
+            aesKeyDataContainer = channelChatController.getEncryptionData(message.getTo());
         }
 
         return aesKeyDataContainer;

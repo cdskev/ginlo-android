@@ -149,7 +149,6 @@ public class AppConstants {
                     FeatureVersion.NEW_GROUP_FUNCTIONS,
                     FeatureVersion.PUSH_FOR_BUSINESS_GROUPS,
                     FeatureVersion.SUPPORT_MULTI_DEVICE_MANAGEMENT,
-                    FeatureVersion.SUPPORT_TEMP_DEVICE,
                     FeatureVersion.SUPPORT_OOO_STATE,
                     FeatureVersion.SUPPORT_COCKPIT_RSS_MESSAGES,
                     FeatureVersion.SUPPORT_FCM
@@ -163,7 +162,6 @@ public class AppConstants {
                     FeatureVersion.SEND_PROFILE_NAME,
                     FeatureVersion.NEW_GROUP_FUNCTIONS,
                     FeatureVersion.PUSH_FOR_BUSINESS_GROUPS,
-                    FeatureVersion.SUPPORT_TEMP_DEVICE,
                     FeatureVersion.SUPPORT_OOO_STATE,
                     FeatureVersion.SUPPORT_FCM
             };

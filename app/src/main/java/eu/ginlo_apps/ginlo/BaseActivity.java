@@ -325,7 +325,7 @@ public abstract class BaseActivity
         if (this instanceof LoginActivity) {
             return false;
         }
-        LogUtil.i(TAG, "loginController state:" + loginController.getState());
+        LogUtil.i(TAG, "isLogout: loginController state:" + loginController.getState());
         if (loginController.getState().equals(LoginController.STATE_LOGGED_OUT)) {
             return true;
         } else if (loginController.getState().equals(LoginController.STATE_NO_ACCOUNT)) {

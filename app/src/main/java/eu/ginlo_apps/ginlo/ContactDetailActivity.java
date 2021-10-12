@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
@@ -21,6 +22,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.res.ResourcesCompat;
+
 import com.google.zxing.integration.android.IntentIntegrator;
 
 import eu.ginlo_apps.ginlo.BaseActivity;
@@ -74,6 +78,14 @@ import java.util.TimerTask;
 public class ContactDetailActivity
         extends BaseActivity
         implements ContactController.OnContactProfileInfoChangeNotification {
+
+    private static final String TAG = ContactDetailActivity.class.getSimpleName();
+    private static final String CONTACT_GUID = "ContactDetailActivity.extraContactGuid";
+    private static final int MODE_NORMAL = 0;
+    private static final int EDIT_CONTACT_RESULT_CODE = 262;
+    private static final int SET_SILENT_TILL_RESULT_CODE = 148;
+    private static final int SCAN_CONTACT_RESULT_CODE = 453;
+
     public static final String EXTRA_CONTACT = "ContactDetailActivity.extraContact";
     public static final String EXTRA_CONTACT_MAP = "ContactDetailActivity.extraContactMap";
     public static final String EXTRA_CONTACT_LIST = "ContactDetailActivity.extraContactList";
@@ -81,17 +93,15 @@ public class ContactDetailActivity
     public static final String EXTRA_MODE = "ContactDetailActivity.extraMode";
     public static final int MODE_CREATE = 1;
     public static final int MODE_NO_SEND_BUTTON = 2;
-    private static final String CONTACT_GUID = "ContactDetailActivity.extraContactGuid";
-    private static final int MODE_NORMAL = 0;
-    private static final int EDIT_CONTACT_RESULT_CODE = 262;
-    private static final int SET_SILENT_TILL_RESULT_CODE = 148;
-    private static final int SCAN_CONTACT_RESULT_CODE = 453;
+    public static final int MODE_CREATE_GINLO_NOW = 3;
+
     @Inject
     public Router router;
     @Inject
     public AppConnectivity appConnectivity;
     private File mTakenPhotoFile;
     private int mMode;
+    private boolean deleteProfileImage = false;
     private Contact mContact;
     private Contact mScanContact;
     private EditText mNickNameEditText;
@@ -116,7 +126,7 @@ public class ContactDetailActivity
             try {
                 ContactDetailActivity.this.updateContactDetails();
             } catch (LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
                 DialogBuilderUtil.buildErrorDialog(ContactDetailActivity.this,
                         getString(R.string.contact_detail_load_contact_failed)).show();
             }
@@ -163,6 +173,7 @@ public class ContactDetailActivity
         @Override
         public void onClick(final View v) {
             mIsInEditMode = true;
+            deleteProfileImage = false;
             enableViews();
             setRightActionBarImage(R.drawable.ic_done_white_24dp, mOnEditFinishedClickListener, getResources().getString(R.string.content_description_contact_details_edit_contact), -1);
         }
@@ -236,7 +247,7 @@ public class ContactDetailActivity
 
                     router.cropImage(internalUri.toString());
                 } catch (LocalizedException e) {
-                    LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.w(TAG, e.getMessage(), e);
                     Toast.makeText(this, R.string.chats_addAttachments_some_imports_fails, Toast.LENGTH_LONG).show();
                 }
                 break;
@@ -246,11 +257,10 @@ public class ContactDetailActivity
                     break;
                 }
 
-                Bitmap bm = returnIntent.getParcelableExtra(CropImageActivity.RETURN_DATA_AS_BITMAP);
-
+                final Bitmap bm = returnIntent.getParcelableExtra(CropImageActivity.RETURN_DATA_AS_BITMAP);
                 if (bm != null) {
-                    mImageBytes = BitmapUtil.compress(bm, 100);
                     mProfileImageView.setImageBitmap(bm);
+                    mImageBytes = BitmapUtil.compress(bm, 100);
                 }
                 break;
             }
@@ -258,12 +268,12 @@ public class ContactDetailActivity
                 try {
                     mContact = mContactController.getContactByGuid(mContact.getAccountGuid());
                 } catch (final LocalizedException le) {
-                    LogUtil.w(ContactDetailActivity.this.getClass().getSimpleName(), le.getMessage(), le);
+                    LogUtil.w(TAG, le.getMessage(), le);
                 }
                 break;
             }
             default: {
-                LogUtil.e(this.getClass().getName(), LocalizedException.UNDEFINED_ARGUMENT);
+                LogUtil.e(TAG, LocalizedException.UNDEFINED_ARGUMENT);
                 break;
             }
         }
@@ -331,13 +341,13 @@ public class ContactDetailActivity
 
             final HashMap<String, String> contactDetails = SystemUtil.dynamicDownCast(intent.getSerializableExtra(EXTRA_CONTACT_MAP), HashMap.class);
 
-            if (mMode == MODE_CREATE) {
+            if (mMode == MODE_CREATE || mMode == MODE_CREATE_GINLO_NOW) {
                 mScanButton.setVisibility(View.GONE);
                 deleteButton.setVisibility(View.GONE);
                 mClearChatButton.setVisibility(View.GONE);
 
                 if (!intent.hasExtra(EXTRA_CONTACT_MAP)) {
-                    LogUtil.w(this.getClass().getName(), "MODE_CREATE but no contact given");
+                    LogUtil.w(TAG, "MODE_CREATE but no contact given");
                     finish();
                 }
 
@@ -346,21 +356,21 @@ public class ContactDetailActivity
                 final String simsmeId = contactDetails.get(JsonConstants.ACCOUNT_ID);
 
                 if (StringUtil.isNullOrEmpty(simsmeId)) {
-                    LogUtil.w(this.getClass().getName(), "MODE_CREATE no SIMSmeID");
+                    LogUtil.w(TAG, "MODE_CREATE no SIMSmeID");
                     finish();
                 }
 
                 final String pubKey = contactDetails.get(JsonConstants.PUBLIC_KEY);
 
                 if (StringUtil.isNullOrEmpty(pubKey)) {
-                    LogUtil.w(this.getClass().getName(), "MODE_CREATE no public key");
+                    LogUtil.w(TAG, "MODE_CREATE no public key");
                     finish();
                 }
 
                 final String mandant = contactDetails.get(JsonConstants.MANDANT);
 
                 if (StringUtil.isNullOrEmpty(mandant)) {
-                    LogUtil.w(this.getClass().getName(), "MODE_CREATE no mandant");
+                    LogUtil.w(TAG, "MODE_CREATE no mandant");
                     finish();
                 }
 
@@ -376,7 +386,11 @@ public class ContactDetailActivity
                     mContact.setSimsmeId(simsmeId);
                     mContact.setPublicKey(pubKey);
                     mContact.setMandant(mandant);
-                    mContact.setState(Contact.STATE_LOW_TRUST);
+                    if (mMode == MODE_CREATE_GINLO_NOW) {
+                        mContact.setState(Contact.STATE_HIGH_TRUST);
+                    } else {
+                        mContact.setState(Contact.STATE_LOW_TRUST);
+                    }
                     mContact.setIsSimsMeContact(true);
 
                     if (!StringUtil.isNullOrEmpty(phoneNumber)) {
@@ -391,8 +405,8 @@ public class ContactDetailActivity
                     mScanButton.setVisibility(View.GONE);
                     mSendButton.setVisibility(View.GONE);
                     mCreateButton.setVisibility(View.VISIBLE);
-
                     tenantTextView.setVisibility(View.GONE);
+
                 } else if (contactByGuid.isDeletedHidden() || contactByGuid.getIsHidden()) {
                     mCreateButton.setVisibility(View.VISIBLE);
                 }
@@ -402,7 +416,7 @@ public class ContactDetailActivity
                 contactByGuid = null;
             }
 
-            if (mMode != MODE_CREATE || contactByGuid != null) {
+            if (mMode != MODE_CREATE || mMode != MODE_CREATE_GINLO_NOW || contactByGuid != null) {
                 if (mMode == MODE_NO_SEND_BUTTON) {
                     mSendButton.setVisibility(View.GONE);
                 }
@@ -512,7 +526,7 @@ public class ContactDetailActivity
                 }
             }
         } catch (final LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             finish();
         }
     }
@@ -658,8 +672,15 @@ public class ContactDetailActivity
         mSelectImageView.setVisibility(View.GONE);
 
         if (mMode == MODE_NORMAL) {
-            mScanButton.setVisibility(View.VISIBLE);
             mBlockButton.setVisibility(View.VISIBLE);
+
+            try {
+                if (mContact.getState() != Contact.STATE_HIGH_TRUST) {
+                    mScanButton.setVisibility(View.VISIBLE);
+                }
+            } catch (LocalizedException e) {
+                LogUtil.w(getClass().getSimpleName(), "disableViews: Contact.getState() failed with " + e.getMessage());
+            }
 
             final boolean blocked = mContact.getIsBlocked() != null ? mContact.getIsBlocked() : false;
             if (!blocked) {
@@ -673,7 +694,7 @@ public class ContactDetailActivity
             // update nutzen, um Sichtbarkeiten korrekt zu setzen
             updateContactDetails();
         } catch (final LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             finish();
         }
     }
@@ -694,6 +715,10 @@ public class ContactDetailActivity
 
             setTrustedState();
 
+            if(mMode == MODE_CREATE_GINLO_NOW) {
+                mMode = MODE_CREATE;
+                showGinloNowExplanation();
+            }
             if (mMode == MODE_CREATE) {
                 setTitle(getResources().getString(R.string.contact_detail_create));
                 enableViews();
@@ -715,7 +740,7 @@ public class ContactDetailActivity
                                     try {
                                         setSilentTillTextView();
                                     } catch (final LocalizedException le) {
-                                        LogUtil.w(ContactDetailActivity.class.getSimpleName(), le.getMessage(), le);
+                                        LogUtil.w(TAG, le.getMessage(), le);
                                     }
                                 }
                             });
@@ -725,7 +750,7 @@ public class ContactDetailActivity
                 }
             }
         } catch (final LocalizedException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
         }
     }
 
@@ -809,7 +834,7 @@ public class ContactDetailActivity
             try {
                 updateContactDetails();// listenelement refreshen
             } catch (final LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
         }
     }
@@ -821,7 +846,7 @@ public class ContactDetailActivity
 
                 setContactImage();
             } catch (final LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
         }
     }
@@ -859,7 +884,7 @@ public class ContactDetailActivity
                                             mTakenPhotoFile = fu.createTmpImageFileAddInIntent(intent);
                                             router.startExternalActivityForResult(intent, TAKE_PICTURE_RESULT_CODE);
                                         } catch (final LocalizedException e) {
-                                            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                                            LogUtil.w(TAG, e.getMessage(), e);
                                         }
                                     }
                                 }
@@ -870,7 +895,7 @@ public class ContactDetailActivity
     }
 
     public void handleTakeFromGalleryClick(final View view) {
-        if (SystemUtil.hasMarshmallow()) {
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
                     new PermissionUtil.PermissionResultCallback() {
@@ -898,6 +923,60 @@ public class ContactDetailActivity
         }
     }
 
+    public void handleDeleteProfileImageClick(View view) {
+        LogUtil.d(TAG, "handleDeleteProfileImageClick: Called from " + this.getLocalClassName());
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+            requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
+                    R.string.permission_rationale_read_external_storage,
+                    new PermissionUtil.PermissionResultCallback() {
+                        @Override
+                        public void permissionResult(int permission,
+                                                     boolean permissionGranted) {
+                            if ((permission == PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE)
+                                    && permissionGranted) {
+                                closeBottomSheet(new OnBottomSheetClosedListener() {
+                                    @Override
+                                    public void onBottomSheetClosed(final boolean bottomSheetWasOpen) {
+                                        deleteProfileImage = true;
+                                        mProfileImageView.setImageDrawable(ResourcesCompat.getDrawable(getSimsMeApplication().getResources(), R.drawable.delete, null));
+                                    }
+                                });
+                            }
+                        }
+                    });
+        } else {
+            closeBottomSheet(new OnBottomSheetClosedListener() {
+                @Override
+                public void onBottomSheetClosed(final boolean bottomSheetWasOpen) {
+                    deleteProfileImage = true;
+                    mProfileImageView.setImageDrawable(ResourcesCompat.getDrawable(getSimsMeApplication().getResources(), R.drawable.delete, null));
+                }
+            });
+        }
+    }
+
+    public void showGinloNowExplanation() {
+        final String title = getResources().getString(R.string.contact_detail_ginlo_now_title);
+        final String text = getResources().getString(R.string.contact_detail_ginlo_now_text);
+        final String positiveButton = getResources().getString(R.string.std_ok);
+        final String negativeButton = getResources().getString(R.string.std_cancel);
+
+        final DialogInterface.OnClickListener positiveOnClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog,
+                                final int which) {
+            }
+        };
+
+        DialogBuilderUtil.buildResponseDialog(this,
+                text,
+                title,
+                positiveButton,
+                null,
+                null,
+                null).show();
+    }
+
     public void handleDeleteClick(final View view) {
         final String title = getResources().getString(R.string.delete_contact_title);
         final String text = getResources().getString(R.string.delete_contact_text);
@@ -908,7 +987,7 @@ public class ContactDetailActivity
             @Override
             public void onClick(final DialogInterface dialog,
                                 final int which) {
-                getSimsMeApplication().getContactController().hideContact(mContact.getAccountGuid());
+                mContactController.hideContact(mContact.getAccountGuid());
                 finish();
             }
         };
@@ -955,7 +1034,7 @@ public class ContactDetailActivity
                     try {
                         mContact = mContactController.getContactByGuid(mContact.getAccountGuid());
                     } catch (LocalizedException e) {
-                        LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+                        LogUtil.w(TAG, e.getMessage(), e);
                     } finally {
                         dismissIdleDialog();
                         setBlockButtonText();
@@ -969,7 +1048,7 @@ public class ContactDetailActivity
             });
         } catch (LocalizedException e) {
             dismissIdleDialog();
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
         }
     }
 
@@ -984,7 +1063,7 @@ public class ContactDetailActivity
                     mSendButton.setVisibility(View.VISIBLE);
                 }
             } catch (LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
         } else {
             mBlockButton.setText(getResources().getString(R.string.contact_detail_unblock));
@@ -1001,7 +1080,7 @@ public class ContactDetailActivity
                 }
             }
         } catch (LocalizedException e) {
-            LogUtil.w(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.w(TAG, e.getMessage(), e);
         }
         final Intent intent = new Intent(this, SingleChatActivity.class);
         intent.putExtra(SingleChatActivity.EXTRA_TARGET_GUID, mContact.getAccountGuid());
@@ -1020,13 +1099,13 @@ public class ContactDetailActivity
             switch (mContact.getState()) {
                 case Contact.STATE_HIGH_TRUST:
                     mScanButton.setVisibility(View.GONE);
-                    trustedStateDivider.setBackgroundColor(getResources().getColor(R.color.kColorSecLevelHigh));
+                    trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getHighColor(getSimsMeApplication()));
                     break;
                 case Contact.STATE_MIDDLE_TRUST:
-                    trustedStateDivider.setBackgroundColor(getResources().getColor(R.color.kColorSecLevelMed));
+                    trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getMediumColor(getSimsMeApplication()));
                     break;
                 case Contact.STATE_LOW_TRUST:
-                    trustedStateDivider.setBackgroundColor(getResources().getColor(R.color.kColorSecLevelLow));
+                    trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getLowColor(getSimsMeApplication()));
                     break;
                 case Contact.STATE_UNSIMSABLE: {
                     trustedStateDivider.setVisibility(View.GONE);
@@ -1035,17 +1114,17 @@ public class ContactDetailActivity
                     break;
                 }
                 default:
-                    LogUtil.w(this.getClass().getName(), LocalizedException.UNDEFINED_ARGUMENT);
+                    LogUtil.w(TAG, LocalizedException.UNDEFINED_ARGUMENT);
                     break;
             }
 
             //Setze den Vertrauensstatus von Company- und Domainkontakten auf sehr Hoch
             if (StringUtil.isEqual(mContact.getClassEntryName(), Contact.CLASS_COMPANY_ENTRY) || StringUtil.isEqual(mContact.getClassEntryName(), Contact.CLASS_DOMAIN_ENTRY)) {
                 mScanButton.setVisibility(View.GONE);
-                trustedStateDivider.setBackgroundColor(getResources().getColor(R.color.kColorSecLevelHigh));
+                trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getHighColor(getSimsMeApplication()));
             }
         } catch (final LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
     }
 
@@ -1058,6 +1137,7 @@ public class ContactDetailActivity
                 if (contactByGuid == null) {
                     contactByGuid = mContact;
                 }
+
                 if (contactByGuid.getIsHidden() && StringUtil.isEqual(Contact.CLASS_PRIVATE_ENTRY, contactByGuid.getClassEntryName())) {
                     contactByGuid.setIsHidden(false);
                 }
@@ -1081,27 +1161,33 @@ public class ContactDetailActivity
                 setTitle(contactByGuid.getName());
 
                 // wenn man Komtakte anlegen kommt, muessen die Sichtbarkeiten geprueft werden
-                if (mMode == MODE_CREATE) {
-                    if (Contact.STATE_HIGH_TRUST != contactByGuid.getState()) {
-                        mScanButton.setVisibility(View.VISIBLE);
-                    }
+                if (mMode == MODE_CREATE || mMode == MODE_CREATE_GINLO_NOW) {
                     mBlockButton.setVisibility(View.VISIBLE);
                     mCreateButton.setVisibility(View.GONE);
                 }
 
-                if (mImageBytes.length != 0) {
+                if (Contact.STATE_HIGH_TRUST != contactByGuid.getState()) {
+                    mScanButton.setVisibility(View.VISIBLE);
+                }
+
+                if(deleteProfileImage) {
+                    mChatImageController.deleteImage(contactByGuid.getAccountGuid());
+                } else if (mImageBytes.length != 0) {
                     mChatImageController.saveImage(contactByGuid.getAccountGuid(), mImageBytes);
                     //TODO CHECKSUM
                     contactByGuid.setProfileImageChecksum("TODO");
                     mContactController.insertOrUpdateContact(contactByGuid);
                 }
+
                 mContact = contactByGuid;
+
             } else {
                 //falls das bild geaendert wurde, aber jetzt doch nicht geaendert weren soll - zuruekcsetzen
                 setContactImage();
+                deleteProfileImage = false;
             }
         } catch (LocalizedException e) {
-            LogUtil.w(getClass().getSimpleName(), "Save Contact failed", e);
+            LogUtil.w(getClass().getSimpleName(), "Save Contact failed with " + e.getMessage());
         }
         setRightActionBarImage(R.drawable.ic_edit_white_24dp, mOnEditClickListener, getResources().getString(R.string.content_description_contact_details_save_contact), -1);
         disableViews();
@@ -1199,4 +1285,5 @@ public class ContactDetailActivity
 
         dialog.show();
     }
+
 }

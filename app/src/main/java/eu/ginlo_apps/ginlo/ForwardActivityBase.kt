@@ -143,7 +143,7 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
 
         pagerAdapter.notifyDataSetChanged()
 
-        mViewPager.setAdapter(pagerAdapter)
+        mViewPager.adapter = pagerAdapter
         mTabLayout.setupWithViewPager(mViewPager)
         mTabLayout.addOnTabSelectedListener(getTabSelectedListener())
 

@@ -3,6 +3,7 @@
 package eu.ginlo_apps.ginlo;
 
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -215,7 +216,7 @@ public class ConfigureBackupActivity
         switch (action) {
             case AppConstants.BACKUP_ACTION_START_BACKUP: {
 
-                if (SystemUtil.hasMarshmallow()) {
+                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
                     requestPermission(PermissionUtil.PERMISSION_FOR_WRITE_EXTERNAL_STORAGE,
                             Integer.MIN_VALUE,
                             new PermissionUtil.PermissionResultCallback() {
