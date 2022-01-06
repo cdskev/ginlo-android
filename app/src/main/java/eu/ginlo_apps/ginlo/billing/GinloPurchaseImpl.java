@@ -14,32 +14,36 @@
  */
 package eu.ginlo_apps.ginlo.billing;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 /**
  * Represents an in-app billing purchase.
  */
-public class Purchase {
+public class GinloPurchaseImpl {
 
     final String mItemType;  // ITEM_TYPE_INAPP or ITEM_TYPE_SUBS
     private final String mOriginalJson;
     private final String mOrderId;
     private final String mPackageName;
     private final String mSku;
+    private final ArrayList<String> mSkus;
     private final long mPurchaseTime;
     private final int mPurchaseState;
     private final String mDeveloperPayload;
-    private final String mToken;
+    private final String mPurchaseToken;
     private final String mSignature;
 
     /**
      *
      * @throws JSONException [!EXC_DESCRIPTION!]
      */
-    public Purchase(String itemType,
-                    String jsonPurchaseInfo,
-                    String signature)
+    public GinloPurchaseImpl(String itemType,
+                             String jsonPurchaseInfo,
+                             String signature)
             throws JSONException {
         mItemType = itemType;
         mOriginalJson = jsonPurchaseInfo;
@@ -48,11 +52,12 @@ public class Purchase {
 
         mOrderId = o.optString("orderId");
         mPackageName = o.optString("packageName");
-        mSku = o.optString("productId");
+        mSkus = getSkus(o);
+        mSku = mSkus.get(0); // This is deprecated, just return the first entry
         mPurchaseTime = o.optLong("purchaseTime");
         mPurchaseState = o.optInt("purchaseState");
         mDeveloperPayload = o.optString("developerPayload");
-        mToken = o.optString("token", o.optString("purchaseToken"));
+        mPurchaseToken = o.optString("token", o.optString("purchaseToken"));
         mSignature = signature;
     }
 
@@ -72,6 +77,10 @@ public class Purchase {
         return mSku;
     }
 
+    public ArrayList<String> getSkus() {
+        return mSkus;
+    }
+
     public long getPurchaseTime() {
         return mPurchaseTime;
     }
@@ -84,8 +93,8 @@ public class Purchase {
         return mDeveloperPayload;
     }
 
-    public String getToken() {
-        return mToken;
+    public String getPurchaseToken() {
+        return mPurchaseToken;
     }
 
     public String getOriginalJson() {
@@ -95,6 +104,23 @@ public class Purchase {
     public String getSignature() {
         return mSignature;
     }
+
+    public ArrayList<String> getSkus(JSONObject o) {
+        ArrayList<String> skus = new ArrayList<>();
+        if (o.has("productIds")) {
+            JSONArray ja = o.optJSONArray("productIds");
+            if (ja != null) {
+                for(int var3 = 0; var3 < ja.length(); ++var3) {
+                    skus.add(ja.optString(var3));
+                }
+            }
+        } else if (o.has("productId")) {
+            skus.add(o.optString("productId"));
+        }
+
+        return skus;
+    }
+
 
     @Override
     public String toString() {

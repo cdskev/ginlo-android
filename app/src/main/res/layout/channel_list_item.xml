@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="@dimen/chatoverview_item_height"
     android:minHeight="@dimen/channel_settings_height"
@@ -51,7 +52,7 @@
         android:minWidth="20dp"
         android:minHeight="20dp"
         android:text=""
-        android:textSize="12sp"
+        app:styledTextSize="statusTextSize"
         android:textStyle="bold"
         android:visibility="gone" />
 

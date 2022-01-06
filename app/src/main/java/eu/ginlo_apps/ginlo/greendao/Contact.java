@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.greendao;
 
@@ -33,14 +33,11 @@ public class Contact
         Comparable<Contact> {
 
     public static final int STATE_UNSIMSABLE = 0;
-
     public static final int STATE_LOW_TRUST = 1;
-
     public static final int STATE_MIDDLE_TRUST = 2;
-
     public static final int STATE_HIGH_TRUST = 3;
-
     public static final int STATE_SIMSME_SYSTEM = 4;
+    public static final String TAG = Contact.class.getSimpleName();
     /**
      * Privates Verzeichnis: Privater Eintrag (normaler Kontakt)
      */
@@ -135,7 +132,7 @@ public class Contact
             initFirstName(firstName);
             initLastName(lastName);
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getSimpleName(), e.toString());
+            LogUtil.e(TAG, "initFirstName / initLastName caused exception " + e.getMessage());
         }
     }
 
@@ -749,15 +746,15 @@ public class Contact
         }
     }
 
-    public boolean isDeletedHidden()
-            throws LocalizedException {
+    public boolean isDeletedHidden() {
         synchronized (this) {
-            Boolean bRc = (Boolean) GreenDAOSecurityLayer.getInstance().get(this, "IsDeletedHidden");
-
-            if (bRc == null) {
-                return false;
+            Boolean bRc = null;
+            try {
+                bRc = (Boolean) GreenDAOSecurityLayer.getInstance().get(this, "IsDeletedHidden");
+            } catch (LocalizedException e) {
+                //
             }
-            return bRc.booleanValue();
+            return bRc != null ? bRc : false;
         }
     }
 
@@ -1276,7 +1273,7 @@ public class Contact
 
     public Boolean getIsBlocked() {
         synchronized (this) {
-            return mIsBlocked;
+            return mIsBlocked != null ? mIsBlocked : false;
         }
     }
 
@@ -1288,7 +1285,7 @@ public class Contact
 
     private Boolean getIsReadOnly() {
         synchronized (this) {
-            return mIsReadonly;
+            return mIsReadonly != null ? mIsReadonly : false;
         }
     }
 
@@ -1300,7 +1297,7 @@ public class Contact
 
     public Boolean getIsSimsMeContact() {
         synchronized (this) {
-            return mIsSimsMeContact;
+            return mIsSimsMeContact != null ? mIsSimsMeContact : false;
         }
     }
 
@@ -1529,7 +1526,7 @@ public class Contact
         GreenDAOSecurityLayer.getInstance().set(this, JsonConstants.GUID, privateIndexGuid);
 
         setEncryptedAttribute(JsonConstants.CLASS, privateIndexEntryJO);
-        LogUtil.e(this.getClass().getSimpleName(), "DisableChatInput -> importPrivateIndexEntryData -> private index guid: " + privateIndexGuid);
+        LogUtil.i(TAG, "importPrivateIndexEntryData: " + privateIndexGuid);
         hasChangesForFtsDb = setTrustState(privateIndexEntryJO);
 
         String value = JsonUtil.stringFromJO(JsonConstants.DELETED, privateIndexEntryJO);
@@ -1768,14 +1765,11 @@ public class Contact
     }
 
     public boolean getTempReadonly() {
-        if (mTempReadonly == null) {
-            return false;
-        }
-        return mTempReadonly.booleanValue();
+        return mTempReadonly != null ? mTempReadonly : false;
     }
 
     public void setTempReadonly(boolean readOnly) {
-        mTempReadonly = Boolean.valueOf(readOnly);
+        mTempReadonly = readOnly;
     }
 
     /**
@@ -1784,14 +1778,19 @@ public class Contact
      * @return
      * @throws LocalizedException
      */
-    public long getSilentTill()
-            throws LocalizedException {
-        final Object tmp = GreenDAOSecurityLayer.getInstance().get(this, SILENT_TILL);
+    public long getSilentTill() {
+        Object tmp = null;
+        try {
+            tmp = GreenDAOSecurityLayer.getInstance().get(this, SILENT_TILL);
+        } catch (LocalizedException e) {
+            //
+        }
 
         if (tmp instanceof Long) {
             return (long) tmp;
         }
-        return (long) 0;
+
+        return 0L;
     }
 
     /**

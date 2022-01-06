@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.controller;
 
@@ -105,7 +105,7 @@ public class AttachmentController {
             fi.close();
 
         } catch (IOException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "convertJsonArrayFileToEncryptedAttachmentBase64File: Caught " + e.getMessage());
             return null;
         }
 
@@ -145,7 +145,7 @@ public class AttachmentController {
             fi.close();
 
         } catch (IOException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "convertEncryptedAttachmentBase64FileToJsonArrayFile: Caught " + e.getMessage());
             return null;
         }
 
@@ -178,7 +178,7 @@ public class AttachmentController {
             }
 
         } catch (IOException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "loadEncryptedBase64AttachmentAsJsonElementFromFile: Caught " + e.getMessage());
             return null;
         } finally {
             FileUtil.deleteFile(jsonFile);
@@ -275,7 +275,7 @@ public class AttachmentController {
             fileInputStream.close();
 
         } catch (IOException e) {
-            LogUtil.e(TAG, "saveEncryptedAttachmentFileAsBase64File: " + e.getMessage(), e);
+            LogUtil.e(TAG, "saveEncryptedAttachmentFileAsBase64File: " + e.getMessage());
             throw new LocalizedException(LocalizedException.LOAD_FILE_FAILED, "saveEncryptedAttachmentFileAsBase64File()", e);
         }
     }
@@ -301,7 +301,7 @@ public class AttachmentController {
             fileInputStream.close();
 
         } catch (IOException e) {
-            LogUtil.e(TAG, "saveBase64FileAsEncryptedAttachment: "+ e.getMessage(), e);
+            LogUtil.e(TAG, "saveBase64FileAsEncryptedAttachment: "+ e.getMessage());
             throw new LocalizedException(LocalizedException.LOAD_FILE_FAILED, "saveBase64FileAsEncryptedAttachment()", e);
         }
     }

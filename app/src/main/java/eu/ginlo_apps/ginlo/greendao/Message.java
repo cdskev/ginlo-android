@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.greendao;
 
@@ -258,7 +258,7 @@ public class Message
     }
 
     public Boolean getIsSentMessage() {
-        return mIsSentMessage == null ? false : mIsSentMessage;
+        return mIsSentMessage != null ? mIsSentMessage : false;
     }
 
     public void setIsSentMessage(Boolean isSentMessage) {
@@ -266,7 +266,7 @@ public class Message
     }
 
     public Boolean getIsSystemInfo() {
-        return mIsSystemInfo;
+        return mIsSystemInfo != null ? mIsSystemInfo : false;
     }
 
     public void setIsSystemInfo(Boolean isSystemInfo) {
@@ -274,7 +274,7 @@ public class Message
     }
 
     public Boolean getHasSendError() {
-        return mHasSendError;
+        return mHasSendError != null ? mHasSendError : false;
     }
 
     public void setHasSendError(Boolean hasSendError) {
@@ -282,7 +282,7 @@ public class Message
     }
 
     public Boolean getRead() {
-        return mRead;
+        return mRead != null ? mRead : false;
     }
 
     public void setRead(Boolean read) {
@@ -440,7 +440,7 @@ public class Message
     }
 
     public Boolean getIsSignatureValid() {
-        return mIsSignatureValid;
+        return mIsSignatureValid != null ? mIsSignatureValid : false;
     }
 
     public void setIsSignatureValid(Boolean signatureValid) {

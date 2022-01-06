@@ -33,7 +33,7 @@
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:lineSpacingExtra="4sp"
                     android:text="@string/welcome_back_title2"
-                    android:textSize="28sp"
+                    app:styledTextSize="mainTitleTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -42,7 +42,7 @@
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:lineSpacingExtra="4sp"
                     android:text="@string/welcome_back_text"
-                    android:textSize="15sp"
+                    app:styledTextSize="baseTextSize"
                     app:styledTextColor="mainContrast80" />
 
                 <LinearLayout
@@ -91,7 +91,7 @@
                             android:gravity="center"
                             android:onClick="handleRestoreBackup"
                             android:text="@string/backup_restore_select_btn"
-                            android:textSize="13sp"
+                            app:styledTextSize="commentTextSize"
                             app:styledTextColor="mainContrast" />
 
                     </LinearLayout>
@@ -134,7 +134,7 @@
                             android:gravity="center_horizontal"
                             android:onClick="handleCoupleDevice"
                             android:text="@string/label_add_as_new_device"
-                            android:textSize="13sp"
+                            app:styledTextSize="commentTextSize"
                             app:styledTextColor="mainContrast" />
                     </LinearLayout>
                 </LinearLayout>
@@ -147,7 +147,7 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginEnd="@dimen/text_margin"
                     android:text="@string/backup_restore_warning"
-                    android:textSize="16sp"
+                    app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast" />
             </LinearLayout>
         </ScrollView>

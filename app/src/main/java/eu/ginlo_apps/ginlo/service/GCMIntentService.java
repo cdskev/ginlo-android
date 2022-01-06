@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.service;
 
 import android.app.IntentService;
@@ -36,6 +36,8 @@ import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.SystemUtil;
 import java.io.IOException;
+import java.util.Date;
+
 import me.leolin.shortcutbadger.ShortcutBadgeException;
 import me.leolin.shortcutbadger.ShortcutBadger;
 
@@ -86,23 +88,29 @@ public class GCMIntentService
 
         if (!StringUtil.isNullOrEmpty(messageGuid)) {
             final Message messageByGuid = application.getMessageController().getMessageByGuid(messageGuid);
-
             if (messageByGuid != null) {
-                //Bug 38178 - wenn die Msg schon existiert, keine Push anzeigen
-                return false;
+                String serverMimeType = messageByGuid.getServerMimeType();
+                if(!StringUtil.isNullOrEmpty(serverMimeType) && serverMimeType.equals(MimeType.TEXT_V_CALL)) {
+                    // Always process AVC message
+                    LogUtil.d(TAG, "haveToShowNotificationOrSetBadge: Message already in database, but is new AVC: " + messageGuid);
+                } else {
+                    LogUtil.d(TAG, "haveToShowNotificationOrSetBadge: No PN. Message already in database: " + messageGuid);
+                    return false;
+                }
             }
         }
 
         if (application.getAccountController().getAccount() == null
                 || application.getAccountController().getAccount().getState() != Account.ACCOUNT_STATE_FULL) {
+            LogUtil.e(TAG, "haveToShowNotificationOrSetBadge: No valid local account!");
             return false;
         }
 
         if (accountGuid != null && !accountGuid.equalsIgnoreCase(application.getAccountController().getAccount().getAccountGuid())) {
+            LogUtil.e(TAG, "haveToShowNotificationOrSetBadge: Account guid does not match local account: " + accountGuid);
             return false;
         }
 
-        // Wenn keine neue Message(z.B. ACTION_PURCHASES), dann gehts hier nicht weiter
         return StringUtil.isEqual(action, ACTION_NEW_MESSAGES);
     }
 
@@ -214,8 +222,7 @@ public class GCMIntentService
         }
 
         Bundle logExtras = (Bundle) extras.clone();
-        // KS: Contains realname. Why?
-        // Remove it before writing to log.
+        // Remove personal data before writing to log.
         if(logExtras.containsKey("loc-args"))
             logExtras.remove("loc-args");
 
@@ -242,7 +249,7 @@ public class GCMIntentService
             try {
                 ShortcutBadger.applyCountOrThrow(application, numNewMessages);
             } catch (ShortcutBadgeException e) {
-                LogUtil.w(TAG, e.getMessage(), e);
+                LogUtil.w(TAG, "showNotificationFromExtras: Reset badge number caught " + e.getMessage());
             }
         }
 
@@ -255,11 +262,17 @@ public class GCMIntentService
         final GinloAppLifecycle alController = application.getAppLifecycleController();
         final LoginController loginController = application.getLoginController();
 
+        /////////////////////// KS: Do we really need this?
+        /*
         //App wird angezeigt und ist nicht gesperrt
         if (alController.isAppInForeground() && loginController.isLoggedIn()) {
-            LogUtil.i(TAG, "showNotificationFromExtras: isAppInForeground " + alController.isAppInForeground() + " isLoggedIn " + loginController.isLoggedIn() + ". No push shown to the user");
+            LogUtil.i(TAG, "showNotificationFromExtras: isAppInForeground "
+                    + alController.isAppInForeground() + " isLoggedIn "
+                    + loginController.isLoggedIn() + ". No push shown to the user");
             return;
         }
+
+         */
 
         //Keine Message Guid oder es ist eine Channel Msg
         if (StringUtil.isNullOrEmpty(messageGuid) || messageGuid.startsWith(AppConstants.GUID_MSG_CHANNEL_PREFIX)
@@ -309,17 +322,27 @@ public class GCMIntentService
             public void onStateChanged(ConcurrentTask task, int state) {
                 try {
                     if (state == ConcurrentTask.STATE_COMPLETE) {
-                        LogUtil.i(TAG, "showNotificationFromExtras: Message retrieved from the backend.");
+                        LogUtil.d(TAG, "showNotificationFromExtras: Message(s) retrieved from the backend.");
+                        // Check for possibly expired AVC message
+                        final Message messageByGuid = messageController.getMessageByGuid(messageGuid);
+                        if (messageByGuid != null) {
+                            final String serverMimeType = messageByGuid.getServerMimeType();
+                            if(!StringUtil.isNullOrEmpty(serverMimeType) && serverMimeType.equals(MimeType.TEXT_V_CALL)) {
+                                final long now = new Date().getTime();
+                                if (messageByGuid.getDateSend() + NotificationController.DISMISS_NOTIFICATION_TIMEOUT < now) {
+                                    LogUtil.d(TAG, "showNotificationFromExtras: Expired AVC message - no notification!");
+                                    return;
+                                }
+                            }
+                        }
                         if (lSendWithPreview) {
-                            final Message messageByGuid = messageController.getMessageByGuid(messageGuid);
+                            //final Message messageByGuid = messageController.getMessageByGuid(messageGuid);
                             if (messageByGuid == null) {
                                 buildExternalNotification(lSenderGuid, messageGuid, lNumNewMessages, lPlaySound, lLocKey, lForceTitle, null, application, loginController, alController, highPrio);
                                 return;
                             }
 
-                            final MessageDecryptionController messageDecryptionController = application.getMessageDecryptionController();
-                            final DecryptedMessage decryptedMessage = messageDecryptionController.decryptMessage(messageByGuid, false);
-
+                            final DecryptedMessage decryptedMessage = application.getMessageDecryptionController().decryptMessage(messageByGuid, false);
                             if (decryptedMessage == null) {
                                 buildExternalNotification(lSenderGuid, messageGuid, lNumNewMessages, lPlaySound, lLocKey, lForceTitle, null, application, loginController, alController, highPrio);
                                 return;
@@ -340,10 +363,11 @@ public class GCMIntentService
                             buildExternalNotification(lSenderGuid, messageGuid, lNumNewMessages, lPlaySound, lLocKey, lForceTitle, null, application, loginController, alController, highPrio);
                         }
                     } else if (state == ConcurrentTask.STATE_ERROR) {
+                        LogUtil.w(TAG, "showNotificationFromExtras: Could not retrieve message(s) - ConcurrentTask.STATE_ERROR.");
                         buildExternalNotification(lSenderGuid, messageGuid, lNumNewMessages, lPlaySound, lLocKey, lForceTitle, null, application, loginController, alController, highPrio);
                     }
                 } catch (final LocalizedException e) {
-                    LogUtil.e(TAG, e.getMessage(), e);
+                    LogUtil.e(TAG, "showNotificationFromExtras: Got exception " + e.getMessage());
                     buildExternalNotification(lSenderGuid, messageGuid, lNumNewMessages, lPlaySound, lLocKey, lForceTitle, null, application, loginController, alController, highPrio);
                 }
             }
@@ -433,9 +457,11 @@ public class GCMIntentService
                                                   final LoginController liController,
                                                   final GinloAppLifecycle alController,
                                                   final boolean highPrio) {
-        LogUtil.i(TAG, "onMessageReceived: buildExternalNotification.");
+        LogUtil.i(TAG, "buildExternalNotification for " + locKey + " -> " + messageGuid);
 
-        if ((numNewMessages > 0) && (!alController.isAppInForeground() || !liController.isLoggedIn())) {
+        // Always let the NotificationController do it's work
+        // if ((numNewMessages > 0) && (!alController.isAppInForeground() || !liController.isLoggedIn())) {
+        if (numNewMessages > 0) {
             int msgTyp = 0;
 
             // KS: Comment: Really? Translating this.messagetype to notificationController-Messagetype!!

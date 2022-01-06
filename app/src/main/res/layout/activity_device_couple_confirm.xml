@@ -34,7 +34,7 @@
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:lineSpacingExtra="4sp"
                     android:text="@string/device_couple_confirm_descr"
-                    android:textSize="15sp"
+                    app:styledTextSize="baseTextSize"
                     app:styledTextColor="mainContrast80" />
 
                 <androidx.appcompat.widget.AppCompatImageView
@@ -54,7 +54,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/standard_padding"
                     android:gravity="center_horizontal"
-                    android:textSize="16sp"
+                    app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <LinearLayout
@@ -71,7 +71,7 @@
                         android:gravity="center"
                         android:letterSpacing="-0.01"
                         android:text="@string/device_couple_guest_device"
-                        android:textSize="15sp"
+                        app:styledTextSize="baseTextSize"
                         app:styledTextColor="mainContrast80" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -83,7 +83,7 @@
                         android:letterSpacing="-0.01"
                         android:lineSpacingExtra="4sp"
                         android:text="@string/device_couple_guest_descr"
-                        android:textSize="15sp"
+                        app:styledTextSize="baseTextSize"
                         app:styledTextColor="mainContrast80" />
                 </LinearLayout>
 
@@ -101,7 +101,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -111,7 +111,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -121,7 +121,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -131,7 +131,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
                 </LinearLayout>
 
@@ -149,7 +149,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -159,7 +159,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -169,7 +169,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -179,7 +179,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp" />
+                        app:styledTextSize="tanViewTextSize" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -196,7 +196,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -206,7 +206,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -216,7 +216,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -226,7 +226,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
                 </LinearLayout>
 
@@ -244,7 +244,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -254,7 +254,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -264,7 +264,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -274,7 +274,7 @@
                         android:layout_weight="1"
                         android:gravity="center_horizontal"
                         android:lineSpacingExtra="32sp"
-                        android:textSize="24sp"
+                        app:styledTextSize="tanViewTextSize"
                         app:styledTextColor="mainContrast" />
                 </LinearLayout>
 

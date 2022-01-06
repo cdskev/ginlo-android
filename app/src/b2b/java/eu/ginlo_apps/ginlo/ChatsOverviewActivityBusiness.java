@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo;
 
 import android.app.Dialog;
@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.LinearLayoutCompat;
+import androidx.core.os.BuildCompat;
 
 import java.io.File;
 
@@ -31,6 +32,7 @@ import eu.ginlo_apps.ginlo.util.ConfigureProgressViewHelper;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.DialogHelperBusiness;
 import eu.ginlo_apps.ginlo.util.FileUtil;
+import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
 
@@ -423,13 +425,13 @@ public class ChatsOverviewActivityBusiness extends ChatsOverviewActivity impleme
             return;
         }
 
-        if (mLicenseDaysLeft != daysLeft && daysLeft != LICENSE_DAYS_LEFT_NO_VALUE) {
+        if (BuildConfig.DEBUG || (mLicenseDaysLeft != daysLeft && daysLeft != LICENSE_DAYS_LEFT_NO_VALUE)) {
             mLicenseDaysLeft = daysLeft;
 
             if (mLicenseDaysLeft != 0) {
                 if (noticeView != null) {
                     TextView infoTV = noticeView.findViewById(R.id.chat_overview_notice_tv);
-                    int value = mLicenseDaysLeft < 0 ? 0 : mLicenseDaysLeft;
+                    int value = Math.max(mLicenseDaysLeft, 0);
                     infoTV.setText(getString(R.string.chats_overview_warning_license, String.valueOf(value)));
                     noticeView.setVisibility(View.VISIBLE);
                     LogUtil.w(TAG, "licenseDaysLeftHasCalculate: User warning shows " + value + " days left until license expiration!");

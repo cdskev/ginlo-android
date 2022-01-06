@@ -68,7 +68,7 @@
     <string name="dialog_email_activiation_code_sent_text">We\'ve just sent an e-mail to %1$s.</string>
     <string name="dialog_email_verfication_code_too_short">This confirmation code doesn\'t seem right. Please try again.</string>
     <string name="dialog_email_verfication_succeeded">Perfect, it worked. The e-mail address %1$s is now linked to your account.</string>
-    <string name="dialog_licence_check">Checking for a license...</string>
+    <string name="dialog_licence_check">Verifying license information ...</string>
     <string name="dialog_licence_is_about_to_expire_negative">Remind me later</string>
     <string name="dialog_licence_is_about_to_expire_positive">Extend license</string>
     <string name="dialog_licence_is_about_to_expire_text">Your license will expire in less than a week. Please request a license extension from your administrator.</string>
@@ -142,8 +142,6 @@
     <string name="mdm_register_6">Completing profile...</string>
     <string name="mdm_simsLockApplicationDelay_description">Password request after X minutes</string>
     <string name="mdm_simsPasswordTries_description">Number of password tries</string>
-	<string name="permission_rationale_title">Please Grant ginlo Business Permissions</string>
-	<string name="permission_rationale_rec_audio_phone_settings">ginlo Business needs permission to use your microphone. You can set this permission in your device\'s app settings.</string>
     <string name="profile_info_email_button_enter_code">Enter code</string>
     <string name="profile_info_email_button_extend_licence">Renew License</string>
     <string name="profile_info_email_button_register_mail">Link E-Mail</string>
@@ -155,7 +153,7 @@
     <string name="profile_set_status_empty">Please set a status text.</string>
     <string name="purchase_licence_hint">Get a license now and enjoy the benefits of ginlo Business.</string>
     <string name="purchase_licence_title">Purchase license</string>
-    <string name="purchse_licence_button_enter_licence_code">Enter the license code</string>
+    <string name="purchse_licence_button_enter_licence_code">Enter license code</string>
     <string name="purchse_licence_button_restore_purchases">Restore purchases</string>
     <string name="purchse_licence_monthly_licence">Monthly license</string>
     <string name="rate_message">We\'re looking forward to your rating.</string>
@@ -290,4 +288,5 @@
     <string name="start_chat_with_company_contact_idle_text">Loading contact information...</string>
     <string name="unexpected_error_label_next">ginlo Business closed due to an unexpected error. Please restart the app.</string>
     <string name="settings_termsandcondition">General terms and conditions</string>
+    <string name="purchase_licence_done_title">Thank you for your purchase.</string>
 </resources>

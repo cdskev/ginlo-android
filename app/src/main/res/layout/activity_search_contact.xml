@@ -32,7 +32,7 @@
                 android:layout_marginTop="@dimen/activity_vertical_margin"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
                 android:text="@string/search_contact_header"
-                android:textSize="28sp"
+                app:styledTextSize="mainTitleTextSize"
                 app:styledTextColor="mainContrast" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -40,39 +40,41 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/activity_vertical_margin"
                 android:text="@string/search_contact_hint"
-                android:textSize="15sp"
+                app:styledTextSize="baseTextSize"
                 app:styledTextColor="mainContrast80" />
 
 
         <LinearLayout
+            android:id="@+id/search_contact_scan_layout"
             android:layout_width="200dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="30dp"
-            android:layout_marginEnd="30dp"
-            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginBottom="30dp"
             android:layout_gravity="center_horizontal"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:clickable="true"
+            android:focusable="true">
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/chat_item_mask_image_view_chat_image"
-                android:layout_width="120dp"
+                android:layout_width="wrap_content"
                 android:layout_height="120dp"
                 android:layout_gravity="center_horizontal"
-                android:src="@drawable/ginlo_qr_code" />
+                android:src="@drawable/ic_ginlo_now_spacing" />
 
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/search_contact_scan_button"
+                style="@style/InterferingButtonStyle"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="46dp"
                 android:layout_gravity="bottom"
-                android:layout_marginTop="-30dp"
-                android:background="@color/action"
+                android:layout_marginTop="-8dp"
+                app:styledTextSize="baseTextSize"
+                android:singleLine="true"
                 android:text="@string/contacts_button_scanContactShort"
                 android:textAllCaps="false"
-                android:textColor="@color/actionContrast"
-                android:visibility="visible"
-                app:styledButtonType="normal" />
-            </LinearLayout>
+                android:clickable="false"
+                android:visibility="visible" />
+         </LinearLayout>
 
 
 
@@ -80,7 +82,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/search_contact_header_search_by"
-                android:textSize="8pt"
+                app:styledTextSize="mediumTitleTextSize"
                 app:styledTextColor="mainContrast50"
 
                 />
@@ -105,7 +107,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/activity_vertical_margin"
                     android:text="@string/search_contact_header_country"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.appcompat.widget.AppCompatSpinner
@@ -121,6 +123,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/activity_vertical_margin"
                     android:text="@string/search_contact_header_phone_number"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <LinearLayout
@@ -178,7 +181,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="text"
                     android:textAllCaps="true"
-                    android:textSize="14pt"
+                    app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast" />
 
             </LinearLayout>

@@ -56,7 +56,6 @@
         android:scrollbars="vertical"
         android:text=""
         android:textIsSelectable="true"
-        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/chat_emoji_button"
@@ -64,6 +63,7 @@
         app:layout_constraintVertical_bias="1.0"
         app:styledBackground="overlay"
         app:styledEditTextNoLineBG="true"
+        app:styledTextSize="messageEditTextSize"
         app:styledTextColor="mainContrast"
         app:styledTextColorHint="mainContrast50" />
 

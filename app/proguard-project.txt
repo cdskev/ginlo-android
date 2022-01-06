@@ -59,8 +59,6 @@
 -keep class ch.qos.** { *; }
 -keep class org.slf4j.** { *; }
 
--dontwarn io.sentry.**
-
 -dontwarn ch.qos.logback.core.net.*
 -dontwarn org.jsoup.**
 -dontwarn freemarker.**

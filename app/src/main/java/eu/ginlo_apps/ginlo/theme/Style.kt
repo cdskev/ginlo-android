@@ -1,23 +1,19 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.theme
 
 import android.app.Application
 import android.content.res.ColorStateList
 import android.content.res.TypedArray
-import android.graphics.BlendMode
-import android.graphics.BlendModeColorFilter
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.RippleDrawable
 import android.graphics.drawable.StateListDrawable
-import android.os.Build
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.util.*
@@ -210,6 +206,17 @@ object Style {
         styledAttributes.getString(R.styleable.StyledView_styledTextColorHint)?.let { styledTextColorHint ->
             ColorUtil.getInstance().getNamedColor(styledTextColorHint, textView.getApplication())?.let {
                 textView.setHintTextColor(it)
+            }
+        }
+    }
+
+    fun setStyledTextSize(textView: TextView?, styledAttributes: TypedArray) {
+        if (textView == null) return
+
+        styledAttributes.getString(R.styleable.StyledView_styledTextSize)?.let { styledTextSize ->
+
+            ColorUtil.getInstance().getNamedTextSize(styledTextSize, textView.getApplication())?.let {
+                textView.textSize = it
             }
         }
     }

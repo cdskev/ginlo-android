@@ -36,7 +36,7 @@
                 android:layout_marginTop="@dimen/standard_padding"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:textSize="17sp"
+                app:styledTextSize="messageTextSize"
                 app:styledTextColor="mainContrast" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -46,7 +46,7 @@
                 android:ellipsize="end"
                 android:lineSpacingExtra="3sp"
                 android:singleLine="true"
-                android:textSize="13sp"
+                app:styledTextSize="commentTextSize"
                 app:styledTextColor="mainContrast50" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -55,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:lineSpacingExtra="3sp"
                 android:textColor="@color/secure"
-                android:textSize="13sp"
+                app:styledTextSize="commentTextSize"
                 app:styledTextColor="secure" />
         </LinearLayout>
     </androidx.appcompat.widget.LinearLayoutCompat>

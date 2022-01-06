@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:dpag="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_camera"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -21,9 +21,9 @@
         android:layout_marginEnd="@dimen/fab_button_margin_right"
         android:layout_marginBottom="@dimen/fab_button_margin_bottom"
         android:contentDescription="@string/camera_record_video"
-        dpag:fab_colorDisabled="@color/app_accent"
-        dpag:fab_colorNormal="@color/app_accent"
-        dpag:fab_colorPressed="@color/app_accent"
-        dpag:fab_icon="@drawable/ic_videocam_white_48dp" />
+        app:fab_colorDisabled="@color/app_accent"
+        app:fab_colorNormal="@color/app_accent"
+        app:fab_colorPressed="@color/app_accent"
+        app:fab_icon="@drawable/ic_videocam_white_48dp" />
 
 </RelativeLayout>

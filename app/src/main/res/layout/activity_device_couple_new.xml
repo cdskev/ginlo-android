@@ -23,7 +23,7 @@
             android:paddingTop="@dimen/layout_padding_top_bottom"
             android:paddingBottom="@dimen/layout_padding_top_bottom"
             android:text="@string/device_couple_new_timer_text"
-            android:textSize="15sp"
+            app:styledTextSize="baseTextSize"
             app:styledBackground="insecure"
             app:styledTextColor="insecureContrast" />
 
@@ -48,7 +48,7 @@
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:lineSpacingExtra="4sp"
                     android:text="@string/device_couple_new_desc_text"
-                    android:textSize="15sp"
+                    app:styledTextSize="baseTextSize"
                     app:styledTextColor="mainContrast80" />
 
                 <androidx.appcompat.widget.AppCompatImageView
@@ -84,7 +84,7 @@
                     android:gravity="center_horizontal"
                     android:letterSpacing="0.02"
                     android:lineSpacingExtra="26sp"
-                    android:textSize="34sp"
+                    app:styledTextSize="tanEditTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -94,7 +94,7 @@
                     android:gravity="center_horizontal"
                     android:letterSpacing="0.02"
                     android:lineSpacingExtra="26sp"
-                    android:textSize="34sp"
+                    app:styledTextSize="tanEditTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -104,7 +104,7 @@
                     android:gravity="center_horizontal"
                     android:letterSpacing="0.02"
                     android:lineSpacingExtra="26sp"
-                    android:textSize="34sp"
+                    app:styledTextSize="tanEditTextSize"
                     app:styledTextColor="mainContrast" />
 
 

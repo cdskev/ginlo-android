@@ -1,9 +1,11 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo;
 
+import android.app.Activity;
 import android.content.DialogInterface;
-import android.os.Build;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -13,9 +15,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import eu.ginlo_apps.ginlo.BaseActivity;
-import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.controller.contracts.AsyncBackupKeysCallback;
@@ -27,12 +26,10 @@ import eu.ginlo_apps.ginlo.fragment.backup.BackupConfigFragment;
 import eu.ginlo_apps.ginlo.fragment.backup.BackupConfigSetPasswortFragment;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
-import eu.ginlo_apps.ginlo.util.PermissionUtil;
+import eu.ginlo_apps.ginlo.util.StorageUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
 import eu.ginlo_apps.ginlo.view.ProgressDownloadDialog;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +38,10 @@ public class ConfigureBackupActivity
         extends BaseActivity
         implements BaseFragment.OnFragmentInteractionListener, CreateBackupListener,
         IOnFragmentViewClickable {
+    
+    public static final String TAG = ConfigureBackupActivity.class.getSimpleName();
+    public static final String LOCAL_BACKUP_URI_PREF = "ConfigureBackupActivity.LOCAL_BACKUP_URI";
+    public static final int LOCAL_BACKUP_URI_ACTIONCODE = 113;
 
     private static final int STATE_DEFAULT = 0;
     private static final int STATE_SET_PWD = 3;
@@ -49,24 +50,24 @@ public class ConfigureBackupActivity
     private static final String FRAGMENT_TAG = "backup_config_fragment";
 
     private AccountController mAccountController;
-
     private PreferencesController mPreferencesController;
+    private StorageUtil mStorageUtil;
     private ProgressDownloadDialog mProgressDownloadDialog;
-
     private int mState;
     private String mSetPassword;
-
     private ActivityState mNextState;
 
     @Override
     protected void onCreateActivity(Bundle savedInstanceState) {
-        mAccountController = ((SimsMeApplication) getApplication()).getAccountController();
-        mPreferencesController = ((SimsMeApplication) getApplication()).getPreferencesController();
+        mAccountController = mApplication.getAccountController();
+        mPreferencesController = mApplication.getPreferencesController();
         mAccountController.registerCreateBackupListener(this);
 
         if (mPreferencesController.getDisableBackup()) {
             finish();
         }
+
+        mStorageUtil = new StorageUtil(mApplication);
     }
 
     @Override
@@ -155,7 +156,7 @@ public class ConfigureBackupActivity
                 transaction.commit();
             }
         } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         }
     }
 
@@ -212,26 +213,66 @@ public class ConfigureBackupActivity
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == LOCAL_BACKUP_URI_ACTIONCODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                Uri resultUri = data.getData();
+                LogUtil.d(TAG, "onActivityResult: LOCAL_BACKUP_URI_ACTIONCODE returned " + resultUri);
+                if(resultUri != null) {
+                    try {
+                        final int takeFlags = data.getFlags()
+                                & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        getContentResolver().takePersistableUriPermission(resultUri, takeFlags);
+                    } catch (Exception e) {
+                        LogUtil.e(TAG, "onActivityResult: Caught exception in takePersistableUriPermission: " + e.getMessage(), e);
+                        return;
+                    }
+                    mPreferencesController.getSharedPreferences().edit().putString(LOCAL_BACKUP_URI_PREF, resultUri.toString()).apply();
+                    startBackupAction();
+                }
+            }
+        }
+    }
+
+    private void showBackupFileChooser() {
+        final DialogInterface.OnClickListener showBackupFileHandler = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface arg0, final int arg1) {
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                String ginloID = mAccountController.getAccount().getAccountID();
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("application/x-zip-compressed");
+                intent.putExtra(Intent.EXTRA_TITLE, "ginlo-backup-" + ginloID + ".zip");
+
+                try {
+                    startActivityForResult(intent, ConfigureBackupActivity.LOCAL_BACKUP_URI_ACTIONCODE);
+                } catch (android.content.ActivityNotFoundException e) {
+                    LogUtil.e(TAG, "onResumeActivity: Could not start file chooser for LOCAL_BACKUP_URI_ACTIONCODE: " + e.getMessage());
+                }
+            }
+        };
+
+        final String title = ConfigureBackupActivity.this.getResources().getString(R.string.settings_backup_config_choose_file_title);
+        final String body = ConfigureBackupActivity.this.getResources().getString(R.string.settings_backup_config_choose_file_body);
+        final AlertDialogWrapper dialog = DialogBuilderUtil.buildResponseDialog(ConfigureBackupActivity.this,
+                body, false, title,
+                "Ok", null, showBackupFileHandler, null);
+        dialog.show();
+    }
+
+    @Override
     public void onFragmentInteraction(int action, Bundle arguments) {
         switch (action) {
             case AppConstants.BACKUP_ACTION_START_BACKUP: {
-
-                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-                    requestPermission(PermissionUtil.PERMISSION_FOR_WRITE_EXTERNAL_STORAGE,
-                            Integer.MIN_VALUE,
-                            new PermissionUtil.PermissionResultCallback() {
-                                @Override
-                                public void permissionResult(int permission,
-                                                             boolean permissionGranted) {
-                                    if ((permission == PermissionUtil.PERMISSION_FOR_WRITE_EXTERNAL_STORAGE)
-                                            && permissionGranted) {
-                                        startBackupAction();
-                                    }
-                                }
-                            });
+                Uri backupDestination = mStorageUtil.getBackupDestinationUri();
+                if(backupDestination == null || mStorageUtil.getBackupDestinationSize(backupDestination) == 0L) {
+                    showBackupFileChooser();
                 } else {
                     startBackupAction();
                 }
+
                 break;
             }
             case AppConstants.BACKUP_ACTION_CHANGE_PASSWORD: {
@@ -295,7 +336,7 @@ public class ConfigureBackupActivity
                         }
                     });
                 } catch (LocalizedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                     dismissIdleDialog();
                 }
                 break;
@@ -310,7 +351,7 @@ public class ConfigureBackupActivity
 
                     mPreferencesController.setSaveMediaInBackup(saveMedia);
                 } catch (LocalizedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                 }
                 break;
             }
@@ -324,7 +365,7 @@ public class ConfigureBackupActivity
 
                     mPreferencesController.setBackupNetworkWifiOnly(wifiOnly);
                 } catch (LocalizedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                 }
                 break;
             }
@@ -333,7 +374,7 @@ public class ConfigureBackupActivity
                 break;
             }
             default: {
-                LogUtil.w(this.getClass().getName(), LocalizedException.UNDEFINED_ARGUMENT);
+                LogUtil.w(TAG, LocalizedException.UNDEFINED_ARGUMENT);
                 break;
             }
         }
@@ -367,7 +408,7 @@ public class ConfigureBackupActivity
                             mPreferencesController.setBackupInterval(id);
                             setIntervalText();
                         } catch (LocalizedException e) {
-                            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                            LogUtil.e(TAG, e.getMessage(), e);
                             Toast.makeText(ConfigureBackupActivity.this, R.string.settings_save_setting_failed,
                                     Toast.LENGTH_LONG).show();
                         }
@@ -495,7 +536,7 @@ public class ConfigureBackupActivity
                 break;
             }
             default: {
-                LogUtil.w(this.getClass().getName(), LocalizedException.UNDEFINED_ARGUMENT);
+                LogUtil.w(TAG, LocalizedException.UNDEFINED_ARGUMENT);
                 break;
             }
         }

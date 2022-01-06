@@ -62,7 +62,7 @@
                     android:layout_height="wrap_content"
                     android:labelFor="@+id/company_contact_details_edit_text_firstname"
                     android:text="@string/label_first_name"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.emoji.widget.EmojiAppCompatEditText
@@ -88,7 +88,7 @@
                     android:layout_height="wrap_content"
                     android:labelFor="@+id/company_contact_details_edit_text_lastname"
                     android:text="@string/label_last_name"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.emoji.widget.EmojiAppCompatEditText
@@ -116,7 +116,7 @@
                     android:layout_height="wrap_content"
                     android:labelFor="@+id/company_contact_details_edit_text_mobilenumber"
                     android:text="@string/label_mobile_number"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -131,7 +131,7 @@
                     android:clickable="true"
                     android:cursorVisible="false"
                     android:focusable="true"
-                    android:textSize="20sp"
+                    app:styledTextSize="mediumTitleTextSize"
                     android:hint="@string/label_enter_phone"
                     android:imeOptions="actionDone"
                     android:inputType="phone"
@@ -146,7 +146,7 @@
                     android:layout_height="wrap_content"
                     android:labelFor="@+id/company_contact_details_edit_text_emailaddress"
                     android:text="@string/label_email_address"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -157,7 +157,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_marginBottom="@dimen/activity_vertical_margin"
                     android:autoLink="email"
-                    android:textSize="20sp"
+                    app:styledTextSize="mediumTitleTextSize"
                     android:ems="10"
                     android:enabled="true"
                     android:hint="@string/label_enter_email_address"
@@ -173,7 +173,7 @@
                     android:layout_height="wrap_content"
                     android:labelFor="@+id/company_contact_details_edit_text_department"
                     android:text="@string/label_departement"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.emoji.widget.EmojiAppCompatEditText
@@ -199,7 +199,7 @@
                     android:layout_marginBottom="@dimen/layout_padding_top_bottom"
                     android:labelFor="@+id/company_contact_details_edit_text_simsmeid"
                     android:text="@string/label_simsme_id"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <RelativeLayout
@@ -223,7 +223,7 @@
                         android:layout_gravity="center_vertical"
                         android:layout_marginStart="36dp"
                         android:maxLines="1"
-                        android:textSize="18sp"
+                        app:styledTextSize="messageEditTextSize"
                         android:textStyle="bold"
                         app:styledIconColor="secure"
                         app:styledTextColor="secure" />

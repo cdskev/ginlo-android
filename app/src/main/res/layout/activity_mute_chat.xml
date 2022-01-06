@@ -41,7 +41,7 @@
                 android:gravity="center"
                 android:paddingTop="@dimen/standard_padding"
                 android:paddingBottom="@dimen/standard_padding"
-                android:textSize="28sp"
+                app:styledTextSize="mainTitleTextSize"
                 app:styledTextColor="mainContrast"
                 tools:text="0 Stunden 0 Minuten" />
 
@@ -58,7 +58,7 @@
                     android:paddingTop="@dimen/activity_vertical_margin"
                     android:paddingBottom="@dimen/activity_vertical_margin"
                     android:text="@string/chat_mute_choose"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast80" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -70,7 +70,7 @@
                     android:paddingTop="@dimen/activity_vertical_margin"
                     android:paddingBottom="@dimen/activity_vertical_margin"
                     android:text="@string/chat_mute_15m"
-                    android:textSize="16sp"
+                    app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -82,7 +82,7 @@
                     android:paddingTop="@dimen/activity_vertical_margin"
                     android:paddingBottom="@dimen/activity_vertical_margin"
                     android:text="@string/chat_mute_1h"
-                    android:textSize="16sp"
+                    app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -94,7 +94,7 @@
                     android:paddingTop="@dimen/activity_vertical_margin"
                     android:paddingBottom="@dimen/activity_vertical_margin"
                     android:text="@string/chat_mute_8h"
-                    android:textSize="16sp"
+                    app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -106,7 +106,7 @@
                     android:paddingTop="@dimen/activity_vertical_margin"
                     android:paddingBottom="@dimen/activity_vertical_margin"
                     android:text="@string/chat_mute_24h"
-                    android:textSize="16sp"
+                    app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -118,7 +118,7 @@
                     android:paddingTop="@dimen/activity_vertical_margin"
                     android:paddingBottom="@dimen/activity_vertical_margin"
                     android:text="@string/chat_mute_infinite"
-                    android:textSize="16sp"
+                    app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -127,7 +127,7 @@
                     android:paddingTop="@dimen/activity_vertical_margin"
                     android:paddingBottom="@dimen/activity_vertical_margin"
                     android:text="@string/chat_mute_hint"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast80" />
 
             </LinearLayout>

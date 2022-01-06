@@ -46,7 +46,7 @@
                 android:layout_gravity="center_horizontal"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textSize="17sp"
+                app:styledTextSize="messageTextSize"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@+id/chat_overview_item_text_view_message_counter"
                 app:layout_constraintStart_toStartOf="parent"
@@ -69,7 +69,7 @@
                 android:minHeight="20dp"
                 android:text=""
                 android:textColor="@color/insecureContrast"
-                android:textSize="12sp"
+                app:styledTextSize="statusTextSize"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/chat_overview_item_text_view_message_date"
@@ -82,7 +82,7 @@
                 android:layout_height="match_parent"
                 android:layout_gravity="end"
                 android:text="@string/chat_overview_preview_yesterday"
-                android:textSize="12sp"
+                app:styledTextSize="statusTextSize"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -126,7 +126,7 @@
                     android:letterSpacing="-0.02"
                     android:lineSpacingExtra="5sp"
                     android:textColor="#DC004B"
-                    android:textSize="15sp"
+                    app:styledTextSize="baseTextSize"
                     android:textStyle="bold"
 
                     />
@@ -150,9 +150,9 @@
                 android:letterSpacing="0.0"
                 android:lineSpacingExtra="5sp"
                 android:maxLines="2"
-                android:textSize="15sp"
                 android:textStyle="normal"
                 android:visibility="visible"
+                app:styledTextSize="baseTextSize"
                 app:styledTextColor="mainContrast80"/>
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>

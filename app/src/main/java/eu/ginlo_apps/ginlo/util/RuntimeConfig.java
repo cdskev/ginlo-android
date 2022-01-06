@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.util;
 
@@ -140,10 +140,6 @@ public class RuntimeConfig {
         } catch (Exception e) {
             throw new RuntimeException("Can not load Class", e);
         }
-    }
-
-    public static String getApplicationPublicKey() {
-        return BuildConfig.APPLICATION_PUBLIC_KEY;
     }
 
     public static List<String> getAllowedBackupMandantIdents() {

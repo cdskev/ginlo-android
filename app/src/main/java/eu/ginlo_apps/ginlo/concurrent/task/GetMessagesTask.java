@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.concurrent.task;
 
 import com.google.gson.Gson;
@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import eu.ginlo_apps.ginlo.AVCallMenuActivity;
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
@@ -237,15 +238,15 @@ public class GetMessagesTask
                     final String messageMimeType = message.getServerMimeType();
 
                     if (messageMimeType != null) {
-                        LogUtil.i(TAG, "Message with messageMimeType " + messageMimeType + " received.");
+                        LogUtil.i(TAG, "filterResponse: Message with messageMimeType " + messageMimeType + " received.");
 
                         switch (messageMimeType) {
                             case MimeType.APP_GINLO_CONTROL:
                                 // KS: if SHOW_AGC_MESSAGES is set we process APP_GINLO_CONTROL (AGC) messages
                                 // and allow for saving them to the database for further processing, even if
-                                // they are control messages.
-                                LogUtil.i(TAG, "APP_GINLO_CONTROL - dismiss call notification.");
-                                mNotificationController.dismissNotification(NotificationController.AVC_NOTIFICATION_ID);
+                                // they are some sort of control messages.
+                                LogUtil.d(TAG, "filterResponse: APP_GINLO_CONTROL - dismiss call notification.");
+                                mNotificationController.cancelAVCallNotification();
 
                                 if (BuildConfig.SHOW_AGC_MESSAGES) {
                                     // Prevent this message from being pushed
@@ -259,8 +260,9 @@ public class GetMessagesTask
                             case MimeType.TEXT_V_CALL:
                                 // Don't push old AVC messages
                                 final long now = new Date().getTime();
+                                LogUtil.d(TAG, "AVC message from " + message.getDateSend() + ". Now: " + now);
                                 if (message.getDateSend() + NotificationController.DISMISS_NOTIFICATION_TIMEOUT < now) {
-                                    LogUtil.i(TAG, "Older AVC message - no notification!");
+                                    LogUtil.d(TAG, "filterResponse: Expired AVC message - no notification!");
                                     message.setPushInfo("nopush");
                                     //message.setRead(true);
                                 }
@@ -346,6 +348,7 @@ public class GetMessagesTask
 
     private void processMessage(final Message message) {
         if (mMsgController.messageExists(message.getGuid())) {
+            LogUtil.i(TAG, "processMessage: Duplicate message:" + message.getGuid() + " -> " + message.getTo());
             //Nachricht wurde schon geladen
             Message oldMessage = mMsgController.getMessageByGuid(message.getGuid());
 
@@ -354,7 +357,7 @@ public class GetMessagesTask
                 mMsgController.saveMessage(oldMessage);
             }
         } else {
-            LogUtil.i(TAG, "Adding Message to Database:" + message.getGuid() + " " + message.getTo());
+            LogUtil.i(TAG, "processMessage: Adding Message to Database:" + message.getGuid() + " -> " + message.getTo());
 
             mMsgController.saveMessage(message);
 

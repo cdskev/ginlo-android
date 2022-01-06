@@ -38,7 +38,7 @@
                         android:gravity="center"
                         android:letterSpacing="-0.01"
                         android:text="@string/device_couple_guest_device"
-                        android:textSize="15sp"
+                        app:styledTextSize="baseTextSize"
                         app:styledTextColor="mainContrast80" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -50,7 +50,7 @@
                         android:letterSpacing="-0.01"
                         android:lineSpacingExtra="4sp"
                         android:text="@string/device_couple_guest_descr"
-                        android:textSize="12sp"
+                        app:styledTextSize="statusTextSize"
                         app:styledTextColor="mainContrast80" />
                 </LinearLayout>
 
@@ -76,7 +76,7 @@
                     android:layout_marginEnd="@dimen/layout_padding_left_right"
                     android:lineSpacingExtra="3sp"
                     android:textColor="@color/mainContrast50"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -88,7 +88,7 @@
                     android:layout_marginEnd="@dimen/layout_padding_left_right"
                     android:lineSpacingExtra="3sp"
                     android:textColor="@color/secure"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="secure" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -100,7 +100,7 @@
                     android:layout_marginEnd="@dimen/layout_padding_left_right"
                     android:labelFor="@+id/device_detail_device_name_tv"
                     android:text="@string/device_device_name"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.emoji.widget.EmojiAppCompatEditText

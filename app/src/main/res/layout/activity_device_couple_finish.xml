@@ -34,7 +34,7 @@
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:lineSpacingExtra="4sp"
                     android:text="@string/device_couple_finish_descr"
-                    android:textSize="15sp"
+                    app:styledTextSize="baseTextSize"
                     app:styledTextColor="mainContrast80" />
 
                 <androidx.appcompat.widget.AppCompatImageView
@@ -54,7 +54,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/standard_padding"
                     android:gravity="center_horizontal"
-                    android:textSize="17sp"
+                    app:styledTextSize="messageTextSize"
                     app:styledTextColor="mainContrast80" />
             </LinearLayout>
 

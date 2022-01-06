@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.controller;
 
 import android.annotation.SuppressLint;
@@ -51,7 +51,6 @@ import javax.crypto.spec.IvParameterSpec;
 
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.UseCases.DeleteLocalBackupsUseCase;
 import eu.ginlo_apps.ginlo.concurrent.listener.ConcurrentTaskListener;
 import eu.ginlo_apps.ginlo.concurrent.manager.SerialExecutor;
 import eu.ginlo_apps.ginlo.concurrent.task.AsyncHttpTask;
@@ -60,7 +59,6 @@ import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.KeyController.OnKeyPairsInitiatedListener;
 import eu.ginlo_apps.ginlo.controller.contracts.AccountOnServerWasDeleteListener;
 import eu.ginlo_apps.ginlo.controller.contracts.AsyncBackupKeysCallback;
-import eu.ginlo_apps.ginlo.controller.contracts.BackupUploadListener;
 import eu.ginlo_apps.ginlo.controller.contracts.CreateBackupListener;
 import eu.ginlo_apps.ginlo.controller.contracts.CreateRecoveryCodeListener;
 import eu.ginlo_apps.ginlo.controller.contracts.OnConfirmAccountListener;
@@ -156,7 +154,6 @@ public class AccountControllerBase
     private CoupleDeviceModel mCoupleDeviceModel;
     private boolean mIsBackupStarted;
     private AccountOnServerWasDeleteListener mAccountDeleteListener;
-    private List<BackupUploadListener> mBackupUploadListeners;
 
     private AsyncTask<Void, Void, LocalizedException> mCoupleDeviceCreateDeviceTask;
     private AsyncTask<Void, Void, LocalizedException> mCoupleDeviceGetCouplingTask;
@@ -220,10 +217,6 @@ public class AccountControllerBase
             public void onBackendResponse(BackendResponse response) {
 
                 if (!response.isError) {
-                    //TODO : Not sure about how to use dependency injection here so creating object of the use case here
-                    DeleteLocalBackupsUseCase deleteLocalBackupsUseCase = new DeleteLocalBackupsUseCase();
-                    deleteLocalBackupsUseCase.deleteLocalBackups();
-
                     if (BuildConfig.DEBUG) {
                         onDeleteAccountListener.onDeleteAccountSuccess();
                     }
@@ -397,6 +390,7 @@ public class AccountControllerBase
                                         continue;
                                     }
 
+                                    // Collect all returned account guids except our own.
                                     if (StringUtil.isEqual(mCreateAccountModel.accountDaoModel.getAccountGuid(), accountGuid)) {
                                         mCreateAccountModel.accountDaoModel.setAccountID(accountId);
                                     } else {
@@ -405,8 +399,8 @@ public class AccountControllerBase
                                 }
                             }
                             //Server gibt mehr als eine Guid zurueck, d.h. auf dem Server gibt es noch min. ein weiteren Account
-
                             if (serverAccountIds.size() > 0) {
+                                LogUtil.d(TAG, "onBackendResponse: Got serverAccountIds: " + serverAccountIds.toString());
                                 mCreateAccountModel.allServerAccountIDs = serverAccountIds;
                             }
                         }
@@ -1034,7 +1028,7 @@ public class AccountControllerBase
     //die Tasks werden vom controller selbst gestartet.
     //dieser ist ueber die gesamte Laufzeit aktiv, wird also niemals garbagecollected
     public void coupleDeviceGetCouplingResponse(@NonNull final GenericActionListener<Void> actionListener) {
-        LogUtil.d("CHECK", "coupleDeviceGetCouplingResponse()");
+        LogUtil.d(TAG, "coupleDeviceGetCouplingResponse");
         if (mCoupleDeviceGetCouplingTask != null) {
             return;
         }
@@ -1120,17 +1114,17 @@ public class AccountControllerBase
         }
 
         try {
-            LogUtil.d("CHECK", "coupleDeviceCreateDevice()");
             mApplication.getAccountController().coupleDeviceSavePasswordAndSettings();
             mApplication.getKeyController().saveKeys(mCoupleDeviceModel.password, new eu.ginlo_apps.ginlo.controller.KeyController.OnKeysSavedListener() {
                 @Override
                 public void onKeysSaveComplete() {
-                    LogUtil.d("CHECK", "onKeysSaveComplete()");
+                    LogUtil.i(TAG, "coupleDeviceCreateDevice: onKeysSaveComplete()");
                     coupleDeviceCreateDeviceInternal(actionListener);
                 }
 
                 @Override
                 public void onKeysSaveFailed() {
+                    LogUtil.e(TAG, "coupleDeviceCreateDevice: onKeysSaveFailed()");
                     resetCoupleDevice();
                     actionListener.onFail("", LocalizedException.SAVE_KEYS_FAILED);
                 }
@@ -1463,7 +1457,7 @@ public class AccountControllerBase
     //die Tasks werden vom controller selbst gestartet.
     //dieser ist ueber die gesamte Laufzeit aktiv, wird also niemals garbagecollected
     public void coupleGetCouplingRequest(@NonNull final String tan, @NonNull final Account account, @NonNull final GenericActionListener<CouplingRequestModel> actionListener) {
-        LogUtil.d("CHECK", "coupleGetCouplingResponse()");
+        LogUtil.d(TAG, "coupleGetCouplingRequest");
         if (mCoupleGetCouplingRequestTask != null) {
             mCoupleGetCouplingRequestTask.cancel(true);
             mCoupleGetCouplingRequestTask = null;
@@ -2247,8 +2241,6 @@ public class AccountControllerBase
             @Override
             public void onBackendResponse(BackendResponse response) {
                 if (!response.isError && response.jsonObject != null) {
-                    LogUtil.d(TAG, "updateAccountInfoFromServer: Got response: " + response.jsonObject.toString());
-
                     JsonObject responseJSON = response.jsonObject;
 
                     if (!responseJSON.has(JsonConstants.ACCOUNT)) {
@@ -2325,8 +2317,6 @@ public class AccountControllerBase
                 if (!response.isError) {
                     try {
                         if (response.jsonArray != null && response.jsonArray.size() >= 1) {
-                            LogUtil.d(TAG, "loadAccountProfileImageFromServer: Got response " + response.jsonArray.toString());
-
                             String imageBase64String = response.jsonArray.get(0).getAsString();
 
                             if (!StringUtil.isNullOrEmpty(imageBase64String) && aesKey != null) {
@@ -2471,21 +2461,6 @@ public class AccountControllerBase
     private void updateListenerForSaveChatsState(int current, int size) {
         for (CreateBackupListener listener : backupListeners) {
             listener.onCreateBackupSaveChatsUpdate(current, size);
-        }
-    }
-
-    public void registerBackupUploadListener(final BackupUploadListener backupUploadListener) {
-        if (backupUploadListener != null) {
-            if (mBackupUploadListeners == null) {
-                mBackupUploadListeners = new ArrayList<>();
-            }
-            mBackupUploadListeners.add(backupUploadListener);
-        }
-    }
-
-    public void unRegisterBackupUploadListener(final BackupUploadListener backupUploadListener) {
-        if (mBackupUploadListeners != null && backupUploadListener != null) {
-            mBackupUploadListeners.remove(backupUploadListener);
         }
     }
 
@@ -2915,7 +2890,7 @@ public class AccountControllerBase
 
             @Override
             public void asyncLoaderFailed(final String errorMessage) {
-                actionListener.onFail(errorMessage, null);
+                actionListener.onFail(errorMessage, "");
             }
         });
         searchTask.executeOnExecutor(AsyncHttpTask.THREAD_POOL_EXECUTOR);
@@ -3255,7 +3230,7 @@ public class AccountControllerBase
                 }
                 case AppConstants.STATE_ACTION_BACKUP_FINISHED: {
                     String path = intent.getStringExtra(AppConstants.INTENT_EXTENDED_DATA_EXTRA);
-                    if (StringUtil.isNullOrEmpty(path) || !(new LocalBackupHelper(mApplication).copyBackupToFinalPath(path))) {
+                    if (StringUtil.isNullOrEmpty(path)) {
                         setBackupState(CreateBackupListener.STATE_ERROR);
                         return;
                     }
@@ -3302,46 +3277,33 @@ public class AccountControllerBase
     }
 
     protected class CreateAccountModel {
+
         String password;
-
         boolean isSimplePassword;
-
         boolean isPwdOnStartEnabled;
-
         AccountModel accountModel;
-
         DeviceModel deviceModel;
-
         Account accountDaoModel;
-
         List<String> allServerAccountIDs;
-
         String normalizedPhoneNumber;
-
         String emailAddress;
     }
 
     private class CoupleDeviceModel {
+
         String password;
-
         boolean isSimplePassword;
-
         boolean isPwdOnStartEnabled;
-
         String deviceName;
-
         AccountModel accountModel;
-
         DeviceModel deviceModel;
-
         Account accountDaoModel;
-
         String couplingTransactionID;
-
         CouplingResponseModel couplingResponse;
     }
 
     private class CouplingResponseModel {
+
         String transId;
         String publicKey;
         String publicKeySig;

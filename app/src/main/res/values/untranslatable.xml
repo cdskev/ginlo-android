@@ -9,6 +9,7 @@
     </string-array>
     <string name="app_label_debug" translatable="false">B2C D</string>
     <string name="app_label_debug_stg" translatable="false">B2C DS</string>
+    <string name="app_label_debug_rId" translatable="false">B2C DbgRId</string>
     <string name="app_label_release" translatable="false">ginlo</string>
     <string name="app_label_release_stg" translatable="false">B2C RS</string>
     <string name="html_anchor_format" translatable="false">&lt;a href=&quot;%s&quot;&gt;%s&lt;/a&gt;</string>

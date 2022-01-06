@@ -57,7 +57,7 @@
                     android:lineSpacingExtra="5sp"
                     android:singleLine="true"
                     android:text="Horst von der Dahlenbeck"
-                    android:textSize="17sp"
+                    app:styledTextSize="messageTextSize"
                     android:textStyle="bold"
                     app:styledTextColor="mainContrast" />
 
@@ -72,7 +72,7 @@
                     android:lineSpacingExtra="5sp"
                     android:singleLine="true"
                     android:text="Hallo! Ich nutze SIMSme."
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     android:visibility="visible"
                     app:styledTextColor="mainContrast50" />
 
@@ -87,7 +87,7 @@
                     android:lineSpacingExtra="5sp"
                     android:singleLine="true"
                     android:text="horst.dahlenbeck@email.com"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     android:visibility="visible"
                     app:styledTextColor="mainContrast" />
 
@@ -107,7 +107,7 @@
                 android:paddingBottom="2dp"
                 android:singleLine="true"
                 android:text="@string/simsme"
-                android:textSize="10sp"
+                app:styledTextSize="labelTextSize"
                 android:visibility="visible"
                 app:textAllCaps="true" />
         </LinearLayout>

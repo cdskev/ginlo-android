@@ -78,7 +78,7 @@
                 android:paddingEnd="8dp"
                 android:paddingBottom="3dp"
                 android:textColor="@color/main"
-                android:textSize="16sp"
+                app:styledTextSize="chooserTextSize"
                 android:visibility="gone"
                 tools:text="Bildbeschreibung"
                 tools:visibility="visible" />

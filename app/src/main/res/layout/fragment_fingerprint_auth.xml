@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/dialog_fingerprint_title"
-        android:textSize="20sp"
+        app:styledTextSize="mediumTitleTextSize"
         android:textStyle="bold"
         app:styledTextColor="mainContrast" />
 
@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:text="@string/dialog_fingerprint_hint"
-        android:textSize="16sp"
+        app:styledTextSize="chooserTextSize"
         app:styledTextColor="mainContrast" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
@@ -45,7 +45,7 @@
             android:paddingStart="@dimen/activity_horizontal_margin"
             android:paddingEnd="@dimen/activity_horizontal_margin"
             android:text="@string/dialog_fingerprint_hint2"
-            android:textSize="16sp"
+            app:styledTextSize="chooserTextSize"
             app:styledTextColor="mainContrast50" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>

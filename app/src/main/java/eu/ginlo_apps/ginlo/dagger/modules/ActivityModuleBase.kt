@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.dagger.modules
 
 import dagger.Module
@@ -12,14 +12,7 @@ import eu.ginlo_apps.ginlo.activity.device.DeviceCoupleFinishActivity
 import eu.ginlo_apps.ginlo.activity.device.DeviceCoupleNewActivity
 import eu.ginlo_apps.ginlo.activity.device.DeviceDetailActivity
 import eu.ginlo_apps.ginlo.activity.device.DevicesOverviewActivity
-import eu.ginlo_apps.ginlo.activity.preferences.PreferencesChatsActivity
-import eu.ginlo_apps.ginlo.activity.preferences.PreferencesInformationActivity
-import eu.ginlo_apps.ginlo.activity.preferences.PreferencesMediaDownloadActivity
-import eu.ginlo_apps.ginlo.activity.preferences.PreferencesNotificationsActivity
-import eu.ginlo_apps.ginlo.activity.preferences.PreferencesAppearanceActivity
-import eu.ginlo_apps.ginlo.activity.preferences.PreferencesOverviewActivity
-import eu.ginlo_apps.ginlo.activity.preferences.PreferencesPasswordActivity
-import eu.ginlo_apps.ginlo.activity.preferences.PreferencesPrivacyActivity
+import eu.ginlo_apps.ginlo.activity.preferences.*
 import eu.ginlo_apps.ginlo.activity.preferences.information.AboutActivity
 import eu.ginlo_apps.ginlo.activity.preferences.information.SupportActivity
 import eu.ginlo_apps.ginlo.activity.preferences.information.license.LicensesActivity
@@ -101,6 +94,9 @@ abstract class ActivityModuleBase {
 
     @ContributesAndroidInjector
     abstract fun PreferencesAppearanceActivity(): PreferencesAppearanceActivity
+
+    @ContributesAndroidInjector
+    abstract fun PreferencesOthersActivity(): PreferencesOthersActivity
 
     @ContributesAndroidInjector
     abstract fun contributeIdentRequestActivity(): IdentRequestActivity

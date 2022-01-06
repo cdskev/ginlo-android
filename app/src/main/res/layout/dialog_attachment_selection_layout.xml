@@ -10,66 +10,6 @@
         android:layout_height="@dimen/shadow_length"
         android:background="@drawable/shadow_up" />
 
-
-    <LinearLayout
-        android:id="@+id/attachment_selection_video_call"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/bottem_sheet_item_height"
-        android:clickable="true"
-        android:focusable="true"
-        android:onClick="handleAVCVideoClick"
-        android:orientation="horizontal"
-        android:paddingTop="8dp">
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:paddingStart="@dimen/activity_horizontal_margin"
-            android:paddingEnd="16dp"
-            android:paddingBottom="0dp"
-            android:src="@drawable/ic_video_call" />
-
-        <eu.ginlo_apps.ginlo.view.CustomTextView
-            style="@style/SubheadlineTextViewStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:gravity="start"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:text="@string/chats_AVC_video_call" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/attachment_selection_audio_call"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/bottem_sheet_item_height"
-        android:clickable="true"
-        android:focusable="true"
-        android:onClick="handleAVCAudioClick"
-        android:orientation="horizontal">
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:paddingStart="@dimen/activity_horizontal_margin"
-            android:paddingEnd="16dp"
-            android:paddingBottom="0dp"
-            android:src="@drawable/ic_phone_call2" />
-
-        <eu.ginlo_apps.ginlo.view.CustomTextView
-            style="@style/SubheadlineTextViewStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:gravity="start"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:text="@string/chats_AVC_audio_call" />
-    </LinearLayout>
-
     <LinearLayout
         android:id="@+id/attachment_selection_take_foto"
         android:layout_width="match_parent"

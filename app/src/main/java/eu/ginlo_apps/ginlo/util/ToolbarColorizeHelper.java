@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.util;
 
@@ -87,6 +87,7 @@ public final class ToolbarColorizeHelper {
                 ColorUtil.getInstance().colorizeSwitch((SwitchCompat) v, (Application) context.getApplicationContext());
             } else if (v instanceof TextView) {
                 ((TextView) v).setTextColor(toolbarIconsColor);
+            /* KS: Don't colorize *any* image!
             } else if (v instanceof ImageView) {
                 // das Company-Logo nicht einfaerben
                 if ("toolbar_logo" != v.getTag()) {
@@ -96,6 +97,9 @@ public final class ToolbarColorizeHelper {
                         d.setColorFilter(colorFilter);
                     }
                 }
+            */
+            } else if (v instanceof ImageView) {
+                // Don't colorize images!
             } else if (v instanceof LinearLayout) {
                 colorizeChildren(context, (LinearLayout) v, toolbarIconsColor, colorFilter);
             } else if (v instanceof RelativeLayout) {

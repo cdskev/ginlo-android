@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.controller;
 
 import android.content.BroadcastReceiver;
@@ -348,7 +348,8 @@ public class AccountController extends AccountControllerBase implements Preferen
         final IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
             @Override
             public void onBackendResponse(final BackendResponse response) {
-                if (response.isError) {
+                    if (response.isError) {
+                    LogUtil.w(TAG, "getPurchasedProducts: Got error from backend: " + response.errorMessage);
                     if (onGetPurchasedProductsListener != null) {
                         if (response.msgException != null && StringUtil.isEqual(response.msgException.getIdent(), "AND-0055")) {
                             // No such account found on server
@@ -359,18 +360,18 @@ public class AccountController extends AccountControllerBase implements Preferen
                     }
                 } else {
                     if (response.jsonArray != null) {
-                        LogUtil.i(TAG, "Got product info from backend - validating ... ");
+                        LogUtil.d(TAG, "getPurchasedProducts: Got product info from backend - validating ... " + response.jsonArray.toString());
                         if (response.jsonArray.size() > 0) {
                             boolean bHasUsage = false;
                             for (int i = 0; i < response.jsonArray.size(); i++) {
                                 final JsonObject jsonObject = response.jsonArray.get(i).getAsJsonObject();
                                 if (jsonObject != null) {
-                                    LogUtil.i(TAG, "Checking " + jsonObject);
+                                    LogUtil.d(TAG, "getPurchasedProducts: Checking " + jsonObject);
                                     if (jsonObject.has("ident")) {
                                         final String ident = jsonObject.get("ident").getAsString();
 
                                         if (StringUtil.isEqual(ident, "usage") && jsonObject.has("valid")) {
-                                            LogUtil.i(TAG, "Got purchased product: " + jsonObject.toString());
+                                            LogUtil.i(TAG, "getPurchasedProducts: Got purchased product: " + jsonObject.toString());
                                             final String date = jsonObject.get("valid").getAsString();
                                             final long dateLong = DateUtil.utcWithoutMillisStringToMillis(date);
                                             bHasUsage = true;
@@ -387,37 +388,38 @@ public class AccountController extends AccountControllerBase implements Preferen
 
                                                     saveOrUpdateAccount(mAccount);
                                                 }
-                                                LogUtil.i(TAG, "License ends " + new Date(mAccount.getLicenceDate())
+                                                LogUtil.i(TAG, "getPurchasedProducts: License ends " + new Date(mAccount.getLicenceDate())
                                                         + ", AutoRenewing is " + mAccount.isAutorenewingLicense()
                                                         + ", HasLicense is " + mAccount.getHasLicence());
                                             } catch (final LocalizedException e) {
-                                                LogUtil.e(TAG, "Get purchased products from backend failed", e);
+                                                LogUtil.e(TAG, "getPurchasedProducts: Updating license account information failed with " + e.getMessage());
                                             }
                                         }
                                     }
                                 }
                             }
+
                             if (!bHasUsage) {
+                                LogUtil.w(TAG, "getPurchasedProducts: No useable license found.");
                                 try {
                                     mAccount.setLicenceDate(null);
                                     ((ContactControllerBusiness) mApplication.getContactController()).resetLicenseDaysLeft();
                                     saveOrUpdateAccount(mAccount);
                                 } catch (final LocalizedException e) {
-
-                                    LogUtil.e(TAG, "Get purchased products from backend failed", e);
+                                    LogUtil.e(TAG, "getPurchasedProducts: bHasUsage = false - saveOrUpdateAccount() failed with " + e.getMessage());
                                 }
 
                             }
-                        } else //lizenz wurde auf dem Server zurueckgesetzt
-                        {
-                            LogUtil.e(TAG, "Got empty licenses");
+                        } else {
+                            // null-response - no license on backend or license has been reset.
+                            LogUtil.w(TAG, "getPurchasedProducts: No license information available.");
 
                             try {
                                 mAccount.setLicenceDate(null);
                                 ((ContactControllerBusiness) mApplication.getContactController()).resetLicenseDaysLeft();
                                 saveOrUpdateAccount(mAccount);
                             } catch (final LocalizedException e) {
-                                LogUtil.e(TAG, "Set licence date failed", e);
+                                LogUtil.e(TAG, "getPurchasedProducts: Got null response - saveOrUpdateAccount() failed with " + e.getMessage());
                             }
 
                         }
@@ -2294,6 +2296,7 @@ public class AccountController extends AccountControllerBase implements Preferen
     @Override
     public SecretKey getCompanyAesKey()
             throws LocalizedException {
+
         if (mCompanyAesKey == null) {
             JsonObject mcJO = getAccount().getManagementCompany();
             if (mcJO != null) {
@@ -2346,7 +2349,7 @@ public class AccountController extends AccountControllerBase implements Preferen
             }
 
             if (newSuffix == null) {
-                LocalizedException exception = new LocalizedException(LocalizedException.KEY_NOT_AVAILABLE, "Encryption salt not found.");
+                LocalizedException exception = new LocalizedException(LocalizedException.KEY_NOT_AVAILABLE, "Encryption suffix not found.");
                 LogUtil.e(TAG, exception.getMessage(), exception);
                 throw exception;
             }
@@ -2811,6 +2814,7 @@ public class AccountController extends AccountControllerBase implements Preferen
         @Override
         public void onReceive(Context context, Intent intent) {
             int state = intent.getIntExtra(AppConstants.INTENT_EXTENDED_DATA_STATUS, -1);
+            LogUtil.d(TAG, "ConfigureCompanyAccountReceiver: onReceive state = " + state);
             switch (state) {
                 case AppConstants.CONFIGURE_COMPANY_STATE_STARTED:
                 case AppConstants.CONFIGURE_COMPANY_STATE_CONNECTING:

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo;
 
 import android.content.Intent;
@@ -8,14 +8,19 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.billingclient.api.Purchase;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import eu.ginlo_apps.ginlo.activity.register.InitProfileActivityBusiness;
 import eu.ginlo_apps.ginlo.activity.register.PurchaseLicenseActivity;
-import eu.ginlo_apps.ginlo.billing.IabException;
-import eu.ginlo_apps.ginlo.billing.IabHelper;
-import eu.ginlo_apps.ginlo.billing.IabResult;
-import eu.ginlo_apps.ginlo.billing.Inventory;
+import eu.ginlo_apps.ginlo.billing.GinloBillingImpl;
+import eu.ginlo_apps.ginlo.billing.GinloBillingResult;
+import eu.ginlo_apps.ginlo.billing.GinloPurchaseImpl;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.ContactControllerBusiness;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
@@ -141,53 +146,74 @@ public class LoginActivityBusiness extends LoginActivity {
     }
 
     private void checkAndExtendPurchase() {
-        final IabHelper helper = new IabHelper(getSimsMeApplication(), RuntimeConfig.getApplicationPublicKey());
+        if(ginloBillingImpl == null ) {
+            LogUtil.e(TAG, "checkAndExtendPurchaseQuery: Missing ginloBillingImpl instance!");
+        } else {
+            // Initialize billing and connect.
+            ginloBillingImpl.initialize(new GinloBillingImpl.OnBillingInitializeFinishedListener() {
+                @Override
+                public void onBillingInitializeFinished(@NotNull GinloBillingResult result) {
+                    if (result.isSuccess()) {
+                        LogUtil.i(TAG, "checkAndExtendPurchase: Billing initialization successful.");
+                        // Retrieve current in-app purchases.
+                        ginloBillingImpl.queryPurchases(GinloBillingImpl.INAPP, new GinloBillingImpl.OnQueryPurchasesFinishedListener() {
+                            @Override
+                            public void onQueryPurchasesFinished(@NotNull GinloBillingResult result, ArrayList<GinloPurchaseImpl> purchases) {
 
-        helper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
-            @Override
-            public void onIabSetupFinished(IabResult result) {
-                if (result.isSuccess()) {
-                    try {
-                        // KS: TODO: Use queryInventoryAsync!
-                        Inventory inv = helper.queryInventory(true, null);
-                        LogUtil.i(TAG, "Query purchase inventory returns: " + inv.getAllPurchases());
+                                if (result.isSuccess()) {
+                                    try {
+                                        if (purchases != null && purchases.size() > 0) {
+                                            LogUtil.i(TAG, "checkAndExtendPurchase: Query purchases successful: " + purchases);
+                                            Calendar cal = Calendar.getInstance();
+                                            cal.add(Calendar.DATE, 1);
+                                            getSimsMeApplication().getAccountController().getAccount().setLicenceDate(cal.getTimeInMillis());
+                                            ((ContactControllerBusiness) getSimsMeApplication().getContactController()).resetLicenseDaysLeft();
+                                            LogUtil.i(TAG, "checkAndExtendPurchase: Silent setting of license date done.");
 
-                        // KS: Test
-                        LogUtil.i(TAG, "Fire and throw away consuming ... ");
-                        helper.consumeAsync(inv.getAllPurchases(), null);
+                                            ginloBillingImpl.consumePurchases(purchases, new GinloBillingImpl.OnConsumePurchaseFinishedListener() {
+                                                @Override
+                                                public void onConsumePurchaseFinished(@NotNull GinloBillingResult billingResult, String purchaseToken) {
+                                                    if(billingResult.isSuccess()) {
+                                                        LogUtil.i(TAG, "checkAndExtendPurchase: onConsumePurchaseFinished successful for token = " + purchaseToken);
+                                                    } else {
+                                                        LogUtil.i(TAG, "checkAndExtendPurchase: onConsumePurchaseFinished returned " +
+                                                                billingResult.getResponseCode() + " (" + billingResult.geResponsetMessage() + ")");
+                                                    }
+                                                }
+                                            });
 
-                        // AutoRenewable Purchases unter Android werden für die App nicht verifizierbar verlängert :-(
-                        if (inv.getAllPurchases().size() > 0) {
-                            Calendar cal = Calendar.getInstance();
-                            cal.add(Calendar.DATE, 1);
-                            getSimsMeApplication().getAccountController().getAccount().setLicenceDate(cal.getTimeInMillis());
-                            ((ContactControllerBusiness) getSimsMeApplication().getContactController()).resetLicenseDaysLeft();
-                            LogUtil.i(TAG, "Silent setting of license date done.");
-                        } else {
-                            String oldPurchaseTokens = getSimsMeApplication().getPreferencesController().getSavedPurchases();
-                            if (!StringUtil.isNullOrEmpty(oldPurchaseTokens)) {
-                                final IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
-                                    @Override
-                                    public void onBackendResponse(BackendResponse response) {
-                                        if (!response.isError) {
-                                            getSimsMeApplication().getPreferencesController().resetSavedPurchases();
+                                        } else {
+                                            LogUtil.i(TAG, "checkAndExtendPurchase: Query purchases successful: No pending purchases.");
+                                            String oldPurchaseTokens = getSimsMeApplication().getPreferencesController().getSavedPurchases();
+                                            if (!StringUtil.isNullOrEmpty(oldPurchaseTokens)) {
+                                                final IBackendService.OnBackendResponseListener listener = new IBackendService.OnBackendResponseListener() {
+                                                    @Override
+                                                    public void onBackendResponse(BackendResponse response) {
+                                                        if (!response.isError) {
+                                                            getSimsMeApplication().getPreferencesController().resetSavedPurchases();
+                                                        }
+                                                    }
+                                                };
+
+                                                LogUtil.i(TAG, "checkAndExtendPurchase: Reset old purchase tokens on backend: " + oldPurchaseTokens);
+                                                BackendService.withAsyncConnection(getSimsMeApplication())
+                                                        .resetPurchaseToken(oldPurchaseTokens, listener);
+                                            }
                                         }
+                                    } catch (LocalizedException e) {
+                                        LogUtil.e(TAG, "Query purchase inventory failed with: " + e.getMessage());
                                     }
-                                };
-
-                                LogUtil.i(TAG, "Reset purchaseToken on backend.");
-                                BackendService.withAsyncConnection(getSimsMeApplication())
-                                        .resetPurchaseToken(oldPurchaseTokens, listener);
+                                } else {
+                                    LogUtil.w(TAG, "checkAndExtendPurchase: onQueryPurchasesFinished returned with: " + result.geResponsetMessage());
+                                }
                             }
-                        }
-                    } catch (IabException | LocalizedException e) {
-                        LogUtil.e(TAG, "Query purchase inventory failed with: " + e.getMessage(), e);
+                        });
+                    } else {
+                            LogUtil.w(TAG, "checkAndExtendPurchase: onBillingInitializeFinished returned with: " + result.geResponsetMessage());
                     }
-                } else {
-                    LogUtil.w(TAG, "Query purchase inventory failed with: " + result);
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override

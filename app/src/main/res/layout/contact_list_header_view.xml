@@ -17,7 +17,7 @@
         android:letterSpacing="0.01"
         android:lineSpacingExtra="6sp"
         android:text="@string/contacts_fragment_header_title"
-        android:textSize="28sp"
+        app:styledTextSize="mainTitleTextSize"
         app:styledTextColor="mainContrast" />
 
     <androidx.appcompat.widget.AppCompatTextView
@@ -29,7 +29,7 @@
         android:letterSpacing="-0.02"
         android:lineSpacingExtra="10sp"
         android:text="@string/contacts_fragment_header_subtitle"
-        android:textSize="14sp"
+        app:styledTextSize="commentTextSize"
         android:textStyle="bold"
         app:styledTextColor="mainContrast" />
 
@@ -43,7 +43,7 @@
         android:letterSpacing="-0.02"
         android:lineSpacingExtra="5sp"
         android:text="@string/contacts_fragment_search_desc"
-        android:textSize="15sp"
+        app:styledTextSize="baseTextSize"
         android:visibility="visible"
         app:styledTextColor="mainContrast80" />
 
@@ -66,7 +66,7 @@
         android:lineSpacingExtra="3sp"
         android:text="@string/contacts_fragment_header_last_contacts"
         android:textAllCaps="true"
-        android:textSize="13sp"
+        app:styledTextSize="commentTextSize"
         android:visibility="visible"
         app:styledTextColor="mainContrast" />
 

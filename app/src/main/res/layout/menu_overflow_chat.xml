@@ -25,7 +25,7 @@
         android:onClick="handleDeleteChatClick"
         android:text="@string/chats_delete_chat"
         android:textColor="@color/overlayContrast"
-        android:textSize="17sp"
+        app:styledTextSize="messageTextSize"
         android:textStyle="bold"
         app:styledIconColor="overlayContrast"
         app:styledTextColor="overlayContrast" />
@@ -47,7 +47,7 @@
         android:onClick="handleClearChatClick"
         android:text="@string/chats_clear_chat"
         android:textColor="@color/overlayContrast"
-        android:textSize="17sp"
+        app:styledTextSize="messageTextSize"
         android:textStyle="bold"
         app:styledIconColor="overlayContrast"
         app:styledTextColor="overlayContrast" />

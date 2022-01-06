@@ -17,7 +17,7 @@
         android:layout_centerVertical="true"
         android:layout_marginTop="0dp"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textSize="26sp"
+        app:styledTextSize="subTitleTextSize"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.concurrent.manager;
 
 import androidx.annotation.NonNull;
@@ -52,9 +52,9 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
     protected final ChannelController mChannelController;
     protected final ChatController mChatController;
     protected final GroupChatController mGroupChatController;
+    protected final MessageDecryptionController msgDecryptionController;
     private final ChatImageController chatImageController;
     private final ContactController contactController;
-    private final MessageDecryptionController msgDecryptionController;
     private final NotificationController mNotificationController;
     private final SimsMeApplication mApplication;
     private static final Object lockGetUnreadMessages = new Object();
@@ -97,138 +97,143 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
         }
     }
 
-    protected SingleChatOverviewItemVO getSingleChatOverviewItem(Chat chat,
-                                                                 DecryptedMessage decryptedMsg)
+    protected SingleChatOverviewItemVO getSingleChatOverviewItem(Chat chat, DecryptedMessage decryptedMsg)
             throws LocalizedException {
+
         String guid = chat.getChatGuid();
         SingleChatOverviewItemVO item = new SingleChatOverviewItemVO();
 
-        item.setChatGuid(guid);
+        try {
+            item.setChatGuid(guid);
+            item.isSystemChat = guid.equals(AppConstants.GUID_SYSTEM_CHAT);
+            item.messageCount = messageController.getNumNotReadMessagesByGuid(guid, Message.TYPE_PRIVATE);
+            item.setMediaType(getMediaTypeForMessage(decryptedMsg));
+            item.setState(getStateForSingleChat(guid));
+            item.previewText = chatOverviewController.getPreviewTextForMessage(decryptedMsg, false);
 
-        setSendDate(item, (decryptedMsg != null) ? decryptedMsg.getMessage() : null, chat);
-        item.hasRead = ((decryptedMsg != null) && (decryptedMsg.getMessage().hasReceiversRead()));
+            if(decryptedMsg != null) {
+                final Message msg = decryptedMsg.getMessage();
 
-        item.hasDownloaded = ((decryptedMsg != null) && (decryptedMsg.getMessage().hasReceiversDownloaded()));
+                setSendDate(item, msg, chat);
+                item.hasRead = msg.hasReceiversRead();
+                item.hasDownloaded = msg.hasReceiversDownloaded();
+                item.hasSendError = msg.getHasSendError();
+                item.isSentMessage = msg.isSentMessage();
+                item.isSendConfirm = msg.getDateSendConfirm() != null;
+                item.dateSendTimed = msg.getDateSendTimed();
+                item.setTitle(chatOverviewController.getTitleForMessage(decryptedMsg));
 
-        item.hasSendError = ((decryptedMsg != null) && (decryptedMsg.getMessage().getHasSendError() != null))
-                ? decryptedMsg.getMessage().getHasSendError() : false;
-        item.isSentMessage = ((decryptedMsg != null) && (decryptedMsg.getMessage().getIsSentMessage() != null))
-                ? decryptedMsg.getMessage().getIsSentMessage() : false;
-        item.isSendConfirm = ((decryptedMsg != null) && (decryptedMsg.getMessage().getDateSendConfirm() != null));
+                if (!item.isSentMessage) {
+                    String contactGuid = MessageDataResolver.getGuidForMessage(msg);
 
-        item.dateSendTimed = ((decryptedMsg != null) && (decryptedMsg.getMessage().getDateSendTimed() != null))
-                ? decryptedMsg.getMessage().getDateSendTimed() : null;
+                    if (!StringUtil.isNullOrEmpty(contactGuid)) {
+                        Contact contact = contactController.getContactByGuid(contactGuid);
 
-        item.messageCount = messageController.getNumNotReadMessagesByGuid(guid, Message.TYPE_PRIVATE);
-        item.setMediaType(getMediaTypeForMessage(decryptedMsg));
-        item.setState(getStateForSingleChat(guid));
-
-        if (decryptedMsg == null) {
-            item.setTitle(chatOverviewController.getTitleForChat(chat.getChatGuid()));
-        } else {
-            item.setTitle(chatOverviewController.getTitleForMessage(decryptedMsg));
-
-            boolean isSentMsg = (decryptedMsg.getMessage().getIsSentMessage() != null && decryptedMsg.getMessage().getIsSentMessage());
-            if (!isSentMsg) {
-                String contactGuid = MessageDataResolver.getGuidForMessage(decryptedMsg.getMessage());
-
-                if (!StringUtil.isNullOrEmpty(contactGuid)) {
-                    Contact contact = contactController.getContactByGuid(contactGuid);
-
-                    if (contact != null) {
-                        //Pruefen ob der Profile AES Key vorhanden ist
-                        if (StringUtil.isNullOrEmpty(contact.getProfileInfoAesKey())) {
-                            if (!StringUtil.isNullOrEmpty(decryptedMsg.getProfilKey())) {
-                                try {
-                                    contactController.setProfilInfoAesKey(contact.getAccountGuid(), decryptedMsg.getProfilKey(), decryptedMsg);
-                                } catch (LocalizedException e) {
-                                    //Nicht dadurch den ganzen Task abbrechen
-                                    LogUtil.w(TAG, "Error setProfileInfoAesKey", e);
+                        if (contact != null) {
+                            //Pruefen ob der Profile AES Key vorhanden ist
+                            if (StringUtil.isNullOrEmpty(contact.getProfileInfoAesKey())) {
+                                if (!StringUtil.isNullOrEmpty(decryptedMsg.getProfilKey())) {
+                                    try {
+                                        contactController.setProfilInfoAesKey(contact.getAccountGuid(), decryptedMsg.getProfilKey(), decryptedMsg);
+                                    } catch (LocalizedException e) {
+                                        //Nicht dadurch den ganzen Task abbrechen
+                                        LogUtil.w(TAG, "Error setProfileInfoAesKey", e);
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-        }
-        item.isSystemChat = guid.equals(AppConstants.GUID_SYSTEM_CHAT);
-        item.isSystemInfo = ((decryptedMsg != null) && (decryptedMsg.getMessage().getIsSystemInfo() != null))
-                ? decryptedMsg.getMessage().getIsSystemInfo() : false;
+                item.isSystemInfo = msg.getIsSystemInfo();
+                checkIfMessageIsStillSending(msg, item);
 
-        try {
-            item.previewText = chatOverviewController.getPreviewTextForMessage(decryptedMsg, false);
+                if (msg.getIsPriority()) {
+                    item.isPriority = true;
+                }
+
+            } else {
+                // All item booleans already set to false by instantiation of SingleChatOverviewItemVO.class
+                setSendDate(item, null, chat);
+                item.dateSendTimed = null;
+                item.setTitle(chatOverviewController.getTitleForChat(chat.getChatGuid()));
+            }
+
         } catch (LocalizedException e) {
+            LogUtil.w(TAG, "getSingleChatOverviewItem: Got ", e);
             if (e.getIdentifier().equals(LocalizedException.CHECK_SIGNATURE_FAILED)) {
                 item.previewText = chatOverviewController.getSignatureFailedText();
             } else {
                 throw e;
             }
-        }
-
-        if (decryptedMsg != null) {
-            checkIfMessageIsStillSending(decryptedMsg.getMessage(), item);
-
-            if (decryptedMsg.getMessage().getIsPriority()) {
-                item.isPriority = true;
-            }
+        } catch (Exception e) {
+            LogUtil.e(TAG, "getSingleChatOverviewItem: Got " + e.getMessage());
         }
 
         return item;
     }
 
-    protected GroupChatOverviewItemVO getGroupChatOverviewItem(Chat chat,
-                                                               DecryptedMessage decryptedMsg)
+    protected GroupChatOverviewItemVO getGroupChatOverviewItem(Chat chat, DecryptedMessage decryptedMsg)
             throws LocalizedException {
+
         String guid = chat.getChatGuid();
         GroupChatOverviewItemVO item = new GroupChatOverviewItemVO();
 
-        item.setChatGuid(guid);
-
-        setSendDate(item, (decryptedMsg != null) ? decryptedMsg.getMessage() : null, chat);
-
-        if (decryptedMsg != null && decryptedMsg.getMessage().getType() != Message.TYPE_GROUP_INVITATION) {
-            item.hasSendError = (decryptedMsg.getMessage().getHasSendError() != null)
-                    ? decryptedMsg.getMessage().getHasSendError() : false;
-            item.messageCount = messageController.getNumNotReadMessagesByGuid(guid, Message.TYPE_GROUP);
+        try {
+            item.setChatGuid(guid);
+            item.messageCount = messageController.getNumNotReadMessagesByGuid(guid, Message.TYPE_PRIVATE);
             item.setMediaType(getMediaTypeForMessage(decryptedMsg));
-            item.isSystemInfo = (decryptedMsg.getMessage().getIsSystemInfo() != null)
-                    ? decryptedMsg.getMessage().getIsSystemInfo() : false;
+            item.previewText = chatOverviewController.getPreviewTextForMessage(decryptedMsg, true);
 
-            item.dateSendTimed = decryptedMsg.getMessage().getDateSendTimed();
+            if(decryptedMsg != null) {
+                final Message msg = decryptedMsg.getMessage();
+                if(msg.getType() != Message.TYPE_GROUP_INVITATION) {
 
-            item.hasRead = (decryptedMsg.getMessage().hasReceiversRead());
-            item.setHasLocalUserRead(decryptedMsg.getMessage().hasReceiversRead(true));
-            item.hasDownloaded = (decryptedMsg.getMessage().hasReceiversDownloaded());
-            item.isSentMessage = (decryptedMsg.getMessage().getIsSentMessage() != null)
-                    ? decryptedMsg.getMessage().getIsSentMessage() : false;
-            item.isSendConfirm = (decryptedMsg.getMessage().getDateSendConfirm() != null);
+                    setSendDate(item, msg, chat);
+                    item.hasRead = msg.hasReceiversRead();
+                    item.hasDownloaded = msg.hasReceiversDownloaded();
+                    item.hasSendError = msg.getHasSendError();
+                    item.messageCount = messageController.getNumNotReadMessagesByGuid(guid, Message.TYPE_GROUP);
+                    item.setHasLocalUserRead(msg.hasReceiversRead(true));
+                    item.hasDownloaded = msg.hasReceiversDownloaded();
+                    item.isSentMessage = msg.isSentMessage();
+                    item.isSendConfirm = msg.getDateSendConfirm() != null;
+                    item.dateSendTimed = msg.getDateSendTimed();
 
-            try {
-                item.previewText = chatOverviewController.getPreviewTextForMessage(decryptedMsg, true);
-            } catch (LocalizedException e) {
-                if (e.getIdentifier().equals(LocalizedException.CHECK_SIGNATURE_FAILED)) {
-                    item.previewText = chatOverviewController.getSignatureFailedText();
-                } else {
-                    throw e;
+                    item.isSystemInfo = msg.getIsSystemInfo();
+                    checkIfMessageIsStillSending(msg, item);
+
+                    if (msg.getIsPriority()) {
+                        item.isPriority = true;
+                    }
                 }
+
+            } else {
+                // All item booleans already set to false by instantiation of SingleChatOverviewItemVO.class
+                setSendDate(item, null, chat);
+                item.dateSendTimed = null;
             }
 
-            checkIfMessageIsStillSending(decryptedMsg.getMessage(), item);
-
-            if (decryptedMsg.getMessage().getIsPriority()) {
-                item.isPriority = true;
+        } catch (LocalizedException e) {
+            LogUtil.w(TAG, "getGroupChatOverviewItem: Got ", e);
+            if (e.getIdentifier().equals(LocalizedException.CHECK_SIGNATURE_FAILED)) {
+                item.previewText = chatOverviewController.getSignatureFailedText();
+            } else {
+                throw e;
             }
+        } catch (Exception e) {
+            LogUtil.e(TAG, "getGroupChatOverviewItem: Got " + e.getMessage());
         }
+
 
         if (Chat.ROOM_TYPE_MANAGED.equals(chat.getRoomType()) || Chat.ROOM_TYPE_RESTRICTED.equals(chat.getRoomType())) {
             item.setState(Contact.STATE_HIGH_TRUST);
         } else {
             item.setState(getStateForGroupChat(chat.getMembers()));
         }
-        item.setTitle(chat.getTitle());
 
-        item.setRemoved(chat.getIsRemoved() != null ? chat.getIsRemoved() : false);
-        item.setReadOnly(chat.getIsReadOnly() != null ? chat.getIsReadOnly() : false);
+        item.setTitle(chat.getTitle());
+        item.setRemoved(chat.getIsRemoved());
+        item.setReadOnly(chat.getIsReadOnly());
         item.setRoomType(chat.getRoomType());
 
         return item;
@@ -242,9 +247,9 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
             item.setChatGuid(MessageDataResolver.getGuidForMessage(decryptedMsg.getMessage()));
             setSendDate(item, decryptedMsg.getMessage(), chat);
             item.setTitle(chatOverviewController.getTitleForMessage(decryptedMsg));
-        } else {
-            //TODO (FPL) ich verstehe den Zweig nicht..... Wieso gibt es den Fall decryptedMsg == null
 
+        } else {
+            // decrypted message may be null, if chat has been emptied.
             item.setChatGuid(chat.getChatGuid());
             item.setTitle(chat.getTitle());
 
@@ -258,9 +263,8 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
                 chat.setLastChatModifiedDate(now);
                 mChatController.getChatDao().update(chat);
             }
-
-            LogUtil.i(TAG, "decryptedMsg is null");
         }
+
         item.setState(Contact.STATE_LOW_TRUST);
 
         return item;
@@ -302,8 +306,7 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
         return item;
     }
 
-    protected ServiceChatOverviewItemVO getServiceChatOverviewItem(Chat chat,
-                                                                   DecryptedMessage decryptedMsg)
+    protected ServiceChatOverviewItemVO getServiceChatOverviewItem(Chat chat, DecryptedMessage decryptedMsg)
             throws LocalizedException {
         String guid = chat.getChatGuid();
         ServiceChatOverviewItemVO item = new ServiceChatOverviewItemVO();
@@ -334,8 +337,7 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
         return item;
     }
 
-    protected ChannelChatOverviewItemVO getChannelChatOverviewItem(Chat chat,
-                                                                   DecryptedMessage decryptedMsg)
+    protected ChannelChatOverviewItemVO getChannelChatOverviewItem(Chat chat, DecryptedMessage decryptedMsg)
             throws LocalizedException {
         String guid = chat.getChatGuid();
         ChannelChatOverviewItemVO item = new ChannelChatOverviewItemVO();
@@ -462,9 +464,13 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
             final Map<String, Chat> chatMap = new HashMap<>();
             final List<Message> readMessages = new ArrayList<>();
 
+            LogUtil.d(TAG, "getChatsForRefresh: Processing LazyList with size " + messages.size());
+
             for (int i = 0; i < messages.size(); i++) {
+                //LogUtil.d(TAG, "getChatsForRefresh: Processing message #" + i);
                 Message message = messages.get(i);
                 int messageType = message.getType();
+                //LogUtil.d(TAG, "getChatsForRefresh: -> " + message.getGuid() + " of type = " + messageType);
 
                 if (messageType == Message.TYPE_PRIVATE
                         || messageType == Message.TYPE_GROUP

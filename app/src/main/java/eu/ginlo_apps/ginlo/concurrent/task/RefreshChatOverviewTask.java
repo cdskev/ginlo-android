@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.concurrent.task;
 
@@ -19,8 +19,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class RefreshChatOverviewTask
-        extends ChatOverviewBaseTask {
+public class RefreshChatOverviewTask extends ChatOverviewBaseTask {
+
+    private static final String TAG = RefreshChatOverviewTask.class.getSimpleName();
     private static long mLastMsgId;
     private final boolean mIsRefresh;
     private final List<String> mChatsToRefresh;
@@ -54,6 +55,7 @@ public class RefreshChatOverviewTask
                 chats = mChatController.loadAll().iterator();
             } else {
                 //Chats anlegen, falls nötig
+                LogUtil.d(TAG, "RefreshChatOverviewTask: mLastMsgID = " + mLastMsgId);
                 Map<String, Chat> chatMap = getChatsForRefresh(getGroupInvitationAndUnreadMessages(mLastMsgId));
 
                 if (chatMap != null && chatMap.size() > 0) {
@@ -90,7 +92,7 @@ public class RefreshChatOverviewTask
             complete();
         } finally {
             long endTime = System.currentTimeMillis();
-            LogUtil.i(this.getClass().getSimpleName(), "Time Used in run ms:" + (endTime - startTime));
+            LogUtil.i(TAG, "Time Used in run ms:" + (endTime - startTime));
         }
     }
 
@@ -103,22 +105,21 @@ public class RefreshChatOverviewTask
             while (chats.hasNext()) {
                 try {
                     Chat chat = chats.next();
+                    LogUtil.d(TAG, "processChats: Working on " + chat.getTitle() + " - " + chat.getChatGuid());
                     if (isCanceled()) {
                         return;
                     }
 
-                    if (chat == null) {
-                        continue;
-                    }
-
                     Message message = getLastChatMessage(chat);
+                    DecryptedMessage decryptedMessage = null;
+                    if (message != null) {
+                        if (message.getId() > mLastMsgId) {
+                            mLastMsgId = message.getId();
+                        }
 
-                    if (message != null && message.getId() > mLastMsgId) {
-                        mLastMsgId = message.getId();
+                        decryptedMessage = msgDecryptionController.decryptMessage(message, false);
                     }
 
-                    DecryptedMessage decryptedMessage = (message != null) ? chatOverviewController.decryptMessage(message)
-                            : null;
                     BaseChatOverviewItemVO chatOverviewItem = null;
 
                     if (chat.getType() == null) {
@@ -182,20 +183,23 @@ public class RefreshChatOverviewTask
                         }
                     }
                 } catch (LocalizedException e) {
-                    if (StringUtil.isEqual(e.getIdentifier(), LocalizedException.NO_INIT_CALLED) || StringUtil.isEqual(e.getIdentifier(), LocalizedException.KEY_NOT_AVAILABLE)) {
-                        throw e;
-                    }
+                    LogUtil.e(TAG, "processChats: Working on chat returned " + e.getMessage());
+                    break;
+                    // KS: Why throwing e here? It is not necessary. Just quit
+                    //if (StringUtil.isEqual(e.getIdentifier(), LocalizedException.NO_INIT_CALLED) || StringUtil.isEqual(e.getIdentifier(), LocalizedException.KEY_NOT_AVAILABLE)) {
+                    //    throw e;
+                    //}
                 }
             }
 
             if (!mIsRefresh) {
                 Collections.sort(overviewItems, chatOverviewController.getChatOverviewComperator());
             }
-        } catch (LocalizedException e) {
-            LogUtil.e(this.getClass().getName(), e.toString());
+        } catch (Exception e) {
+            LogUtil.e(TAG, "processChats: Got exception " + e.getMessage());
         } finally {
             long endTime = System.currentTimeMillis();
-            LogUtil.i(this.getClass().getSimpleName(), "Time Used in processChats ms:" + (endTime - startTime));
+            LogUtil.i(TAG, "Time Used in processChats ms:" + (endTime - startTime));
         }
     }
 

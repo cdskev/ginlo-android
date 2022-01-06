@@ -42,7 +42,7 @@
                     android:lineSpacingExtra="6sp"
                     android:lines="1"
                     android:text="@string/contacts_activity_company_addressbook_title"
-                    android:textSize="26sp" />
+                    app:styledTextSize="subTitleTextSize" />
 
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/company_addressbook_text"
@@ -54,7 +54,7 @@
                     android:letterSpacing="-0.02"
                     android:lineSpacingExtra="5sp"
                     android:text="@string/contacts_activity_company_addressbook_text"
-                    android:textSize="17sp"
+                    app:styledTextSize="messageTextSize"
 
                     />
             </LinearLayout>

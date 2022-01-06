@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_termsandcondition">Termini e condizioni generali</string>
+    <string name="purchase_licence_done_title">Grazie per il tuo acquisto. La tua licenza sta per essere attivata.</string>
+    <string name="purchse_licence_button_enter_licence_code">Inserisci il codice di licenza</string>
 </resources>

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo
 
 import android.app.Activity
@@ -58,7 +58,7 @@ class SearchContactActivity : BaseActivity() {
 
         val action: String? = intent?.action
         val data: Uri? = intent?.data
-        LogUtil.d(TAG, "onCreate: Check for app link call: action=" + action + ", data=" + data.toString())
+        LogUtil.i(TAG, "onCreate: Check for app link call: action=" + action + ", data=" + data.toString())
         val qrm = QRCodeModel.parseQRString(data.toString())
         if(qrm.version == QRCodeModel.TYPE_V3) {
             invitationString = qrm.payload
@@ -309,7 +309,7 @@ class SearchContactActivity : BaseActivity() {
     }
 
     private fun setUpContactScanButton() {
-        search_contact_scan_button.setOnClickListener {
+        search_contact_scan_layout.setOnClickListener {
             requestPermission(PermissionUtil.PERMISSION_FOR_CAMERA, R.string.permission_rationale_camera) { permission, permissionGranted ->
                 if (permission == PermissionUtil.PERMISSION_FOR_CAMERA && permissionGranted) {
                     val intentIntegrator = IntentIntegrator(this)
@@ -427,6 +427,7 @@ class SearchContactActivity : BaseActivity() {
                             val existingContact =
                                 simsMeApplication.contactController.getContactByGuid(contact.accountGuid)
                             if (cc != null || existingContact != null) {
+                                LogUtil.d(TAG, "GenericActionListener: Found EXISTING contact for ${contact.simsmeId} with publicKey = ${contact.publicKey}, sig = " + ChecksumUtil.getSHA256ChecksumAsBytesForString(contact.publicKey).base64())
                                 val nextActivity =
                                     if (existingContact != null) {
                                         ContactDetailActivity::class.java
@@ -438,6 +439,7 @@ class SearchContactActivity : BaseActivity() {
                                 startActivity(intent)
                                 finish()
                             } else {
+                                LogUtil.d(TAG, "GenericActionListener: Found NEW contact for ${contact.simsmeId} with publicKey = ${contact.publicKey}, sig = " + ChecksumUtil.getSHA256ChecksumAsBytesForString(contact.publicKey).base64())
                                 val intent = Intent(this@SearchContactActivity, ContactDetailActivity::class.java)
                                 if(invitationString == "processed") {
                                     intent.putExtra(ContactDetailActivity.EXTRA_MODE, ContactDetailActivity.MODE_CREATE_GINLO_NOW)

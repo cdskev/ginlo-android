@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.preferences
 
 import android.annotation.SuppressLint
@@ -16,13 +16,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import eu.ginlo_apps.ginlo.BaseActivity
 import eu.ginlo_apps.ginlo.ChatBackgroundActivity
-import eu.ginlo_apps.ginlo.ConfigureBackupActivity
 import eu.ginlo_apps.ginlo.R
+import eu.ginlo_apps.ginlo.ViewAttachmentActivity
 import eu.ginlo_apps.ginlo.activity.preferences.base.PreferencesBaseActivity
 import eu.ginlo_apps.ginlo.controller.AccountController
 import eu.ginlo_apps.ginlo.controller.ChatImageController
 import eu.ginlo_apps.ginlo.controller.PreferencesController
-import eu.ginlo_apps.ginlo.controller.contracts.BackupUploadListener
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.router.Router
@@ -30,7 +29,6 @@ import eu.ginlo_apps.ginlo.util.*
 import eu.ginlo_apps.ginlo.view.CameraView
 import kotlinx.android.synthetic.main.activity_preferences_chats.chat_settings_image_view_background_thumbnail
 import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_chats_switch_send_sound
-import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_chats_textview_backup_hint
 import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_chats_textview_image_quality
 import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_chats_textview_video_quality
 import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_pchats_switch_receive_sound
@@ -38,13 +36,9 @@ import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_pri
 import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_switch_save_media
 import javax.inject.Inject
 
-class PreferencesChatsActivity : PreferencesBaseActivity(), BackupUploadListener {
+class PreferencesChatsActivity : PreferencesBaseActivity() {
 
     private val accountController: AccountController by lazy { simsMeApplication.accountController }
-
-    private val preferencesController: PreferencesController by lazy { simsMeApplication.preferencesController }
-
-    private val chatImageController: ChatImageController by lazy { simsMeApplication.chatImageController }
 
     @Inject
     internal lateinit var router: Router
@@ -70,6 +64,8 @@ class PreferencesChatsActivity : PreferencesBaseActivity(), BackupUploadListener
                 if (!settingsSwitch) {
                     try {
                         preferencesController.setSaveMediaToGallery(isChecked)
+                        // KS: Always delete LOCAL_MEDIA_URI_PREF when button changed to allow for new setting
+                        preferencesController.getSharedPreferences().edit().remove(ViewAttachmentActivity.LOCAL_MEDIA_URI_PREF).apply()
                     } catch (e: LocalizedException) {
                         setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)
                         LogUtil.w(this.javaClass.name, e.message, e)
@@ -145,10 +141,7 @@ class PreferencesChatsActivity : PreferencesBaseActivity(), BackupUploadListener
             )
 
             setChatBackgroundPreview()
-            setBackupText()
-            if (preferencesController.getDisableBackup()) {
-                accountController.registerBackupUploadListener(this)
-            }
+
         } catch (e: LocalizedException) {
             LogUtil.w(this.javaClass.name, e.message, e)
         }
@@ -156,14 +149,6 @@ class PreferencesChatsActivity : PreferencesBaseActivity(), BackupUploadListener
 
     override fun onPauseActivity() {
         super.onPauseActivity()
-
-        if (preferencesController.getDisableBackup()) {
-            accountController.unRegisterBackupUploadListener(this)
-        }
-    }
-
-    override fun onBackupUploaded() {
-        setBackupText()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -365,31 +350,6 @@ class PreferencesChatsActivity : PreferencesBaseActivity(), BackupUploadListener
         }
     }
 
-    private fun setBackupText() {
-        val latestDate = preferencesController.latestBackupDate
-        if (latestDate > -1) {
-
-            if (!preferencesController.latestBackupPath.isNullOrBlank()) {
-
-                val dateString = DateUtil.getDateAndTimeStringFromMillis(latestDate)
-                var text = getString(R.string.settings_backup_last) + " " + dateString
-
-                val latestBuFileSize = preferencesController.latestBackupFileSize
-
-                if (latestBuFileSize > -1) {
-                    val fileSizeString = StringUtil.getReadableByteCount(latestBuFileSize)
-                    text = "$text ($fileSizeString)"
-                }
-
-                preferences_chats_textview_backup_hint.text = text
-            }
-            preferences_chats_textview_backup_hint.setTextColor(ColorUtil.getInstance().getHighColor(simsMeApplication))
-        } else {
-            preferences_chats_textview_backup_hint.text =
-                getString(R.string.settings_chats_create_backup)
-        }
-    }
-
     fun handleBackgroundFromStockClick(@Suppress("UNUSED_PARAMETER") view: View) {
         startActivity(Intent(this, ChatBackgroundActivity::class.java))
         closeBottomSheet(null)
@@ -408,10 +368,6 @@ class PreferencesChatsActivity : PreferencesBaseActivity(), BackupUploadListener
         chatImageController.resetBackground()
         closeBottomSheet(null)
         setChatBackgroundPreview()
-    }
-
-    fun handleBackupClick(@Suppress("UNUSED_PARAMETER") view: View) {
-        startActivity(Intent(this, ConfigureBackupActivity::class.java))
     }
 
     override fun getActivityLayout(): Int =

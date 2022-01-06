@@ -15,8 +15,8 @@
             <enum name="mini" value="1" />
         </attr>
     </declare-styleable>
-    <attr name="SIMSmeFlatButton" format="reference" />
     <declare-styleable name="StyledView">
+        <attr name="styledTextSize" format="string" />
         <attr name="styledTextColor" format="string" />
         <attr name="styledTextColorHint" format="string" />
         <attr name="styledBackground" format="string" />
@@ -44,6 +44,8 @@
     <attr name="mediumContrastColor" format="color" />
     <attr name="insecureColor" format="color" />
     <attr name="insecureContrastColor" format="color" />
+    <attr name="interferingColor" format="color" />
+    <attr name="interferingContrastColor" format="color" />
     <attr name="overlayColor" format="color" />
     <attr name="overlayContrastColor" format="color" />
     <attr name="fabColor" format="color" />
@@ -59,12 +61,17 @@
     <attr name="contextMainColor" format="color" />
     <attr name="contextTextColor" format="color" />
 
-    <!-- Declare custom theme attributes that allow changing which styles are
-         used for button bars depending on the API level.
-         ?android:attr/buttonBarStyle is new as of API 11 so this is
-         necessary to support previous API levels. -->
-    <declare-styleable name="ButtonBarContainerTheme">
-        <attr name="metaButtonBarStyle" format="reference" />
-        <attr name="metaButtonBarButtonStyle" format="reference" />
-    </declare-styleable>
+    <attr name="baseTextSize" format="float" />
+    <attr name="messageTextSize" format="float" />
+    <attr name="messageEditTextSize" format="float" />
+    <attr name="commentTextSize" format="float" />
+    <attr name="labelTextSize" format="float" />
+    <attr name="statusTextSize" format="float" />
+    <attr name="chooserTextSize" format="float" />
+    <attr name="mainTitleTextSize" format="float" />
+    <attr name="subTitleTextSize" format="float" />
+    <attr name="tanViewTextSize" format="float" />
+    <attr name="tanEditTextSize" format="float" />
+    <attr name="mediumTitleTextSize" format="float" />
+
 </resources>

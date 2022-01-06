@@ -49,7 +49,7 @@
                     android:lineSpacingExtra="3sp"
                     android:text="@string/mdm_register_0"
                     android:textColor="@color/mainContrast50"
-                    android:textSize="17sp" />
+                    app:styledTextSize="messageTextSize" />
             </LinearLayout>
 
             <LinearLayout
@@ -79,7 +79,7 @@
                     android:lineSpacingExtra="3sp"
                     android:text="@string/mdm_register_1"
                     android:textColor="@color/mainContrast50"
-                    android:textSize="17sp" />
+                    app:styledTextSize="messageTextSize" />
             </LinearLayout>
 
             <LinearLayout
@@ -109,7 +109,7 @@
                     android:lineSpacingExtra="3sp"
                     android:text="@string/mdm_register_2"
                     android:textColor="@color/mainContrast50"
-                    android:textSize="17sp" />
+                    app:styledTextSize="messageTextSize" />
             </LinearLayout>
 
             <LinearLayout
@@ -139,7 +139,7 @@
                     android:lineSpacingExtra="3sp"
                     android:text="@string/mdm_register_3"
                     android:textColor="@color/mainContrast50"
-                    android:textSize="17sp" />
+                    app:styledTextSize="messageTextSize" />
             </LinearLayout>
 
             <LinearLayout
@@ -174,7 +174,7 @@
                         android:lineSpacingExtra="3sp"
                         android:text="@string/mdm_register_4"
                         android:textColor="@color/mainContrast50"
-                        android:textSize="17sp" />
+                        app:styledTextSize="messageTextSize" />
 
                     <androidx.appcompat.widget.AppCompatTextView
                         android:id="@+id/mdm_register_textview_4_sublabel"
@@ -185,7 +185,7 @@
                         android:lineSpacingExtra="3sp"
                         android:text="@string/backup_restore_progress_secondary"
                         android:textColor="@color/mainContrast50"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         android:visibility="gone" />
 
                 </LinearLayout>
@@ -224,7 +224,7 @@
                         android:lineSpacingExtra="3sp"
                         android:text="@string/mdm_register_5"
                         android:textColor="@color/mainContrast50"
-                        android:textSize="17sp" />
+                        app:styledTextSize="messageTextSize" />
 
                     <androidx.appcompat.widget.AppCompatTextView
                         android:id="@+id/mdm_register_textview_5_sublabel"
@@ -235,7 +235,7 @@
                         android:lineSpacingExtra="3sp"
                         android:text="@string/backup_restore_progress_secondary"
                         android:textColor="@color/mainContrast50"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         android:visibility="gone" />
 
                 </LinearLayout>
@@ -268,7 +268,7 @@
                     android:lineSpacingExtra="3sp"
                     android:text="@string/mdm_register_6"
                     android:textColor="@color/mainContrast50"
-                    android:textSize="17sp" />
+                    app:styledTextSize="messageTextSize" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

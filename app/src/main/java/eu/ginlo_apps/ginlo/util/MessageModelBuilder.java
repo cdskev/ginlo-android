@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.util;
 
 import android.app.Activity;
@@ -17,6 +17,7 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
+import eu.ginlo_apps.ginlo.controller.MessageDecryptionController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -246,7 +247,7 @@ public class MessageModelBuilder {
     }
 
     public BaseMessageModel rebuildMessage(Message message,
-                                           ChatController chatController) {
+                                           MessageDecryptionController messageDecryptionController) {
         BaseMessageModel messageModel = null;
         int type = message.getType();
         int base64Flag = Base64.NO_WRAP;
@@ -267,7 +268,7 @@ public class MessageModelBuilder {
                 privateMessageModel.dateSendTimed = DateUtil.getDateFromMillis(message.getDateSendTimed());
             }
 
-            DecryptedMessage decryptedMessage = chatController.decryptMessage(message);
+            DecryptedMessage decryptedMessage = messageDecryptionController.decryptMessage(message, false);
             if (decryptedMessage != null) {
                 String contentType = decryptedMessage.getContentType();
 
@@ -317,7 +318,7 @@ public class MessageModelBuilder {
                 groupMessageModel.dateSendTimed = DateUtil.getDateFromMillis(message.getDateSendTimed());
             }
 
-            DecryptedMessage decryptedMessage = chatController.decryptMessage(message);
+            DecryptedMessage decryptedMessage = messageDecryptionController.decryptMessage(message, false);
             if (decryptedMessage != null) {
                 String contentType = decryptedMessage.getContentType();
 

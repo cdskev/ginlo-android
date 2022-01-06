@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo;
 
 import android.app.Activity;
@@ -95,10 +95,7 @@ public class LocationActivity
                 try {
                     locationMap.setMyLocationEnabled(true);
                 } catch (SecurityException e) {
-                    LogUtil.w(this.getClass().getName(), e.getMessage(), e);
-                    // Androidstudio warnt hier, dass hier ene Permission erfordert wird.
-                    // Diese wird jedoch vor dme Starten der Activity abgefragt.
-                    //Damit alles schoen ist und keine Warnugn kommt -> try catch
+                    LogUtil.w(TAG, "onMapReady: setMyLocationEnabled failed with " + e.getMessage());
                 }
 
                 mode = getIntent().hasExtra(EXTRA_MODE) ? getIntent().getStringExtra(EXTRA_MODE) : MODE_SHOW_LOCATION;
@@ -127,7 +124,8 @@ public class LocationActivity
                     getLocationButton.setVisibility(View.VISIBLE);
                 }
 
-                MapsInitializer.initialize(LocationActivity.this);
+                final int returnCode = MapsInitializer.initialize(LocationActivity.this);
+                LogUtil.i(TAG, "onMapReady: MapsInitializer.initialize returned " + returnCode);
             }
         });
         locationRequest = LocationRequest.create();
@@ -193,7 +191,7 @@ public class LocationActivity
                 finish();
 
             } catch (SecurityException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, "handleGetLocationClick: Failed with " + e.getMessage());
             }
         }
     }
@@ -206,6 +204,7 @@ public class LocationActivity
             return true;
         } else {
             int errorCode = connectionResult.getErrorCode();
+            LogUtil.w(TAG, "servicesConnected: Location Updates returned " + errorCode);
 
             showErrorDialog(errorCode);
             return false;

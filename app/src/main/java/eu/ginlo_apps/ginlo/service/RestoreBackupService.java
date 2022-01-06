@@ -1,10 +1,11 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.service;
 
 import android.app.Application;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.PowerManager;
 import android.util.Base64;
 
@@ -33,8 +34,10 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.AttachmentController;
+import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
+import eu.ginlo_apps.ginlo.controller.ContactController;
+import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Account;
 import eu.ginlo_apps.ginlo.greendao.Channel;
@@ -57,8 +60,6 @@ import eu.ginlo_apps.ginlo.model.backend.serialization.DeviceModelSerializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.MessageDeserializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.ToggleSettingsModelSerializer;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.service.BackendService;
-import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.BroadcastNotifier;
 import eu.ginlo_apps.ginlo.util.ConfigUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
@@ -67,6 +68,7 @@ import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.SecurityUtil;
+import eu.ginlo_apps.ginlo.util.StorageUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.ZipUtils;
 
@@ -81,9 +83,13 @@ public class RestoreBackupService extends IntentService {
     // Defines and instantiates an object for handling status updates.
     private final BroadcastNotifier mBroadcaster = new BroadcastNotifier(this, AppConstants.BROADCAST_RESTORE_BACKUP_ACTION);
     private SimsMeApplication mApplication = null;
+    private PreferencesController mPreferencesController = null;
+    private ContactController mContactController = null;
+    private AccountController mAccountController = null;
     private File mRestoreFile;
     private File mUnzipFolder;
     private FileUtil mFileUtil;
+    private StorageUtil mStorageUtil;
     private SecretKey mBackUpAesKey;
     private String mErrorText;
 
@@ -101,6 +107,9 @@ public class RestoreBackupService extends IntentService {
         Application app = this.getApplication();
         if (app instanceof SimsMeApplication) {
             mApplication = (SimsMeApplication) app;
+            mPreferencesController = mApplication.getPreferencesController();
+            mContactController = mApplication.getContactController();
+            mAccountController = mApplication.getAccountController();
         }
     }
 
@@ -108,12 +117,15 @@ public class RestoreBackupService extends IntentService {
     public void onDestroy() {
         super.onDestroy();
 
+        /* KS: Wrong place for that!
         if (mUnzipFolder != null) {
             if (mFileUtil.deleteAllFilesInDir(mUnzipFolder)) {
                 mUnzipFolder.delete();
                 mUnzipFolder = null;
             }
         }
+
+         */
     }
 
     @Override
@@ -121,12 +133,9 @@ public class RestoreBackupService extends IntentService {
         mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_STARTED, null, null, null);
 
         if(mApplication == null) {
-            try {
-                throw new LocalizedException(LocalizedException.BACKUP_RESTORE_BACKUP_FAILED, "mApplication == null");
-            } catch (LocalizedException e) {
-                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ERROR, null, null, e);
-                LogUtil.w(TAG, "Could not initialize restore. Error: " + e.getMessage(), e);
-            }
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ERROR, null, null, null);
+            LogUtil.e(TAG, "Could not initialize restore. mApplication == null");
+            return;
         }
 
         PowerManager pm = (PowerManager) mApplication.getSystemService(Context.POWER_SERVICE);
@@ -135,17 +144,32 @@ public class RestoreBackupService extends IntentService {
 
 
         try {
+            // This must be a stringified Uri beginning with ginlo version 4.5.2 (for SDK 30 support)
             String restorePath = intent.getStringExtra(AppConstants.INTENT_EXTENDED_DATA_PATH);
             String backupPwd = intent.getStringExtra(AppConstants.INTENT_EXTENDED_DATA_BACKUP_PWD);
             LogUtil.i(TAG, "Starting restore service intent from " + restorePath);
 
             if (StringUtil.isNullOrEmpty(restorePath) || StringUtil.isNullOrEmpty(backupPwd)) {
                 LogUtil.w(TAG, "Starting restore service intent failed with restorePath = " + restorePath + " and/or backupPwd is null or empty");
+                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ERROR, null, null, null);
                 return;
             }
 
             mFileUtil = new FileUtil(mApplication);
-            createFolderAndUnzipBackup(restorePath);
+            mStorageUtil = new StorageUtil(mApplication);
+
+
+            mUnzipFolder = mStorageUtil.getInternalBackupUnzipDirectory(true);
+            Uri restoreUri = mStorageUtil.getRestoreSourceUri(restorePath);
+            if(restoreUri == null) {
+                LogUtil.w(TAG, "Starting restore service intent failed for " + restorePath);
+                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_ERROR, null, null, null);
+                return;
+
+            }
+            ZipUtils uzu = new ZipUtils(mApplication, restoreUri, mUnzipFolder.getAbsolutePath());
+            uzu.startUnzip();
+
             BackupInfoModel infoModel = readBackupInfo();
 
             //Schluessel von Passwort erstellen
@@ -154,10 +178,29 @@ public class RestoreBackupService extends IntentService {
             //erst Account Model aus Backup holen um zu prüfen ob das Passwort(durch Entschlüsselung) stimmt
             AccountModel accModel = readAccountModel();
 
+            Account account = mAccountController.getAccount();
+            if(account == null) {
+                throw new LocalizedException(LocalizedException.ACCOUNT_UNKNOWN, "Failure in retrieving local account data.");
+            }
+
             //salt prüfen
             if (!isSaltFromBackupAllowed(infoModel.salt)) {
                 throw new LocalizedException(LocalizedException.BACKUP_RESTORE_SALTS_NOT_EQUAL, "Backup Salt and Server Salt are not equal.");
             }
+
+            Contact ownContact = mContactController.getOwnContact();
+
+            /* KS: TODO - implement mail/phone check. Must write this data to the backup file
+            if(ownContact != null && RuntimeConfig.isBAMandant()) {
+                // Check for mail address
+                final String ownEmail = ownContact.getEmail();
+                final String ownPhone = ownContact.getPhoneNumber();
+                if((!StringUtil.isNullOrEmpty(ownEmail) && !StringUtil.isEqual(ownEmail, accModel.email)) ||
+                        (!StringUtil.isNullOrEmpty(ownPhone) && !StringUtil.isEqual(ownPhone, accModel.phone))) {
+                    throw new LocalizedException(LocalizedException.NOT_OWN_CONTACT, "Account data does not match.");
+                }
+            }
+             */
 
             LogUtil.i(TAG, "Restore account ...");
             restoreAccount(accModel);
@@ -165,10 +208,10 @@ public class RestoreBackupService extends IntentService {
             boolean restoreOldContacts = restoreContacts();
 
             if (!restoreOldContacts && ConfigUtil.INSTANCE.syncPrivateIndexToServer()) {
-                if (RuntimeConfig.isBAMandant() && !mApplication.getContactController().existsFtsDatabase()) {
-                    mApplication.getContactController().createAndFillFtsDB(true);
+                if (RuntimeConfig.isBAMandant() && !mContactController.existsFtsDatabase()) {
+                    mContactController.createAndFillFtsDB(true);
                 }
-                mApplication.getContactController().loadPrivateIndexEntriesSync();
+                mContactController.loadPrivateIndexEntriesSync();
             }
 
             LogUtil.i(TAG, "Restore chats ...");
@@ -186,39 +229,29 @@ public class RestoreBackupService extends IntentService {
             }
 
             LogUtil.i(TAG, "Restore account ...");
-            Account account = mApplication.getAccountController().getAccount();
-            if (account != null) {
-                account.setState(Account.ACCOUNT_STATE_FULL);
-                mApplication.getAccountController().saveOrUpdateAccount(account);
+            account.setState(Account.ACCOUNT_STATE_FULL);
+            mAccountController.saveOrUpdateAccount(account);
 
-                Contact ownContact = mApplication.getContactController().getOwnContact();
-                if (ownContact != null) {
-                    ownContact.setAccountGuid(account.getAccountGuid());
-                    mApplication.getContactController().insertOrUpdateContact(ownContact);
-                    mApplication.getContactController().fillOwnContactWithAccountInfos(ownContact);
-                } else {
-                    final Contact newOwnContact = new Contact();
-                    newOwnContact.setAccountGuid(account.getAccountGuid());
-                    mApplication.getContactController().insertOrUpdateContact(newOwnContact);
-                    mApplication.getContactController().fillOwnContactWithAccountInfos(newOwnContact);
-                }
-
-                //Backup eingespielt, d.h. wurde Neuinstalliert, d.h Nachfrage für Profilnamen senden soll nicht angezeigt werden
-                mApplication.getPreferencesController().setSendProfileNameSet();
-                mApplication.getPreferencesController().setNotificationPreviewEnabled(false, true);
+            if (ownContact != null) {
+                ownContact.setAccountGuid(account.getAccountGuid());
+                mContactController.insertOrUpdateContact(ownContact);
+                mContactController.fillOwnContactWithAccountInfos(ownContact);
+            } else {
+                ownContact = new Contact();
+                ownContact.setAccountGuid(account.getAccountGuid());
+                mContactController.insertOrUpdateContact(ownContact);
+                mContactController.fillOwnContactWithAccountInfos(ownContact);
             }
+
+            //Backup eingespielt, d.h. wurde Neuinstalliert, d.h Nachfrage für Profilnamen senden soll nicht angezeigt werden
+            mApplication.getPreferencesController().setSendProfileNameSet();
+            mApplication.getPreferencesController().setNotificationPreviewEnabled(false, true);
 
             LogUtil.i(TAG, "Restore old contacts ...");
             if (!restoreOldContacts) {
                 //Keine Kontakte --> kein merge
                 mApplication.getPreferencesController().setHasOldContactsMerged();
             }
-
-            //Todo: Commenting out this as we are going to remove the google drive and there will not be temporary downloaded files and we don't want to delete local backup file
-           /* if (mRestoreFile != null && mRestoreFile.exists()) {
-                mRestoreFile.delete();
-                mRestoreFile = null;
-            }*/
 
             mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_RESTORE_BACKUP_FINISHED, null, restoreOldContacts ? 1 : 0, null);
             LogUtil.i(TAG, "Restore done.");
@@ -228,7 +261,7 @@ public class RestoreBackupService extends IntentService {
 
             //DB loeschen
             try {
-                mApplication.getContactController().getDao().deleteAll();
+                mContactController.getDao().deleteAll();
                 mApplication.getSingleChatController().getChatDao().deleteAll();
                 mApplication.getMessageController().getDao().deleteAll();
                 mApplication.getChannelController().getDao().deleteAll();
@@ -463,7 +496,7 @@ public class RestoreBackupService extends IntentService {
 
         final GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(ToggleSettingsModel.class, new ToggleSettingsModelSerializer());
-        gsonBuilder.registerTypeAdapter(Message.class, new MessageDeserializer(mApplication.getAccountController()));
+        gsonBuilder.registerTypeAdapter(Message.class, new MessageDeserializer(mAccountController));
 
         Gson gson = gsonBuilder.create();
         Type stringToggleSettingsMap = new TypeToken<HashMap<String, ToggleSettingsModel>>() {
@@ -526,7 +559,7 @@ public class RestoreBackupService extends IntentService {
 
                 channelController.updateChannel(service);
 
-                mApplication.getBackupController().restoreChatMessages(ja, 1, gson, null, mUnzipFolder);
+                mApplication.getBackupController().restoreChatMessages(ja, 1, gson, null, true);
             }
         }
     }
@@ -660,7 +693,7 @@ public class RestoreBackupService extends IntentService {
     }
 
     private void restoreChats() throws LocalizedException {
-        final Account account = mApplication.getAccountController().getAccount();
+        final Account account = mAccountController.getAccount();
         final String ownAccountGuid = account.getAccountGuid();
 
         final File[] filesInFolder = mUnzipFolder.listFiles();
@@ -689,7 +722,7 @@ public class RestoreBackupService extends IntentService {
 
         final GsonBuilder gsonBuilder = new GsonBuilder();
 
-        gsonBuilder.registerTypeAdapter(Message.class, new MessageDeserializer(mApplication.getAccountController()));
+        gsonBuilder.registerTypeAdapter(Message.class, new MessageDeserializer(mAccountController));
         gsonBuilder.registerTypeAdapter(Chat.class, new ChatBackupDeserializer());
 
         final Gson gson = gsonBuilder.create();
@@ -736,7 +769,7 @@ public class RestoreBackupService extends IntentService {
 
             chatDao.insert(chat);
 
-            mApplication.getBackupController().restoreChatMessages(ja, 1, gson, timedMsgGuids, mUnzipFolder);
+            mApplication.getBackupController().restoreChatMessages(ja, 1, gson, timedMsgGuids, true);
         }
 
         // aus Chats austreten, in denen man vor dem Backup noch nicht eingetreten war
@@ -759,27 +792,13 @@ public class RestoreBackupService extends IntentService {
             if (attachmentGuids != null && attachmentGuids.size() > 0) {
                 for (String attachmentGuid : attachmentGuids) {
                     try {
-                        copyAttachmentToAttachmentsDir(attachmentGuid);
+                        mApplication.getBackupController().copyBase64AttachmentToAttachmentsDir(attachmentGuid);
                     } catch (LocalizedException e) {
                         LogUtil.w(TAG, "No Attachment found!", e);
                     }
                 }
             }
         }
-    }
-
-    private void copyAttachmentToAttachmentsDir(String attachmentGuid)
-            throws LocalizedException {
-        File backupAttachmentDir = new File(mUnzipFolder, AppConstants.BACKUP_ATTACHMENT_DIR);
-
-        if (!backupAttachmentDir.isDirectory()) {
-            throw new LocalizedException(LocalizedException.BACKUP_RESTORE_BACKUP_FAILED, "Attachment File.class is no Directory");
-        }
-
-        String fileName = attachmentGuid.replace(':', '_');
-        File attachmentBuFile = new File(backupAttachmentDir, fileName);
-
-        AttachmentController.saveBase64FileAsEncryptedAttachment(attachmentGuid, attachmentBuFile.getAbsolutePath());
     }
 
     private boolean existsFileForGuid(@NonNull String guid) {
@@ -815,7 +834,7 @@ public class RestoreBackupService extends IntentService {
 
         String[] blockedContactGuids = getBlockedContacts();
 
-        ContactDao contactDao = mApplication.getContactController().getDao();
+        ContactDao contactDao = mContactController.getDao();
 
         if (contacts != null) {
             boolean restoreOldContacts = true;
@@ -860,7 +879,7 @@ public class RestoreBackupService extends IntentService {
         }
 
         for (String blockedContactGuid : blockedContactGuids) {
-            mApplication.getContactController().blockContact(blockedContactGuid, true, false, null);
+            mContactController.blockContact(blockedContactGuid, true, false, null);
         }
 
         return true;
@@ -933,9 +952,9 @@ public class RestoreBackupService extends IntentService {
 
         mApplication.getBackupController().updateAccountAndDevice(accountModel, deviceModel);
 
-        mApplication.getAccountController().updateAccountInfoFromServer(true, true);
+        mAccountController.updateAccountInfoFromServer(true, true);
 
-        mApplication.getAccountController().doActionsAfterRestoreAccountFromBackup(accountModel.accountBackupJO);
+        mAccountController.doActionsAfterRestoreAccountFromBackup(accountModel.accountBackupJO);
     }
 
     @NonNull
@@ -1028,24 +1047,9 @@ public class RestoreBackupService extends IntentService {
             return;
         }
 
-        mUnzipFolder = new File(mFileUtil.getBackupDirectory(), "Unzipped");
+        mUnzipFolder = mStorageUtil.getInternalBackupUnzipDirectory(true);
 
-        if (mUnzipFolder.exists()) {
-            if (mFileUtil.deleteAllFilesInDir(mUnzipFolder)) {
-                if (!mUnzipFolder.delete()) {
-                    throw new LocalizedException(LocalizedException.BACKUP_RESTORE_BACKUP_FAILED, "Old Unzip Folder can not be deleted.");
-                }
-                mUnzipFolder = new File(mFileUtil.getBackupDirectory(), "Unzipped");
-            } else {
-                throw new LocalizedException(LocalizedException.BACKUP_RESTORE_BACKUP_FAILED, "Old Unzip Folder Files can not be deleted.");
-            }
-        }
-
-        if (!mUnzipFolder.mkdir()) {
-            throw new LocalizedException(LocalizedException.BACKUP_RESTORE_BACKUP_FAILED, "mkdir() Unzip Folder failed.");
-        }
-
-        ZipUtils uzu = new ZipUtils(mRestoreFile.getAbsolutePath(), mUnzipFolder.getAbsolutePath());
+        ZipUtils uzu = new ZipUtils(mApplication, mRestoreFile.getAbsolutePath(), mUnzipFolder.getAbsolutePath());
         uzu.startUnzip();
     }
 
@@ -1053,7 +1057,7 @@ public class RestoreBackupService extends IntentService {
         List<String> saltList = RuntimeConfig.getAllowedBackupSalts();
 
         if (saltList != null && saltList.size() > 0) {
-            return saltList.indexOf(salt) > -1;
+            return saltList.contains(salt);
         }
 
         return false;

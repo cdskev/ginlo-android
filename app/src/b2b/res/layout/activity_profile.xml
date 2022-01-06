@@ -103,7 +103,7 @@
                             android:minHeight="40dp"
                             android:text=""
                             android:textColor="@color/main"
-                            android:textSize="12sp"
+                            app:styledTextSize="statusTextSize"
                             android:textStyle="bold" />
 
 
@@ -346,7 +346,7 @@
                             android:drawableLeft="@drawable/fingerprint_simsme_id"
                             android:drawablePadding="@dimen/half_padding"
                             android:textColor="@color/secure"
-                            android:textSize="20sp"
+                            app:styledTextSize="mediumTitleTextSize"
                             app:styledIconColor="secure"
                             app:styledTextColor="action" />
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.UseCases
 
@@ -11,12 +11,17 @@ import android.os.Build
 import androidx.core.content.FileProvider
 import eu.ginlo_apps.ginlo.BuildConfig
 import eu.ginlo_apps.ginlo.R
+import eu.ginlo_apps.ginlo.base64
 import eu.ginlo_apps.ginlo.context.SimsMeApplication
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.QRCodeModel
+import eu.ginlo_apps.ginlo.util.ChecksumUtil
+import eu.ginlo_apps.ginlo.util.SecurityUtil
 import eu.ginlo_apps.ginlo.util.SystemUtil
 import java.io.File
 import java.io.FileOutputStream
+import java.nio.charset.StandardCharsets
+import java.security.PrivateKey
 
 class InviteFriendUseCase {
 
@@ -31,8 +36,9 @@ class InviteFriendUseCase {
         val qrm : QRCodeModel
         val inviteString : String
 
-        if("V3".equals(BuildConfig.QR_CODE_VERSION)) {
-            qrm = QRCodeModel(true, false, ownContact.simsmeId, ownContact.publicKey, null)
+        if("V3".equals(BuildConfig.QR_CODE_VERSION) && ownContact != null) {
+            val keySignature = ChecksumUtil.getSHA256ChecksumAsBytesForString(ownContact.publicKey).base64()
+            qrm = QRCodeModel(true, false, ownContact.simsmeId, keySignature, null)
             inviteString = currentActivity.getString(R.string.contacts_smsMessageBody) + " " + qrm.payload
         } else {
             // No personalized QR code

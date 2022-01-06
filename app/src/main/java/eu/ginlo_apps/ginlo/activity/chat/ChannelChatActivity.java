@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.chat;
 
 import android.app.Dialog;
@@ -30,9 +30,6 @@ import com.google.gson.JsonParser;
 import eu.ginlo_apps.ginlo.ChannelDetailActivity;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
-import eu.ginlo_apps.ginlo.activity.chat.BaseChatActivity;
-import eu.ginlo_apps.ginlo.activity.chat.DistributorChatActivity;
-import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity;
 import eu.ginlo_apps.ginlo.concurrent.task.HttpBaseTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
@@ -42,7 +39,6 @@ import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.GinloAppLifecycle;
-import eu.ginlo_apps.ginlo.controller.GinloAppLifecycleImpl;
 import eu.ginlo_apps.ginlo.controller.LoginController;
 import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.message.ChannelChatController;
@@ -106,6 +102,7 @@ public class ChannelChatActivity
 
             setTitle(mChannel.getShortDesc());
             setRightActionBarImageVisibility(View.GONE);
+            setActionBarAVCImageVisibility(View.GONE);
             preventSelfConversation();
 
             disableChatinput();

@@ -1,6 +1,7 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.context;
 
+import eu.ginlo_apps.ginlo.billing.GinloBillingImpl;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.ContactControllerBusiness;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
@@ -12,10 +13,12 @@ import eu.ginlo_apps.ginlo.util.fts.FtsDatabaseOpenHelper;
 public class SimsMeApplicationBusiness extends SimsMeApplication {
 
     private CompanyContactDao mCompanyContactDao;
+    private GinloBillingImpl ginloBillingImpl;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        getGinloBillingImpl();
     }
 
     @Override
@@ -57,6 +60,14 @@ public class SimsMeApplicationBusiness extends SimsMeApplication {
 
     public CompanyContactDao getCompanyContactDao() {
         return mCompanyContactDao;
+    }
+
+    @Override
+    public GinloBillingImpl getGinloBillingImpl() {
+        if(ginloBillingImpl == null) {
+            ginloBillingImpl = new GinloBillingImpl(this);
+        }
+        return ginloBillingImpl;
     }
 
     @Override

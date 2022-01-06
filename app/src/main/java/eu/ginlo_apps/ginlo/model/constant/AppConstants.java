@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.model.constant;
 
@@ -17,11 +17,18 @@ public class AppConstants {
     public static final String PUBLICKEY_SYSTEM_CHAT = BuildConfig.PUBLICKEY_SYSTEM_CHAT;
     public static final String GUID_PROFILE_USER = "0:{1-2-3}";
     public static final String GUID_PROFILE_GROUP = "0:{1-2-4}";
+    public static final String GUID_PASSTOKEN_PREFIX = "";
     public static final String GUID_CHANNEL_PREFIX = "21:";
     public static final String GUID_SERVICE_PREFIX = "22:";
     public static final String GUID_ACCOUNT_PREFIX = "0:";
+    public static final String GUID_DEVICE_PREFIX = "3:";
+    public static final String GUID_ROOM_PREFIX = "7:";
     public static final String GUID_GROUP_PREFIX = "7:";
     public static final String GUID_MSG_CHANNEL_PREFIX = "110:";
+    public static final String GUID_BACKEND_REQUEST_PREFIX = "3000:";
+    public static final String GUID_PRIVATE_INDEX = "5001:";
+    public static final String GUID_COMPANY_INDEX_ENTRY_PREFIX = "10010:";
+
     public static final String MESSAGE_STATE_PREFETCHED_PERSISTENCE = "prefetchedPersistence";
     public static final String MESSAGE_STATE_METADATA_DOWNLOADED = "metadataDownloaded";
     public static final String MESSAGE_STATE_READ = "read";
@@ -55,16 +62,10 @@ public class AppConstants {
     public static final int STATE_ACTION_RESTORE_BACKUP_SERVICES_STARTED = 12;
     public static final int STATE_ACTION_RESTORE_BACKUP_SERVICES_UPDATE = 13;
     public static final int STATE_ACTION_RESTORE_BACKUP_FINISHED = 15;
-    // Default preferences value for max days that messages are being kept on the backend
-    public static final int DEFAULT_PERSIST_MESSAGE_DAYS = 90;
+
     public static final String JSON_FILE_EXTENSION = "json";
     public static final String JSON_KEY_GUID = "guid";
     public static final int BACKUP_VERSION = 1;
-    public static final int BACKUP_MAX_FILES_FOR_MANDANT_IN_DRIVE = 1;
-    public static final String BACKUP_FILE_PREFIX = "Backup-";
-    public static final String BACKUP_FILE_EXTENSION = "simsbck";
-    public static final String RESTORE_BACKUP_FILE_NAME = "restorebackup." + BACKUP_FILE_EXTENSION;
-    public static final String BACKUP_ATTACHMENT_DIR = "Attachments";
     public static final String BACKUP_FILE_ACCOUNT = "account." + JSON_FILE_EXTENSION;
     public static final String BACKUP_FILE_CHANNELS = "channels." + JSON_FILE_EXTENSION;
     public static final String BACKUP_FILE_CONTACTS = "contacts." + JSON_FILE_EXTENSION;

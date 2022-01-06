@@ -1,17 +1,19 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.activity.profile
 
 import android.graphics.Bitmap
+import android.util.Base64
 import androidx.lifecycle.ViewModel
 import eu.ginlo_apps.ginlo.BuildConfig
 import eu.ginlo_apps.ginlo.base64
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.greendao.Account
+import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.log.Logger
-import eu.ginlo_apps.ginlo.util.BitmapUtil
-import eu.ginlo_apps.ginlo.util.SecurityUtil
 import eu.ginlo_apps.ginlo.model.QRCodeModel
+import eu.ginlo_apps.ginlo.util.ChecksumUtil
+import eu.ginlo_apps.ginlo.util.SecurityUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -24,6 +26,10 @@ import kotlin.math.roundToInt
 class ProfileViewModel @Inject constructor(private val logger: Logger) : ViewModel() {
     private val viewModelJobs = Job()
 
+    companion object {
+        val TAG = ProfileViewModel::class.java.simpleName
+    }
+
     suspend fun generateQrCode(
         account: Account,
         widthPixel: Int,
@@ -34,10 +40,14 @@ class ProfileViewModel @Inject constructor(private val logger: Logger) : ViewMod
             try {
                 val qrm : QRCodeModel
                 if (!account.accountID.isNullOrEmpty() && !account.publicKey.isNullOrEmpty()) {
+                    val keySignature = ChecksumUtil.getSHA256ChecksumAsBytesForString(account.publicKey).base64()
+
                     if("V3".equals(BuildConfig.QR_CODE_VERSION)) {
-                        qrm = QRCodeModel(true, false, account.accountID, account.publicKey, null) // QR code version "V3"
+                        LogUtil.d(TAG, "generateQrCode: V3 Using publicKey = " + account.publicKey + " keySignature = " + keySignature)
+                        qrm = QRCodeModel(true, false, account.accountID, keySignature, null) // QR code version "V3"
                     } else {
-                        qrm = QRCodeModel(account.accountID, account.publicKey) // QR code version "V2"
+                        LogUtil.d(TAG, "generateQrCode: V2 Using publicKey = " + account.publicKey + " keySignature = " + keySignature)
+                        qrm = QRCodeModel(account.accountID, keySignature) // QR code version "V2"
                     }
                 } else {
                     val genericPayload = SecurityUtil.signData(privateKey, account.accountGuid.toByteArray(), false).base64()

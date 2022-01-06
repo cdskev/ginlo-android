@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo
 
@@ -26,7 +26,6 @@ class ChatBackgroundActivity : BaseActivity() {
     private var backgroundPreview: Bitmap? = null
     private val displayMetrics: DisplayMetrics by lazy { MetricsUtil.getDisplayMetrics(this) }
     private var mMode = MODE_SELECT
-    private val chatImageController: ChatImageController by lazy { simsMeApplication.chatImageController }
 
     private val itemClickListener = OnItemClickListener { _, _, position, _ ->
         val resourceId = adapter.getItem(position) as Int

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.controller;
 
 import android.app.KeyguardManager;
@@ -11,6 +11,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.AudioAttributes;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -23,9 +25,11 @@ import android.widget.RemoteViews;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.TaskStackBuilder;
+
 import com.google.gson.JsonArray;
 
 import eu.ginlo_apps.ginlo.AVCallMenuActivity;
+import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.MainActivity;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.activity.chat.ChannelChatActivity;
@@ -44,7 +48,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
+
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -84,6 +88,8 @@ public class NotificationController {
     private final ContactController mContactController;
     private final PreferencesController mPreferencesController;
 
+    private Ringtone mRingtone;
+    private AVCNotificationListener mAVCallMenuListener = null;
     private SparseArray<NotificationInfoContainer> infoContainerArray;
     private String ignoredGuid;
     private boolean ignoreAll;
@@ -104,6 +110,10 @@ public class NotificationController {
         mNotificationDao = daoSession.getNotificationDao();
 
         createNotificationChannel();
+
+        Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+        mRingtone = RingtoneManager.getRingtone(mApplication, notification);
+
     }
 
     public static Notification getLoadMessageNotification(final Context context) {
@@ -264,7 +274,20 @@ public class NotificationController {
 
         // KS: Special handling of AVC messages - got a modified version of forceTitle: "nickname"
         if (messageType == NEW_PRIVATE_MESSAGE_AVC) {
-            showAVCInvitationNotification(forceTitle, senderGuid, messageGuid, forceText, null, true);
+            if(BuildConfig.USE_SYSTEM_ALERT_WINDOW_FOR_AVC && !isDeviceLocked(mApplication)) {
+                String[] roomInfo = AVChatController.deserializeRoomInfoMessageString(forceText);
+                if(!prepareAVC(forceTitle, senderGuid, roomInfo)) {
+                    return;
+                }
+                Intent callMenuIntent = prepareAVCMenuIntent(forceTitle, senderGuid, roomInfo);
+                if(callMenuIntent != null) {
+                    mApplication.startActivity(callMenuIntent);
+                    mApplication.getNotificationController().setNotificationWasShown(messageGuid);
+                }
+            } else {
+                showAVCInvitationNotification(forceTitle, senderGuid, messageGuid, forceText, null, true);
+            }
+
             return;
         }
 
@@ -418,27 +441,78 @@ public class NotificationController {
         return isLocked;
     }
 
-    // KS: Build AVC notification
-    private Notification buildAVCInvitationNotification(final String sender, final String senderGuid, final String notificationText, Bitmap notificationImage, boolean fullscreen) {
+    /**
+     *
+     * @param senderName
+     * @param senderGuid
+     * @param roomInfo
+     * @return Room info
+     */
+    public boolean prepareAVC(final String senderName, final String senderGuid, final String[] roomInfo) {
+
+        if(mAVChatController == null) {
+            return false;
+        }
+
+        if(StringUtil.isNullOrEmpty(senderGuid)
+                || StringUtil.isNullOrEmpty(senderName)
+                || roomInfo == null || roomInfo.length < 1) {
+            LogUtil.e(TAG, "prepareAVC: Insufficient room parameters.");
+            return false;
+        }
+
+        String myName = "John Doe (unknown)";
+        try {
+            myName = mContactController.getOwnContact().getNameFromNameAttributes()
+                    + " (" + mContactController.getOwnContact().getSimsmeId() + ")";
+        } catch (LocalizedException e) {
+            LogUtil.w(TAG, "prepareAVC: Got exception while getting own contact info.");
+            return false;
+        }
+
+        mAVChatController.setRoomInfo(roomInfo);
+        mAVChatController.setMyName(myName);
+        mAVChatController.setTargetGuid(senderGuid);
+        mAVChatController.setConferenceTopic(senderName);
+        return true;
+    }
+
+    /**
+     *
+     * @param senderName
+     * @param senderGuid
+     * @param roomInfo
+     * @return
+     */
+    public Intent prepareAVCMenuIntent(final String senderName, final String senderGuid, final String[] roomInfo) {
+
         if(mAVChatController == null) {
             return null;
         }
 
-        mAVChatController.setRoomInfo(AVChatController.deserializeRoomInfoMessageString(notificationText));
-        String myName = "John Doe (unknown)";
-        try {
-            myName = mContactController.getOwnContact().getNameFromNameAttributes() + " (" + mContactController.getOwnContact().getSimsmeId() + ")";
-        } catch (LocalizedException e) {
-            e.printStackTrace();
+        if(StringUtil.isNullOrEmpty(senderGuid)
+                || StringUtil.isNullOrEmpty(senderName)
+                || roomInfo == null || roomInfo.length < 1) {
+            LogUtil.e(TAG, "prepareAVCMenuIntent: Insufficient room parameters.");
+            return null;
         }
-        mAVChatController.setMyName(myName);
-        mAVChatController.setTargetGuid(senderGuid);
 
-        String senderName = sender;
-        if (StringUtil.isNullOrEmpty(senderName)) {
-            senderName = "";
+        Intent intent = new Intent(mApplication, AVCallMenuActivity.class);
+        intent.putExtra(AVCallMenuActivity.EXTRA_ACTION, AVCallMenuActivity.ACTION_ASK);
+        intent.putExtra(AVCallMenuActivity.EXTRA_MYNAME, senderName);
+        intent.putExtra(AVCallMenuActivity.EXTRA_FROM_GUID, senderGuid);
+        intent.putExtra(AVCallMenuActivity.EXTRA_ROOM, roomInfo);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        return intent;
+    }
+
+    // KS: Build AVC notification
+    private Notification buildAVCInvitationNotification(final String sender, final String senderGuid, final String notificationText, Bitmap notificationImage, boolean fullscreen) {
+
+        String[] roomInfo = AVChatController.deserializeRoomInfoMessageString(notificationText);
+        if(!prepareAVC(sender, senderGuid, roomInfo)) {
+            return null;
         }
-        mAVChatController.setConferenceTopic(senderName);
 
         Intent openIntent = null;
         Intent intentAudio = null;
@@ -468,7 +542,7 @@ public class NotificationController {
             view.setOnClickPendingIntent(R.id.notification_closebtn_ib, pendingIntentCancel);
             view.setOnClickPendingIntent(R.id.notification_audiobtn_ib, pendingIntentAudio);
             view.setOnClickPendingIntent(R.id.notification_videobtn_ib, pendingIntentVideo);
-            view.setTextViewText(R.id.notification_title_iv, mApplication.getResources().getString(R.string.notification_new_avc) + " " + senderName);
+            view.setTextViewText(R.id.notification_title_iv, mApplication.getResources().getString(R.string.notification_new_avc) + " " + sender);
             if(notificationImage != null) {
                 view.setImageViewBitmap(R.id.notification_icon_iv, notificationImage);
             }
@@ -491,7 +565,7 @@ public class NotificationController {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(mApplication, AVC_NOTIFICATION_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification_logo)
-                .setContentTitle(mApplication.getResources().getString(R.string.notification_new_avc) + " " + senderName)
+                .setContentTitle(mApplication.getResources().getString(R.string.notification_new_avc) + " " + sender)
                 .setContentText("")
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -722,8 +796,6 @@ public class NotificationController {
                 }
 
                 notificationManager.notify(AVC_NOTIFICATION_ID, avcNoti);
-                // Dont need dismissRunner because AVC is only available since Oreo (which has .setTimeoutAfter())
-                // createDismissRunner(AVC_NOTIFICATION_ID, DISMISS_NOTIFICATION_TIMEOUT, false);
                 mApplication.getNotificationController().setNotificationWasShown(messageGuid);
             }
         } catch (LocalizedException e) {
@@ -815,29 +887,25 @@ public class NotificationController {
 
                 // Find out whether it's time to send notification, e.g. we have at least one new message to signal
                 // Then set newMessage true
-                try {
-                    final Chat chat;
+                final Chat chat;
 
-                    if (GuidUtil.isChatSingle(infoContainer.getSenderGuid())) {
-                        chat = mApplication.getSingleChatController().getChatByGuid(infoContainer.getSenderGuid());
-                    } else if (GuidUtil.isChatRoom(infoContainer.getSenderGuid())) {
-                        chat = mApplication.getGroupChatController().getChatByGuid(infoContainer.getSenderGuid());
-                    } else {
-                        chat = null;
-                    }
+                if (GuidUtil.isChatSingle(infoContainer.getSenderGuid())) {
+                    chat = mApplication.getSingleChatController().getChatByGuid(infoContainer.getSenderGuid());
+                } else if (GuidUtil.isChatRoom(infoContainer.getSenderGuid())) {
+                    chat = mApplication.getGroupChatController().getChatByGuid(infoContainer.getSenderGuid());
+                } else {
+                    chat = null;
+                }
 
-                    if (chat != null) {
-                        final long now = new Date().getTime();
-                        final long silentTill = chat.getSilentTill();
-                        if (now > silentTill) {
-                            newMessage = true;
-                        }
-                    } else {
-                        //kein chat vorhanden -> neu
+                if (chat != null) {
+                    final long now = new Date().getTime();
+                    final long silentTill = chat.getSilentTill();
+                    if (now > silentTill) {
                         newMessage = true;
                     }
-                } catch (final LocalizedException e) {
-                    LogUtil.w(TAG, e.getMessage(), e);
+                } else {
+                    //kein chat vorhanden -> neu
+                    newMessage = true;
                 }
             }
 
@@ -893,10 +961,23 @@ public class NotificationController {
                         // AVC notification and AVC is available!
                         // Call notifications are not affected by ignoreAll.
                         String name = infoContainer.getName();
-                        String roomInfo = infoContainer.getLastMessage();
-                        notification = buildAVCInvitationNotification(name, senderGuid, roomInfo, infoContainer.getImage(), false);
-                        notificationID = AVC_NOTIFICATION_ID;
-                        //createDismissRunner(AVC_NOTIFICATION_ID, DISMISS_NOTIFICATION_TIMEOUT, false);
+
+                        if(BuildConfig.USE_SYSTEM_ALERT_WINDOW_FOR_AVC) {
+                            String[] roomInfo = AVChatController.deserializeRoomInfoMessageString(infoContainer.getLastMessage());
+                            if(!prepareAVC(name, senderGuid, roomInfo)) {
+                                return;
+                            }
+                            Intent callMenuIntent = prepareAVCMenuIntent(name, senderGuid, roomInfo);
+                            if(callMenuIntent != null) {
+                                mApplication.startActivity(callMenuIntent);
+                                //mApplication.getNotificationController().setNotificationWasShown(messageGuid);
+                            }
+                            return;
+
+                        } else {
+                            notification = buildAVCInvitationNotification(name, senderGuid, infoContainer.getLastMessage(), infoContainer.getImage(), false);
+                            notificationID = AVC_NOTIFICATION_ID;
+                        }
                     }
                 } else {
                     // Regular notification
@@ -995,11 +1076,45 @@ public class NotificationController {
         }
     }
 
+    public void setAVCallMenuListener(AVCNotificationListener listener) {
+        mAVCallMenuListener = listener;
+    }
+
+    public void playRingtone() {
+        if(mRingtone != null) {
+            mRingtone.play();
+        }
+    }
+
+    public void stopRingtone() {
+        if(mRingtone != null) {
+            mRingtone.stop();
+        }
+    }
+
+    public void cancelAVCallNotification() {
+        if(BuildConfig.USE_SYSTEM_ALERT_WINDOW_FOR_AVC) {
+            stopRingtone();
+        }
+        dismissNotification(AVC_NOTIFICATION_ID);
+
+        // Hide AVCallMenuActivity if active
+        if(mAVCallMenuListener != null) {
+            mAVCallMenuListener.onCancelAVCNotification();
+            // One shot only
+            mAVCallMenuListener = null;
+        }
+    }
+
     /**
      * This is an alias for dismissNotification(-1).
      */
     public void dismissAll() {
         dismissNotification(-1);
+    }
+
+    public void dismissOngoingNotification() {
+        dismissNotification(INFO_NOTIFICATION_ID);
     }
 
     /**
@@ -1016,21 +1131,7 @@ public class NotificationController {
         }
     }
 
-    public void dismissOngoingNotification() {
-        dismissNotification(INFO_NOTIFICATION_ID);
-    }
-
-    // Some notifications should be discarded after a while
-    // Builder.setTimeoutAfter() doesn't work on old devices (before Oreo, API 26).
-    public void createDismissRunner(int notificationId, int timeout, boolean all) {
-        final Handler dismissHandler = new Handler(Looper.getMainLooper());
-        Runnable dismissRunner = new Runnable() {
-            public void run() {
-                dismissNotification(notificationId);
-                LogUtil.d(TAG, "Notification " + notificationId + " cancelled.");
-            }
-        };
-        dismissHandler.postDelayed(dismissRunner, timeout);
-        LogUtil.d(TAG, "Runner for notification cancellation initialized!");
+    public interface AVCNotificationListener {
+        public void onCancelAVCNotification();
     }
 }

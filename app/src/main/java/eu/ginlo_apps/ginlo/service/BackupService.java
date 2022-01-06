@@ -1,13 +1,13 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.service;
 
 import android.app.Application;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.PowerManager;
 
-import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -17,8 +17,6 @@ import com.google.gson.stream.JsonWriter;
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.AttachmentController;
-import eu.ginlo_apps.ginlo.controller.LocalBackupHelper;
 import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.controller.message.SingleChatController;
@@ -39,14 +37,13 @@ import eu.ginlo_apps.ginlo.model.backend.serialization.KeyContainerModelSerializ
 import eu.ginlo_apps.ginlo.model.backend.serialization.MessageSerializer;
 import eu.ginlo_apps.ginlo.model.backend.serialization.ToggleSettingsModelDeserializer;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.service.BackendService;
-import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.BroadcastNotifier;
 import eu.ginlo_apps.ginlo.util.ConfigUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.SecurityUtil;
+import eu.ginlo_apps.ginlo.util.StorageUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.XMLUtil;
 import eu.ginlo_apps.ginlo.util.ZipUtils;
@@ -67,12 +64,13 @@ public class BackupService extends IntentService {
     private final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
 
     private static final int LOAD_MSG_COUNT = 20;
-    private final String mBackupName;
     // Defines and instantiates an object for handling status updates.
     private final BroadcastNotifier mBroadcaster = new BroadcastNotifier(this, AppConstants.BROADCAST_ACTION);
     private SimsMeApplication mApplication = null;
     private NotificationController mNotificationController = null;
+    private PreferencesController mPreferencesController = null;
     private FileUtil mFileUtil;
+    private StorageUtil mStorageUtil;
     private File mBackupDir;
     private SecretKey mBackUpAesKey;
     //Error Objekt fuer Passtoken Abruf vom Server
@@ -83,7 +81,6 @@ public class BackupService extends IntentService {
 
     public BackupService() {
         super("BackupService");
-        mBackupName = AppConstants.BACKUP_FILE_PREFIX + DateUtil.getDateStringInBackupFormat();
 
     }
 
@@ -95,15 +92,16 @@ public class BackupService extends IntentService {
         if (app instanceof SimsMeApplication) {
             mApplication = (SimsMeApplication) app;
             mNotificationController = mApplication.getNotificationController();
+            mPreferencesController = mApplication.getPreferencesController();
         }
         mBackupRunning = false;
     }
 
-    /* KS: ???
     @Override
     public void onDestroy() {
         super.onDestroy();
 
+        /* KS: Wrong place for that
         if (mBackupDir != null) {
             if (mFileUtil.deleteAllFilesInDir(mBackupDir)) {
                 //noinspection ResultOfMethodCallIgnored
@@ -111,21 +109,18 @@ public class BackupService extends IntentService {
                 mBackupDir = null;
             }
         }
-    }
 
-     */
+         */
+    }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_STARTED, null, null, null);
 
         if(mApplication == null) {
-            try {
-                throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "mApplication == null");
-            } catch (LocalizedException e) {
-                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_ERROR, null, null, e);
-                LogUtil.w(TAG, "Could not initialize backup. Error: " + e.getMessage(), e);
-            }
+            LogUtil.e(TAG, "Could not initialize backup. mApplication == null");
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_ERROR, null, null, null);
+            return;
         }
 
         if(mBackupRunning) {
@@ -140,11 +135,20 @@ public class BackupService extends IntentService {
         mNotificationController.showOngoingServiceNotification(mApplication.getString(R.string.settings_backup_config_create_backup));
 
         try {
+            mStorageUtil = new StorageUtil(mApplication);
+            mBackupDir = mStorageUtil.getInternalBackupDirectory(true);
+            final Uri zipDestination = mStorageUtil.getBackupDestinationUri();
+            if(zipDestination == null) {
+                LogUtil.e(TAG, "onHandleIntent: No valid backup destination!");
+                mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_ERROR, null, null, null);
+                mBackupRunning = false;
+                return;
+            }
+
             mSaveMedia = mApplication.getPreferencesController().getSaveMediaInBackup();
             LogUtil.i(TAG, "Starting backup service intent with mSaveMedia = " + mSaveMedia);
 
-            mFileUtil = new FileUtil(mApplication);
-            mBackupDir = createBackupDirectory();
+            //mFileUtil = new FileUtil(mApplication);
 
             LogUtil.i(TAG, "Load backup key ...");
             loadBackupKey();
@@ -171,31 +175,30 @@ public class BackupService extends IntentService {
 
             mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_SAVE_BU_FILE, null, null, null);
 
-            LocalBackupHelper helper = new LocalBackupHelper(((SimsMeApplication) getApplication()));
-            File tempBackupZip = helper.getBackupTempPath();
-            if (tempBackupZip == null)
-                throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "Unable to create the temp backup file.");
-
-            final String zipDestination = tempBackupZip.getAbsolutePath();
-            ZipUtils zu = new ZipUtils(mBackupDir.getAbsolutePath(), zipDestination);
-            LogUtil.i(TAG, "Zipping files ...");
+            LogUtil.i(TAG, "Zipping files to " + zipDestination.toString());
+            ZipUtils zu = new ZipUtils(mApplication, mBackupDir.getAbsolutePath(), zipDestination);
             zu.startZip();
 
-            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_FINISHED, zipDestination, null, null);
-            LogUtil.i(TAG, "Backup done. Saved to " + zipDestination);
+            mPreferencesController.setLatestBackupPath(mStorageUtil.getBackupDestinationName(zipDestination));
+            mPreferencesController.setLatestBackupFileSize(mStorageUtil.getBackupDestinationSize(zipDestination));
+            mPreferencesController.setLatestBackupDate(System.currentTimeMillis());
+
+            mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_FINISHED, mStorageUtil.getBackupDestinationName(zipDestination), null, null);
+            LogUtil.i(TAG, "Backup done. Saved to " + zipDestination.toString());
+
         } catch (LocalizedException e) {
             mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_ERROR, null, null, e);
             LogUtil.e(TAG, "Backup failed. Error: " + e.getMessage(), e);
         }
         finally {
+            mBackupRunning = false;
+            mNotificationController.dismissOngoingNotification();
             if(wl.isHeld()) {
                 wl.release();
                 if(wl.isHeld()) {
                     LogUtil.w(TAG, "BackupService: Wakelock held!");
                 }
             }
-            mBackupRunning = false;
-            mNotificationController.dismissOngoingNotification();
         }
     }
 
@@ -207,42 +210,6 @@ public class BackupService extends IntentService {
         }
 
         mBackUpAesKey = SecurityUtil.getAESKeyFromBase64String(base64KeyBytes);
-    }
-
-    private File createBackupDirectory() throws LocalizedException {
-        File buDir = mFileUtil.getBackupDirectory();
-
-        //Alle alten Dateien loeschen
-        File[] filesInBuDic = buDir.listFiles();
-        if (filesInBuDic != null && filesInBuDic.length > 0) {
-            for (File file : filesInBuDic) {
-                if (file == null) {
-                    continue;
-                }
-
-                if (file.isDirectory()) {
-                    if (mFileUtil.deleteAllFilesInDir(file)) {
-                        file.delete();
-                    }
-                } else if (file.isFile()) {
-                    file.delete();
-                }
-            }
-        }
-
-        File currentBuDir = new File(buDir, mBackupName);
-
-        if (!currentBuDir.isDirectory()) {
-            if (!currentBuDir.mkdir()) {
-                throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "backup directory: mkdir() failed");
-            }
-        } else {
-            if (!mFileUtil.deleteAllFilesInDir(currentBuDir)) {
-                throw new LocalizedException(LocalizedException.BACKUP_DELETE_FILE_FAILED, "Can't delete old backup file.");
-            }
-        }
-
-        return currentBuDir;
     }
 
     private void writeBackupInfo() throws LocalizedException {
@@ -656,7 +623,7 @@ public class BackupService extends IntentService {
 
             //Attachment kopieren
             if (mSaveMedia && !StringUtil.isNullOrEmpty(msg.getAttachment())) {
-                copyMsgAttachmentToBackupDir(msg.getAttachment());
+                mApplication.getBackupController().copyAttachmentToAttachmentsDirAsBase64(msg.getAttachment());
             }
         }
 
@@ -664,28 +631,6 @@ public class BackupService extends IntentService {
             Message msg = msgList.get(msgList.size() - 1);
             saveMessagesForChat(chat, msg.getId(), writer, gson);
         }
-    }
-
-    private void copyMsgAttachmentToBackupDir(String attachmentGuid)
-            throws LocalizedException {
-        File backupDir = new File(mBackupDir, AppConstants.BACKUP_ATTACHMENT_DIR);
-
-        if (!backupDir.isDirectory()) {
-            if (backupDir.exists()) {
-                if (backupDir.delete()) {
-                    throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "Attachment File.class is no Directory and can not be deleted");
-                }
-            }
-
-            if (!backupDir.mkdir()) {
-                throw new LocalizedException(LocalizedException.BACKUP_CREATE_BACKUP_FAILED, "Attachment Directory: mkdir() failed.");
-            }
-        }
-
-        String fileName = attachmentGuid.replace(':', '_');
-        File attachmentBuFile = new File(backupDir, fileName);
-
-        AttachmentController.saveEncryptedAttachmentFileAsBase64File(attachmentGuid, attachmentBuFile.getAbsolutePath());
     }
 
     private List<Message> loadNextMessages(Chat chat, long maxLoadedMessagedId) throws LocalizedException {

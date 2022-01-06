@@ -34,7 +34,7 @@
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:lineSpacingExtra="4sp"
                     android:text="@string/device_request_tan_title2"
-                    android:textSize="28sp"
+                    app:styledTextSize="mainTitleTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -43,7 +43,7 @@
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:lineSpacingExtra="4sp"
                     android:text="@string/device_request_tan_desc"
-                    android:textSize="15sp"
+                    app:styledTextSize="baseTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <LinearLayout
@@ -64,7 +64,7 @@
                         android:maxLength="3"
                         android:paddingTop="8dp"
                         android:paddingBottom="@dimen/activity_vertical_margin"
-                        android:textSize="34sp"
+                        app:styledTextSize="tanEditTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -86,7 +86,7 @@
                         android:maxLength="3"
                         android:paddingTop="8dp"
                         android:paddingBottom="@dimen/activity_vertical_margin"
-                        android:textSize="34sp"
+                        app:styledTextSize="tanEditTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -108,7 +108,7 @@
                         android:maxLength="3"
                         android:paddingTop="8dp"
                         android:paddingBottom="@dimen/activity_vertical_margin"
-                        android:textSize="34sp"
+                        app:styledTextSize="tanEditTextSize"
                         app:styledTextColor="mainContrast" />
 
                 </LinearLayout>

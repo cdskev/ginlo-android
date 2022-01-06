@@ -37,7 +37,7 @@
                     android:paddingTop="8dp"
                     android:paddingBottom="8dp"
                     android:text="@string/registration_headline_phoneAndCountryCode"
-                    android:textSize="28sp"
+                    app:styledTextSize="mainTitleTextSize"
                     app:styledTextColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -46,7 +46,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:text="@string/device_login_label_type"
-                    android:textSize="16sp"
+                    app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <Spinner

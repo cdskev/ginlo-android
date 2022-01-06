@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.preferences
 
 import android.content.Intent
@@ -27,7 +27,6 @@ abstract class PreferencesPrivacyBaseActivity : PreferencesBaseActivity() {
     internal lateinit var appConnectivity: AppConnectivity
 
     private val contactController: ContactController by lazy { simsMeApplication.contactController }
-    private val preferencesController: PreferencesController by lazy { simsMeApplication.preferencesController }
     private lateinit var readConfirmationSwitch: SwitchCompat
     private lateinit var onlineStateSwitch: SwitchCompat
     private lateinit var loadInBackgroundSwitch: SwitchCompat

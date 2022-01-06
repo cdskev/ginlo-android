@@ -1,10 +1,11 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.service;
 
 import androidx.annotation.NonNull;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import eu.ginlo_apps.ginlo.billing.Purchase;
+
+import eu.ginlo_apps.ginlo.billing.GinloPurchaseImpl;
 import eu.ginlo_apps.ginlo.concurrent.task.HttpBaseTask;
 import eu.ginlo_apps.ginlo.model.backend.BackendResponse;
 import org.json.JSONArray;
@@ -258,7 +259,7 @@ public interface IBackendService {
 
     void getBlocked(final OnBackendResponseListener listener);
 
-    void registerPayment(final Purchase purchase,
+    void registerPayment(final GinloPurchaseImpl ginloPurchase,
                          final OnBackendResponseListener listener);
 
     void registerVoucher(final String voucherCode,

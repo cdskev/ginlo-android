@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:descendantFocusability="blocksDescendants"
@@ -44,7 +45,7 @@
                 android:layout_marginBottom="@dimen/standard_padding"
                 android:maxLines="1"
                 android:textColor="#43ad7f"
-                android:textSize="13sp"
+                app:styledTextSize="commentTextSize"
                 android:visibility="gone"
                 tools:text="Max Mustermann"
                 tools:visibility="visible" />
@@ -106,7 +107,7 @@
                         android:gravity="center_horizontal"
                         android:text="@string/chats_AVC_title"
                         android:textColor="@color/text_color"
-                        android:textSize="17sp"
+                        app:styledTextSize="messageTextSize"
                         android:textStyle="normal" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -118,7 +119,7 @@
                         android:singleLine="true"
                         android:text="@string/chats_AVC_talk"
                         android:textColor="@color/text_color"
-                        android:textSize="17sp"
+                        app:styledTextSize="messageTextSize"
                         android:textStyle="bold"
                         android:visibility="visible" />
 

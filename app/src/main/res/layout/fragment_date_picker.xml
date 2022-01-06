@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/selfdestruction_picker_linear_layout_date_picker_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -31,7 +32,7 @@
             android:gravity="end"
             android:onClick="showDatePickerDialog"
             android:text="21.04.2015"
-            android:textSize="20sp" />
+            app:styledTextSize="mediumTitleTextSize" />
     </LinearLayout>
 
     <LinearLayout
@@ -56,7 +57,7 @@
             android:focusable="true"
             android:onClick="showTimePickerDialog"
             android:text="20:22"
-            android:textSize="20sp" />
+            app:styledTextSize="mediumTitleTextSize" />
     </LinearLayout>
 
 </LinearLayout>

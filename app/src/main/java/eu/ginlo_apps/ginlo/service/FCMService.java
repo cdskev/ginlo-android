@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.service;
 
 import android.content.Context;
@@ -19,7 +19,7 @@ import java.util.Map;
 public class FCMService extends FirebaseMessagingService {
     private final static String TAG = "FCMService";
     public final static String WAKELOCK_TAG = "ginlo:" + TAG;
-    public final static int WAKELOCK_TIMEOUT = 15000;
+    public final static int WAKELOCK_TIMEOUT = 30000;
     public final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
 
     @Override
@@ -57,18 +57,6 @@ public class FCMService extends FirebaseMessagingService {
         PowerManager.WakeLock wl = pm.newWakeLock(WAKELOCK_FLAGS, WAKELOCK_TAG);
         wl.acquire(WAKELOCK_TIMEOUT);
 
-
-        boolean isAppLoggedInAnVisible = app.getAppLifecycleController().isAppInForeground() &&
-                app.getLoginController().isLoggedIn() &&
-                !NotificationController.isDeviceLocked(app);
-
-        LogUtil.i(TAG, "onMessageReceived: isAppLoggedInAnVisible = " + isAppLoggedInAnVisible);
-
-        if (isAppLoggedInAnVisible) {
-            LogUtil.i(TAG, "onMessageReceived: No notification handling.");
-            return;
-        }
-
         Intent intent = new Intent(this, GCMIntentService.class);
 
         // Retrieve and set message extras such as "action", "messageGuid", "accountGuid", "loc-key", ...
@@ -76,24 +64,22 @@ public class FCMService extends FirebaseMessagingService {
             intent.putExtra(entry.getKey(), entry.getValue());
         }
 
-        // Check extra params if we have a real message action or only some administrative stuff
-        // Only a new message action generates a notification to the user
+        // Check extra params if we have a true message action.
+        // Only a message action generates a notification to the user
         if (!GCMIntentService.haveToShowNotificationOrSetBadge(app, intent)) {
             LogUtil.i(TAG, "onMessageReceived: haveToShowNotificationOrSetBadge false");
             return;
         }
 
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-            LogUtil.i(TAG, "onMessageReceived: (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) true");
-
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (GCMIntentService.haveToStartAsForegroundService(app, intent)) {
                 LogUtil.i(TAG, "onMessageReceived: haveToStartAsForegroundService true");
 
-                if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)) {
-                    LogUtil.i(TAG, "onMessageReceived: hasOreo true");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    LogUtil.d(TAG, "onMessageReceived: Start GCMIntentService as foreground service.");
                     startForegroundService(intent);
                 } else {
-                    LogUtil.i(TAG, "onMessageReceived: hasOreo false");
+                    LogUtil.d(TAG, "onMessageReceived: Start GCMIntentService.");
                     startService(intent);
                 }
             } else {
@@ -101,7 +87,7 @@ public class FCMService extends FirebaseMessagingService {
                 GCMIntentService.showNotification(app, intent);
             }
         } else {
-            LogUtil.i(TAG, "onMessageReceived: (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) false");
+            LogUtil.d(TAG, "onMessageReceived: Start GCMIntentService.");
             startService(intent);
         }
     }

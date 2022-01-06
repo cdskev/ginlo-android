@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.chat;
 
 import android.content.DialogInterface;
@@ -12,9 +12,7 @@ import android.view.View.OnClickListener;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import eu.ginlo_apps.ginlo.ContactDetailActivity;
-import eu.ginlo_apps.ginlo.MuteChatActivity;
 import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.activity.chat.BaseChatActivity;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
@@ -100,6 +98,7 @@ public class SingleChatActivity
             setRightActionBarImage(R.drawable.chat_timed_white, rightClickListener, getResources().getString(R.string.content_description_chat_timed), -1);
 
             setRightActionBarImageVisibility(View.GONE);
+            setActionBarAVCImageVisibility(View.VISIBLE);
             mTimedCounterView.setVisibility(View.GONE);
             createOnDeleteTimedMessageListener();
             createOnTimedMessagesDeliveredListener();
@@ -193,7 +192,7 @@ public class SingleChatActivity
             };
             mRefreshTimer.scheduleAtFixedRate(refreshTask, 0, 5000);
 
-            LogUtil.i(TAG, "onResume: " + this + "");
+            LogUtil.d(TAG, "onResume: " + this + "");
 
             if (loginController.getState().equals(LoginController.STATE_LOGGED_OUT)) {
                 return;
@@ -322,41 +321,36 @@ public class SingleChatActivity
     protected void onResumeFragments() {
         super.onResumeFragments();
 
-        try {
-            if (mContact != null) {
-                if (mContactIsBlockedAlert == null) {
-                    mContactIsBlockedAlert = DialogBuilderUtil.buildErrorDialog(this, getString(R.string.chat_contact_is_blocked));
-                }
+        if (mContact != null) {
+            if (mContactIsBlockedAlert == null) {
+                mContactIsBlockedAlert = DialogBuilderUtil.buildErrorDialog(this, getString(R.string.chat_contact_is_blocked));
+            }
 
-                if (mContact.getIsBlocked() != null && mContact.getIsBlocked()) //die IDE zeigt einen Nullpointer, der Dialog wird aber oben gebaut
-                {
+            if (mContact.getIsBlocked()) //die IDE zeigt einen Nullpointer, der Dialog wird aber oben gebaut
+            {
 
-                    LogUtil.w(TAG, String.format("Contact is blocked. The 1to1 Chat %s will be set to readonly.", mChat.getChatGuid()));
+                LogUtil.w(TAG, String.format("Contact is blocked. The 1to1 Chat %s will be set to readonly.", mChat.getChatGuid()));
 
-                    if (!mContactIsBlockedAlert.getDialog().isShowing()) {
-                        mContactIsBlockedAlert.show();
-                        disableChatinput();
-                    } else {
-                        disableChatinput();
-                    }
-                } else if (mContact.isDeletedHidden() || mOnlyShowTimed || mContact.getTempReadonly()) {
-
-                    LogUtil.w(TAG, String.format("Contact isDeletedHidden (%b), OnlyShowTimed (%b), TempReadonly (%b). The 1to1 Chat %s will be set to readonly.",
-                            mContact.isDeletedHidden(), mOnlyShowTimed, mContact.getTempReadonly(), mChat.getChatGuid()));
-
+                if (!mContactIsBlockedAlert.getDialog().isShowing()) {
+                    mContactIsBlockedAlert.show();
                     disableChatinput();
                 } else {
-                    enableChatinput();
+                    disableChatinput();
                 }
+            } else if (mContact.isDeletedHidden() || mOnlyShowTimed || mContact.getTempReadonly()) {
 
-                if (mBottomSheetFragment != null && mBottomSheetFragment.getView() != null) {
-                    mBottomSheetFragment.getView().startAnimation(mAnimationSlideOut);
-                    closeBottomSheet(null);
-                }
+                LogUtil.w(TAG, String.format("Contact isDeletedHidden (%b), OnlyShowTimed (%b), TempReadonly (%b). The 1to1 Chat %s will be set to readonly.",
+                        mContact.isDeletedHidden(), mOnlyShowTimed, mContact.getTempReadonly(), mChat.getChatGuid()));
+
+                disableChatinput();
+            } else {
+                enableChatinput();
             }
-        } catch (final LocalizedException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
-            finish();
+
+            if (mBottomSheetFragment != null && mBottomSheetFragment.getView() != null) {
+                mBottomSheetFragment.getView().startAnimation(mAnimationSlideOut);
+                closeBottomSheet(null);
+            }
         }
     }
 
@@ -511,25 +505,20 @@ public class SingleChatActivity
     }
 
     protected boolean isChatReadOnly() {
-        try {
-            if (mContact == null) {
-                LogUtil.w(TAG, String.format("Contact not found. The 1to1 Chat %s will be set to readonly.",
-                        mChat == null? "(null)" : mChat.getChatGuid()));
-                return true;
-            } else if (mContact.getPublicKey() == null) {
-                LogUtil.w(TAG, String.format("Contact public key is null. The 1to1 Chat %s will be set to readonly.",
-                        mChat == null? "(null)" : mChat.getChatGuid()));
-                return true;
-            } else if (mContact.isDeletedHidden() || mContact.getTempReadonly()) {
-                LogUtil.w(TAG, String.format("Contact is deleted hidden (%b) or tempReadonly (%b). The 1to1 Chat %s will be set to readonly.",
-                        mContact.isDeletedHidden(),
-                        mContact.getTempReadonly(), mChat == null? "(null)" : mChat.getChatGuid()));
-                return true;
-            }
-        } catch (final LocalizedException e) {
-            LogUtil.e(TAG, "isChatReadOnly: " + e.getMessage(), e);
+        if (mContact == null) {
+            LogUtil.w(TAG, String.format("Contact not found. The 1to1 Chat %s will be set to readonly.",
+                    mChat == null? "(null)" : mChat.getChatGuid()));
+            return true;
+        } else if (mContact.getPublicKey() == null) {
+            LogUtil.w(TAG, String.format("Contact public key is null. The 1to1 Chat %s will be set to readonly.",
+                    mChat == null? "(null)" : mChat.getChatGuid()));
+            return true;
+        } else if (mContact.isDeletedHidden() || mContact.getTempReadonly()) {
+            LogUtil.w(TAG, String.format("Contact is deleted hidden (%b) or tempReadonly (%b). The 1to1 Chat %s will be set to readonly.",
+                    mContact.isDeletedHidden(),
+                    mContact.getTempReadonly(), mChat == null? "(null)" : mChat.getChatGuid()));
+            return true;
         }
-
         return false;
     }
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:dpag="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -54,7 +54,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical|center_horizontal"
                         android:src="@drawable/channel_item_bg_black"
-                        dpag:mask="@drawable/data_placeholder" />
+                        app:mask="@drawable/data_placeholder" />
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/chat_item_data_placeholder"
@@ -79,7 +79,7 @@
                         android:ellipsize="middle"
                         android:singleLine="true"
                         android:textColor="@color/main"
-                        android:textSize="17sp"
+                        app:styledTextSize="messageTextSize"
                         android:textStyle="bold"
                         tools:text="Datei.psd" />
 
@@ -89,7 +89,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="@color/main"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         tools:text="220,4 KB" />
                 </LinearLayout>
             </LinearLayout>

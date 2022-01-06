@@ -253,7 +253,7 @@
     <string name="chat_open_file_warning_message">Dosya şifrelenmemiş bir üçüncü taraf uygulamasına aktarılır! Güvenli bölgeden ayrılıyor!</string>
     <string name="chat_open_file_warning_title">Dikkat</string>
 	<string name="chat_forward_message_toast_msg">We\'re sorry, but something went wrong while forwarding your message. Please contact our Customer Care at support@ginlo.net.</string>
-    <string name="chat_overview_command_chat_invite_friends_text1">Invite a Friend</string>
+    <string name="chat_overview_command_chat_invite_friends_text1">Invite a Contact</string>
     <string name="chat_overview_command_chat_invite_friends_text2">davet etmek</string>
     <string name="chat_overview_command_chat_new_channel_text1">Yeni bir tane takip et</string>
     <string name="chat_overview_command_chat_new_channel_text2">kanal</string>
@@ -276,11 +276,11 @@
     <string name="chat_overview_filter_group_deact">0\nGroups</string>
     <string name="chat_overview_filter_single_act">%1$d \nChats</string>
     <string name="chat_overview_filter_single_deact">0 \nChats</string>
-    <string name="chat_overview_invite_friends_item_title">Invite a\nFriend</string>
-    <string name="chat_overview_invite_friends_popup_accept">Invite</string>
-    <string name="chat_overview_invite_friends_popup_text">You can invite friends to ginlo if some are still missing. :-)</string>
-    <string name="chat_overview_invite_friends_popup_text_second">You can invite friends to ginlo if some are still missing. :-)</string>
-    <string name="chat_overview_invite_friends_popup_title">Invite a Friend</string>
+    <string name="chat_overview_invite_friends_item_title">Invite a\ncontact</string>
+    <string name="chat_overview_invite_friends_popup_accept">Invite a contact</string>
+    <string name="chat_overview_invite_friends_popup_text">Are some of your contacts still not on ginlo? Invite them now!</string>
+    <string name="chat_overview_invite_friends_popup_text_second">You can invite contacts to ginlo if some are still missing.</string>
+    <string name="chat_overview_invite_friends_popup_title">Invite your contatcs</string>
     <string name="chat_overview_invite_friends_popup_title_second">Pssst, before we forget...</string>
     <string name="chat_overview_menu_label">Tarafından göster</string>
     <string name="chat_overview_menu_show_all">Tüm sohbetler</string>
@@ -440,9 +440,9 @@
     <string name="contact_detail_type_work_mobile">Mobil çalış</string>
     <string name="contact_detail_type_work_pager">İş çağrı cihazı</string>
     <string name="contact_detail_unblock">engeli kaldırmak</string>
-    <string name="contact_list_invite_contact">Invite a Friend</string>
+    <string name="contact_list_invite_contact">Invite contact</string>
     <string name="contact_list_new_contact">Find a User</string>
-    <string name="contact_list_no_contacts">Seems you\'re a ginlo pioneer...\nso let\'s invite your friends to join you.\n\nJust tap the top right and select \"Invite a Friend\".</string>
+    <string name="contact_list_no_contacts">Seems you\'re a ginlo pioneer...\nso let\'s invite your contacts to join you.\n\nJust tap the top right and select \"Invite Contact\".</string>
     <string name="contact_list_no_contacts_at_all">You didn\'t give ginlo permissions to access your contacts, or there are no contacts in your address book at all.</string>
     <string name="contact_list_refresh">Sync Address Book</string>
     <string name="contacts_activity_pager_contacts_title">telefon rehberi</string>
@@ -901,7 +901,7 @@
     <string name="search_contact_header_country">Country</string>
     <string name="search_contact_header_phone_number">Country Code and Mobile Number</string>
     <string name="search_contact_header_search_by">Manually search for:</string>
-    <string name="search_contact_hint">Find and add a new ginlo contact using ginlo ID, email address or phone number. Or just scan the QR invitation code you have received.</string>
+    <string name="search_contact_hint">Find and add a new ginlo contact using ginlo ID, email address or phone number. Or just scan the invitation code you have received.</string>
     <string name="search_contact_no_contact_found">This is not a ginlo user.</string>
     <string name="search_contact_no_email_found">Let\'s change that. :-) Send an invitation to %1$s now.</string>
     <string name="search_contact_no_phone_found">Let\'s change that. :-) Send an invitation to %1$s now.</string>
@@ -1231,7 +1231,7 @@
     <string name="settings_profile_qr_code_btn_new">QR Code for Current Version</string>
     <string name="settings_profile_qr_code_btn_old">QR Code for Older Versions</string>
     <string name="settings_profile_qr_code_desc">Have your QR code scanned (or scan your contacts\' codes) to confirm each other\'s identities. Plus, it lets you easily add others to your contacts without having to type in their IDs.</string>
-    <string name="settings_profile_qr_code_header">Your QR Code</string>
+    <string name="settings_profile_qr_code_header">Your ginlo now! QR Code</string>
     <string name="settings_profile_save_failed">We\'re sorry, but something went wrong while saving your profile. Please try again.</string>
     <string name="settings_profile_set_status_failed">We\'re sorry, but something went wrong while saving your status. Please try again.</string>
     <string name="settings_profile_statusLabel">Status</string>
@@ -1312,6 +1312,5 @@
     <string name="notification_new_avc">Call from</string>
     <string name="notification_avc_audio">Audio only</string>
     <string name="notification_avc_video">Video call</string>
-    <string name="settings_appearance_darkmode">Darkmode (experimental)</string>
     <string name="send_action_file_send_hint">This may take a long time and will be done in background.</string>
 </resources>

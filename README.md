@@ -15,7 +15,7 @@ Checkout the documents:
 - [License](LICENSE.txt)
 
 ## Copyright & License
-This source-code is Copyright (c) 2020-2021 [ginlo.net Gesellschaft für Datenkommunikationsdienste mbH](https://ginlo.net/). ginlo and the ginlo logo are trademarks of ginlo.net protected by international law.
+This source-code is Copyright (c) 2020-2022 [ginlo.net Gesellschaft für Datenkommunikationsdienste mbH](https://ginlo.net/). ginlo and the ginlo logo are trademarks of ginlo.net protected by international law.
 
 [CDSK e.V.](https://cdsk.eu/) is exclusively authorized to release this source code under the license provided in [LICENSE.txt](LICENSE.txt) and to use the brand ginlo to some extent, especially for publishing a community edition of the ginlo Private messenger. Though warmly welcoming the community edition on their servers, ginlo.net GmbH will not offer any direct customer service nor will they take any responsibility for proper functionality. This is all on behalf of CDSK e.V.
 

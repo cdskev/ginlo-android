@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.activity.chat;
 
@@ -557,12 +557,6 @@ public class MessageDetailsActivity extends ChatInputActivity
         disabledCommands.add(R.id.attachment_selection_attach_location);
         disabledCommands.add(R.id.attachment_selection_send_contact);
 
-        // AVC - Don't show these here
-        if (avChatController != null) {
-            disabledCommands.add(R.id.attachment_selection_audio_call);
-            disabledCommands.add(R.id.attachment_selection_video_call);
-        }
-
         if (getSimsMeApplication().getPreferencesController().isCameraDisabled()) {
             disabledCommands.add(R.id.attachment_selection_take_foto);
             disabledCommands.add(R.id.attachment_selection_take_video);
@@ -598,19 +592,7 @@ public class MessageDetailsActivity extends ChatInputActivity
     // KS: AVC - TEST!
     @Override
     public boolean handleAVCMessageClick(int callType) {
-
-        String roomInfo = "kasio@ginlo_test";
-
-        Intent intent = new Intent();
-        intent.putExtra(EXTRA_RETURN_TYPE, MimeType.TEXT_V_CALL);
-        intent.putExtra(EXTRA_RETURN_TEXT, roomInfo);
-        intent.putExtra(EXTRA_RETURN_IS_PRIORITY, mIsPriority);
-
-        setResult(RESULT_OK, intent);
-        finish();
-
         return true;
-
     }
 
     public void handleTakePhotoClick(View view) {
@@ -718,7 +700,7 @@ public class MessageDetailsActivity extends ChatInputActivity
 
             router.startExternalActivityForResult(openFile, RouterConstants.SELECT_FILE_RESULT_CODE);
         } catch (final ActivityNotFoundException e) {
-            LogUtil.e(TAG, "handleAttachFileClick: Could not locate an app for selecting a file!");
+            LogUtil.e(TAG, "handleAttachFileClick: Could not locate an app for selecting a file: " + e.getMessage());
             Toast.makeText(this, R.string.chat_file_open_error_no_app_to_pick_found, Toast.LENGTH_LONG).show();
         }
     }
