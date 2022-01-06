@@ -34,7 +34,7 @@
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:lineSpacingExtra="4sp"
                     android:text="@string/device_login_description"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast80" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -42,7 +42,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:text="@string/device_login_label_type"
-                    android:textSize="16sp"
+                    app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <Spinner
@@ -63,7 +63,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/layout_padding_left_right"
                     android:text="@string/device_login_label_device_name"
-                    android:textSize="13sp"
+                    app:styledTextSize="commentTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.appcompat.widget.AppCompatEditText

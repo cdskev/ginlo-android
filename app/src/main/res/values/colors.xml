@@ -44,6 +44,8 @@
     <color name="rippleColorButtonNormal">#ffffff</color>
     <color name="actionSecondary">#333333</color>
     <color name="introTextColor">@color/mainContrast</color>
+    <color name="interfering">#4E179B</color>
+    <color name="interferingContrast">#FFFFFF</color>
 
     <!-- overlay colors -->
     <color name="overlay">#FFFFFFFF</color>

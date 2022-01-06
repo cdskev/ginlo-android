@@ -2,94 +2,117 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/avcall_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
+    android:onClick="onLayoutClick"
     tools:context="eu.ginlo_apps.ginlo.AVCallMenuActivity">
-
-    <ImageView
-        android:id="@+id/avcall_fsnotification_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="9pt"
-        android:background="@drawable/chat_box_receiver_background"
-        android:paddingStart="2pt"
-        android:paddingTop="2pt"
-        android:paddingEnd="2pt"
-        android:paddingBottom="2pt"
-        android:src="@drawable/ic_ginlo48" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
         android:layout_marginStart="11dp"
         android:layout_marginEnd="9dp"
-        android:layout_toEndOf="@id/avcall_fsnotification_icon"
         android:gravity="top"
         android:orientation="vertical"
+        android:background="@color/black"
         android:paddingStart="8dp"
         android:paddingTop="2dp"
         android:paddingEnd="8dp"
         android:paddingBottom="2dp">
 
-        <TextView
-            android:id="@+id/avcall_fsnotification_title"
+        <LinearLayout
+            android:id="@+id/avcall_layout_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ellipsize="marquee"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:singleLine="true"
-            android:text="Audio Video Call"
-            android:textColor="@color/actionContrast"
-            android:textSize="14sp"
-            tools:layout_conversion_absoluteHeight="25dp"
-            tools:layout_conversion_absoluteWidth="283dp"
-            tools:layout_editor_absoluteX="80dp"
-            tools:layout_editor_absoluteY="2dp" />
+            android:gravity="top"
+            android:orientation="horizontal"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp">
 
+            <ImageView
+                android:id="@+id/avcall_fsnotification_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/chat_box_receiver_background"
+                android:paddingStart="2pt"
+                android:paddingTop="2pt"
+                android:paddingEnd="2pt"
+                android:paddingBottom="2pt"
+                android:src="@drawable/ic_ginlo48" />
+
+            <TextView
+                android:id="@+id/avcall_fsnotification_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_gravity="center_vertical"
+                android:singleLine="false"
+                android:text="Audio Video Call"
+                android:textColor="@color/actionContrast"
+                android:textSize="17sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:paddingStart="8dp"
+            android:paddingTop="20dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="40dp">
+
+        <ImageButton
+            android:id="@+id/button_audio_pickup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_gravity="center_horizontal"
+            android:clickable="true"
+            android:background="@drawable/call_answer_button"
+            android:contentDescription="@string/notification_avc_audio"
+            android:onClick="onButtonClick"
+            android:scaleX="1.3"
+            android:scaleY="1.3"
+            android:src="@drawable/ic_call_24px"
+            android:focusable="true" />
+
+        <ImageButton
+            android:id="@+id/button_video_pickup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_gravity="center_horizontal"
+            android:clickable="true"
+            android:background="@drawable/call_answer_button"
+            android:contentDescription="@string/notification_avc_video"
+            android:onClick="onButtonClick"
+            android:scaleX="1.3"
+            android:scaleY="1.3"
+            android:src="@drawable/ic_personal_video_24px"
+            android:focusable="true" />
+
+        <ImageButton
+            android:id="@+id/button_dismiss"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_gravity="center_horizontal"
+            android:clickable="true"
+            android:background="@drawable/call_reject_button"
+            android:contentDescription="@string/std_cancel"
+            android:onClick="onButtonClick"
+            android:scaleX="1.3"
+            android:scaleY="1.3"
+            android:src="@drawable/ic_call_end_24px"
+            android:focusable="true" />
+        </LinearLayout>
     </LinearLayout>
-
-    <ImageButton
-        android:id="@+id/button_audio_pickup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:layout_centerHorizontal="true"
-        android:background="@drawable/notification_button"
-        android:contentDescription="@string/notification_avc_audio"
-        android:onClick="onButtonClick"
-        android:scaleX="1.3"
-        android:scaleY="1.3"
-        android:src="@drawable/ic_call_24px" />
-
-    <ImageButton
-        android:id="@+id/button_video_pickup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="180dp"
-        android:layout_centerHorizontal="true"
-        android:background="@drawable/notification_button"
-        android:contentDescription="@string/notification_avc_video"
-        android:onClick="onButtonClick"
-        android:scaleX="1.3"
-        android:scaleY="1.3"
-        android:src="@drawable/ic_personal_video_24px" />
-
-    <ImageButton
-        android:id="@+id/button_dismiss"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="260dp"
-        android:layout_centerHorizontal="true"
-        android:background="@drawable/notification_button"
-        android:contentDescription="@string/std_cancel"
-        android:onClick="onButtonClick"
-        android:scaleX="1.3"
-        android:scaleY="1.3"
-        android:src="@drawable/ic_call_end_24px" />
-
 </RelativeLayout>

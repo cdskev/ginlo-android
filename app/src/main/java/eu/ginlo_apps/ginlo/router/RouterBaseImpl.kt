@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.router
 
 import android.content.ActivityNotFoundException
@@ -71,6 +71,7 @@ abstract class RouterBaseImpl(protected val appLifecycle: GinloAppLifecycle) : R
     }
 
     override fun startExternalActivityForResult(intent: Intent, requestCode: Int) {
+        LogUtil.d(this.javaClass.name, "startExternalActivityForResult: " + intent.action)
         try {
             appLifecycle.onStartingExternalActivity(false)
             appLifecycle.topActivity?.startActivityForResult(intent, requestCode)
@@ -80,6 +81,7 @@ abstract class RouterBaseImpl(protected val appLifecycle: GinloAppLifecycle) : R
     }
 
     override fun startExternalActivity(intent: Intent) {
+        LogUtil.d(this.javaClass.name, "startExternalActivity: " + intent.action)
         try {
             appLifecycle.onStartingExternalActivity(true)
             appLifecycle.topActivity?.startActivityForResult(intent, -1)

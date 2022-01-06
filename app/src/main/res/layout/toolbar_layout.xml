@@ -168,7 +168,7 @@
                     android:ellipsize="start"
                     android:singleLine="true"
                     android:text="Status"
-                    android:textSize="12dp"
+                    app:styledTextSize="statusTextSize"
                     android:textStyle="italic"
                     android:visibility="gone"
                     tools:ignore="SpUsage" />
@@ -223,8 +223,29 @@
                     android:maxWidth="40dp"
                     android:maxLines="1"
                     android:minWidth="20dp"
-                    android:textSize="12sp"
+                    app:styledTextSize="statusTextSize"
                     android:textStyle="bold"
+                    android:visibility="gone" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:id="@+id/action_bar_middle_image_view_container"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_centerVertical="true"
+                android:layout_toStartOf="@id/action_bar_right_image_view_container"
+                android:visibility="visible">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/action_bar_middle_image_view"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:scaleType="center"
+                    android:paddingStart="@dimen/activity_horizontal_margin"
+                    android:paddingEnd="@dimen/activity_horizontal_margin"
+                    android:paddingTop="9dp"
+                    android:paddingBottom="9dp"
+                    android:onClick="handleAVCAudioClick"
+                    android:src="@drawable/ic_call_48px_crop_green"
                     android:visibility="gone" />
             </RelativeLayout>
         </RelativeLayout>

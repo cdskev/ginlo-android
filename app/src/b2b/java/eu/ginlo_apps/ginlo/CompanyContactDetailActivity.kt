@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo
 
 import android.content.Intent
@@ -8,6 +8,7 @@ import android.util.Patterns
 import android.view.View
 import androidx.core.content.ContextCompat
 import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity
+import eu.ginlo_apps.ginlo.controller.AVChatController
 import eu.ginlo_apps.ginlo.controller.ChatImageController
 import eu.ginlo_apps.ginlo.controller.ContactController
 import eu.ginlo_apps.ginlo.controller.ContactControllerBusiness
@@ -33,9 +34,8 @@ import kotlinx.android.synthetic.b2b.activity_company_contact_details.trust_stat
 
 class CompanyContactDetailActivity : BaseActivity() {
 
+    private val TAG : String = CompanyContactDetailActivity::class.simpleName.toString()
     private val contactControllerBusiness: ContactControllerBusiness by lazy { simsMeApplication.contactController as ContactControllerBusiness }
-
-    private val chatImageController: ChatImageController by lazy { simsMeApplication.chatImageController }
 
     private lateinit var contactGuid: String
 
@@ -48,7 +48,12 @@ class CompanyContactDetailActivity : BaseActivity() {
 
             trust_state_divider.setBackgroundColor(ContextCompat.getColor(this, R.color.kColorSecLevelHigh))
 
-            contactGuid = intent.getStringExtra(ContactDetailActivity.EXTRA_CONTACT_GUID)
+            if(intent.hasExtra(ContactDetailActivity.EXTRA_CONTACT_GUID)) {
+                contactGuid = intent.getStringExtra(ContactDetailActivity.EXTRA_CONTACT_GUID).toString()
+            } else {
+                finish()
+                return
+            }
 
             val contact = contactControllerBusiness.getCompanyContactWithAccountGuid(contactGuid)
 
@@ -100,6 +105,7 @@ class CompanyContactDetailActivity : BaseActivity() {
 
             setTitle(title)
             setContactImage(contact)
+            setActionBarAVCImageVisibility(View.VISIBLE)
         } catch (e: LocalizedException) {
             LogUtil.w(javaClass.simpleName, "createActivity failed", e)
             finish()
@@ -180,4 +186,48 @@ class CompanyContactDetailActivity : BaseActivity() {
         R.layout.activity_company_contact_details
 
     override fun onResumeActivity() {}
+
+    // Called when the user initiates a call by pressing the "call" button
+    fun handleAVCAudioClick(view : View) {
+        handleAVCMessageClick(AVChatController.CALL_TYPE_AUDIO_ONLY);
+    }
+
+    fun handleAVCMessageClick(callType : Int) {
+        if(avChatController == null) {
+            return
+        }
+
+        avChatController.resetAVC()
+        avChatController.rollAndSetNewRoomInfo()
+
+        var myName = "John Doe (unknown)"
+        val targetContact = contactControllerBusiness.getCompanyContactWithAccountGuid(contactGuid)
+
+        try {
+            myName = contactControllerBusiness.ownContact.nameFromNameAttributes + " (" + contactControllerBusiness.ownContact.simsmeId + ")"
+        } catch (e: LocalizedException) {
+            e.printStackTrace()
+        }
+
+        // Send AVC message
+        try {
+            simsMeApplication.singleChatController.sendAVC(contactGuid,
+                    targetContact.publicKey,
+                    avChatController.serializedRoomInfo,
+                    null,
+                    null,
+                    false,
+                    null)
+
+            avChatController.setMyName(myName)
+            avChatController.setConferenceTopic(myName)
+            avChatController.setCallType(callType)
+            avChatController.startAVCall(this)
+
+        } catch (e: Exception) {
+            LogUtil.e(TAG, "handleAVCMessageClick: Failed to send AVC caller message: " + e.message, e);
+            return
+        }
+    }
+
 }

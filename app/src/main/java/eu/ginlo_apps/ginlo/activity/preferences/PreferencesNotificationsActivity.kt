@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.preferences
 
 import android.os.Build
@@ -36,8 +36,6 @@ import kotlinx.android.synthetic.main.activity_preferences_notifications.prefere
 import javax.inject.Inject
 
 class PreferencesNotificationsActivity : PreferencesBaseActivity() {
-
-    private val preferencesController: PreferencesController by lazy { simsMeApplication.preferencesController }
 
     @Inject
     internal lateinit var appConnectivity: AppConnectivity

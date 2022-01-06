@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo;
 
 import android.content.DialogInterface;
@@ -27,11 +27,9 @@ import androidx.core.content.res.ResourcesCompat;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 
-import eu.ginlo_apps.ginlo.BaseActivity;
-import eu.ginlo_apps.ginlo.MuteChatActivity;
-import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
+import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
@@ -176,10 +174,12 @@ public class ContactDetailActivity
             deleteProfileImage = false;
             enableViews();
             setRightActionBarImage(R.drawable.ic_done_white_24dp, mOnEditFinishedClickListener, getResources().getString(R.string.content_description_contact_details_edit_contact), -1);
+            setActionBarAVCImageVisibility(View.GONE);
         }
     };
     private ContactController mContactController;
     private ChatImageController mChatImageController;
+    private AVChatController avChatController;
     private byte[] mImageBytes;
     private Timer mRefreshTimer;
     private View mContactContentContainer;
@@ -325,6 +325,8 @@ public class ContactDetailActivity
             mChatImageController = getSimsMeApplication().getChatImageController();
             mContactController = getSimsMeApplication().getContactController();
             final PreferencesController preferencesController = ((SimsMeApplication) getApplication()).getPreferencesController();
+            // KS: May be null if no AVC is available
+            avChatController = getSimsMeApplication().getAVChatController();
 
             mImageBytes = new byte[]{};
             if (savedInstanceState != null) {
@@ -343,6 +345,7 @@ public class ContactDetailActivity
 
             if (mMode == MODE_CREATE || mMode == MODE_CREATE_GINLO_NOW) {
                 mScanButton.setVisibility(View.GONE);
+                mBlockButton.setVisibility(View.GONE);
                 deleteButton.setVisibility(View.GONE);
                 mClearChatButton.setVisibility(View.GONE);
 
@@ -490,6 +493,7 @@ public class ContactDetailActivity
 
                     mIsInEditMode = true;
                     setRightActionBarImage(R.drawable.ic_done_white_24dp, mOnEditFinishedClickListener, getResources().getString(R.string.content_description_contact_details_edit_contact), -1);
+                    setActionBarAVCImageVisibility(View.GONE);
                     if (contactDetails.containsKey(JsonConstants.EMAIL)) {
                         mContact.setEmail(contactDetails.get(JsonConstants.EMAIL));
                     } else {
@@ -711,6 +715,9 @@ public class ContactDetailActivity
 
             if (mIsInEditMode) {
                 enableViews();
+                setActionBarAVCImageVisibility(View.GONE);
+            } else {
+                setActionBarAVCImageVisibility(View.VISIBLE);
             }
 
             setTrustedState();
@@ -719,9 +726,11 @@ public class ContactDetailActivity
                 mMode = MODE_CREATE;
                 showGinloNowExplanation();
             }
+
             if (mMode == MODE_CREATE) {
                 setTitle(getResources().getString(R.string.contact_detail_create));
                 enableViews();
+                setActionBarAVCImageVisibility(View.GONE);
                 setRightActionBarImage(R.drawable.ic_done_white_24dp, mOnEditFinishedClickListener, getResources().getString(R.string.content_description_contact_details_edit_contact), -1);
             } else {
                 setTitle(mContact.getName());
@@ -925,6 +934,11 @@ public class ContactDetailActivity
 
     public void handleDeleteProfileImageClick(View view) {
         LogUtil.d(TAG, "handleDeleteProfileImageClick: Called from " + this.getLocalClassName());
+        if(!mContactController.getOwnContact().getAccountGuid().equals(mContact.getAccountGuid())) {
+            LogUtil.w(TAG, "handleDeleteProfileImageClick: Allowed only for own contact, not for " + mContact.getAccountGuid());
+            return;
+        }
+
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
@@ -1190,6 +1204,7 @@ public class ContactDetailActivity
             LogUtil.w(getClass().getSimpleName(), "Save Contact failed with " + e.getMessage());
         }
         setRightActionBarImage(R.drawable.ic_edit_white_24dp, mOnEditClickListener, getResources().getString(R.string.content_description_contact_details_save_contact), -1);
+        setActionBarAVCImageVisibility(View.VISIBLE);
         disableViews();
         setBlockButtonText();
     }
@@ -1286,4 +1301,44 @@ public class ContactDetailActivity
         dialog.show();
     }
 
+    // Called when the user initiates a call by pressing the "call" button
+    public void handleAVCAudioClick(View view) {
+        handleAVCMessageClick(AVChatController.CALL_TYPE_AUDIO_ONLY);
+    }
+
+    public void handleAVCMessageClick(int callType) {
+        if(avChatController == null) {
+            return;
+        }
+
+        avChatController.resetAVC();
+        avChatController.rollAndSetNewRoomInfo();
+
+        String myName = "John Doe (unknown)";
+        try {
+            myName = mContactController.getOwnContact().getNameFromNameAttributes() + " (" + mContactController.getOwnContact().getSimsmeId() + ")";
+        } catch (LocalizedException e) {
+            e.printStackTrace();
+        }
+
+        // Send AVC message
+        try {
+            getSimsMeApplication().getSingleChatController().sendAVC(mContact.getAccountGuid(),
+                    mContact.getPublicKey(),
+                    avChatController.getSerializedRoomInfo(),
+                    null,
+                    null,
+                    false,
+                    null);
+
+            avChatController.setMyName(myName);
+            avChatController.setConferenceTopic(myName);
+            avChatController.setCallType(callType);
+            avChatController.startAVCall(this);
+
+        } catch (final Exception e) {
+            LogUtil.e(TAG, "handleAVCMessageClick: Failed to send AVC caller message: " + e.getMessage(), e);
+            return;
+        }
+    }
 }

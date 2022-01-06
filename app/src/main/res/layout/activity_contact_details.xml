@@ -80,7 +80,7 @@
                         android:layout_height="wrap_content"
                         android:labelFor="@+id/contact_details_edit_text_nickname"
                         android:text="@string/label_nick_name"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         app:styledTextColor="mainContrast50" />
 
                     <androidx.emoji.widget.EmojiAppCompatEditText
@@ -105,7 +105,7 @@
                         android:layout_height="wrap_content"
                         android:labelFor="@+id/contact_details_edit_text_status"
                         android:text="@string/label_status"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         app:styledTextColor="mainContrast50" />
 
                     <androidx.emoji.widget.EmojiAppCompatEditText
@@ -130,7 +130,7 @@
                         android:layout_height="wrap_content"
                         android:labelFor="@+id/contact_details_edit_text_firstname"
                         android:text="@string/label_first_name"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         app:styledTextColor="mainContrast50" />
 
                     <androidx.emoji.widget.EmojiAppCompatEditText
@@ -157,7 +157,7 @@
                         android:layout_height="wrap_content"
                         android:labelFor="@+id/contact_details_edit_text_lastname"
                         android:text="@string/label_last_name"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         app:styledTextColor="mainContrast50" />
 
                     <androidx.emoji.widget.EmojiAppCompatEditText
@@ -186,7 +186,7 @@
                         android:layout_height="wrap_content"
                         android:labelFor="@+id/contact_details_edit_text_mobilenumber"
                         android:text="@string/label_mobile_number"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         app:styledTextColor="mainContrast50" />
 
                     <androidx.emoji.widget.EmojiAppCompatEditText
@@ -204,7 +204,7 @@
                         android:maxLines="1"
                         android:singleLine="true"
                         android:textCursorDrawable="@drawable/color_cursor"
-                        android:textSize="20sp"
+                        app:styledTextSize="mediumTitleTextSize"
                         app:styledTextColor="mainContrast"
                         app:styledTextColorHint="mainContrast50" />
 
@@ -214,7 +214,7 @@
                         android:layout_height="wrap_content"
                         android:labelFor="@+id/contact_details_edit_text_emailaddress"
                         android:text="@string/label_email_address"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         app:styledTextColor="mainContrast50" />
 
                     <androidx.emoji.widget.EmojiAppCompatEditText
@@ -232,7 +232,7 @@
                         android:maxLines="1"
                         android:singleLine="true"
                         android:textCursorDrawable="@drawable/color_cursor"
-                        android:textSize="20sp"
+                        app:styledTextSize="mediumTitleTextSize"
                         app:styledTextColor="mainContrast"
                         app:styledTextColorHint="mainContrast50" />
 
@@ -242,7 +242,7 @@
                         android:layout_height="wrap_content"
                         android:labelFor="@+id/contact_details_edit_text_departement"
                         android:text="@string/label_departement"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         app:styledTextColor="mainContrast50" />
 
                     <androidx.emoji.widget.EmojiAppCompatEditText
@@ -268,7 +268,7 @@
                         android:layout_marginBottom="@dimen/layout_padding_top_bottom"
                         android:labelFor="@+id/contact_details_edit_text_simsmeid"
                         android:text="@string/label_simsme_id"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         app:styledTextColor="mainContrast50" />
 
                     <RelativeLayout
@@ -293,7 +293,7 @@
                             android:layout_marginStart="36dp"
                             android:maxLines="1"
                             android:onClick="onGinloIdClicked"
-                            android:textSize="18sp"
+                            app:styledTextSize="messageEditTextSize"
                             android:textStyle="bold"
                             app:styledIconColor="secure"
                             app:styledTextColor="action" />
@@ -330,7 +330,7 @@
                             android:layout_gravity="center_vertical"
                             android:layout_weight="1"
                             android:text="@string/chat_mute_title"
-                            android:textSize="16sp"
+                            app:styledTextSize="chooserTextSize"
                             app:styledTextColor="mainContrast50" />
 
                         <androidx.appcompat.widget.AppCompatTextView
@@ -340,7 +340,7 @@
                             android:layout_gravity="center_vertical"
                             android:drawableRight="@drawable/ic_keyboard_arrow_right_black_24dp"
                             android:text="@string/chat_mute_off"
-                            android:textSize="16sp"
+                            app:styledTextSize="chooserTextSize"
                             app:styledIconColor="mainContrast80"
                             app:styledTextColor="mainContrast50" />
 

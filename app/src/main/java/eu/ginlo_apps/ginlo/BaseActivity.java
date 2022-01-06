@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo;
 
@@ -34,19 +34,20 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+
 import dagger.android.AndroidInjection;
-import eu.ginlo_apps.ginlo.BuildConfig;
-import eu.ginlo_apps.ginlo.LoginActivity;
-import eu.ginlo_apps.ginlo.MainActivity;
-import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.RecoverPasswordActivity;
-import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.activity.chat.BaseChatActivity;
 import eu.ginlo_apps.ginlo.activity.register.ShowSimsmeIdActivity;
+import eu.ginlo_apps.ginlo.billing.GinloBillingImpl;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
+import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.AccountController;
+import eu.ginlo_apps.ginlo.controller.ChatImageController;
+import eu.ginlo_apps.ginlo.controller.ClipBoardController;
 import eu.ginlo_apps.ginlo.controller.GinloAppLifecycle;
 import eu.ginlo_apps.ginlo.controller.LoginController;
+import eu.ginlo_apps.ginlo.controller.MessageDecryptionController;
+import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.controller.contracts.AccountOnServerWasDeleteListener;
 import eu.ginlo_apps.ginlo.controller.message.contracts.OnMessageReceivedListener;
@@ -61,7 +62,6 @@ import eu.ginlo_apps.ginlo.theme.CmsThemeContextWrapper;
 import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
-import eu.ginlo_apps.ginlo.util.ImageCache;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.MetricsUtil;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
@@ -84,10 +84,15 @@ public abstract class BaseActivity
     private static final String TAG = BaseActivity.class.getSimpleName();
 
     private static final String CHECK_IS_LOGOUT = "BaseActivity.checkIsLogout";
-    private static final int ACTIONBAR_RIGHT_SIDE = R.id.action_bar_right_image_view;
     private static final String SAVED_RESULTS = "BaseActivity.savedResults";
     private static final String SAVED_INSTANCE_STATE = "BaseActivity.savedInstanceState";
     private static final int TOOLBAR_OPTIONS_MENU_ITEM_COUNT = 6;
+
+    protected final int ACTIONBAR_RIGHT_SIDE_PROFILE_VIEW = R.id.action_bar_image_view_profile_picture;
+    protected final int ACTIONBAR_RIGHT_SIDE_CONTAINER = R.id.action_bar_right_image_view_container;
+    protected final int ACTIONBAR_RIGHT_SIDE_VIEW = R.id.action_bar_right_image_view;
+    protected final int ACTIONBAR_MIDDLE_CONTAINER = R.id.action_bar_middle_image_view_container;
+    protected final int ACTIONBAR_MIDDLE_VIEW = R.id.action_bar_middle_image_view;
 
     protected Animation mAnimationSlideIn;
     protected Animation mAnimationSlideOut;
@@ -114,12 +119,19 @@ public abstract class BaseActivity
 
     protected abstract void onResumeActivity();
 
-    private SimsMeApplication mApplication;
-    private PreferencesController preferencesController;
+    protected SimsMeApplication mApplication;
+    protected PreferencesController preferencesController;
+    protected NotificationController notificationController;
+    protected MessageDecryptionController messageDecryptionController;
+    protected AVChatController avChatController;
+    protected ChatImageController chatImageController;
+    protected ClipBoardController clipBoardController;
+    protected GinloBillingImpl ginloBillingImpl = null;
 
     private TextView mTitleView;
     private boolean mCheckIsLogout;
     private View mRightImageView;
+    private View mMiddleImageView;
     private ImageView mProfileImage;
     private ProgressDialog mIdleDialog;
     private boolean mIsOptionsMenuSet = false;
@@ -127,8 +139,8 @@ public abstract class BaseActivity
     private OnMessageReceivedListener mOnMessageReceivedListener;
     private Dialog mOwnAccountWasDeletedDialog;
 
-    private boolean mDarkMode;
     private String mCurrentThemeName;
+    private String mCurrentThemeMode;
 
     @Inject
     public GinloAppLifecycle appLifecycle;
@@ -163,28 +175,21 @@ public abstract class BaseActivity
 
         loginController = getSimsMeApplication().getLoginController();
         preferencesController = getSimsMeApplication().getPreferencesController();
+        notificationController = getSimsMeApplication().getNotificationController();
+        messageDecryptionController = getSimsMeApplication().getMessageDecryptionController();
+        avChatController = getSimsMeApplication().getAVChatController();
+        chatImageController = getSimsMeApplication().getChatImageController();
+        clipBoardController = getSimsMeApplication().getClipBoardController();
 
-        // Set UI theme according to preferences - only if there is no company layout!
-        // Important: Must also handle theme over to ColorUtil instance before first themed inflates!
-        if(ColorUtil.getInstance().hasLayoutModel(getSimsMeApplication())) {
-            mCurrentThemeName = BuildConfig.DEFAULT_LIGHT_THEME;
-            preferencesController.setDarkmodeEnabled(false);
-            preferencesController.setThemeLocked(true);
-            LogUtil.i(TAG, "Has layout model - ignore settings and use default theme: " + mCurrentThemeName);
-        } else {
-            mCurrentThemeName = preferencesController.getThemeName();
-            preferencesController.setThemeLocked(false);
-            LogUtil.i(TAG, "No layout model - use theme: " + mCurrentThemeName);
+        if (!RuntimeConfig.isB2c()) {
+            // If b2b instantiate in-app billing implementation
+            ginloBillingImpl = getSimsMeApplication().getGinloBillingImpl();
         }
-        int themID = getResources().getIdentifier(mCurrentThemeName, "style", this.getPackageName());
-        if(themID != 0) {
-            setTheme(themID);
-        }
-        ColorUtil.getInstance().setCurrentTheme(getTheme());
 
-        // TODO: DarkMode is obsolete, since we now call themes by name.
-        // TODO: Change preference activity, replace darkmode switch with theme selector
-        mDarkMode = preferencesController.getDarkmodeEnabled();
+        // Check for device night mode and initialize configured theme
+        // Must be done before super.onCreate() and further layout inflation!
+        int currentNightMode = this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        setAppTheme(currentNightMode);
 
         super.onCreate(savedInstanceState);
 
@@ -215,6 +220,41 @@ public abstract class BaseActivity
 
         onCreateActivity(mSaveInstanceState);
         createOnMessageReceivedListener();
+    }
+
+    protected void setAppTheme(int currentNightMode) {
+        // Set UI theme according to preferences - only if there is no company layout!
+        // Important: Must also handle theme over to ColorUtil instance before first themed inflates!
+        if(ColorUtil.getInstance().hasLayoutModel(getSimsMeApplication())) {
+            mCurrentThemeName = BuildConfig.DEFAULT_THEME;
+            mCurrentThemeMode = BuildConfig.DEFAULT_THEME_MODE;
+            preferencesController.setThemeLocked(true);
+            LogUtil.i(TAG, "setCurrentTheme: We have a cockpit layout model - ignore settings and use default: " + mCurrentThemeName + mCurrentThemeMode);
+        } else {
+            mCurrentThemeName = preferencesController.getThemeName();
+            mCurrentThemeMode = preferencesController.getThemeMode();
+            preferencesController.setThemeLocked(false);
+
+            if(PreferencesController.THEME_MODE_AUTO.equals(mCurrentThemeMode)) {
+                // We are in THEME_MODE_AUTO. Set the appropriate theme mode
+                if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+                    // Night mode is active, we're using dark theme
+                    LogUtil.i(TAG, "setCurrentTheme: Auto-switching to theme mode DARK.");
+                    mCurrentThemeMode = PreferencesController.THEME_MODE_DARK;
+                } else {
+                    // Night mode is not active, we're using the light theme
+                    mCurrentThemeMode = PreferencesController.THEME_MODE_LIGHT;
+                    LogUtil.i(TAG, "setCurrentTheme: Auto-switching to theme mode LIGHT.");
+                }
+            }
+            LogUtil.i(TAG, "setCurrentTheme: " + mCurrentThemeName + mCurrentThemeMode);
+        }
+
+        int themID = getResources().getIdentifier(mCurrentThemeName + mCurrentThemeMode, "style", this.getPackageName());
+        if(themID != 0) {
+            setTheme(themID);
+        }
+        ColorUtil.getInstance().setCurrentTheme(getTheme());
     }
 
     protected void initToolbar() {
@@ -254,7 +294,8 @@ public abstract class BaseActivity
         setTitle(getTitle());
         supportActionBar.setTitle("");
 
-        mRightImageView = mToolbar.findViewById(ACTIONBAR_RIGHT_SIDE);
+        mRightImageView = mToolbar.findViewById(ACTIONBAR_RIGHT_SIDE_VIEW);
+        mMiddleImageView = mToolbar.findViewById(ACTIONBAR_MIDDLE_VIEW);
         mProfileImage = mToolbar.findViewById(R.id.action_bar_image_view_profile_picture);
     }
 
@@ -552,6 +593,11 @@ public abstract class BaseActivity
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
+        LogUtil.d(TAG, "onConfigurationChanged: -------------------------->" + newConfig);
+        preferencesController.setThemeChanged(true);
+        int currentNightMode = newConfig.uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        setAppTheme(currentNightMode);
+
         super.onConfigurationChanged(newConfig);
         hideToolbarOptions();
         scaleTitle();
@@ -639,12 +685,12 @@ public abstract class BaseActivity
     protected void setRightActionBarImage(int drawableId,
                                           OnClickListener clickListener,
                                           String contentDescription, int customImageColor) {
-        setActionBarImage(ACTIONBAR_RIGHT_SIDE, drawableId, contentDescription, customImageColor);
-        setActionBarListener(ACTIONBAR_RIGHT_SIDE, clickListener);
+        setActionBarImage(ACTIONBAR_RIGHT_SIDE_VIEW, drawableId, contentDescription, customImageColor);
+        setActionBarListener(ACTIONBAR_RIGHT_SIDE_VIEW, clickListener);
     }
 
     protected void removeRightActionBarImage() {
-        setActionBarImage(BaseActivity.ACTIONBAR_RIGHT_SIDE, -1, null, -1);
+        setActionBarImage(ACTIONBAR_RIGHT_SIDE_VIEW, -1, null, -1);
     }
 
     protected void setActionBarImage(int side, int drawableId, String contentDescription, int customImgColor) {
@@ -676,6 +722,45 @@ public abstract class BaseActivity
         if (imageView != null && clickListener != null) {
             imageView.setOnClickListener(clickListener);
         }
+    }
+
+    protected void setProfilePictureVisibility(int visibility) {
+        final ImageView imageView = getToolbar().findViewById(R.id.action_bar_image_view_profile_picture);
+        if (imageView != null) {
+            imageView.setVisibility(visibility);
+        }
+    }
+
+    protected void setRightActionBarImageVisibility(int visibility) {
+        final View container = getToolbar().findViewById(ACTIONBAR_RIGHT_SIDE_CONTAINER);
+        final View view = getToolbar().findViewById(ACTIONBAR_RIGHT_SIDE_VIEW);
+        if (view != null) {
+            view.setVisibility(visibility);
+        }
+        if (container != null) {
+            container.setVisibility(visibility);
+        }
+    }
+
+    protected void setMiddleActionBarImageVisibility(int visibility) {
+
+        final View container = getToolbar().findViewById(ACTIONBAR_MIDDLE_CONTAINER);
+        final View view = getToolbar().findViewById(ACTIONBAR_MIDDLE_VIEW);
+        if (view != null) {
+            view.setVisibility(visibility);
+        }
+        if (container != null) {
+            container.setVisibility(visibility);
+        }
+    }
+
+    protected void setActionBarAVCImageVisibility(int visibility) {
+
+        if (avChatController == null || StringUtil.isNullOrEmpty(BuildConfig.GINLO_AVC_SERVER_URL)) {
+            if(visibility != View.GONE)
+            return;
+        }
+        setMiddleActionBarImageVisibility(visibility);
     }
 
     protected void setTitleView(TextView view) { mTitleView = view; }
@@ -882,22 +967,24 @@ public abstract class BaseActivity
         mPermissionUtil.requestPermission(permission, permissionRationaleMsg);
     }
 
-    protected void setDynamicHeight(final ListView mListView, final int minHeight) {
-        final ListAdapter adapter = mListView.getAdapter();
+    protected void setDynamicHeight(final ListView listView, final int minHeight) {
+        final ListAdapter adapter = listView.getAdapter();
         if (adapter == null) {
+            LogUtil.d(TAG, "setDynamicHeight: No adapter.");
             return;
         }
         int height = 0;
-        final int desiredWidth = View.MeasureSpec.makeMeasureSpec(mListView.getWidth(), View.MeasureSpec.UNSPECIFIED);
-        for (int i = 0; i < adapter.getCount(); ++i) {
-            final View listItem = adapter.getView(i, null, mListView);
+        final int desiredWidth = View.MeasureSpec.makeMeasureSpec(listView.getWidth(), View.MeasureSpec.UNSPECIFIED);
+        for (int i = 0; i < adapter.getCount(); i++) {
+            final View listItem = adapter.getView(i, null, listView);
             listItem.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
             height += listItem.getMeasuredHeight();
         }
-        final ViewGroup.LayoutParams params = mListView.getLayoutParams();
-        params.height = Math.max(minHeight, height) + (mListView.getDividerHeight() * (adapter.getCount() - 1));
-        mListView.setLayoutParams(params);
-        mListView.requestLayout();
+        final ViewGroup.LayoutParams params = listView.getLayoutParams();
+        params.height = Math.max(minHeight, height) + (listView.getDividerHeight() * (adapter.getCount() - 1));
+        LogUtil.d(TAG, "setDynamicHeight: Calculated height = " + params.height);
+        listView.setLayoutParams(params);
+        listView.requestLayout();
     }
 
     @Override

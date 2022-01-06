@@ -68,7 +68,7 @@
     <string name="backup_restore_process_failed_msg_conn_failed">Beim Wiederherstellen des Backups ist leider etwas schiefgelaufen. Bitte versuchen Sie es nochmal.</string>
     <string name="backup_restore_process_failed_msg_conn_failed_no_inet">Beim Wiederherstellen des Backups ist leider etwas schiefgelaufen. Entweder liegt\'s an uns oder an Ihrer Internetverbindung. Bitte schauen Sie mal nach, und versuchen Sie es nochmal.</string>
     <string name="backup_restore_process_failed_msg_default">Beim Wiederherstellen des Backups ist leider etwas schiefgelaufen. Bitte versuchen Sie es nochmal.</string>
-    <string name="backup_restore_process_failed_msg_salts_not_equal">Das Backup wurde nicht von ginlo erstellt.</string>
+    <string name="backup_restore_process_failed_msg_salts_not_equal">Dieses Backup wurde nicht von Ihrem ginlo-Konto erstellt.</string>
     <string name="backup_restore_process_failed_msg_unzipping_failed">Die Backup-Datei konnte nicht entpackt werden. Bitte wählen Sie ein anderes Backup aus.</string>
     <string name="backup_restore_process_failed_msg_wrong_pwd">Die Backup-Datei konnte nicht entschlüsselt werden. Vielleicht stimmt Ihr Passwort nicht so ganz? Bitte geben Sie es nochmal ein.</string>
     <string name="backup_restore_process_failed_title">Es tut uns leid...</string>
@@ -249,11 +249,11 @@
     <string name="chat_open_failed_file">Die Datei konnte nicht geöffnet werden.</string>
     <string name="chat_open_failed_image">Das Bild konnte nicht geöffnet werden.</string>
     <string name="chat_open_failed_video">Das Video konnte nicht geöffnet werden.</string>
-    <string name="chat_open_file_no_extern_activity">Es wurde keine Anwendung zum Anzeigen der Datei gefunden.</string>
+    <string name="chat_open_file_no_extern_activity">Es wurde keine Standardanwendung für die Auswahl einer Datei des Typs %s gefunden. Sie könnten alternativ versuchen, die Datei zu teilen.</string>
     <string name="chat_open_file_warning_message">Die Datei verlässt dann den geschützten Bereich von ginlo.</string>
     <string name="chat_open_file_warning_title">Wollen Sie die Datei über eine andere App teilen?</string>
 	<string name="chat_forward_message_toast_msg">Beim Weiterleiten Ihrer Nachricht ist leider etwas schiefgelaufen. Bitte wenden Sie sich an unseren Kundenservice unter support@ginlo.net.</string>
-    <string name="chat_overview_command_chat_invite_friends_text1">Freunde einladen</string>
+    <string name="chat_overview_command_chat_invite_friends_text1">Kontakte einladen</string>
     <string name="chat_overview_command_chat_invite_friends_text2">einladen</string>
     <string name="chat_overview_command_chat_new_channel_text1">Abonnieren Sie einen neuen</string>
     <string name="chat_overview_command_chat_new_channel_text2">Channel</string>
@@ -276,11 +276,11 @@
     <string name="chat_overview_filter_group_deact">0\nGruppen</string>
     <string name="chat_overview_filter_single_act">%1$d\nChats</string>
     <string name="chat_overview_filter_single_deact">0\nChats</string>
-    <string name="chat_overview_invite_friends_item_title">Freunde\neinladen</string>
-    <string name="chat_overview_invite_friends_popup_accept">Einladen</string>
-    <string name="chat_overview_invite_friends_popup_text">Jetzt gleich Freunde einladen, falls noch welche fehlen. :-)</string>
-    <string name="chat_overview_invite_friends_popup_text_second">Jetzt gleich Freunde einladen, falls noch welche fehlen. :-)</string>
-    <string name="chat_overview_invite_friends_popup_title">Freunde einladen</string>
+    <string name="chat_overview_invite_friends_item_title">Kontakt\neinladen</string>
+    <string name="chat_overview_invite_friends_popup_accept">Kontakt einladen</string>
+    <string name="chat_overview_invite_friends_popup_text">Sind einige Ihrer Kontakte noch nicht auf ginlo? Laden Sie sie jetzt ein!</string>
+    <string name="chat_overview_invite_friends_popup_text_second">Jetzt gleich Kontakte einladen, falls noch welche fehlen.</string>
+    <string name="chat_overview_invite_friends_popup_title">Kontakte einladen</string>
     <string name="chat_overview_invite_friends_popup_title_second">Pssst, bevor wir\'s vergessen...</string>
     <string name="chat_overview_menu_label">Anzeigen</string>
     <string name="chat_overview_menu_show_all">Alle</string>
@@ -440,9 +440,9 @@
     <string name="contact_detail_type_work_mobile">Arbeit Mobil</string>
     <string name="contact_detail_type_work_pager">Arbeit Pager</string>
     <string name="contact_detail_unblock">Freigeben</string>
-    <string name="contact_list_invite_contact">Freunde einladen</string>
+    <string name="contact_list_invite_contact">Kontakt einladen</string>
     <string name="contact_list_new_contact">Nutzer suchen</string>
-    <string name="contact_list_no_contacts">Sie sind Ihren Freunden einen Schritt voraus...\nNoch ist keiner von ihnen bei ginlo - also laden Sie sie am besten gleich ein. :-)\n\nEinfach oben rechts tippen und \"Freunde einladen\" auswählen.</string>
+    <string name="contact_list_no_contacts">Sie sind Ihren Kontakten einen Schritt voraus...\nnoch ist keiner von ihnen bei ginlo.\n\nLaden Sie sie am besten gleich ein: Oben rechts tippen und \"Kontakt einladen\" auswählen.</string>
     <string name="contact_list_no_contacts_at_all">Sie haben ginlo keine Berechtigungen für den Zugriff auf Ihre Kontakte gegeben, oder Sie haben keine Kontakte in Ihrem Adressbuch.</string>
     <string name="contact_list_refresh">Adressbuch synchronisieren</string>
     <string name="contacts_activity_pager_contacts_title">Adressbuch</string>
@@ -453,7 +453,7 @@
     <string name="contacts_button_delete">Löschen</string>
     <string name="contacts_button_inviteNewUser">Einladen</string>
     <string name="contacts_button_scanContact">Kontakt scannen</string>
-    <string name="contacts_button_scanContactShort">QR-Code Scannen</string>
+    <string name="contacts_button_scanContactShort">Scannen</string>
     <string name="contacts_button_sendMessageToUser">Sichere Nachricht senden</string>
     <string name="contacts_button_sendMessageToUserShort">Chatten</string>
     <string name="contacts_button_sendmessage">Nachricht senden</string>
@@ -762,6 +762,7 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="pending_phone_alert_verify_title">Handynummer verifizieren</string>
     <string name="pending_phone_alert_verify_verify">Verifizieren</string>
 	<string name="permission_rationale_title">Bitte erlauben Sie ginlo Zugriff</string>
+    <string name="permission_rationale_overlay">Um eingehende Audio-/Videoanrufe zuverlässig zu melden, benötigt ginlo die Erlaubnis, sich bei Bedarf in den Vordergrund zu bringen. Bitte erteilen Sie nachfolgend diese Erlaubnis.</string>
     <string name="permission_rationale_camera">Der Zugriff auf Ihre Kamera ist nötig, um Fotos zu machen und diese mit Ihren Chatpartnern zu teilen. Verschlüsselt zu jedem Zeitpunkt.</string>
     <string name="permission_rationale_contacts">Der Zugriff auf Ihre Kontakte ist nötig, um andere App-Nutzer unter Ihren Kontakten zu finden. Die Kontaktdaten liegen uns zu keinem Zeitpunkt im Klartext vor.</string>
     <string name="permission_rationale_location">Der Zugriff auf Ihren Standort ist nötig, um ihn mit Ihren Chatpartnern zu teilen. Verschlüsselt, versteht sich.</string>
@@ -902,7 +903,7 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="search_contact_header_country">Land</string>
     <string name="search_contact_header_phone_number">Ländervorwahl und Handynummer</string>
     <string name="search_contact_header_search_by">Manuelles Suchen nach:</string>
-    <string name="search_contact_hint">Suchen Sie einen neuen ginlo Kontakt und fügen Sie ihn über die ginlo ID, E-Mail-Adresse oder Telefonnummer hinzu. Oder scannen Sie einfach den QR-Einladungscode, den Sie erhalten haben.</string>
+    <string name="search_contact_hint">Suchen Sie einen neuen ginlo Kontakt und fügen Sie ihn über die ginlo ID, E-Mail-Adresse oder Telefonnummer hinzu. Oder scannen Sie einfach den Einladungscode, den Sie erhalten haben.</string>
     <string name="search_contact_no_contact_found">Das ist leider kein ginlo Nutzer.</string>
     <string name="search_contact_no_email_found">Dann wird\'s Zeit das zu ändern. :-) Gleich eine Einladung an %1$s schicken.</string>
     <string name="search_contact_no_phone_found">Dann wird\'s Zeit das zu ändern. :-) Gleich eine Einladung an %1$s schicken.</string>
@@ -1113,7 +1114,7 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="settings_image_quality_s">Niedrig</string>
     <string name="settings_image_quality_title">Qualität versendeter Bilder</string>
     <string name="settings_image_quality_xl">Sehr hoch</string>
-    <string name="settings_informFriends">Freunde einladen</string>
+    <string name="settings_informFriends">Kontakte einladen</string>
     <string name="settings_informFriends_button_mailMessageButton">Per E-Mail einladen</string>
     <string name="settings_informFriends_button_textMessageButton">via SMS einladen*</string>
     <string name="settings_informFriends_button_textMessageButton_hint">Zwar kein Vermögen, aber erwähnen wollten wir\'s trotzdem. ;-)</string>
@@ -1232,7 +1233,7 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="settings_profile_qr_code_btn_new">QR-Code für aktuelle Version</string>
     <string name="settings_profile_qr_code_btn_old">QR-Code für ältere Versionen</string>
     <string name="settings_profile_qr_code_desc">Lassen Sie Ihren QR-Code scannen, oder scannen Sie die Codes Ihrer Kontakte. So können Sie die Identität des jeweils anderen bestätigen. Außerdem super praktisch, um einen Nutzer ohne Abtippen der ID in den Kontakten zu speichern.</string>
-    <string name="settings_profile_qr_code_header">Ihr QR-Code</string>
+    <string name="settings_profile_qr_code_header">Ihr ginlo now! QR-Code</string>
     <string name="settings_profile_save_failed">Beim Speichern Ihres Profils ist leider etwas schiefgelaufen. Bitte versuchen Sie es nochmal.</string>
     <string name="settings_profile_set_status_failed">Beim Speichern Ihres Status  ist leider etwas schiefgelaufen. Bitte versuchen Sie es nochmal.</string>
     <string name="settings_profile_statusLabel">Status</string>
@@ -1317,7 +1318,7 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="chats_AVC_video_call">Videoanruf tätigen</string>
     <string name="notification_gos_running">ginlo Service aktiv</string>
     <string name="settings_appearance_title">Erscheinungsbild</string>
-    <string name="settings_appearance_darkmode">Darkmode (experimentell)</string>
+    <string name="settings_appearance_darkmode">Bildschirm-Design</string>
     <string name="settings_appearance_ginlo_ongoing_service">ginlo aktiv halten (App-Neustart erforderlich)</string>
     <string name="settings_appearance_run_ginlo_ongoing_service">ginlo-Service ausführen</string>
     <string name="settings_appearance_show_ongoing_notification">Statusnachricht anzeigen</string>
@@ -1333,7 +1334,17 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="chat_announcement_group_on">Ja</string>
     <string name="intro_2_text_1">Ob im Büro oder unterwegs - kommunizieren Sie schnell, direkt und zuverlässig.\nStarten Sie jetzt!</string>
     <string name="send_action_file_send_hint">Das kann lange dauern und wird daher im Hintergrund ausgeführt.</string>
-    <string name="intro_2_button_ginlo_now">Einladungs-QR-Code scannen</string>
+    <string name="intro_2_button_ginlo_now">QR-Code scannen</string>
     <string name="contact_detail_ginlo_now_text">Bitte personalisieren Sie den Eintrag des Kontakts, der Sie zu ginlo eingeladen hat.</string>
     <string name="contact_detail_ginlo_now_title">Sie haben eine Einladung erhalten</string>
+    <string name="settings_backup_config_choose_file_body">Sie werden nun aufgefordert, einen Dateinamen und einen Speicherort für Ihre Sicherungskopien zu wählen. Ihre Auswahl wird gespeichert.</string>
+    <string name="settings_backup_config_choose_file_title">Wählen Sie einen Dateinamen für die Sicherung</string>
+    <string name="dialog_saveToGallery_failed">Das Speichern der Mediendatei ist fehlgeschlagen.</string>
+    <string name="dialog_saveToGallery_choose_mediadir">Sie werden nun zur Verzeichnisauswahl Ihres Geräts weitergeleitet. Bitte wählen Sie einen Ordner, in dem ginlo Ihre Mediendateien künftig speichern soll. Ihre Auswahl wird gespeichert.</string>
+    <string name="backup_restore_select_file_title">Wählen Sie eine Sicherungsdatei</string>
+    <string name="backup_restore_select_file_body">Sie werden nun aufgefordert, eine Sicherungsdatei auszuwählen, aus der Sie Ihr ginlo wiederherstellen möchten.</string>
+    <string name="settings_others_title">Erweitert</string>
+    <string name="settings_appearance_theme_mode_light">Hell</string>
+    <string name="settings_appearance_theme_mode_dark">Dunkel</string>
+    <string name="settings_appearance_theme_mode_auto">Auto</string>
 </resources>

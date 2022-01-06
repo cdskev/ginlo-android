@@ -36,6 +36,34 @@
     <dimen name="chatoverview_slideheight">96dp</dimen>
 
 
+    <!-- Styleable text sizes -->
+
+    <!-- Basic descriptive text size -->
+    <dimen name="baseTextSize">16.0</dimen>
+    <!-- Main message text size -->
+    <dimen name="messageTextSize">17.0</dimen>
+    <!-- Main edit message text size -->
+    <dimen name="messageEditTextSize">18.0</dimen>
+    <!-- Smaller text size for comments, notes etc. -->
+    <dimen name="commentTextSize">13.0</dimen>
+    <!-- Small text size for subtitles, status etc. -->
+    <dimen name="statusTextSize">12.0</dimen>
+    <!-- Very small text size for labels, badges etc. -->
+    <dimen name="labelTextSize">10.0</dimen>
+    <!-- Larger text size mainly for choosers -->
+    <dimen name="chooserTextSize">16.0</dimen>
+    <!-- Main title text size -->
+    <dimen name="mainTitleTextSize">28.0</dimen>
+    <!-- Sub title text size -->
+    <dimen name="subTitleTextSize">26.0</dimen>
+    <!-- TAN view text size -->
+    <dimen name="tanViewTextSize">24.0</dimen>
+    <!-- TAN input text size -->
+    <dimen name="tanEditTextSize">34.0</dimen>
+    <!-- Medium title text size -->
+    <dimen name="mediumTitleTextSize">20.0</dimen>
+
+
     <dimen name="preferences_slideheight">160dp</dimen>
     <!-- 48 * x + 8 + 8 + 5 = itemheigth * x + padding + padding + shadow-->
     <dimen name="channel_settings_height">95dp</dimen>

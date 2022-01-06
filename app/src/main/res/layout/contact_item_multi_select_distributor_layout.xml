@@ -59,7 +59,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:text="Horst"
-                    android:textSize="17sp"
+                    app:styledTextSize="messageTextSize"
                     app:styledTextColor="mainContrast" />
 
 
@@ -98,7 +98,7 @@
                     android:paddingBottom="2dp"
                     android:singleLine="true"
                     android:text="@string/simsme"
-                    android:textSize="10sp"
+                    app:styledTextSize="labelTextSize"
                     android:visibility="visible"
                     app:textAllCaps="true" />
 

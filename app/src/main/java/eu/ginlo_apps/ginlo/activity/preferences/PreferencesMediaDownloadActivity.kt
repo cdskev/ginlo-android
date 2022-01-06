@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.preferences
 
 import android.annotation.SuppressLint
@@ -22,7 +22,6 @@ import kotlinx.android.synthetic.main.activity_preferences_media_download.prefer
 import kotlinx.android.synthetic.main.activity_preferences_media_download.preferences_media_download_textview_voice
 
 class PreferencesMediaDownloadActivity : PreferencesBaseActivity() {
-    private val preferencesController: PreferencesController by lazy { simsMeApplication.preferencesController }
 
     override fun onCreateActivity(savedInstanceState: Bundle?) {}
 

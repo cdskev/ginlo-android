@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.util;
 
 import android.app.Application;
@@ -40,6 +40,7 @@ import eu.ginlo_apps.ginlo.model.backend.serialization.CompanyLayoutDeserializer
 import static eu.ginlo_apps.ginlo.util.RuntimeConfig.isBAMandant;
 
 public class ColorUtil {
+    private static final String TAG = ColorUtil.class.getSimpleName();
     private static ColorUtil instance;
     private static Resources.Theme currentTheme;
     private static Map<String, String> tenantColorMap;
@@ -201,6 +202,49 @@ public class ColorUtil {
     public void reset(final Application context) {
         companyLayoutModel = null;
         hasLayoutModel(context);
+    }
+
+    // Return style value for given style attribute in current theme
+    public int getThemeAttributeStyle(int style_attribute) {
+        TypedValue tv = new TypedValue();
+        currentTheme.resolveAttribute(style_attribute, tv, true);
+        return tv.data;
+    }
+
+    // Return style value for given size attribute in current theme
+    public float getThemeAttributeTextSize(int size_attribute) {
+        TypedValue tv = new TypedValue();
+        currentTheme.resolveAttribute(size_attribute, tv, true);
+        return tv.getFloat();
+    }
+
+    public Float getNamedTextSize(String name, Application c) {
+        switch (name) {
+            case "baseTextSize":
+                return getThemeAttributeTextSize(R.attr.baseTextSize);
+            case "messageTextSize":
+                return getThemeAttributeTextSize(R.attr.messageTextSize);
+            case "commentTextSize":
+                return getThemeAttributeTextSize(R.attr.commentTextSize);
+            case "labelTextSize":
+                return getThemeAttributeTextSize(R.attr.labelTextSize);
+            case "statusTextSize":
+                return getThemeAttributeTextSize(R.attr.statusTextSize);
+            case "chooserTextSize":
+                return getThemeAttributeTextSize(R.attr.chooserTextSize);
+            case "mainTitleTextSize":
+                return getThemeAttributeTextSize(R.attr.mainTitleTextSize);
+            case "subTitleTextSize":
+                return getThemeAttributeTextSize(R.attr.subTitleTextSize);
+            case "tanViewTextSize":
+                return getThemeAttributeTextSize(R.attr.tanViewTextSize);
+            case "tanEditTextSize":
+                return getThemeAttributeTextSize(R.attr.tanEditTextSize);
+            case "mediumTitleTextSize":
+                return getThemeAttributeTextSize(R.attr.mediumTitleTextSize);
+            default:
+                return null;
+        }
     }
 
     // Return color value for given color attribute in current theme
@@ -470,13 +514,6 @@ public class ColorUtil {
 
     public int getContextTextColor(final Application context) {
         return getThemeAttributeColor(R.attr.contextTextColor);
-    }
-
-    // Return style value for given style attribute in current theme
-    public int getThemeAttributeStyle(int style_attribute) {
-        TypedValue tv = new TypedValue();
-        currentTheme.resolveAttribute(style_attribute, tv, true);
-        return tv.data;
     }
 
     public int getAlertDialogStyle(final Application context) {

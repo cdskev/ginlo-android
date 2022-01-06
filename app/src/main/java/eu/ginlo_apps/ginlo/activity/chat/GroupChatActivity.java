@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.chat;
 
 import android.content.DialogInterface;
@@ -67,7 +67,7 @@ public class GroupChatActivity
                 @Override
                 public void onClick(View view) {
                     try {
-                        if (mChat.getIsRemoved() != null && mChat.getIsRemoved()) {
+                        if (mChat.getIsRemoved()) {
                             // Chat wurde während der Anzeige geändert
                             return;
                         }
@@ -148,7 +148,10 @@ public class GroupChatActivity
             if (isChatReadOnly()) {
                 disableChatinput();
                 setProfilePictureVisibility(View.GONE);
+                setActionBarAVCImageVisibility(View.GONE);
                 mChatInputFragment.showKeyboard(false);
+            } else {
+                setActionBarAVCImageVisibility(View.VISIBLE);
             }
 
             mContactController.registerOnContactProfileInfoChangeNotification(this);
@@ -267,7 +270,7 @@ public class GroupChatActivity
                     }
                 }
             }
-            if (mBottomSheetFragment != null) {
+            if (mBottomSheetFragment != null && mBottomSheetFragment.getView() != null) {
                 mBottomSheetFragment.getView().startAnimation(mAnimationSlideOut);
                 closeBottomSheet(null);
             }
@@ -295,6 +298,7 @@ public class GroupChatActivity
                             if (isChatReadOnly()) {
                                 disableChatinput();
                                 mChatInputFragment.showKeyboard(false);
+                                setActionBarAVCImageVisibility(View.GONE);
                             }
                         }
                     } catch (LocalizedException e) {
@@ -341,6 +345,7 @@ public class GroupChatActivity
             if (isActivityInForeground) {
                 disableChatinput();
                 setProfilePictureVisibility(View.GONE);
+                setActionBarAVCImageVisibility(View.GONE);
             }
         } else if (mChatInputDisabled) {
             if (!mOnlyShowTimed) {
@@ -361,12 +366,9 @@ public class GroupChatActivity
                 mChatInputFragment.setInputEnabled(false);
                 if (isActivityInForeground) {
                     disableChatinput();
-                    try {
-                        if (mChat.getIsRemoved()) {
-                            setProfilePictureVisibility(View.GONE);
-                        }
-                    } catch (final LocalizedException le) {
-                        LogUtil.e(TAG, le.getMessage(), le);
+                    if (mChat.getIsRemoved()) {
+                        setProfilePictureVisibility(View.GONE);
+                        setActionBarAVCImageVisibility(View.GONE);
                     }
                 }
             }
@@ -420,19 +422,15 @@ public class GroupChatActivity
             mTargetGuid = mChat.getChatGuid();
             mPublicKeyXML = null;
             mChatInputFragment.setInputEnabled(true);
+            setActionBarAVCImageVisibility(View.VISIBLE);
         }
     }
 
     protected boolean isChatReadOnly() {
-        try {
-            if ((mChat.getIsRemoved() != null && mChat.getIsRemoved())
-                    || (mChat.getIsReadOnly() != null && mChat.getIsReadOnly())) {
-                LogUtil.w(TAG, String.format("Chat IsRemoved (%b) or Chat IsReadonly (%b). The Group Chat %s will be set to readonly.",
-                        (mChat.getIsRemoved() != null && mChat.getIsRemoved()), (mChat.getIsReadOnly() != null && mChat.getIsReadOnly()), mChat.getChatGuid()));
-                return true;
-            }
-        } catch (LocalizedException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+        if (mChat.getIsRemoved() || mChat.getIsReadOnly()) {
+            LogUtil.w(TAG, String.format("Chat IsRemoved (%b) or Chat IsReadonly (%b). The Group Chat %s will be set to readonly.",
+                    mChat.getIsRemoved(), mChat.getIsReadOnly(), mChat.getChatGuid()));
+            return true;
         }
         return false;
     }

@@ -1,8 +1,10 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.greendao;
 
 import androidx.annotation.NonNull;
+
+import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.AbstractSecureModel;
 import eu.ginlo_apps.ginlo.greendao.GreenDAOSecurityLayer;
@@ -859,7 +861,7 @@ public class Preference
         synchronized (this) {
             Integer rc = (Integer) GreenDAOSecurityLayer.getInstance().get(this, PERSIST_MESSAGE_DAYS);
             if (rc == null) {
-                return AppConstants.DEFAULT_PERSIST_MESSAGE_DAYS;
+                return BuildConfig.DEFAULT_PERSIST_MESSAGE_DAYS;
             }
             return rc;
         }

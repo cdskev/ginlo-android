@@ -43,7 +43,7 @@
             android:minHeight="20dp"
             android:text=""
             android:textColor="@color/main"
-            android:textSize="12sp"
+            app:styledTextSize="statusTextSize"
             android:textStyle="bold" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
@@ -65,7 +65,7 @@
             android:maxLines="1"
             android:paddingEnd="16dp"
             android:text="Florian Plewka"
-            android:textSize="17sp"
+            app:styledTextSize="messageTextSize"
             app:styledTextColor="overlayContrast"/>
 
         <androidx.emoji.widget.EmojiAppCompatTextView
@@ -80,7 +80,7 @@
             android:paddingEnd="16dp"
             android:text="Abwesend"
             android:textColor="@color/insecure"
-            android:textSize="15sp"
+            app:styledTextSize="baseTextSize"
             android:textStyle="bold"/>
     </LinearLayout>
 </androidx.appcompat.widget.LinearLayoutCompat>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/comment_root"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -34,7 +35,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:singleLine="true"
-            android:textSize="13sp"
+            app:styledTextSize="commentTextSize"
             android:textStyle="italic"
             tools:text="Name of the sender"/>
 
@@ -45,7 +46,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:text=""
-            android:textSize="13sp"
+            app:styledTextSize="commentTextSize"
             android:textStyle="italic"
             android:visibility="visible"
             tools:text="Comment Text"/>
@@ -59,7 +60,7 @@
         android:layout_marginStart="16dp"
         android:singleLine="true"
         android:text=""
-        android:textSize="13sp"
+        app:styledTextSize="commentTextSize"
         android:textStyle="italic"
         tools:text="Yesterday"/>
 </LinearLayout>

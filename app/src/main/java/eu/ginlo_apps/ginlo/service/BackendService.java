@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.service;
 
 import android.content.ComponentName;
@@ -25,13 +25,11 @@ import org.json.JSONArray;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -42,7 +40,7 @@ import java.util.Map;
 
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.billing.Purchase;
+import eu.ginlo_apps.ginlo.billing.GinloPurchaseImpl;
 import eu.ginlo_apps.ginlo.broadcastreceiver.ConnectionBroadcastReceiver;
 import eu.ginlo_apps.ginlo.concurrent.listener.ConcurrentTaskListener;
 import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
@@ -60,8 +58,6 @@ import eu.ginlo_apps.ginlo.model.backend.MsgExceptionModel;
 import eu.ginlo_apps.ginlo.model.backend.serialization.MsgExceptionModelDeserializer;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
 import eu.ginlo_apps.ginlo.model.param.HttpPostParams;
-import eu.ginlo_apps.ginlo.service.IBackendService;
-import eu.ginlo_apps.ginlo.util.ChecksumUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
@@ -651,8 +647,6 @@ public class BackendService
     public void sendPrivateMessage(final String messageJson,
                                    final OnBackendResponseListener listener,
                                    final String requestId) {
-        LogUtil.i(TAG, "SendPrivateMessage");
-
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendPrivateMessage");
@@ -665,8 +659,6 @@ public class BackendService
                                         final OnBackendResponseListener listener,
                                         final String requestId,
                                         final String date) {
-        LogUtil.i(TAG, "sendTimedPrivateMessage");
-
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendTimedPrivateMessage");
@@ -679,8 +671,6 @@ public class BackendService
     public void sendPrivateInternalMessage(final String messageJson,
                                            final OnBackendResponseListener listener,
                                            final String requestId) {
-        LogUtil.i(TAG, "sendPrivateInternalMessage");
-
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendPrivateInternalMessage");
@@ -692,8 +682,6 @@ public class BackendService
     @Override
     public void sendPrivateInternalMessages(String messagesJson,
                                             OnBackendResponseListener listener) {
-        LogUtil.i(TAG, "sendPrivateInternalMessages");
-
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendPrivateInternalMessages");
@@ -705,8 +693,6 @@ public class BackendService
     public void sendGroupMessage(final String messageJson,
                                  final OnBackendResponseListener listener,
                                  final String requestId) {
-        LogUtil.i(TAG, "sendGroupMessage");
-
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendGroupMessage");
@@ -719,8 +705,6 @@ public class BackendService
                                       final OnBackendResponseListener listener,
                                       final String requestId,
                                       final String date) {
-        LogUtil.i(TAG, "sendTimedGroupMessage");
-
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "sendTimedGroupMessage");
@@ -731,8 +715,6 @@ public class BackendService
     }
 
     public void getTenants(final OnBackendResponseListener listener) {
-        LogUtil.i(TAG, "getTenants");
-
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "getMandanten");
@@ -866,8 +848,6 @@ public class BackendService
 
     public void setDeviceData(final String dataJson,
                               final OnBackendResponseListener listener) {
-        LogUtil.i(TAG, "setDeviceData");
-
         final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
 
         params.addParam("cmd", "setDeviceData");
@@ -1254,11 +1234,11 @@ public class BackendService
         callBackend(listener, params);
     }
 
-    public void registerPayment(final Purchase purchase,
+    public void registerPayment(final GinloPurchaseImpl ginloPurchase,
                                 final OnBackendResponseListener listener) {
-        final String productId = purchase.getSku();
-        final String transactionId = purchase.getToken();
-        String receipt = Base64.encodeToString(purchase.getOriginalJson().getBytes(StandardCharsets.UTF_8), Base64.DEFAULT);
+        final String productId = ginloPurchase.getSku();
+        final String transactionId = ginloPurchase.getPurchaseToken();
+        String receipt = Base64.encodeToString(ginloPurchase.getOriginalJson().getBytes(StandardCharsets.UTF_8), Base64.DEFAULT);
 
         if (receipt != null) {
             final HttpPostParams params = new HttpPostParams(setUpDefaultEndpointCall());
@@ -1817,10 +1797,6 @@ public class BackendService
             requestId = aRequestId;
         }
 
-        if(params != null) {
-            LogUtil.d(TAG, "callBackend: " + params.getNameValuePairs().toString());
-        }
-
         if (isConnected()) {
             final ConcurrentTaskListener taskListener = new ConcurrentTaskListener() {
                 @Override
@@ -1886,8 +1862,11 @@ public class BackendService
                 }
             };
 
-
-            LogUtil.i(TAG, "Call backend via " + (isConnectedViaWLAN() ? "WLAN" : "mobile network") + " for command: " + getCmdParam(params));
+            if(params != null) {
+                LogUtil.i(TAG, "callBackend: using " + (isConnectedViaWLAN() ? "WLAN" : "mobile network"));
+                // Log request details in DEBUG mode only
+                LogUtil.d(TAG, "callBackend: " + params.getNameValuePairs().toString());
+            }
 
             if (mUseAsycnConnections) {
                 getTaskManagerController().getHttpTaskManager().executeHttpPostTask(keyStore, params, username, password,
@@ -1946,7 +1925,7 @@ public class BackendService
         BackendResponse backendResponse = new BackendResponse();
 
         if (response == null) {
-            LogUtil.w(TAG, "RESPONSE IS NULL");
+            LogUtil.w(TAG, "wrapResponse: RESPONSE IS NULL");
             backendResponse.isError = false;
             return backendResponse;
         }
@@ -1958,6 +1937,7 @@ public class BackendService
 
         try {
             if(response.startsWith("/")) {
+                LogUtil.d(TAG, "wrapResponse: Large backend response - kept in file: " + response);
                 // KS: Backend response is stored in separate file
                 // Check if we may do further processing in RAM because
                 // the filesize is < FileUtil.MAX_RAM_PROCESSING_SIZE
@@ -1976,6 +1956,8 @@ public class BackendService
                 jsonElement = jsonParser.parse(responseReader);
             } else {
                 // Backend response is given as String
+                LogUtil.d(TAG, "wrapResponse: "
+                        + (response.length() > 16384 ? response.substring(0, 16384) + " ... [cut]" : response));
                 jsonElement = jsonParser.parse(response);
             }
 

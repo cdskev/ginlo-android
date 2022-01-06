@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.context;
 
 import android.app.Activity;
@@ -18,8 +18,7 @@ import dagger.android.HasActivityInjector;
 import dagger.android.support.HasSupportFragmentInjector;
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.context.GinloLifecycleObserver;
-import eu.ginlo_apps.ginlo.context.GinloUncaughtExceptionHandler;
+import eu.ginlo_apps.ginlo.billing.GinloBillingImpl;
 import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
@@ -102,10 +101,11 @@ public class SimsMeApplication
     private ChannelChatController channelChatController;
     private BackupController mBackupController;
     private DeviceController mDeviceController;
+
     private Database dataBase;
     private boolean dbHasBeenUpdated;
-    private MediaPlayer mReceivedSoundPlayer;
 
+    private MediaPlayer mReceivedSoundPlayer;
     private android.media.AudioManager mMediaAudioManager;
 
     public SimsMeApplication() {
@@ -378,6 +378,10 @@ public class SimsMeApplication
         //helper.onUpgrade(dataBase, 71, 72);
         dbHasBeenUpdated = helper.getDbHasBeenUpdated();
         return helper.getUpdateExceptions();
+    }
+
+    public GinloBillingImpl getGinloBillingImpl() {
+        return null;
     }
 
     public SecurePreferences getSecurePreferences() {

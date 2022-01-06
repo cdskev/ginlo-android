@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.adapter;
 
@@ -14,9 +14,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import eu.ginlo_apps.ginlo.R;
+import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.PurchaseItemModel;
+import eu.ginlo_apps.ginlo.util.StreamUtil;
 
 import java.util.List;
+
+import javax.annotation.Nonnull;
 
 /**
  *
@@ -24,25 +28,18 @@ import java.util.List;
  * @version $Revision$, $Date$, $Author$
  *
  */
-public class PurchaseAdapter
-   extends ArrayAdapter<PurchaseItemModel>
-{
+public class PurchaseAdapter extends ArrayAdapter<PurchaseItemModel> {
 
-   public PurchaseAdapter(Context                     context,
-                            int                       layoutResourceId,
-                            List<PurchaseItemModel>   data
+   private static final String TAG = PurchaseAdapter.class.getSimpleName();
 
-                          )
-   {
+   public PurchaseAdapter(Context context, int layoutResourceId, @Nonnull List<PurchaseItemModel> data) {
       super(context, layoutResourceId, data);
+      LogUtil.i(TAG, "Building purchase adapter with " + data.size() + " items.");
    }
 
-   @Override public View getView(int       position,
-                                 View      convertView,
-                                 ViewGroup parent)
-   {
-      if (position >= this.getCount())
-      {
+   @Override public View getView(int position, View convertView, ViewGroup parent) {
+
+      if (position >= this.getCount()) {
          return new RelativeLayout(getContext());
       }
 
@@ -51,8 +48,7 @@ public class PurchaseAdapter
       LinearLayout   mainLayout   = (LinearLayout)convertView;
       LayoutInflater   layoutInflater   = LayoutInflater.from(getContext());
 
-      if (mainLayout == null)
-      {
+      if (mainLayout == null) {
          mainLayout = (LinearLayout)layoutInflater.inflate(R.layout.purchase_list_item, null, false);
       }
 

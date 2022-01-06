@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.controller.message;
 
 import android.content.ComponentCallbacks2;
@@ -603,6 +603,24 @@ public class MessageController
         messageTaskManager.executeQueryDatabaseTask(queryBuilder, QueryDatabaseTask.MODE_LIST, queryDatabaseListener);
     }
 
+    public void loadMessagesSentFromUntil(final String chatGuid,
+                                          final int type,
+                                          final Long from,
+                                          final Long till,
+                                          final QueryDatabaseListener queryDatabaseListener
+    ) {
+        final QueryBuilder<Message> queryBuilder = messageDao.queryBuilder();
+
+        queryBuilder.where(Properties.Type.eq(type))
+                .whereOr(Properties.From.eq(chatGuid), Properties.To.eq(chatGuid))
+                .where(Properties.DateSendTimed.isNull())
+                .where(Properties.DateSend.ge(from))
+                .where(Properties.DateSend.le(till))
+                .orderDesc(Properties.Id);
+
+        messageTaskManager.executeQueryDatabaseTask(queryBuilder, QueryDatabaseTask.MODE_LIST, queryDatabaseListener);
+    }
+
     void loadMessageRange(final String chatGuid,
                           final int type,
                           final Long start,
@@ -790,6 +808,7 @@ public class MessageController
             Long id = message.getId();
             if (id != null) {
                 if (id <= RefreshChatOverviewTask.getLastLoadedMsgId()) {
+                    LogUtil.d(TAG, "saveMessage: setLastLoadedMsgId to " + (id - 1));
                     RefreshChatOverviewTask.setLastLoadedMsgId(id - 1);
                 }
 

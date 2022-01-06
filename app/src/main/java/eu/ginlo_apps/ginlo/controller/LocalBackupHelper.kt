@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.controller
 
@@ -68,8 +68,8 @@ class LocalBackupHelper(val application: SimsMeApplication) {
             preferencesController.latestBackupDate = targetBackupFile.lastModified()
             preferencesController.latestBackupPath = targetBackupFile.absolutePath
             return true
-        } catch (exc: IOException) {
-            LogUtil.e(TAG, exc.message, exc)
+        } catch (e: IOException) {
+            LogUtil.e(TAG, "copyBackupToFinalPath: Failed with exception " + e.message)
             return false
         }
     }

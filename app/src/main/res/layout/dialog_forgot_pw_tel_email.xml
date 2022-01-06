@@ -24,7 +24,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/settings_password_forgot_pw_request_rc"
-                android:textSize="28sp"
+                app:styledTextSize="mainTitleTextSize"
                 app:styledTextColor="mainContrast" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="@string/settings_password_forgot_pw_request_rc_hint"
-                android:textSize="15sp"
+                app:styledTextSize="baseTextSize"
                 app:styledTextColor="mainContrast80" />
 
 
@@ -86,7 +86,7 @@
                         android:gravity="center"
                         android:text="@string/settings_password_forgot_pw_request_mail"
                         android:textAllCaps="true"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         app:styledTextColor="mainContrast" />
                 </LinearLayout>
 
@@ -131,7 +131,7 @@
                         android:gravity="center"
                         android:text="@string/settings_password_forgot_pw_request_sms"
                         android:textAllCaps="true"
-                        android:textSize="13sp"
+                        app:styledTextSize="commentTextSize"
                         app:styledTextColor="mainContrast" />
                 </LinearLayout>
             </LinearLayout>

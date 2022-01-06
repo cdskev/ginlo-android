@@ -1,11 +1,13 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -94,7 +96,10 @@ public class RestoreBackupActivity
 
     @Override
     protected void onResumeActivity() {
-        if (this.mAfterCreate) {
+        if (this.mAfterCreate || mState == STATE_NO_BACKUPS_FOUND) {
+            showBackupFileChooser();
+
+            /* KS: Old code
             if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
                 requestPermission(PermissionUtil.PERMISSION_FOR_WRITE_EXTERNAL_STORAGE,
                         Integer.MIN_VALUE,
@@ -116,8 +121,74 @@ public class RestoreBackupActivity
                 showLocalBackups();
             }
 
+             */
+
         } else if (mNextState != null) {
             updateActivity(mNextState.state, mNextState.args);
+        }
+    }
+
+    private void showBackupFileChooser() {
+        final DialogInterface.OnClickListener showBackupFileHandler = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface arg0, final int arg1) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                //intent.setType("application/zip application/octet-stream application/x-zip-compressed multipart/x-zip");
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[] {"application/zip",
+                        "application/octet-stream",
+                        "application/x-zip-compressed",
+                        "multipart/x-zip"});
+                intent.setType("*/*");
+
+                try {
+                    startActivityForResult(intent, ConfigureBackupActivity.LOCAL_BACKUP_URI_ACTIONCODE);
+                } catch (android.content.ActivityNotFoundException e) {
+                    LogUtil.e(TAG, "onResumeActivity: Could not start file chooser for LOCAL_BACKUP_URI_ACTIONCODE: " + e.getMessage());
+                }
+            }
+        };
+
+        final String title = RestoreBackupActivity.this.getResources().getString(R.string.backup_restore_select_file_title);
+        final String body = RestoreBackupActivity.this.getResources().getString(R.string.backup_restore_select_file_body);
+        final AlertDialogWrapper dialog = DialogBuilderUtil.buildResponseDialog(RestoreBackupActivity.this,
+                body, false, title,
+                "Ok", null, showBackupFileHandler, null);
+        dialog.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == ConfigureBackupActivity.LOCAL_BACKUP_URI_ACTIONCODE) {
+            switch(resultCode) {
+                case Activity.RESULT_OK:
+                    Uri resultUri = data.getData();
+                    LogUtil.d(TAG, "onActivityResult: LOCAL_BACKUP_URI_ACTIONCODE returned Uri = " + resultUri);
+                    if(resultUri != null) {
+                        try {
+                            final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            getContentResolver().takePersistableUriPermission(resultUri, takeFlags);
+                        } catch (Exception e) {
+                            LogUtil.e(TAG, "onActivityResult: Caught exception in takePersistableUriPermission: " + e.getMessage(), e);
+                            return;
+                        }
+                        mDownloadedBackupPath = resultUri.toString();
+                        updateActivity(STATE_ENTER_PASSWORD, null);
+                        return;
+                    }
+                    break;
+                case Activity.RESULT_CANCELED:
+                    LogUtil.w(TAG, "onActivityResult: LOCAL_BACKUP_URI_ACTIONCODE cancelled!");
+                    updateActivity(STATE_NO_BACKUPS_FOUND, null);
+                    this.onBackPressed();
+                    break;
+                default:
+                    LogUtil.w(TAG, "onActivityResult: LOCAL_BACKUP_URI_ACTIONCODE returned with resultCode = " + resultCode);
+                    updateActivity(STATE_NO_BACKUPS_FOUND, null);
+                    this.onBackPressed();
+                    break;
+            }
         }
     }
 
@@ -133,6 +204,7 @@ public class RestoreBackupActivity
 
     @Override
     public void onBackPressed() {
+        LogUtil.d(TAG, "onBackPressed: With mState = " + mState);
         switch (mState) {
             case STATE_NO_BACKUPS_FOUND:
             case STATE_SELECT_BACKUP: {
@@ -146,17 +218,15 @@ public class RestoreBackupActivity
                     public void onClick(DialogInterface dialog, int which) {
                         if (mAccountController != null) {
                             mAccountController.resetRegistrationProcess();
-                            Intent intent = new Intent(RestoreBackupActivity.this, IntroActivity.class);
-                                                        startActivity(intent);
-                                                        finish();
                         }
+                        Intent intent = new Intent(RestoreBackupActivity.this, IntroActivity.class);
+                        startActivity(intent);
+                        finish();
                     }
                 };
 
                 AlertDialogWrapper dialog = DialogBuilderUtil.buildResponseDialogV7(this, message, title, posButton, negButton, posClickListener, null);
-
                 dialog.show();
-
                 break;
             }
             default: {
@@ -465,6 +535,7 @@ public class RestoreBackupActivity
                     statusIntentFilter);
 
             Intent restoreBackupIntent = new Intent(this, RestoreBackupService.class);
+            // This must be a stringified Uri beginning with ginlo version 4.5.2 (for SDK 30 support)
             restoreBackupIntent.putExtra(AppConstants.INTENT_EXTENDED_DATA_PATH, mDownloadedBackupPath);
             restoreBackupIntent.putExtra(AppConstants.INTENT_EXTENDED_DATA_BACKUP_PWD, password);
 
@@ -473,6 +544,8 @@ public class RestoreBackupActivity
             }
 
             mProgressDownloadDialog.setIndeterminate(true);
+            mProgressDownloadDialog.updateMessage(getString(R.string.backup_restore_progress_started_text));
+            mProgressDownloadDialog.updateSecondaryTextView("");
             mProgressDownloadDialog.show();
 
             startService(restoreBackupIntent);
@@ -607,6 +680,7 @@ public class RestoreBackupActivity
                         mBackupStateReceiver = null;
                     }
 
+                    /* KS: Who needs this?
                     String localBackupPath = mSelectedBackup.getString(LocalBackupHelper.LOCAL_BACKUP_PATH);
                     if (localBackupPath != null && !localBackupPath.isEmpty()) {
                         File backupFile = new File(localBackupPath);
@@ -618,6 +692,7 @@ public class RestoreBackupActivity
                             preferencesController.setLatestBackupPath(backupFile.getAbsolutePath());
                         }
                     }
+                    */
                     mRestoreBackupIsStarted = false;
 
                     if (RuntimeConfig.isBAMandant() && !getSimsMeApplication().getContactController().existsFtsDatabase()) {
@@ -773,6 +848,8 @@ public class RestoreBackupActivity
                                 getString(R.string.std_ok), null, null, null);
                         dialog.show();
                     }
+                    updateActivity(STATE_NO_BACKUPS_FOUND, null);
+                    RestoreBackupActivity.this.onBackPressed();
                     break;
                 }
                 default: {

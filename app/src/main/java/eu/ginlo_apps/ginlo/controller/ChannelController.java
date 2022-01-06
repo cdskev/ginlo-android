@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.controller;
 
 import android.content.ComponentCallbacks2;
@@ -1114,7 +1114,9 @@ public class ChannelController
 
             @Override
             public String asyncLoaderServerResponse(final BackendResponse response) {
-                if (response.jsonObject.has("guid")) {
+                if(response == null) {
+                    LogUtil.w(TAG, "setDisableChannelNotification: asyncLoaderServerResponse = null!");
+                } else if (response.jsonObject != null && response.jsonObject.has("guid")) {
                     Channel channel = getChannelFromDB(guid);
 
                     channel.setDisableNotification(disable);

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo;
 
@@ -53,12 +53,12 @@ public class AVCActivity extends JitsiMeetActivity  {
 
     @Override
     protected void onResume() {
-        LogUtil.d(TAG, "==============> AVCActivity onResume() on CC instance " + avChatController + " called with CALL_STATUS: " + avChatController.getCallStatus());
-        if (avChatController.getCallStatus() != AVChatController.CALL_STATUS_RUNNING) {
-            finish();
-            return;
-        }
         super.onResume();
+        LogUtil.d(TAG, "==============> AVCActivity onResume() on CC instance " + avChatController + " called with CALL_STATUS: " + avChatController.getCallStatus());
+        if (avChatController.getCallStatus() != AVChatController.CALL_STATUS_RUNNING
+                && avChatController.getCallStatus() != AVChatController.CALL_STATUS_NONE) {
+            finish();
+        }
     }
 
     @Override

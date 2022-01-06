@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.chatsOverview;
 
 import android.app.Activity;
@@ -445,14 +445,7 @@ public class ChatsOverviewActivity
                 null,
                 false));
 
-        String versionText = AppConstants.getAppName() + " ";
-        // VersionName should be something like 4.1.0.410100
-        String v = AppConstants.getAppVersionName();
-        if(v.length() >= 12) {
-            versionText = versionText + v.substring(0, 6) + v.substring(9);
-        } else {
-            versionText = versionText + v;
-        }
+        final String versionText = AppConstants.getAppName() + " " + AppConstants.getAppVersionName();
         rc.add(new DrawerListItemVO(versionText,
                  "",
                 null,
@@ -762,8 +755,7 @@ public class ChatsOverviewActivity
             return;
         }
 
-        boolean tc = mPreferencesController.hasThemeChanged();
-        if(tc) {
+        if (mPreferencesController.hasThemeChanged()) {
             LogUtil.d(TAG, "UI Theme change detected: " + mPreferencesController.getThemeName());
             mPreferencesController.setThemeChanged(false);
             runOnUiThread(new Runnable() {
@@ -985,7 +977,7 @@ public class ChatsOverviewActivity
             }
         });
 
-        if (!RuntimeConfig.isBAMandant()) {
+        if (!mAccountController.getManagementCompanyIsUserRestricted()) {
             mSpeedDialView.addActionItem(
                     new SpeedDialActionItem.Builder(R.id.fab_chatsoverview_invite_friends, R.drawable.nav_add)
                             .setFabBackgroundColor(fabColor)
@@ -995,9 +987,7 @@ public class ChatsOverviewActivity
                             .setLabelBackgroundColor(fabColor)
                             .create()
             );
-        }
 
-        if (!mAccountController.getManagementCompanyIsUserRestricted()) {
             mSpeedDialView.addActionItem(
                     new SpeedDialActionItem.Builder(R.id.fab_chatsoverview_new_contact, R.drawable.contact)
                             .setFabBackgroundColor(fabColor)
@@ -1782,13 +1772,13 @@ public class ChatsOverviewActivity
                 String owner = mMarkedChat.getOwner();
 
                 if (Chat.ROOM_TYPE_MANAGED.equals(mMarkedChat.getRoomType())) {
-                    if (mMarkedChat.getIsRemoved() == null || !mMarkedChat.getIsRemoved()) {
+                    if (!mMarkedChat.getIsRemoved()) {
                         bottomSheetLayoutResourceID = R.layout.dialog_chat_context_menu_channel_clear_only_layout;
                     } else {
                         bottomSheetLayoutResourceID = R.layout.dialog_chat_context_menu_delete_chat_group_owner_layout;
                     }
                 } else if (Chat.ROOM_TYPE_RESTRICTED.equals(mMarkedChat.getRoomType())) {
-                    if (mMarkedChat.getIsRemoved() == null || !mMarkedChat.getIsRemoved()) {
+                    if (!mMarkedChat.getIsRemoved()) {
                         bottomSheetLayoutResourceID = R.layout.dialog_chat_context_menu_channel_clear_only_layout;
                     } else {
                         bottomSheetLayoutResourceID = R.layout.dialog_chat_context_menu_delete_chat_layout;

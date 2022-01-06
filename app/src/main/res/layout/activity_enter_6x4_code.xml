@@ -58,7 +58,7 @@
                 android:layout_marginTop="@dimen/activity_vertical_margin"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:text="@string/recover_password_title"
-                android:textSize="28sp"
+                app:styledTextSize="mainTitleTextSize"
                 app:styledTextColor="mainContrast" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -69,7 +69,7 @@
                 android:layout_marginTop="@dimen/activity_vertical_margin"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:text="@string/recover_password_hint"
-                android:textSize="15sp"
+                app:styledTextSize="baseTextSize"
                 app:styledTextColor="mainContrast80" />
 
 

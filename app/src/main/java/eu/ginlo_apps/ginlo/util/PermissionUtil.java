@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.util;
 
 import android.Manifest;
@@ -17,20 +17,14 @@ import eu.ginlo_apps.ginlo.util.SystemUtil;
 
 public class PermissionUtil {
     public static final int PERMISSION_FOR_READ_CONTACTS = 1;
-
     public static final int PERMISSION_FOR_CAMERA = 2;
-
     public static final int PERMISSION_FOR_RECORD_AUDIO = 3;
-
     public static final int PERMISSION_FOR_LOCATION = 4;
-
     public static final int PERMISSION_FOR_READ_EXTERNAL_STORAGE = 5;
-
     public static final int PERMISSION_FOR_WRITE_EXTERNAL_STORAGE = 6;
-
     public static final int PERMISSION_FOR_VIDEO = 7;
-
     public static final int PERMISSION_FOR_FINGERPRINT = 8;
+    public static final int PERMISSION_FOR_SYSTEM_ALERT_WINDOW = 9;
 
     private final BaseActivity mActivity;
     private final PermissionResultCallback mCallback;
@@ -61,7 +55,7 @@ public class PermissionUtil {
                 break;
             }
             case PERMISSION_FOR_LOCATION: {
-                manifestPermissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION};
+                manifestPermissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
                 break;
             }
             case PERMISSION_FOR_READ_EXTERNAL_STORAGE: {
@@ -86,6 +80,10 @@ public class PermissionUtil {
                 } else {
                     manifestPermissions = null;
                 }
+                break;
+            }
+            case PERMISSION_FOR_SYSTEM_ALERT_WINDOW: {
+                manifestPermissions = new String[]{Manifest.permission.SYSTEM_ALERT_WINDOW};
                 break;
             }
             default: {

@@ -51,7 +51,7 @@
                         android:gravity="center"
                         android:text="@string/business_trial_days"
                         android:textColor="@color/business_trial_text_color"
-                        android:textSize="16sp"
+                        app:styledTextSize="chooserTextSize"
                         android:textStyle="bold"
                         android:paddingBottom="32dp"
                        />
@@ -73,7 +73,7 @@
                         android:text="@string/enter_licence_code_header"
                         android:textColor="@color/mainContrast"
                         app:styledTextColor="mainContrast"
-                        android:textSize="28sp" />
+                        app:styledTextSize="mainTitleTextSize" />
 
                     <androidx.appcompat.widget.AppCompatTextView
                         android:layout_width="match_parent"
@@ -83,7 +83,7 @@
                         android:text="@string/business_trial_text"
                         android:textColor="@color/mainContrast80"
                         app:styledTextColor="mainContrast80"
-                        android:textSize="15sp" />
+                        app:styledTextSize="baseTextSize" />
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>

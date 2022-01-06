@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:dpag="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -48,7 +48,7 @@
                     android:layout_height="48dp"
                     android:layout_gravity="center_vertical"
                     android:src="@drawable/seclevel_maske"
-                    dpag:mask="@drawable/maske_chat" />
+                    app:mask="@drawable/maske_chat" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -65,7 +65,7 @@
                         android:gravity="center_horizontal"
                         android:text="@string/chats_contactMessageCell_sendContactTittle"
                         android:textColor="@color/main"
-                        android:textSize="17sp"
+                        app:styledTextSize="messageTextSize"
                         android:textStyle="normal" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -76,7 +76,7 @@
                         android:singleLine="true"
                         android:text="@string/chats_contactMessageCell_showContact"
                         android:textColor="@color/main"
-                        android:textSize="16sp"
+                        app:styledTextSize="chooserTextSize"
                         android:textStyle="bold" />
 
                 </LinearLayout>

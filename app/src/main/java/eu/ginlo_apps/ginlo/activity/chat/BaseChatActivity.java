@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.activity.chat;
 
@@ -140,14 +140,8 @@ public abstract class BaseChatActivity
     private static final String TAG = BaseChatActivity.class.getSimpleName();
     private static final int LAST_MESSAGE_COUNT = 20;
     private static final int FORWARD_REQUEST_CODE = 111;
-    private static final int ACTIONBAR_RIGHT_SIDE_PROFILE = R.id.action_bar_image_view_profile_picture;
-    private static final int ACTIONBAR_RIGHT_SIDE_CONTAINER = R.id.action_bar_right_image_view_container;
-    private static final int ACTIONBAR_RIGHT_SIDE = R.id.action_bar_right_image_view;
 
     private final ChatDataSetObserver mObserver = new ChatDataSetObserver();
-    protected NotificationController notificationController;
-    protected AVChatController avChatController;
-    protected ClipBoardController clipBoardController;
     protected ListView mListView;
     protected LinearLayout mLoadMoreView;
     protected SimsmeSwipeRefreshLayout mSwipeLayout;
@@ -166,7 +160,6 @@ public abstract class BaseChatActivity
      * chat-Typ benoetigt eine Target-Guid
      */
     boolean mNeedsTargetGuid = true;
-    private ChatImageController chatImageController;
     private AttachmentController mAttachmentController;
     private BaseChatItemVO mResendItem;
     private int mOldLoadCount;
@@ -212,19 +205,11 @@ public abstract class BaseChatActivity
     protected void onCreateActivity(final Bundle savedInstanceState) {
         super.onCreateActivity(savedInstanceState);
 
-        final SimsMeApplication application = ((SimsMeApplication) getApplication());
-        notificationController = application.getNotificationController();
-
-        // KS: May be null if no AVC is available
-        avChatController = application.getAVChatController();
-
-        mMessageController = application.getMessageController();
-        mContactController = application.getContactController();
-        mAccountController = application.getAccountController();
-        chatImageController = application.getChatImageController();
-        clipBoardController = application.getClipBoardController();
-        mPreferencesController = application.getPreferencesController();
-        mAttachmentController = application.getAttachmentController();
+        mMessageController = mApplication.getMessageController();
+        mContactController = mApplication.getContactController();
+        mAccountController = mApplication.getAccountController();
+        mPreferencesController = preferencesController;
+        mAttachmentController = mApplication.getAttachmentController();
 
         mClearChatQuestionText = R.string.chat_button_clear_confirm;
 
@@ -355,7 +340,7 @@ public abstract class BaseChatActivity
                                 mPlayTimdMessagesAnimation = false;
                             }
                         } catch (final NumberFormatException e) {
-                            LogUtil.e(TAG, e.getMessage(), e);
+                            LogUtil.e(TAG, "createOnChatDataChangedListener: onCount returned " + e.getMessage());
                         }
                     } else {
                         setRightActionBarImageVisibility(View.GONE);
@@ -429,7 +414,7 @@ public abstract class BaseChatActivity
                 mSendSoundPlayer = AudioUtil.createMediaPlayer(this, R.raw.send_sound);
             }
         } catch (final LocalizedException e) {
-            LogUtil.w(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "onResumeActivity: createMediaPlayer caught " + e.getMessage());
             mSendSoundPlayer = null;
         }
 
@@ -447,7 +432,7 @@ public abstract class BaseChatActivity
     }
 
     private ImageView getRightActionbarImage() {
-        return getToolbar().findViewById(ACTIONBAR_RIGHT_SIDE);
+        return getToolbar().findViewById(ACTIONBAR_RIGHT_SIDE_VIEW);
     }
 
     @Override
@@ -524,11 +509,6 @@ public abstract class BaseChatActivity
 
                 if (getSimsMeApplication().getPreferencesController().isLocationDisabled()) {
                     disabledCommands.add(R.id.attachment_selection_attach_location);
-                }
-
-                if (avChatController == null || StringUtil.isNullOrEmpty(BuildConfig.GINLO_AVC_SERVER_URL)) {
-                    disabledCommands.add(R.id.attachment_selection_audio_call);
-                    disabledCommands.add(R.id.attachment_selection_video_call);
                 }
 
                 openBottomSheet(R.layout.dialog_attachment_selection_layout, R.id.chat_bottom_sheet_container, disabledCommands);
@@ -851,12 +831,11 @@ public abstract class BaseChatActivity
             intent.setData(Uri.parse(text));
             startActivity(intent);
         } catch (final UnsupportedEncodingException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "handleForwardMessageClickDistributor: Caught " + e.getMessage());
             Toast.makeText(this, getString(R.string.chats_forward_message_error), Toast.LENGTH_SHORT).show();
         }
     }
 
-    // From attachment ('+') menu
     public void handleAVCAudioClick(View view) {
         handleAVCMessageClick(AVChatController.CALL_TYPE_AUDIO_ONLY);
     }
@@ -900,7 +879,7 @@ public abstract class BaseChatActivity
             setOnlineStateToOnline();
 
         } catch (final LocalizedException e) {
-            LogUtil.w(TAG, e.getMessage(), e);
+            LogUtil.w(TAG, "handleAVCMessageClick: Caught " + e.getMessage());
             return false;
         }
 
@@ -918,7 +897,7 @@ public abstract class BaseChatActivity
         try {
             destructionParams = getDestructionParams();
         } catch (final InvalidDateException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "handleSendMessageClick: Caught " + e.getMessage());
             mChatInputFragment.setTypingState();
             return false;
         }
@@ -976,7 +955,7 @@ public abstract class BaseChatActivity
             }
             setOnlineStateToOnline();
         } catch (final LocalizedException e) {
-            LogUtil.w(TAG, e.getMessage(), e);
+            LogUtil.w(TAG, "handleSendMessageClick: Caught " + e.getMessage());
             return false;
         }
 
@@ -1107,7 +1086,7 @@ public abstract class BaseChatActivity
         try {
             destructionParams = getDestructionParams();
         } catch (final InvalidDateException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "handleSendVoiceClick: Caught " + e.getMessage());
             mChatInputFragment.showAudioPreviewUI();
             return;
         }
@@ -1167,13 +1146,15 @@ public abstract class BaseChatActivity
                 mChatInputFragment.setOnlineState();
             }
         } catch (final LocalizedException e) {
-            LogUtil.w(TAG, e.getMessage(), e);
+            LogUtil.w(TAG, "handleSendVoiceClick: Caught " + e.getMessage());
         }
     }
 
     // OnClick of menu in attachment dialog (dialog_attachment_selection_layout.xml)
     public void handleTakePhotoClick(final View view) {
+        LogUtil.d(TAG, "handleTakePhotoClick: " + view);
         if (getSimsMeApplication().getPreferencesController().isCameraDisabled()) {
+            LogUtil.i(TAG, "handleTakePhotoClick: disabled by policy!");
             Toast.makeText(getSimsMeApplication(), getResources().getString(R.string.error_mdm_camera_access_not_allowed), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -1185,7 +1166,8 @@ public abstract class BaseChatActivity
                         if ((permission == PermissionUtil.PERMISSION_FOR_CAMERA) && permissionGranted) {
                             final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                            if (intent.resolveActivity(getPackageManager()) != null) {
+                            // KS:Always null on some devices since SDK 30 ???
+                            //if (intent.resolveActivity(getPackageManager()) != null) {
                                 try {
                                     final FileUtil fu = new FileUtil(getSimsMeApplication());
                                     final File takenPhotoFile = fu.createTmpImageFileAddInIntent(intent);
@@ -1193,10 +1175,10 @@ public abstract class BaseChatActivity
                                     closeBottomSheet(mOnBottomSheetClosedListener);
 
                                     router.startExternalActivityForResult(intent, RouterConstants.TAKE_PHOTO_RESULT_CODE);
-                                } catch (final LocalizedException e) {
-                                    LogUtil.w(TAG, e.getMessage(), e);
+                                } catch (final Exception e) {
+                                    LogUtil.w(TAG, "handleTakePhotoClick: permissionResult returned with " + e.getMessage());
                                 }
-                            }
+                            //}
                         }
                     }
                 });
@@ -1205,6 +1187,7 @@ public abstract class BaseChatActivity
     // OnClick of menu in attachment dialog (dialog_attachment_selection_layout.xml)
     public void handleTakeVideoClick(final View view) {
         if (getSimsMeApplication().getPreferencesController().isCameraDisabled()) {
+            LogUtil.i(TAG, "handleTakeVideoClick: disabled by policy!");
             Toast.makeText(getSimsMeApplication(), getResources().getString(R.string.error_mdm_camera_access_not_allowed), Toast.LENGTH_SHORT).show();
             return;
         }
@@ -1217,7 +1200,11 @@ public abstract class BaseChatActivity
                             final Intent intent = new Intent(BaseChatActivity.this, CameraActivity.class);
 
                             closeBottomSheet(mOnBottomSheetClosedListener);
-                            startActivityForResult(intent, RouterConstants.TAKE_VIDEO_RESULT_CODE);
+                            try {
+                                startActivityForResult(intent, RouterConstants.TAKE_VIDEO_RESULT_CODE);
+                            } catch (final Exception e) {
+                                LogUtil.w(TAG, "handleTakeVideoClick: startActivityForResult returned with " + e.getMessage());
+                            }
                         }
                     }
                 });
@@ -1314,7 +1301,11 @@ public abstract class BaseChatActivity
 
                             intent.putExtra(LocationActivity.EXTRA_MODE, LocationActivity.MODE_GET_LOCATION);
                             closeBottomSheet(mOnBottomSheetClosedListener);
-                            startActivityForResult(intent, RouterConstants.GET_LOCATION_RESULT_CODE);
+                            try {
+                                startActivityForResult(intent, RouterConstants.GET_LOCATION_RESULT_CODE);
+                            } catch (final Exception e) {
+                                LogUtil.w(TAG, "handleAttachLocationClick: startActivityForResult returned with " + e.getMessage());
+                            }
                         }
                     }
                 });
@@ -1389,7 +1380,7 @@ public abstract class BaseChatActivity
 
             router.startExternalActivityForResult(openFile, RouterConstants.SELECT_FILE_RESULT_CODE);
         } catch (final ActivityNotFoundException e) {
-            LogUtil.w(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "handleAttachFileClick: Could not locate an app for selecting a file: " + e.getMessage());
             Toast.makeText(this, R.string.chat_file_open_error_no_app_to_pick_found, Toast.LENGTH_LONG).show();
         }
     }
@@ -1402,8 +1393,8 @@ public abstract class BaseChatActivity
     protected void setProfilePicture(int drawableId,
                                      OnClickListener clickListener,
                                      String contentDescription, final Integer customImageColor) {
-        setActionBarImage(ACTIONBAR_RIGHT_SIDE_PROFILE, drawableId, contentDescription, customImageColor);
-        setActionBarListener(ACTIONBAR_RIGHT_SIDE_PROFILE, clickListener);
+        setActionBarImage(ACTIONBAR_RIGHT_SIDE_PROFILE_VIEW, drawableId, contentDescription, customImageColor);
+        setActionBarListener(ACTIONBAR_RIGHT_SIDE_PROFILE_VIEW, clickListener);
     }
 
     /**
@@ -1491,7 +1482,7 @@ public abstract class BaseChatActivity
                         try {
                             takenPhoto = (new FileUtil(this)).copyFileToInternalDir(mTakePhotoUri);
                         } catch (final LocalizedException e) {
-                            LogUtil.w(TAG, e.getMessage(), e);
+                            LogUtil.w(TAG, "onActivityPostLoginResult: TAKE_PHOTO_RESULT_CODE returned: " + LocalizedException.UNDEFINED_ARGUMENT);
                             return;
                         }
 
@@ -1705,7 +1696,7 @@ public abstract class BaseChatActivity
                                     forwardMessage(true);
                                     break;
                                 default:
-                                    LogUtil.w(TAG, LocalizedException.UNDEFINED_ARGUMENT);
+                                    LogUtil.w(TAG, "onActivityPostLoginResult: returnAction: " + LocalizedException.UNDEFINED_ARGUMENT);
                                     return;
                             }
                             mCitatedChatItem = null;
@@ -1765,12 +1756,12 @@ public abstract class BaseChatActivity
                         break;
                     }
                     default:
-                        LogUtil.w(TAG, LocalizedException.UNDEFINED_ARGUMENT);
+                        LogUtil.w(TAG, "onActivityPostLoginResult: requestCode: " + LocalizedException.UNDEFINED_ARGUMENT);
                         return;
                 }
 
             } catch (final LocalizedException e) {
-                LogUtil.w(TAG, e.getMessage(), e);
+                LogUtil.w(TAG, "onActivityPostLoginResult: Caught " + e.getMessage());
                 return;
             }
         } else {
@@ -1796,7 +1787,7 @@ public abstract class BaseChatActivity
                     final MessageDestructionParams destructionParams = getDestructionParams();
                     intent.putExtra(PreviewActivity.EXTRA_DESTRUCTION_PARAMS, destructionParams);
                 } catch (final InvalidDateException e) {
-                    LogUtil.e(TAG, e.getMessage(), e);
+                    LogUtil.w(TAG, "addDestructionParamsAndTimerToIntent: Caught " + e.getMessage());
                 }
             }
             if (mChatInputFragment.getTimerEnabled()) {
@@ -1876,7 +1867,7 @@ public abstract class BaseChatActivity
             }
             clipBoardController.put(mTargetGuid, "");
         } catch (final LocalizedException e) {
-            LogUtil.w(TAG, e.getMessage(), e);
+            LogUtil.w(TAG, "clearChatInputAndClipboard: Caught " + e.getMessage());
         }
     }
 
@@ -2122,7 +2113,7 @@ public abstract class BaseChatActivity
         boolean isReadonly;
         try {
             if (mChat != null) {
-                isReadonly = mChat.getIsReadOnly() != null ? mChat.getIsReadOnly() : false;
+                isReadonly = mChat.getIsReadOnly();
             } else {
                 isReadonly = true;
             }
@@ -2213,7 +2204,7 @@ public abstract class BaseChatActivity
             }
         } catch (final LocalizedException e) {
             // wenn hier eine LE auftritt
-            LogUtil.w(TAG, e.getMessage(), e);
+            LogUtil.w(TAG, "onItemLongClick: Caught " + e.getMessage());
         }
         showToolbarOptions(toolbarOptionsItemModels);
         highlightChatitem(mClickedView);
@@ -2368,7 +2359,7 @@ public abstract class BaseChatActivity
                         }
                     }
                 } catch (IllegalStateException | LocalizedException e) {
-                    LogUtil.e(TAG, e.getMessage(), e);
+                    LogUtil.e(TAG, "createOnSendMessageListener: onSendMessageSuccess caught " + e.getMessage());
                 }
 
                 setActionbarColorFromTrustState();
@@ -2582,7 +2573,7 @@ public abstract class BaseChatActivity
                     Toast.makeText(this, mActionContainer.displayMessage, Toast.LENGTH_LONG).show();
                 }
             } catch (final LocalizedException e) {
-                LogUtil.w(TAG, e.getMessage(), e);
+                LogUtil.w(TAG, "checkIntentForAction: Caught " + e.getMessage());
                 final String identifier = e.getIdentifier();
                 if (!StringUtil.isNullOrEmpty(identifier)) {
                     if (LocalizedException.NO_ACTION_SEND.equals(identifier) || LocalizedException.NO_DATA_FOUND.equals(identifier)) {
@@ -2667,7 +2658,7 @@ public abstract class BaseChatActivity
                                             mActionContainer = null;
                                             setResult(RESULT_OK);
                                         } catch (final LocalizedException e) {
-                                            LogUtil.w(TAG, e.getMessage(), e);
+                                            LogUtil.w(TAG, "checkActionContainer: SendActionContainer.TYPE_FILE caught " + e.getMessage());
                                         }
                                     }
                                 };
@@ -2688,7 +2679,7 @@ public abstract class BaseChatActivity
                                     fileSize = fu.getFileSize(fileUri);
                                 } catch (LocalizedException e) {
                                     fileSize = 0;
-                                    LogUtil.w(TAG, "Failed to get file size.", e);
+                                    LogUtil.w(TAG, "Failed to get file size." + e.getMessage());
                                 }
 
                                 showSendFileDialog(filename, mu.getExtensionForUri(fileUri), fileSize, positiveListener, negativeListener);
@@ -2712,7 +2703,7 @@ public abstract class BaseChatActivity
                         ) {
                             getChatController().getAttachment(message.getId(), this, false, null);
                         } else {
-                            final DecryptedMessage decMessage = getChatController().decryptMessage(message);
+                            final DecryptedMessage decMessage = messageDecryptionController.decryptMessage(message, false);
                             try {
                                 if (decMessage != null && (StringUtil.isEqual(decMessage.getContentType(), MimeType.TEXT_PLAIN) || StringUtil.isEqual(decMessage.getContentType(), MimeType.TEXT_RSS)) && mChatInputFragment != null) {
                                     mChatInputFragment.setChatInputText(decMessage.getText(), false);
@@ -2720,7 +2711,7 @@ public abstract class BaseChatActivity
                                     Toast.makeText(this, getString(R.string.chats_forward_message_error), Toast.LENGTH_SHORT).show();
                                 }
                             } catch (LocalizedException e) {
-                                LogUtil.w(BaseChatActivity.class.getSimpleName(), "", e);
+                                LogUtil.w(TAG, "checkActionContainer: SendActionContainer.ACTION_FORWARD caught " + e.getMessage());
                             }
                             mActionContainer = null;
                         }
@@ -2879,24 +2870,6 @@ public abstract class BaseChatActivity
             }
         };
         mOnChatDataChangedListeners.add(onChatDataChangedListener);
-    }
-
-    protected void setProfilePictureVisibility(int visibility) {
-        final ImageView imageView = getToolbar().findViewById(R.id.action_bar_image_view_profile_picture);
-        if (imageView != null) {
-            imageView.setVisibility(visibility);
-        }
-    }
-
-    protected void setRightActionBarImageVisibility(int visibility) {
-        final View container = getToolbar().findViewById(ACTIONBAR_RIGHT_SIDE_CONTAINER);
-        final View view = getToolbar().findViewById(ACTIONBAR_RIGHT_SIDE);
-        if (view != null) {
-            view.setVisibility(visibility);
-        }
-        if (container != null) {
-            container.setVisibility(visibility);
-        }
     }
 
     private void checkLoadMoreView() {

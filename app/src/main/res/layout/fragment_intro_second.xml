@@ -37,7 +37,7 @@
         android:letterSpacing="-0.02"
         android:lineSpacingExtra="5sp"
         android:text="@string/intro_2_text_1"
-        android:textSize="@dimen/intro_text"
+        app:styledTextSize="baseTextSize"
         android:paddingLeft="32dp"
         android:paddingRight="32dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -76,24 +76,24 @@
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/intro_2_image_qr_code"
-            android:layout_width="120dp"
+            android:layout_width="wrap_content"
             android:layout_height="120dp"
             android:layout_gravity="center_horizontal"
-            android:src="@drawable/ginlo_qr_code" />
+            android:src="@drawable/ic_ginlo_now_spacing" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/intro_2_button_ginlo_now"
+            style="@style/InterferingButtonStyle"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="46dp"
             android:layout_gravity="bottom"
-            android:layout_marginTop="-30dp"
-            android:background="@color/action"
-            android:onClick="handleGinloNowClick"
+            android:layout_marginTop="-8dp"
             android:text="@string/intro_2_button_ginlo_now"
+            app:styledTextSize="baseTextSize"
+            android:singleLine="true"
             android:textAllCaps="false"
-            android:textColor="@color/actionContrast"
-            android:visibility="visible"
-            app:styledButtonType="normal" />
+            android:clickable="false"
+            android:visibility="visible" />
     </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatButton

@@ -6,7 +6,9 @@
     <uses-sdk tools:overrideLibrary="androidx.security" />
 
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
@@ -24,7 +26,7 @@
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -36,9 +38,8 @@
         android:icon="@mipmap/app_icon"
         android:label="${appLabel}"
         android:largeHeap="true"
-        android:theme="@style/GinloThemeLight"
+        android:theme="@style/GinloDefaultThemeLight"
         android:vmSafeMode="false"
-        android:requestLegacyExternalStorage="true"
         tools:replace="label, icon, allowBackup">
         <service
             android:name=".service.GinloOngoingService"
@@ -146,14 +147,16 @@
             </intent-filter>
         </activity>
         <activity
+            android:label="@string/chats_AVC_title"
             android:name=".AVCallMenuActivity"
-            android:theme="@style/AppTheme.Translucent" />
+            android:screenOrientation="portrait"
+            android:launchMode="singleTask"
+            android:theme="@style/IncomingCallTheme" />
 
         <activity
             android:name=".AVCActivity"
             android:supportsPictureInPicture="true"
-            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout"
-            android:label="@string/chats_AVC_title" />
+            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout" />
         <activity
             android:name=".activity.register.IntroActivity"
             android:exported="false"
@@ -203,7 +206,7 @@
             android:windowSoftInputMode="stateHidden|adjustResize" />
         <activity
             android:name=".activity.chatsOverview.ChatsOverviewActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|uiMode"
             android:exported="false"
             android:label="@string/chats_title_chats"
             android:launchMode="singleTask" />
@@ -239,7 +242,7 @@
             android:label="" />
         <activity
             android:name=".activity.preferences.PreferencesOverviewActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|uiMode"
             android:exported="false"
             android:label="@string/settings_settingsTitle" />
         <activity
@@ -269,9 +272,14 @@
             android:label="@string/settings_media_download_title" />
         <activity
             android:name=".activity.preferences.PreferencesAppearanceActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|uiMode"
             android:exported="false"
             android:label="@string/settings_appearance_title" />
+        <activity
+            android:name=".activity.preferences.PreferencesOthersActivity"
+            android:configChanges="orientation|screenSize|uiMode"
+            android:exported="false"
+            android:label="@string/settings_others_title" />
         <activity
             android:name=".activity.preferences.PreferencesNotificationsActivity"
             android:configChanges="orientation|screenSize"

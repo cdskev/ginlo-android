@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.activity.register;
 
@@ -364,7 +364,7 @@ public class IdentConfirmActivity
             getSimsMeApplication().getPreferencesController().getSharedPreferences().edit().remove(REGISTRATION_TYPE).apply();
 
             if (mAccountController.getAccount() != null && mAccountController.getAccount().getAllServerAccountIDs() != null) {
-                LogUtil.d(TAG, "nextStepAfterValidate: Starting  RestoreBackupActivity ...");
+                LogUtil.d(TAG, "nextStepAfterValidate: Starting RestoreBackupActivity ...");
                 dismissIdleDialog();
                 getSimsMeApplication().getPreferencesController().setRegConfirmCode(mConfirmCode);
 

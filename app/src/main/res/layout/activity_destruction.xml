@@ -60,7 +60,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
                 android:text="@string/chats_showPicture_destroyedIn"
-                android:textSize="17sp"
+                app:styledTextSize="messageTextSize"
                 app:styledTextColor="insecureContrast" />
         </androidx.appcompat.widget.LinearLayoutCompat>
 

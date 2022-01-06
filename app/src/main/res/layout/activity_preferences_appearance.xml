@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_preferences_appearance"
@@ -9,117 +8,79 @@
     app:styledBackground="main"
     tools:context=".activity.preferences.PreferencesAppearanceActivity">
 
-    <include layout="@layout/toolbar_default" />
-
-    <androidx.appcompat.widget.LinearLayoutCompat
-        style="@style/Divider"
-        app:styledBackground="mainContrast50" />
-
-    <ScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <LinearLayout
+        <include layout="@layout/toolbar_default" />
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            style="@style/Divider"
+            app:styledBackground="mainContrast50" />
+
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
 
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/preferences_appearance_header_theme"
-                style="@style/FontSettingsHeader"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:paddingStart="@dimen/preferences_text_margin_start"
-                android:paddingTop="@dimen/activity_vertical_margin"
-                android:text="@string/settings_appearance_darkmode"
-                app:styledTextColor="mainContrast" />
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/preferences_appearance_switch_darkmode"
-                style="@style/FontSettingsElement"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/preferences_item_height"
-                android:background="?attr/selectableItemBackground"
-                android:paddingStart="@dimen/preferences_text_margin_start"
-                android:paddingEnd="@dimen/preferences_text_margin_start"
-                android:text="@string/settings_appearance_run_darkmode"
-                android:theme="@style/SwitchStyle"
-                app:styledTextColor="mainContrast" />
+                <RelativeLayout
+                    android:id="@+id/preferences_appearance_layout_theme_mode"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="handleThemeModeClick">
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/preferences_appearance_divider_theme"
-                style="@style/Divider"
-                app:styledBackground="mainContrast50" />
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_appearance_darkmode"
+                        app:styledTextColor="mainContrast" />
 
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/preferences_appearance_header_screenshots"
-                style="@style/FontSettingsHeader"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:paddingStart="@dimen/preferences_text_margin_start"
-                android:paddingTop="@dimen/activity_vertical_margin"
-                android:text="@string/settings_appearance_screenshots"
-                app:styledTextColor="mainContrast" />
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_appearance_textview_theme_mode"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_appearance_theme_mode_light"
+                        app:styledTextColor="mainContrast80" />
 
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/preferences_appearance_switch_screenshot"
-                style="@style/FontSettingsElement"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/preferences_item_height"
-                android:background="?attr/selectableItemBackground"
-                android:paddingStart="@dimen/preferences_text_margin_start"
-                android:paddingEnd="@dimen/preferences_text_margin_start"
-                android:text="@string/settings_appearance_allow_screenshots"
-                android:theme="@style/SwitchStyle"
-                app:styledTextColor="mainContrast" />
+                </RelativeLayout>
 
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/preferences_appearance_divider_screenshots"
-                style="@style/Divider"
-                app:styledBackground="mainContrast50" />
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:id="@+id/preferences_appearance_divider_theme"
+                    style="@style/Divider"
+                    app:styledBackground="mainContrast50" />
 
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/preferences_appearance_header_ginlo_ongoing_service"
-                style="@style/FontSettingsHeader"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:paddingStart="@dimen/preferences_text_margin_start"
-                android:paddingTop="@dimen/activity_vertical_margin"
-                android:text="@string/settings_appearance_ginlo_ongoing_service"
-                app:styledTextColor="mainContrast" />
+            </LinearLayout>
+        </ScrollView>
+    </LinearLayout>
 
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/preferences_appearance_switch_ginlo_ongoing_service"
-                style="@style/FontSettingsElement"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/preferences_item_height"
-                android:background="?attr/selectableItemBackground"
-                android:paddingStart="@dimen/preferences_text_margin_start"
-                android:paddingEnd="@dimen/preferences_text_margin_start"
-                android:text="@string/settings_appearance_run_ginlo_ongoing_service"
-                android:theme="@style/SwitchStyle"
-                app:styledTextColor="mainContrast" />
+    <androidx.appcompat.widget.AppCompatButton
+        style="@style/BorderlessColoredButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/action"
+        android:onClick="handleDesignConfigResetClick"
+        android:paddingStart="@dimen/preferences_text_margin_start"
+        android:paddingEnd="@dimen/preferences_text_margin_start"
+        android:text="@string/settings_config_automatic_download_reset"
+        android:textColor="@color/actionContrast"
+        app:styledBackground="action"
+        app:styledButtonType="normal"
+        app:styledTextColor="actionContrast" />
 
-            <androidx.appcompat.widget.SwitchCompat
-                android:id="@+id/preferences_appearance_switch_ongoing_notification"
-                style="@style/FontSettingsElement"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/preferences_item_height"
-                android:background="?attr/selectableItemBackground"
-                android:paddingStart="@dimen/preferences_text_margin_start"
-                android:paddingEnd="@dimen/preferences_text_margin_start"
-                android:text="@string/settings_appearance_show_ongoing_notification"
-                android:theme="@style/SwitchStyle"
-                app:styledTextColor="mainContrast" />
-
-            <androidx.appcompat.widget.LinearLayoutCompat
-                android:id="@+id/preferences_appearance_divider_ongoing_notification"
-                style="@style/Divider"
-                app:styledBackground="mainContrast50" />
-
-        </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+</RelativeLayout>

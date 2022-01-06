@@ -43,7 +43,7 @@
                 android:text="@string/peferences_absence_absent"
                 android:textAppearance="@style/SwitchStyleText"
                 android:textColor="@color/mainContrast"
-                android:textSize="17sp"
+                app:styledTextSize="messageTextSize"
                 android:letterSpacing="-0.02"
                 android:lineSpacingExtra="5sp"
                 android:theme="@style/SwitchStyle"

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.controller;
 
@@ -146,6 +146,7 @@ public class ContactController
             "((" + ContactsContract.Data.MIMETYPE + "='" + Phone.CONTENT_ITEM_TYPE + "') OR (" +
                     ContactsContract.Data.MIMETYPE + "='" + ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE + "'))";
 
+    public static final int ONLINE_STATE_POLL_DELAY = 30000; // Millis
     public static final String ONLINE_STATE_INVALID = "invalid";
     public static final String ONLINE_STATE_ONLINE = "online";
     public static final String ONLINE_STATE_WRITING = "writing";
@@ -826,7 +827,7 @@ public class ContactController
                             }
                         } else {
                             if (actionListener != null) {
-                                actionListener.onFail(response.errorMessage, null);
+                                actionListener.onFail(response.errorMessage, "");
                             }
                         }
                     }
@@ -1230,12 +1231,7 @@ public class ContactController
         }
 
         for (Contact contact : temp) {
-            try {
-                if (contact.isDeletedHidden()) {
-                    continue;
-                }
-            } catch (LocalizedException e) {
-                LogUtil.w(TAG, e.getMessage(), e);
+            if (contact.isDeletedHidden()) {
                 continue;
             }
             rc.add(contact);
@@ -1261,15 +1257,10 @@ public class ContactController
         StringBuilder sb = new StringBuilder();
 
         for (Contact contact : temp) {
-            try {
-                if (contact.isDeletedHidden()) {
-                    continue;
-                }
-                if (StringUtil.isNullOrEmpty(contact.getAccountGuid())) {
-                    continue;
-                }
-            } catch (LocalizedException e) {
-                LogUtil.e(TAG, e.getMessage(), e);
+            if (contact.isDeletedHidden()) {
+                continue;
+            }
+            if (StringUtil.isNullOrEmpty(contact.getAccountGuid())) {
                 continue;
             }
             sb.append(contact.getAccountGuid()).append(",");
@@ -2058,7 +2049,7 @@ public class ContactController
 
             if(codeVersion.equals(QRCodeModel.TYPE_V2) || codeVersion.equals(QRCodeModel.TYPE_V3)) {
                 byte[] checksumContact = ChecksumUtil.getSHA256ChecksumAsBytesForString(contact.getPublicKey());
-                verified = Arrays.equals(checksumContact, qrm.getPublicKeySHA256());
+                verified = Arrays.equals(checksumContact, Base64.decode(qrm.getPublicKeySHA256Base64(), Base64.DEFAULT));
             }
 
             if (verified) {
@@ -2846,7 +2837,7 @@ public class ContactController
 
                             for (String guid : guids) {
                                 if (!knownServerGuids.contains(guid)) {
-                                    LogUtil.e(TAG, "checkPrivateIndexContactsInternally -> Failed to read account info " + guid);
+                                    LogUtil.i(TAG, "checkPrivateIndexContactsInternally: No account " + guid);
                                     hideDeletedContactLocally(guid);
                                 } else {
                                     makeContactVisibleLocally(guid);
@@ -2911,13 +2902,13 @@ public class ContactController
                                 .sendSystemInfo(contact.getAccountGuid(), contact.getPublicKey(), logMessage, -1);
                     }
                 }
-            } else LogUtil.e(TAG, "Null contact. Failed to notify chat controller.");
+            } else LogUtil.e(TAG, "notifyChatControllerOfRemovedAccount: Null contact. Failed to notify chat controller.");
         } catch (LocalizedException le) {
-            LogUtil.e(TAG, String.format("Failed to notifyChatControllerOfRemovedAccount [%s]:$[%s]", contact.getAccountGuid(), le.getMessage()), le);
+            LogUtil.e(TAG, String.format("notifyChatControllerOfRemovedAccount: Failed [%s]:$[%s]", contact.getAccountGuid(), le.getMessage()));
         }
     }
 
-    private void hideDeletedContactLocally(final String contactGuid) {
+    public void hideDeletedContactLocally(final String contactGuid) {
         try {
             Contact contact = getContactByGuid(contactGuid);
 
@@ -3647,28 +3638,24 @@ public class ContactController
 
     static class OnlineStateTask
             extends AsyncTask<Void, Void, Void> {
+
         private String mLastOnlineState;
-
         private final String mContactGuid;
-
         private GenericActionListener<OnlineStateContainer> mGenericActionListener;
-
         private final SimsMeApplication mApp;
-
         private String mErrorText;
-
         private OnlineStateContainer mResult;
-
         private boolean mIsCancel;
 
         OnlineStateTask(final SimsMeApplication application,
                         final String lastOnlineState,
                         final String contactGuid,
                         final GenericActionListener<OnlineStateContainer> genericActionListener) {
+
+            mApp = application;
             mLastOnlineState = lastOnlineState;
             mContactGuid = contactGuid;
             mGenericActionListener = genericActionListener;
-            mApp = application;
         }
 
         private String getContactGuid() {
@@ -3694,11 +3681,22 @@ public class ContactController
                 return;
             }
 
-            // task wurde ausgefuert -> null
-            mApp.getContactController().mGetOnlineStateTask = null;
-            mApp.getContactController().getOnlineState(mContactGuid, mLastOnlineState, mGenericActionListener, false);
+            // KS: Save backend port resources - do polling only after every ONLINE_STATE_POLL_DELAY millis.
+            new CountDownTimer(ONLINE_STATE_POLL_DELAY, 10000) {
+                public void onTick(final long millisUntilFinished) {
+                    LogUtil.d(TAG, "OnlineStateTask: Countdown to next state poll: " + millisUntilFinished / 1000);
+                }
+
+                public void onFinish() {
+                    if (!mIsCancel) {
+                        mApp.getContactController().mGetOnlineStateTask = null;
+                        mApp.getContactController().getOnlineState(mContactGuid, mLastOnlineState, mGenericActionListener, false);
+                    }
+                }
+            }.start();
 
             if (mGenericActionListener != null) {
+                LogUtil.d(TAG, "OnlineStateTask: asyncLoaderFinished successfully.");
                 mGenericActionListener.onSuccess(result);
             }
         }
@@ -3708,10 +3706,9 @@ public class ContactController
                 return;
             }
 
-            new CountDownTimer(10000, 1000) {
-
+            // KS: Save backend port resources - do polling only after every ONLINE_STATE_POLL_DELAY millis.
+            new CountDownTimer(ONLINE_STATE_POLL_DELAY, 10000) {
                 public void onTick(final long millisUntilFinished) {
-
                 }
 
                 public void onFinish() {

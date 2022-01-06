@@ -1,10 +1,9 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.concurrent.task;
 
 import android.graphics.Bitmap;
 import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
@@ -32,8 +31,10 @@ import java.util.List;
 
 public class CreateNotificationTask
         extends ConcurrentTask {
+
+    private final static String TAG = CreateNotificationTask.class.getSimpleName();
     private final NotificationController notificationController;
-    private final ChatOverviewController chatController;
+    private final ChatOverviewController chatOverviewController;
     private final ChannelController channelController;
     private final PreferencesController prefController;
     private final ContactController contactController;
@@ -45,7 +46,7 @@ public class CreateNotificationTask
     public CreateNotificationTask(final SimsMeApplication context) {
         super();
 
-        this.chatController = context.getChatOverviewController();
+        this.chatOverviewController = context.getChatOverviewController();
         this.notificationController = context.getNotificationController();
         this.prefController = context.getPreferencesController();
         this.messageController = context.getMessageController();
@@ -117,8 +118,7 @@ public class CreateNotificationTask
                         continue;
                     }
 
-                    final DecryptedMessage decryptedMessage = chatController.decryptMessage(message);
-
+                    final DecryptedMessage decryptedMessage = mContext.getMessageDecryptionController().decryptMessage(message, false);
                     if (decryptedMessage == null) {
                         continue;
                     }
@@ -202,7 +202,7 @@ public class CreateNotificationTask
                             break;
                     }
 
-                    String name = chatController.getNameForMessage(decryptedMessage);
+                    String name = chatOverviewController.getNameForMessage(decryptedMessage);
 
                     String shortLinkText = null;
 
@@ -223,7 +223,7 @@ public class CreateNotificationTask
                         if (isFirstContact) {
                             preview = mContext.getResources().getString(R.string.android_notification_new_private_msg_title);
                         } else {
-                            preview = chatController.getPreviewTextForMessage(decryptedMessage, false);
+                            preview = chatOverviewController.getPreviewTextForMessage(decryptedMessage, false);
                         }
                     }
 
@@ -245,7 +245,7 @@ public class CreateNotificationTask
                     Bitmap bitmap = bitmapCache.get(senderGuid);
 
                     if (bitmap == null) {
-                        bitmap = chatController.getProfileImageForMessage(senderGuid);
+                        bitmap = chatOverviewController.getProfileImageForMessage(senderGuid);
 
                         if (bitmap != null) {
                             bitmapCache.put(senderGuid, bitmap);
@@ -272,7 +272,7 @@ public class CreateNotificationTask
         } catch (LocalizedException e) {
             // Die Exception dürfte im normal Fall nur auftreten wenn die Schlüssel verworfen wurden.
             // Daher sollten alle Tasks für Ihre Laufzeit Schlüssel bekommen
-            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+            LogUtil.e(TAG, "run: Caught exception " + e.getMessage());
         }
 
         if (notificationInfos.size() > 0 /*&& mLastNotificationCount < notificationInfos.size()*/) {

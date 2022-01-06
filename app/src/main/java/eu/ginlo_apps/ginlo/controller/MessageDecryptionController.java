@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.controller;
 
@@ -29,6 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MessageDecryptionController {
+    public final static String TAG = MessageDecryptionController.class.getSimpleName();
     private final SimsMeApplication mApplication;
 
     // (map)key: RSA verschluesselter key2, value: entschlusselter AES-Key
@@ -44,8 +45,7 @@ public class MessageDecryptionController {
     // TODO: Investigate this!
     public @Nullable
     DecryptedMessage decryptMessage(Message message,
-                                    boolean returnObjIfMsgHasNoData)
-            throws LocalizedException {
+                                    boolean returnObjIfMsgHasNoData) {
         if (message == null || (message.getData() == null && !returnObjIfMsgHasNoData)) {
             return null;
         }
@@ -54,19 +54,26 @@ public class MessageDecryptionController {
             return new DecryptedMessage(message);
         }
 
-        if (message.getType() == Message.TYPE_GROUP) {
-            AESKeyDataContainer aesKeyDataContainer = getGroupChatAESKeyData(message);
+        try {
+            if (message.getType() == Message.TYPE_GROUP) {
+                AESKeyDataContainer aesKeyDataContainer = getGroupChatAESKeyData(message);
+                return decryptMessage(message, aesKeyDataContainer);
 
-            return decryptMessage(message, aesKeyDataContainer);
-        } else if (message.getType() == Message.TYPE_CHANNEL) {
-            AESKeyDataContainer aesKeyDataContainer = getChannelChatAESKeyData(message);
+            } else if (message.getType() == Message.TYPE_CHANNEL) {
+                AESKeyDataContainer aesKeyDataContainer = getChannelChatAESKeyData(message);
+                return decryptMessage(message, aesKeyDataContainer);
 
-            return decryptMessage(message, aesKeyDataContainer);
-        } else {
-            AESKeyDataContainer aesKeyDataContainer = getSingleChatAESKeyData(message);
+            } else {
+                AESKeyDataContainer aesKeyDataContainer = getSingleChatAESKeyData(message);
+                return decryptMessage(message, aesKeyDataContainer);
 
-            return decryptMessage(message, aesKeyDataContainer);
+            }
+
+        } catch (LocalizedException e) {
+            LogUtil.e(TAG, "decryptMessage: LocalizedException (" + e.getMessage() + ") for message " + message.getGuid());
         }
+
+        return null;
     }
 
     private DecryptedMessage decryptMessage(Message message,

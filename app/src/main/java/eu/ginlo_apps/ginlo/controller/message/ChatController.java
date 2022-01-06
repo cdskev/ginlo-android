@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.controller.message;
 
 import android.app.Activity;
@@ -371,15 +371,6 @@ public abstract class ChatController
         }
     }
 
-    public DecryptedMessage decryptMessage(final Message message) {
-        try {
-            return messageDecryptionController.decryptMessage(message, false);
-        } catch (LocalizedException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
-        }
-        return null;
-    }
-
     public void checkForResend(final long messageId,
                                final OnSendMessageListener onSendMessageListener) {
         final Message oldMessage = messageController.getMessageById(messageId);
@@ -394,6 +385,11 @@ public abstract class ChatController
 
             @Override
             public void onBackendResponse(BackendResponse response) {
+                if(response == null) {
+                    LogUtil.w(TAG, "checkForResend: onBackendResponse returns null!");
+                    return;
+                }
+
                 if (response.isError) {
                     final String errorMsg = response.errorMessage != null ? response.errorMessage
                             : mApplication.getString(R.string.resend_message_error);
@@ -426,8 +422,8 @@ public abstract class ChatController
                             }
                         } catch (IllegalStateException e) {
                             // fehler beim konvertieren der JsonObjekte
+                            LogUtil.e(TAG, "checkForResend: onBackendResponse caught " + e.getMessage());
                             resend(oldMessage, messageId, onSendMessageListener);
-                            LogUtil.e(TAG, e.getMessage(), e);
                         }
                     }
                 }
@@ -447,7 +443,7 @@ public abstract class ChatController
 
                 if (oldMessage != null) {
                     baseMessage = MessageModelBuilder.getInstance(mApplication.getContactController())
-                            .rebuildMessage(oldMessage, ChatController.this);
+                            .rebuildMessage(oldMessage, messageDecryptionController);
                 }
 
                 return baseMessage;
@@ -1494,7 +1490,6 @@ public abstract class ChatController
             }
 
             final DecryptedMessage decryptedMessage = messageDecryptionController.decryptMessage(message, false);
-
             if (decryptedMessage == null) {
                 listener.onLoadedFailed("Error decrypting message.");
                 return;
@@ -1509,7 +1504,7 @@ public abstract class ChatController
             listener.onHasAttachment(attachmentController.isAttachmentLocallyAvailable(attachmentGuid));
             attachmentController.loadAttachment(decryptedMessage, listener, safeToShareFolder, onConnectionDataUpdatedListener);
         } catch (LocalizedException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "getAttachment: Caught " + e.getMessage());
             listener.onLoadedFailed("Error decrypting message.");
         }
     }
@@ -1528,7 +1523,8 @@ public abstract class ChatController
                                     final BaseChatItemVO chatItemVO,
                                     final boolean notifyObserver,
                                     final boolean sort) {
-        LogUtil.i(TAG, "--> AddToRegistry :" + accountGuid + " -> " + chatItemVO.messageId);
+
+        LogUtil.d(TAG, "addToRegistry: " + chatItemVO.getFromGuid() + " --> " + chatItemVO.messageId);
 
         if (mCurrentChatAdapter != null && StringUtil.isEqual(mCurrentChatAdapter.getChatGuid(), accountGuid)) {
             mCurrentChatAdapter.setNotifyOnChange(notifyObserver);
@@ -1569,7 +1565,6 @@ public abstract class ChatController
             }
             mCurrentChatAdapter.setNotifyOnChange(true);
         }
-        LogUtil.i(TAG, "--< AddToRegistry :" + accountGuid + " -> " + chatItemVO.messageId);
     }
 
     private void deleteChatItemFromAdapter(Long msgId) {
@@ -1684,7 +1679,9 @@ public abstract class ChatController
             if (message.getAttachment() != null) {
                 attachmentController.deleteAttachment(message.getAttachment());
             }
-            if (decryptMessage(message).getMessageDestructionParams() != null) {
+
+            if (messageDecryptionController.decryptMessage(message, false) != null &&
+                    messageDecryptionController.decryptMessage(message, false).getMessageDestructionParams() != null) {
                 messageController.deleteNewDestructionDate(message.getGuid());
             }
 

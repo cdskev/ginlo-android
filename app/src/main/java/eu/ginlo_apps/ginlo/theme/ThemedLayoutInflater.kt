@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.theme
 
 import android.app.Application
@@ -36,18 +36,6 @@ class ThemedLayoutInflater(
     }
 
     companion object {
-        val textViewTypes = listOf(
-                "TextView",
-                "eu.ginlo_apps.ginlo.view.EmojiconMediumTextView",
-                "androidx.emoji.widget.EmojiAppCompatTextView",
-                "androidx.appcompat.widget.AppCompatTextView"
-        )
-
-        val buttonTypes = listOf(
-                "androidx.appcompat.widget.AppCompatButton",
-                "CheckBox"
-        )
-
         val genericViewTypes = listOf(
                 "LinearLayout",
                 "androidx.appcompat.widget.LinearLayoutCompat",
@@ -56,6 +44,19 @@ class ThemedLayoutInflater(
                 "RelativeLayout",
                 "View",
                 "Spinner"
+        )
+
+        val textViewTypes = listOf(
+                "TextView",
+                "eu.ginlo_apps.ginlo.view.EmojiconMediumTextView",
+                "androidx.emoji.widget.EmojiAppCompatTextView",
+                "androidx.appcompat.widget.AppCompatTextView"
+        )
+
+        val editTextViewTypes = listOf(
+                "EditText",
+                "androidx.emoji.widget.EmojiAppCompatEditText",
+                "eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview"
         )
 
         val switchViewTypes = listOf(
@@ -68,14 +69,13 @@ class ThemedLayoutInflater(
                 "eu.ginlo_apps.ginlo.view.MaskImageView"
         )
 
-        val editTextViewTypes = listOf(
-                "EditText",
-                "androidx.emoji.widget.EmojiAppCompatEditText",
-                "eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview"
-        )
-
         val imageButtonViewTypes = listOf(
                 "androidx.appcompat.widget.AppCompatImageButton"
+        )
+
+        val buttonTypes = listOf(
+                "androidx.appcompat.widget.AppCompatButton",
+                "CheckBox"
         )
     }
 
@@ -136,6 +136,7 @@ class ThemedLayoutInflater(
                         ClickableEmojiconEditTextview(context, attributeSet)
             }
         }
+        Style.setStyledTextSize(rc, styledAttributes)
         Style.setStyledBackground(rc, styledAttributes)
         Style.setStyledBackgroundColorFilter(rc, styledAttributes)
         Style.setStyledTextColor(rc, styledAttributes)
@@ -223,6 +224,7 @@ class ThemedLayoutInflater(
                 "CheckBox" -> rc = CheckBox(context, attributeSet)
             }
         }
+        Style.setStyledTextSize(rc, styledAttributes)
         Style.setStyledTextColor(rc, styledAttributes)
         Style.setStyledBackground(rc, styledAttributes)
         Style.setStyledBackgroundColorFilter(rc, styledAttributes)
@@ -252,6 +254,7 @@ class ThemedLayoutInflater(
                 else -> null
             }
         }
+        Style.setStyledTextSize(textView, styledAttributes)
         Style.setStyledTextColor(textView, styledAttributes)
         Style.setStyledBackground(textView, styledAttributes)
         Style.setStyledBackgroundColorFilter(textView, styledAttributes)

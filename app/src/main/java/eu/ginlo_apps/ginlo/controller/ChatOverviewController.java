@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.controller;
 
 import android.content.Context;
@@ -99,15 +99,14 @@ public class ChatOverviewController
     private Comparator<BaseChatOverviewItemVO> mComparator;
     private ArrayList<String> mChatsToRefresh;
     private AsyncHttpTask<ArrayMap<String, Boolean>> mCheckContactsOnlineTask;
+    private final MessageDecryptionController messageDecryptionController;
 
     public ChatOverviewController(final SimsMeApplication application) {
         super(application);
-
-        this.listeners = new CopyOnWriteArrayList<>();
-
-        application.getChatImageController().addListener(this);
-
+        this.messageDecryptionController = application.getMessageDecryptionController();
         this.chatOverviewTaskManager = new ChatOverviewTaskManager();
+        this.listeners = new CopyOnWriteArrayList<>();
+        application.getChatImageController().addListener(this);
     }
 
     public void setAdapter(final ChatsAdapter adapter) {
@@ -266,11 +265,6 @@ public class ChatOverviewController
                 }
             }
         }
-    }
-
-    public DecryptedMessage decryptMessage(final Message message)
-            throws LocalizedException {
-        return mApplication.getMessageDecryptionController().decryptMessage(message, false);
     }
 
     public void loadChatOverviewItems() {
@@ -670,7 +664,7 @@ public class ChatOverviewController
 
                         JsonObject entryJO = je.getAsJsonObject();
 
-                        LogUtil.d(TAG, "asyncLoaderServerResponse: Got: " + entryJO.toString());
+                        // LogUtil.d(TAG, "asyncLoaderServerResponse: Got: " + entryJO.toString());
 
                         String guid = JsonUtil.stringFromJO(JsonConstants.ACCOUNT_GUID, entryJO);
                         if (StringUtil.isNullOrEmpty(guid)) {
@@ -833,7 +827,11 @@ public class ChatOverviewController
 
                                 DecryptedMessage decryptedMessage;
                                 try {
-                                    decryptedMessage = decryptMessage(message);
+                                    decryptedMessage = messageDecryptionController.decryptMessage(message, false);
+                                    if(decryptedMessage == null) {
+                                        LogUtil.w(TAG, "exportChat: onListResult with decryptedMessage = null");
+                                        continue;
+                                    }
 
                                     if (message.getType() == Message.TYPE_PRIVATE || message.getType() == Message.TYPE_GROUP) {
 
@@ -878,13 +876,14 @@ public class ChatOverviewController
                                         fout.write(byteArray, 0, byteArray.length);
                                     }
                                 } catch (LocalizedException e) {
-                                    LogUtil.w(TAG, e.getMessage(), e);
+                                    LogUtil.e(TAG, "exportChat: onListResult caught " + e.getMessage());
                                 }
                             }
                         }
                         fout.close();
                         listener.onChatExportSuccess(file);
                     } catch (IOException ex) {
+                        LogUtil.e(TAG, "exportChat: onListResult caught " + ex.getMessage());
                         listener.onChatExportFail(context.getResources().getString(R.string.chat_overview_export_chat_directory_does_not_exist));
                     }
                 }

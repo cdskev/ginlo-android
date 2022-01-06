@@ -30,6 +30,6 @@
         android:letterSpacing="-0.02"
         android:lineSpacingExtra="5sp"
         android:maxLines="1"
-        android:textSize="17sp"
+        app:styledTextSize="messageTextSize"
         app:styledTextColor="mainContrast" />
 </androidx.appcompat.widget.LinearLayoutCompat>

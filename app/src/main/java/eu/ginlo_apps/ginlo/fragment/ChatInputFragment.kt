@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.fragment
 
 import android.annotation.SuppressLint
@@ -183,7 +183,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
             false
         })
 
-        chat_edit_text_input.setOnTouchListener { view, event ->
+        chat_edit_text_input.setOnTouchListener { _, event ->
             var didHandleEvent = false
 
             when(event.action) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.register;
 
 import android.content.Intent;
@@ -9,16 +9,18 @@ import android.widget.Toast;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
+import org.jetbrains.annotations.NotNull;
+
 import eu.ginlo_apps.ginlo.BaseActivity;
 import eu.ginlo_apps.ginlo.DeleteAccountActivity;
 import eu.ginlo_apps.ginlo.LoginActivity;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.adapter.PurchaseAdapter;
-import eu.ginlo_apps.ginlo.billing.IabHelper;
-import eu.ginlo_apps.ginlo.billing.IabResult;
-import eu.ginlo_apps.ginlo.billing.Inventory;
-import eu.ginlo_apps.ginlo.billing.Purchase;
-import eu.ginlo_apps.ginlo.billing.SkuDetails;
+import eu.ginlo_apps.ginlo.billing.GinloBillingImpl;
+import eu.ginlo_apps.ginlo.billing.GinloBillingResult;
+import eu.ginlo_apps.ginlo.billing.GinloPurchaseImpl;
+import eu.ginlo_apps.ginlo.billing.GinloSkuDetailsImpl;
 import eu.ginlo_apps.ginlo.context.SimsMeApplicationBusiness;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
@@ -36,11 +38,14 @@ import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
+
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class PurchaseLicenseActivity extends BaseActivity {
     private final static String TAG = PurchaseLicenseActivity.class.getSimpleName();
@@ -51,10 +56,8 @@ public class PurchaseLicenseActivity extends BaseActivity {
 
     private JsonArray mProducts = null;
     private List<String> mProductIds = null;
-    private IabHelper mIabHelper = null;
     private boolean mDontForwardIfLicenceIsAboutToExpire;
     private int mNumberofPurchasesToSave;
-    private List<String> mMonthlyProductIds = null;
 
     @Inject
     public AppConnectivity appConnectivity;
@@ -101,7 +104,7 @@ public class PurchaseLicenseActivity extends BaseActivity {
                 getSimsMeApplication().getAppLifecycleController().restartApp();
             }
         } catch (LocalizedException e) {
-            LogUtil.e(TAG, e.toString(), e);
+            LogUtil.e(TAG, "onBackPressed: Failed to get account state: " + e.getMessage());
         }
     }
 
@@ -109,63 +112,39 @@ public class PurchaseLicenseActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
 
-        if (mIabHelper == null) {
-            mIabHelper = new IabHelper(this, RuntimeConfig.getApplicationPublicKey());
-        }
-
         if (!appConnectivity.isConnected()) {
             Toast.makeText(this, R.string.backendservice_internet_connectionFailed,
                     Toast.LENGTH_LONG).show();
             return;
         }
 
-        final IabHelper.QueryInventoryFinishedListener inventoryFinishedListener = new IabHelper.QueryInventoryFinishedListener() {
+        final GinloBillingImpl.OnQuerySkuDetailsFinishedListener inventoryFinishedListener = new GinloBillingImpl.OnQuerySkuDetailsFinishedListener() {
             @Override
-            public void onQueryInventoryFinished(IabResult result, Inventory inv) {
+            public void onQuerySkuDetailsFinished(@NotNull GinloBillingResult result, ArrayList<String> skuDetailsAsJson) {
                 boolean bDismissIdle = true;
+                LogUtil.d(TAG, "onQuerySkuDetailsFinished: returned with " + result.getResponseCode());
                 try {
 
                     if (result.isFailure()) {
-                        LogUtil.w(TAG, "onQueryInventoryFinished returned with error: " + result.getMessage());
-                        DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, result.getMessage()).show();
+                        LogUtil.w(TAG, "onQuerySkuDetailsFinished: returned with error: " + result.geResponsetMessage());
+                        DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, result.geResponsetMessage()).show();
                         return;
                     }
 
-                    if (inv == null) {
-                        LogUtil.w(TAG, "onQueryInventoryFinished returned with zero inventory!");
+                    if (skuDetailsAsJson == null) {
+                        LogUtil.w(TAG, "onQuerySkuDetailsFinished: returned with zero inventory!");
                         DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, getString(R.string.connecting_playstore_failed)).show();
                         return;
                     }
 
-                    // Initialize products
-                    List<PurchaseItemModel> purchaseItemModels = new ArrayList<>();
-                    for (int i = 0; i < mProductIds.size(); i++) {
-                        String productId = mProductIds.get(i);
-                        SkuDetails details = inv.getSkuDetails(productId);
-                        if (details != null) {
-                            LogUtil.i(TAG, "Parsing PlayStore inventory found: " + details);
-                            String title = details.getTitle();
-                            if (title.contains("(")) {
-                                title = title.substring(0, title.indexOf("("));
-                            }
-                            PurchaseItemModel pim = new PurchaseItemModel(title, details.getPrice(), details);
-                            purchaseItemModels.add(pim);
-                        }
-                    }
-
-                    PurchaseAdapter purchaseAdapter = new PurchaseAdapter(PurchaseLicenseActivity.this, R.layout.purchase_list_item, purchaseItemModels);
-
-                    ListView listView = findViewById(R.id.purchase_licence_listview);
-                    listView.setAdapter(purchaseAdapter);
-                    purchaseAdapter.notifyDataSetChanged();
-                    setDynamicHeight(listView, 0);
-
                     // Vorhandene Käufe ermitteln
-                    List<Purchase> allPurchases = inv.getAllPurchases();
-                    List<Purchase> purchaseToSend = new ArrayList<>();
+                    List<GinloPurchaseImpl> allPurchases = ginloBillingImpl.getAllPurchases();
+                    LogUtil.d(TAG, "onQuerySkuDetailsFinished: getAllPurchases returned " + allPurchases);
+                    List<GinloPurchaseImpl> purchaseToSend = new ArrayList<>();
+
                     for (int i = 0; i < allPurchases.size(); i++) {
-                        Purchase p = allPurchases.get(i);
-                        LogUtil.i(TAG, "Existing purchase: " + p.getOriginalJson());
+                        GinloPurchaseImpl p = allPurchases.get(i);
+                        LogUtil.i(TAG, "onQuerySkuDetailsFinished: Existing purchase: " + p.getOriginalJson());
 
                         if (!getSimsMeApplication().getPreferencesController().isPurchaseSaved(p)) {
                             synchronized (this) {
@@ -175,70 +154,26 @@ public class PurchaseLicenseActivity extends BaseActivity {
                             purchaseToSend.add(p);
                         }
                     }
+
+                    // Send collected purchases to backend and consume them to acknowledge billing.
                     for (int i = 0; i < purchaseToSend.size(); i++) {
+                        consumeNewPurchase(purchaseToSend.get(i));
                         savePurchaseToBackend(purchaseToSend.get(i));
                     }
-
+                } catch (Exception e) {
+                    LogUtil.e(TAG, "onQuerySkuDetailsFinished: " + e.getMessage(), e);
                 } finally {
                     if (bDismissIdle) {
                         dismissIdleDialog();
                     }
                 }
-            }
-        };
 
-        final IabHelper.OnIabSetupFinishedListener purchaseInitListener = new IabHelper.OnIabSetupFinishedListener() {
-            @Override
-            public void onIabSetupFinished(IabResult result) {
-                try {
-                    if (result.isFailure()) {
-                        LogUtil.w(TAG, "onIabSetupFinished returned with error: " + result.getMessage());
-                        DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, result.getMessage()).show();
-                        return;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        buildPurchaseView();
                     }
-
-                    List<String> productIds = new ArrayList<>();
-                    mMonthlyProductIds = new ArrayList<>();
-                    // Aus der Liste der Produkte auslesen
-                    for (int i = 0; i < mProducts.size(); i++) {
-                        JsonElement jse = mProducts.get(i);
-                        if (!(jse instanceof JsonObject)) {
-                            continue;
-                        }
-                        JsonObject outerProduct = (JsonObject) jse;
-                        if (!outerProduct.has("Product")) {
-                            continue;
-                        }
-                        JsonObject product = outerProduct.getAsJsonObject("Product");
-                        if(product.has("feature")) {
-                            String feature = product.get("feature").getAsString();
-                            if (!feature.equalsIgnoreCase("usage")) {
-                                continue;
-                            }
-                        }
-                        String os = product.has("os") ? product.get("os").getAsString() : null;
-                        if (os != null && os.equalsIgnoreCase("Android")) {
-                            String productId = product.has("productId") ? product.get("productId").getAsString() : "";
-                            String duration = product.has("duration") ? product.get("duration").getAsString() : null;
-                            if (duration != null) {
-                                try {
-
-                                    if (Long.parseLong(duration) > 0 && Long.parseLong(duration) < 40) {
-                                        mMonthlyProductIds.add(productId);
-                                    }
-                                } catch (NumberFormatException ignored) {
-                                }
-                            }
-                            productIds.add(productId);
-                            LogUtil.i(TAG, "Parsing products found: " + productId);
-                        }
-                    }
-                    mProductIds = productIds;
-                    LogUtil.i(TAG, "Query Google Play");
-                    mIabHelper.queryInventoryAsync(true, productIds, inventoryFinishedListener);
-                } finally {
-                    dismissIdleDialog();
-                }
+                });
             }
         };
 
@@ -247,16 +182,22 @@ public class PurchaseLicenseActivity extends BaseActivity {
             public void onBackendResponse(BackendResponse response) {
                 boolean bDismissIdle = true;
                 try {
-                    if (response.errorMessage != null) {
-                        LogUtil.w(TAG, "Got error from backend: " + response.errorMessage);
-                        DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, response.errorMessage).show();
+                    if(response != null) {
+                        if (response.errorMessage != null) {
+                            LogUtil.w(TAG, "productResponseListener: Got error from backend: " + response.errorMessage);
+                            DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, response.errorMessage).show();
+                        } else if (response.jsonArray != null) {
+                            mProducts = response.jsonArray;
+                            LogUtil.d(TAG, "productResponseListener: Got products: " + mProducts.toString());
+                            bDismissIdle = false;
+                            parseProducts();
+                            ginloBillingImpl.querySkuDetails(mProductIds, inventoryFinishedListener);
+                        }
+                    } else {
+                        LogUtil.w(TAG, "productResponseListener: Got null response from backend!");
                     }
-                    if (response.jsonArray != null) {
-                        mProducts = response.jsonArray;
-                        LogUtil.i(TAG, "Got products: " + mProducts.toString());
-                        bDismissIdle = false;
-                        mIabHelper.startSetup(purchaseInitListener);
-                    }
+                } catch (Exception e) {
+                    LogUtil.e(TAG, "onQuerySkuDetailsFinished: " + e.getMessage(), e);
                 } finally {
                     if (bDismissIdle) {
                         dismissIdleDialog();
@@ -265,7 +206,7 @@ public class PurchaseLicenseActivity extends BaseActivity {
             }
         };
 
-        OnGetPurchasedProductsListener onRegisterVoucherListener = new OnGetPurchasedProductsListener() {
+        final OnGetPurchasedProductsListener onRegisterVoucherListener = new OnGetPurchasedProductsListener() {
             @Override
             public void onGetPurchasedProductsSuccess() {
                 LogUtil.i(TAG, "Successfully retrieved purchased products.");
@@ -312,7 +253,7 @@ public class PurchaseLicenseActivity extends BaseActivity {
                     }
 
                 } catch (LocalizedException e) {
-                    LogUtil.e(PurchaseLicenseActivity.this.getClass().getName(), "getHasLicence failed", e);
+                    LogUtil.e(TAG, "onGetPurchasedProductsSuccess: " + e.getMessage());
                 } finally {
                     if (bDismissIdle) {
                         dismissIdleDialog();
@@ -334,12 +275,80 @@ public class PurchaseLicenseActivity extends BaseActivity {
             }
         };
 
-        if (getSimsMeApplication() != null && getSimsMeApplication().getLoginController().isLoggedIn()) {
+        if (mApplication.getLoginController().isLoggedIn()) {
             LogUtil.i(TAG, "Loading licensed product");
 
             mAccountController.getPurchasedProducts(onRegisterVoucherListener);
             showIdleDialog(R.string.dialog_licence_check);
         }
+    }
+
+    /**
+     * Build the purchase listView - must be running on UI thread!
+     * mProductIds is parsed from mProducts which is the product list retrieved from the backend
+     */
+    private void buildPurchaseView() {
+        if(mProductIds != null) {
+            List<PurchaseItemModel> purchaseItemModels = new ArrayList<>();
+            for (int i = 0; i < mProductIds.size(); i++) {
+                String productId = mProductIds.get(i);
+                GinloSkuDetailsImpl details = ginloBillingImpl.getSkuDetails(productId);
+                if (details != null) {
+                    LogUtil.i(TAG, "onContentChanged: Parsing PlayStore inventory found: " + details);
+                    String title = details.getTitle();
+                    if (title.contains("(")) {
+                        title = title.substring(0, title.indexOf("("));
+                    }
+                    PurchaseItemModel pim = new PurchaseItemModel(title, details.getPrice(), details);
+                    purchaseItemModels.add(pim);
+                }
+            }
+
+            PurchaseAdapter purchaseAdapter = new PurchaseAdapter(PurchaseLicenseActivity.this, R.layout.purchase_list_item, purchaseItemModels);
+
+            ListView listView = findViewById(R.id.purchase_licence_listview);
+            listView.setAdapter(purchaseAdapter);
+            setDynamicHeight(listView, 0);
+            purchaseAdapter.notifyDataSetChanged();
+        }
+    }
+
+        /**
+         * Parse the complete product list from backend to extract two list of productIds (skus)
+         * containing skus relevant for Android clients only:
+         * list of all IDs (-> mProductIds)
+         *
+         * The source list is expected to be in mProducts.
+         */
+    private void parseProducts() {
+        LogUtil.d(TAG, "parseProducts: ");
+        List<String> productIds = new ArrayList<>();
+        // mProducts contains product list from the backend
+        for (int i = 0; i < mProducts.size(); i++) {
+            JsonElement jse = mProducts.get(i);
+            if (!(jse instanceof JsonObject)) {
+                continue;
+            }
+            JsonObject outerProduct = (JsonObject) jse;
+            if (!outerProduct.has("Product")) {
+                continue;
+            }
+            JsonObject product = outerProduct.getAsJsonObject("Product");
+            if(product.has("feature")) {
+                String feature = product.get("feature").getAsString();
+                if (!feature.equalsIgnoreCase("usage")) {
+                    continue;
+                }
+            }
+            String os = product.has("os") ? product.get("os").getAsString() : null;
+            if (os != null && os.equalsIgnoreCase("Android")) {
+                String productId = product.has("productId") ? product.get("productId").getAsString() : "";
+                String duration = product.has("duration") ? product.get("duration").getAsString() : null;
+                productIds.add(productId);
+                LogUtil.i(TAG, "Parsing products found: " + productId);
+            }
+        }
+        mProductIds = productIds;
     }
 
     @Override
@@ -390,8 +399,8 @@ public class PurchaseLicenseActivity extends BaseActivity {
         }
     }
 
-    private void savePurchaseToBackend(final Purchase info) {
-        LogUtil.i(TAG, "Sending purchase token to backend: " + info.getToken());
+    private void savePurchaseToBackend(@Nonnull final GinloPurchaseImpl info) {
+        LogUtil.i(TAG, "Sending purchase to backend: " + info.getPurchaseToken());
         IBackendService.OnBackendResponseListener backendResponseListener = new IBackendService.OnBackendResponseListener() {
             @Override
             public void onBackendResponse(BackendResponse response) {
@@ -404,7 +413,7 @@ public class PurchaseLicenseActivity extends BaseActivity {
                     }
                 } else {
                     getSimsMeApplication().getPreferencesController().markPurchaseSaved(info);
-
+                    LogUtil.w(TAG, "savePurchaseToBackend markPurchaseSaved done.");
                 }
                 boolean bWasLast;
                 synchronized (this) {
@@ -421,34 +430,50 @@ public class PurchaseLicenseActivity extends BaseActivity {
                 .registerPayment(info, backendResponseListener);
     }
 
+    private void consumeNewPurchase(@Nonnull final GinloPurchaseImpl purchase) {
+        ginloBillingImpl.consumePurchase(purchase.getPurchaseToken(), new GinloBillingImpl.OnConsumePurchaseFinishedListener() {
+            @Override
+            public void onConsumePurchaseFinished(@NotNull GinloBillingResult billingResult, String purchaseToken) {
+                if(billingResult.isSuccess()) {
+                    LogUtil.i(TAG, "onResume: onConsumePurchaseFinished successful for token = " + purchaseToken);
+                } else {
+                    LogUtil.e(TAG, "onResume: onConsumePurchaseFinished returned " +
+                            billingResult.getResponseCode() + " (" + billingResult.geResponsetMessage() + ")");
+                }
+            }
+        });
+    }
+
     public void handleBuyClick(final View view) {
         if (view.getTag() != null && view.getTag() instanceof PurchaseItemModel) {
             final PurchaseItemModel pim = (PurchaseItemModel) view.getTag();
             LogUtil.i(TAG, "Start Purchase Flow");
 
-            IabHelper.OnIabPurchaseFinishedListener purchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+            ginloBillingImpl.launchBillingFlow(this, pim.getSkuDetail().getSku(), new GinloBillingImpl.OnPurchasesUpdatedListener() {
                 @Override
-                public void onIabPurchaseFinished(IabResult result, Purchase info) {
-                    LogUtil.i(TAG, "Purchase flow finished with " + result.toString());
-                    if (info != null) {
-                        LogUtil.i(TAG, "Purchase info: " + info.getOriginalJson());
-                    }
-                    if (result.isFailure()) {
-                        LogUtil.w(TAG, "onIabPurchaseFinished returned error: " + result.getMessage());
-                        DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, result.getMessage()).show();
-                    } else {
-                        synchronized (this) {
-                            mNumberofPurchasesToSave++;
+                public void onPurchasesUpdated(@NotNull GinloBillingResult result, ArrayList<GinloPurchaseImpl> updatedPurchases) {
+                    if(result.isSuccess()) {
+                        if(updatedPurchases != null && updatedPurchases.size() > 0) {
+                            for (GinloPurchaseImpl p : updatedPurchases) {
+                                LogUtil.i(TAG, "onPurchasesUpdated: Saving purchase: " + p.getOriginalJson());
+                                synchronized (this) {
+                                    mNumberofPurchasesToSave++;
+                                }
+                                consumeNewPurchase(p);
+                                savePurchaseToBackend(p);
+                            }
+
+                            Toast.makeText(PurchaseLicenseActivity.this, getString(R.string.purchase_licence_done_title), Toast.LENGTH_LONG).show();
+                            ListView listView = findViewById(R.id.purchase_licence_listview);
+                            listView.setVisibility(View.GONE);
                         }
-                        savePurchaseToBackend(info);
+                    } else {
+                        LogUtil.w(TAG, "onPurchasesUpdated returned error: " +
+                                result.getResponseCode() + " (" + result.geResponsetMessage() + ")");
+                        DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, "Error").show();
                     }
                 }
-            };
-
-            int uniqueId = new SecureRandom().nextInt() & 0x0000ffff;
-            // KS: Subscription? I think, ginlo license is in-app product!
-            //mIabHelper.launchSubscriptionPurchaseFlow(this, pim.getSkuDetail().getSku(), uniqueId, purchaseFinishedListener, mAccountController.getAccount().getAccountGuid());
-            mIabHelper.launchPurchaseFlow(this, pim.getSkuDetail().getSku(), uniqueId, purchaseFinishedListener, mAccountController.getAccount().getAccountGuid());
+            });
         }
     }
 
@@ -463,21 +488,6 @@ public class PurchaseLicenseActivity extends BaseActivity {
                 final Intent intent = new Intent(this, DeleteAccountActivity.class);
                 startActivity(intent);
             }
-            return;
-        }
-
-        if (mIabHelper == null) {
-            return;
-        }
-
-        LogUtil.i(TAG, "Purchase result: " + IabHelper.getResponseDesc(resultCode));
-
-        // Pass on the activity result to the helper for handling
-        if (!mIabHelper.handleActivityResult(requestCode, resultCode, data)) {
-            // not handled, so handle it ourselves (here's where you'd
-            // perform any handling of activity results not related to in-app
-            // billing...
-            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 

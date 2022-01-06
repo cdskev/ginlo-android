@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/status_bar_latest_event_content"
     android:layout_width="match_parent"
     android:layout_height="64dp"
@@ -41,7 +42,7 @@
             android:singleLine="true"
             android:text="Audio Video Call"
             android:textColor="@color/black"
-            android:textSize="15sp"
+            app:styledTextSize="baseTextSize"
             tools:layout_conversion_absoluteHeight="25dp"
             tools:layout_conversion_absoluteWidth="283dp"
             tools:layout_editor_absoluteX="80dp"

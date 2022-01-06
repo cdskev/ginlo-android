@@ -24,6 +24,61 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/preferences_chats_backup_container"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:onClick="handleBackupClick">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/preferences_overview_icon_backup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_image_margin_start"
+                    android:src="@drawable/ic_settings_backup_restore_24px"
+                    app:styledIconColor="mainContrast" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:orientation="vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:onClick="handleBackupClick">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_overview_text_backup"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_config_backup"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_textview_backup_hint"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/standard_padding"
+                        android:paddingStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_chats_create_backup"
+                        app:styledTextColor="mainContrast80" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                style="@style/Divider"
+                android:layout_marginStart="@dimen/preferences_divider_margin_start"
+                app:styledBackground="mainContrast50" />
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preferences_item_height"
                 android:background="?attr/selectableItemBackground"
@@ -192,6 +247,7 @@
                 android:layout_marginStart="@dimen/preferences_divider_margin_start"
                 app:styledBackground="mainContrast50" />
 
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preferences_item_height"
@@ -206,7 +262,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/preferences_image_margin_start"
-                    android:src="@drawable/ic_symbols"
+                    android:src="@drawable/ic_format_paint_24px"
                     app:styledIconColor="mainContrast" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -216,6 +272,39 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/preferences_text_margin_start"
                     android:text="@string/settings_appearance_title"
+                    app:styledTextColor="mainContrast" />
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.LinearLayoutCompat
+                style="@style/Divider"
+                android:layout_marginStart="@dimen/preferences_divider_margin_start"
+                app:styledBackground="mainContrast50" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preferences_item_height"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:onClick="handleOthersClick">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/preferences_overview_icon_others"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_image_margin_start"
+                    android:src="@drawable/ic_symbols"
+                    app:styledIconColor="mainContrast" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/preferences_overview_text_others"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_others_title"
                     app:styledTextColor="mainContrast" />
 
             </LinearLayout>

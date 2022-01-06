@@ -34,7 +34,7 @@
             android:paddingStart="36dp"
             android:text="@string/message_info_sent"
             android:textAllCaps="true"
-            android:textSize="16sp" />
+            app:styledTextSize="chooserTextSize" />
     </RelativeLayout>
 
 
@@ -137,7 +137,7 @@
                     android:paddingTop="2dp"
                     android:paddingBottom="2dp"
                     android:text="@string/simsme"
-                    android:textSize="10sp"
+                    app:styledTextSize="labelTextSize"
                     android:visibility="gone"
                     app:textAllCaps="true" />
             </RelativeLayout>

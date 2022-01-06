@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.chat;
 
 import android.content.ActivityNotFoundException;
@@ -127,6 +127,7 @@ import static eu.ginlo_apps.ginlo.controller.ContactController.ONLINE_STATE_WRIT
 public abstract class ChatInputActivity
         extends BaseActivity
         implements AdapterView.OnItemClickListener, AttachmentController.OnAttachmentLoadedListener {
+
     private final static String TAG = ChatInputActivity.class.getSimpleName();
     private static final int SMALL_DEVICE_DPI_LIMIT = 250;
     private static final int POSITION_FAB_TIME = 0;
@@ -169,7 +170,6 @@ public abstract class ChatInputActivity
     ChatAdapter mChatAdapter;
     AccountController mAccountController;
     ContactController mContactController;
-    AVChatController avChatController;
     PreferencesController mPreferencesController;
     BaseChatItemVO mCitatedChatItem;
     BaseChatItemVO mMarkedChatItem;
@@ -221,19 +221,18 @@ public abstract class ChatInputActivity
 
     private void initFabMenu() {
 
-        final SimsMeApplication simsMeApplication = getSimsMeApplication();
         final ColorUtil colorUtil = ColorUtil.getInstance();
-        final int lowColor = colorUtil.getLowColor(simsMeApplication);
-        final int lowContrastColor = colorUtil.getLowContrastColor(simsMeApplication);
+        final int lowColor = colorUtil.getLowColor(mApplication);
+        final int lowContrastColor = colorUtil.getLowContrastColor(mApplication);
 
         final int fabColor;
         final int fabIconColor;
         if (RuntimeConfig.isBAMandant()) {
-            fabColor = colorUtil.getMainContrastColor(simsMeApplication);
-            fabIconColor = colorUtil.getMainColor(simsMeApplication);
+            fabColor = colorUtil.getMainContrastColor(mApplication);
+            fabIconColor = colorUtil.getMainColor(mApplication);
         } else {
-            fabColor = colorUtil.getFabColor(simsMeApplication);
-            fabIconColor = colorUtil.getFabIconColor(simsMeApplication);
+            fabColor = colorUtil.getFabColor(mApplication);
+            fabIconColor = colorUtil.getFabIconColor(mApplication);
         }
 
         mSpeedDialView = findViewById(R.id.chat_input_speed_dial_fab);
@@ -623,7 +622,6 @@ public abstract class ChatInputActivity
                     return;
                 }
 
-                avChatController = getSimsMeApplication().getAVChatController();
                 if (avChatController != null) {
 
                     // Only continue if no avc currently active
@@ -664,7 +662,7 @@ public abstract class ChatInputActivity
             } else if (baseChatItemVO instanceof VCardChatItemVO) {
                 LogUtil.d(TAG, "onItemClick: VCardChatItemVO");
                 if (mPreferencesController.isSendContactsDisabled()) {
-                    Toast.makeText(getSimsMeApplication(), getResources().getString(R.string.error_mdm_contact_access_not_allowed), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mApplication, getResources().getString(R.string.error_mdm_contact_access_not_allowed), Toast.LENGTH_SHORT).show();
                 } else {
                     final VCardChatItemVO vCardChatItemVO = (VCardChatItemVO) baseChatItemVO;
 
@@ -1175,7 +1173,8 @@ public abstract class ChatInputActivity
                     shareIntent.setDataAndType(mShareFileUri, mimeType);
                 }
 
-                List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY);
+                //List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY);
+                List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(shareIntent, PackageManager.MATCH_ALL);
                 for (ResolveInfo resolveInfo : resInfoList) {
                     String packageName = resolveInfo.activityInfo.packageName;
                     grantUriPermission(packageName, mShareFileUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -1187,8 +1186,8 @@ public abstract class ChatInputActivity
                 if (shareIntent.resolveActivity(getPackageManager()) != null) {
                     router.startExternalActivityForResult(externIntent, RouterConstants.SEND_FILE_RESULT_CODE);
                 } else {
-                    LogUtil.i(TAG, "onFileLoaded: Could not locate a matching app for mimeType " + mimeType);
-                    String msg = StringUtil.isEqual(action, Intent.ACTION_VIEW) ? getString(R.string.chat_open_file_no_extern_activity) : getString(R.string.chat_share_file_no_extern_activity);
+                    LogUtil.w(TAG, "onFileLoaded: Could not locate a matching app for mimeType " + mimeType);
+                    String msg = StringUtil.isEqual(action, Intent.ACTION_VIEW) ? getString(R.string.chat_open_file_no_extern_activity, mimeType) : getString(R.string.chat_share_file_no_extern_activity);
                     DialogBuilderUtil.buildErrorDialog(this, msg).show();
                 }
             }
@@ -1220,7 +1219,7 @@ public abstract class ChatInputActivity
         if (size != 0) {
             if (mToolbarOptionsLayout != null) {
                 mToolbarOptionsLayout.setVisibility(View.VISIBLE);
-                mToolbarOptionsLayout.setBackgroundColor(ColorUtil.getInstance().getToolbarColor(getSimsMeApplication()));
+                mToolbarOptionsLayout.setBackgroundColor(ColorUtil.getInstance().getToolbarColor(mApplication));
                 getToolbar().setVisibility(View.GONE);
                 for (int i = 0; i < size; ++i) {
                     final ToolbarOptionsItemModel model = toolbarOptionsItemModels.get(i);
@@ -1248,7 +1247,7 @@ public abstract class ChatInputActivity
         Drawable d = ContextCompat.getDrawable(this, drawableId);
         if (d != null) {
             d.mutate();
-            d.setColorFilter(ColorUtil.getInstance().getMainContrast80Color(getSimsMeApplication()), PorterDuff.Mode.SRC_ATOP);
+            d.setColorFilter(ColorUtil.getInstance().getMainContrast80Color(mApplication), PorterDuff.Mode.SRC_ATOP);
         }
         return d;
     }
@@ -1420,9 +1419,9 @@ public abstract class ChatInputActivity
 
                                         final int color;
                                         if (isPriority) {
-                                            color = ColorUtil.getInstance().getAlertColor(getSimsMeApplication());
+                                            color = ColorUtil.getInstance().getAlertColor(mApplication);
                                         } else {
-                                            color = ColorUtil.getInstance().getChatItemColor(getSimsMeApplication());
+                                            color = ColorUtil.getInstance().getChatItemColor(mApplication);
                                         }
 
                                         if (StringUtil.isEqual(tag, "destruction")) {
@@ -1606,7 +1605,7 @@ public abstract class ChatInputActivity
 
     public void handleCopyMessageClick(final View view) {
         if (mPreferencesController.isCopyPasteDisabled()) {
-            Toast.makeText(getSimsMeApplication(), getResources().getString(R.string.error_mdm_Location_copypaste_not_allowed), Toast.LENGTH_SHORT).show();
+            Toast.makeText(mApplication, getResources().getString(R.string.error_mdm_Location_copypaste_not_allowed), Toast.LENGTH_SHORT).show();
             return;
         }
         final String text = ((TextChatItemVO) mMarkedChatItem).message;

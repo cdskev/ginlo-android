@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.controller;
 
 import android.util.Base64;
@@ -25,10 +25,6 @@ import java.util.concurrent.CountDownLatch;
 import javax.crypto.SecretKey;
 
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.AttachmentController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
-import eu.ginlo_apps.ginlo.controller.ContactController;
-import eu.ginlo_apps.ginlo.controller.KeyController;
 import eu.ginlo_apps.ginlo.controller.message.MessageController;
 import eu.ginlo_apps.ginlo.controller.message.contracts.QueryDatabaseListener;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -57,15 +53,18 @@ import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.SecurityUtil;
+import eu.ginlo_apps.ginlo.util.StorageUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.XMLUtil;
 
 public class BackupController {
     private static final String TAG = "BackupController";
     private final SimsMeApplication mApplication;
+    private final StorageUtil mStorageUtil;
 
     public BackupController(final SimsMeApplication application) {
         mApplication = application;
+        mStorageUtil = new StorageUtil(application);
     }
 
     void restoreMiniBackup(@NonNull final JsonArray miniBackupJA, @NonNull final String transid, @NonNull final String publicKeySign, @NonNull final String deviceGuid)
@@ -127,7 +126,7 @@ public class BackupController {
                                     JsonElement msgsJe = chatJO.get(JsonConstants.MESSAGES);
                                     if (msgsJe.isJsonArray()) {
                                         JsonArray messages = msgsJe.getAsJsonArray();
-                                        long lastMsgId = restoreChatMessages(messages, 0, gson, null, null);
+                                        long lastMsgId = restoreChatMessages(messages, 0, gson, null, false);
                                         if (lastMsgId > -1) {
                                             chat.setLastMsgId(lastMsgId);
                                             chatDao.update(chat);
@@ -453,10 +452,10 @@ public class BackupController {
      * @param indexStartPos     Position ab wo Messages Objekte im Array sind
      * @param gson              gson
      * @param timedMsgGuids     time message guids
-     * @param backupUnzipFolder backup folder
+     * @param saveToFolder      save copy in attachment folder
      * @return last message id
      */
-    public long restoreChatMessages(JsonArray ja, int indexStartPos, Gson gson, @Nullable List<String> timedMsgGuids, File backupUnzipFolder) {
+    public long restoreChatMessages(JsonArray ja, int indexStartPos, Gson gson, @Nullable List<String> timedMsgGuids, boolean saveToFolder) {
         final SimsMeApplication app = mApplication;
         String accountGuid = app.getAccountController().getAccount().getAccountGuid();
         long lastMsgId = -1;
@@ -474,11 +473,11 @@ public class BackupController {
 
                 MessageController.checkAndSetSendMessageProps(msg, accountGuid);
 
-                if (!StringUtil.isNullOrEmpty(msg.getAttachment()) && backupUnzipFolder != null) {
+                if (!StringUtil.isNullOrEmpty(msg.getAttachment()) && saveToFolder) {
                     try {
-                        copyAttachmentToAttachmentsDir(msg.getAttachment(), backupUnzipFolder);
+                        copyBase64AttachmentToAttachmentsDir(msg.getAttachment());
                     } catch (LocalizedException e) {
-                        LogUtil.w(TAG, "No Attachment found!", e);
+                        LogUtil.w(TAG, "No Attachment found: " + e.getMessage());
                     }
                 }
 
@@ -500,13 +499,19 @@ public class BackupController {
         return lastMsgId;
     }
 
-    private void copyAttachmentToAttachmentsDir(String attachmentGuid, File unzipFolder)
+    public void copyAttachmentToAttachmentsDirAsBase64(String attachmentGuid)
             throws LocalizedException {
-        File backupAttachmentDir = new File(unzipFolder, AppConstants.BACKUP_ATTACHMENT_DIR);
+        File backupDir =  mStorageUtil.getInternalBackupAttachmentDirectory(false);
 
-        if (!backupAttachmentDir.isDirectory()) {
-            throw new LocalizedException(LocalizedException.BACKUP_RESTORE_BACKUP_FAILED, "Attachment File.class is no Directory");
-        }
+        String fileName = attachmentGuid.replace(':', '_');
+        File attachmentBuFile = new File(backupDir, fileName);
+
+        AttachmentController.saveEncryptedAttachmentFileAsBase64File(attachmentGuid, attachmentBuFile.getAbsolutePath());
+    }
+
+    public void copyBase64AttachmentToAttachmentsDir(String attachmentGuid)
+            throws LocalizedException {
+        File backupAttachmentDir = mStorageUtil.getInternalBackupAttachmentDirectory(false);
 
         String fileName = attachmentGuid.replace(':', '_');
         File attachmentBuFile = new File(backupAttachmentDir, fileName);
@@ -639,6 +644,8 @@ public class BackupController {
             if (chat.getType() == Chat.TYPE_SINGLE_CHAT_INVITATION || chat.getType() == Chat.TYPE_SINGLE_CHAT) {
                 JsonObject innerData = new JsonObject();
 
+                LogUtil.d(TAG, "singleChatBackup: Processing " + chat.getChatGuid() + " ...");
+
                 innerData.addProperty("guid", chat.getChatGuid());
 
                 Long lastModified = chat.getLastChatModifiedDate();
@@ -656,6 +663,10 @@ public class BackupController {
                     @Override
                     public void onListResult(List<Message> dbMessages) {
                         for (Message dbm : dbMessages) {
+                            if(dbm.getGuid() == null) {
+                                continue;
+                            }
+
                             JsonObject innerData = new JsonObject();
                             innerData.addProperty("guid", dbm.getGuid());
                             if (dbm.getDateSend() != null) {
@@ -685,6 +696,7 @@ public class BackupController {
                             messages.add(privateMessageBackup);
                         }
 
+                        LogUtil.d(TAG, "singleChatBackup: " + dbMessages.size() + " messages processed.");
                         latch.countDown();
                     }
 
@@ -699,13 +711,19 @@ public class BackupController {
                     }
                 };
 
-                mApplication.getMessageController().loadAllMessages(chat.getChatGuid(), Message.TYPE_PRIVATE, false, queryDatabaseListener);
-
                 try {
+                    // KS: Only collect messages within persistMessageDays
+                    //mApplication.getMessageController().loadAllMessages(chat.getChatGuid(), Message.TYPE_PRIVATE, false, queryDatabaseListener);
+                    long now = System.currentTimeMillis();
+                    long from = now - mApplication.getPreferencesController().getPersistMessageDays() * 24L * 60L * 60L * 1000L;
+                    mApplication.getMessageController().loadMessagesSentFromUntil(chat.getChatGuid(), Message.TYPE_PRIVATE, from, now , queryDatabaseListener);
+
                     latch.await();
-                } catch (InterruptedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                } catch (Exception e) {
+                    LogUtil.e(TAG, "singleChatBackup: Got exception " + e.getMessage());
+                    continue;
                 }
+
                 innerData.add("messages", messages);
 
                 JsonObject singleChatBackup = new JsonObject();
@@ -728,6 +746,8 @@ public class BackupController {
             }
             if (chat.getType() == Chat.TYPE_GROUP_CHAT_INVITATION || chat.getType() == Chat.TYPE_GROUP_CHAT) {
                 JsonObject innerData = new JsonObject();
+
+                LogUtil.d(TAG, "groupChatBackup: Processing " + chat.getChatGuid() + " ...");
 
                 innerData.addProperty("guid", chat.getChatGuid());
                 innerData.addProperty("type", chat.getRoomType());
@@ -779,6 +799,10 @@ public class BackupController {
                     @Override
                     public void onListResult(List<Message> dbMessages) {
                         for (Message dbm : dbMessages) {
+                            if(dbm.getGuid() == null) {
+                                continue;
+                            }
+
                             JsonObject innerData = new JsonObject();
                             innerData.addProperty("guid", dbm.getGuid());
                             if (dbm.getDateSend() != null) {
@@ -800,6 +824,8 @@ public class BackupController {
                             if (je != null) {
                                 innerData.add("receiver", je);
                             }
+
+                            /* KS: Is not handled by any other client!
                             if (dbm.isSystemInfo()) {
 
                                 String guid = dbm.getGuid();
@@ -813,6 +839,8 @@ public class BackupController {
                                 // bis dahin
                                 continue;
                             }
+                             */
+
                             String clazzName = "GroupMessage";
                             if (dbm.getDateSendTimed() != null) {
                                 // Timed Message ....
@@ -826,6 +854,7 @@ public class BackupController {
                             messages.add(privateMessageBackup);
                         }
 
+                        LogUtil.d(TAG, "groupChatBackup: " + dbMessages.size() + " messages processed.");
                         latch.countDown();
                     }
 
@@ -840,12 +869,17 @@ public class BackupController {
                     }
                 };
 
-                mApplication.getMessageController().loadAllMessages(chat.getChatGuid(), Message.TYPE_GROUP, false, queryDatabaseListener);
-
                 try {
+                    // KS: Only collect messages within persistMessageDays
+                    //mApplication.getMessageController().loadAllMessages(chat.getChatGuid(), Message.TYPE_GROUP, false, queryDatabaseListener);
+                    long now = System.currentTimeMillis();
+                    long from = now - mApplication.getPreferencesController().getPersistMessageDays() * 24L * 60L * 60L * 1000L;
+                    mApplication.getMessageController().loadMessagesSentFromUntil(chat.getChatGuid(), Message.TYPE_GROUP, from, now , queryDatabaseListener);
+
                     latch.await();
-                } catch (InterruptedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                } catch (Exception e) {
+                    LogUtil.e(TAG, "groupChatBackup: Got exception " + e.getMessage());
+                    continue;
                 }
 
                 innerData.add("messages", messages);

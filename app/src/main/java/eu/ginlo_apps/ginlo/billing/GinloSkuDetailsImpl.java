@@ -17,12 +17,10 @@ package eu.ginlo_apps.ginlo.billing;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import eu.ginlo_apps.ginlo.billing.IabHelper;
-
 /**
  * Represents an in-app product's listing details.
  */
-public class SkuDetails {
+public class GinloSkuDetailsImpl {
 
     private final String mItemType;
     private final String mJson;
@@ -32,6 +30,7 @@ public class SkuDetails {
     private final String mTitle;
     private final String mDescription;
     private final String mPriceCurrency;
+    private final String mSkuDetailsToken;
 
     private final long mPriceMicros;
 
@@ -39,17 +38,17 @@ public class SkuDetails {
      *
      * @throws JSONException [!EXC_DESCRIPTION!]
      */
-    public SkuDetails(String jsonSkuDetails)
+    public GinloSkuDetailsImpl(String jsonSkuDetails)
             throws JSONException {
-        this(IabHelper.ITEM_TYPE_INAPP, jsonSkuDetails);
+        this(GinloBillingImpl.INAPP, jsonSkuDetails);
     }
 
     /**
      *
      * @throws JSONException [!EXC_DESCRIPTION!]
      */
-    public SkuDetails(String itemType,
-                      String jsonSkuDetails)
+    public GinloSkuDetailsImpl(String itemType,
+                               String jsonSkuDetails)
             throws JSONException {
         mItemType = itemType;
         mJson = jsonSkuDetails;
@@ -63,6 +62,11 @@ public class SkuDetails {
         mDescription = o.optString("description");
         mPriceMicros = o.optLong("price_amount_micros");
         mPriceCurrency = o.optString("price_currency_code");
+        mSkuDetailsToken = o.optString("skuDetailsToken");
+    }
+
+    public String getOriginalJson() {
+        return mJson;
     }
 
     public String getSku() {
@@ -89,12 +93,16 @@ public class SkuDetails {
         return mPriceCurrency;
     }
 
-    public double getPriceRaw() {
+    public double getPriceMicros() {
         return mPriceMicros / 1000000d;
+    }
+
+    public String getDetailsToken() {
+        return mSkuDetailsToken;
     }
 
     @Override
     public String toString() {
-        return "SkuDetails:" + mJson;
+        return "GinloSkuDetailsImpl:" + mJson;
     }
 }

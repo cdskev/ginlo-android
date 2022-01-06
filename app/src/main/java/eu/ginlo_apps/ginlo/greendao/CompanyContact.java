@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.greendao;
 
@@ -6,14 +6,13 @@ import androidx.annotation.NonNull;
 import android.util.Base64;
 import com.google.gson.*;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
-import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.model.constant.Encoding;
+import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.util.*;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import java.io.UnsupportedEncodingException;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
@@ -373,7 +372,7 @@ public class CompanyContact
                 return mClassType;
             }
 
-            mClassType = mGuid != null && mGuid.startsWith(GuidUtil.COMPANY_INDEX_ENTRY_GUID_PREFIX) ? eu.ginlo_apps.ginlo.greendao.Contact.CLASS_COMPANY_ENTRY : Contact.CLASS_DOMAIN_ENTRY;
+            mClassType = mGuid != null && mGuid.startsWith(AppConstants.GUID_COMPANY_INDEX_ENTRY_PREFIX) ? eu.ginlo_apps.ginlo.greendao.Contact.CLASS_COMPANY_ENTRY : Contact.CLASS_DOMAIN_ENTRY;
 
             return mClassType;
         }

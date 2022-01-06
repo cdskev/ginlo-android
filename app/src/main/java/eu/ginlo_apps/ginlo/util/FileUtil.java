@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.util;
 
@@ -40,7 +40,6 @@ import static eu.ginlo_apps.ginlo.model.constant.NumberConstants.INT_1024;
 
 public class FileUtil {
     private final static String TAG = FileUtil.class.getSimpleName();
-    private static final String BACKUP_ROOT_DIR = "Backup";
     private static final String TMP_FILES_FOLDER = "tmp_files";
     private static final String META_DIR = "meta_files";
     private static final String CONTENT = "content";
@@ -59,6 +58,8 @@ public class FileUtil {
 
     public FileUtil(final Context context) {
         this.context = context;
+
+        // KS: TODO: Refactor to work with SDK 30 and above!
         this.mediaDir = new File(
                 new File(Environment.getExternalStorageDirectory(), "ginlo"), "ginlo Media").getAbsolutePath();
 
@@ -355,12 +356,14 @@ public class FileUtil {
         File dest = new File(mediaDir, filename);
 
         if (dest.exists()) {
+            LogUtil.w(TAG, "save: Destination exists: " + dest.getPath());
             return null;
         }
 
         if (copy(source, dest)) {
             return Uri.fromFile(dest);
         } else {
+            LogUtil.w(TAG, "save: File " + source.getPath() + " save failed to " + dest.getPath());
             return null;
         }
     }
@@ -373,6 +376,9 @@ public class FileUtil {
 
     private boolean copy(File src,
                          File dst) {
+
+        LogUtil.d(TAG, "copy: Copy " + src.getPath() + " to " + dst.getPath());
+
         InputStream in = null;
         OutputStream out = null;
 
@@ -382,7 +388,7 @@ public class FileUtil {
             StreamUtil.copyStreams(in, out);
             return true;
         } catch (IOException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
+            LogUtil.e(TAG, "copy: failed with: " + e.getMessage());
         } finally {
             StreamUtil.closeStream(in);
             StreamUtil.closeStream(out);
@@ -522,7 +528,7 @@ public class FileUtil {
 
         File[] files = dir.listFiles();
 
-        if (files == null) {
+        if (files == null || files.length < 1) {
             return true;
         }
 
@@ -539,20 +545,6 @@ public class FileUtil {
         }
 
         return true;
-    }
-
-    @NonNull
-    public File getBackupDirectory()
-            throws LocalizedException {
-        File buDir = new File(context.getFilesDir(), BACKUP_ROOT_DIR);
-
-        if (!buDir.isDirectory()) {
-            if (!buDir.mkdirs()) {
-                throw new LocalizedException(LocalizedException.BACKUP_FOLDER_FAILED, "backup root directory: mkdir() failed");
-            }
-        }
-
-        return buDir;
     }
 
     /**

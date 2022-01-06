@@ -200,7 +200,7 @@
                             android:drawableStart="@drawable/fingerprint2"
                             android:drawablePadding="@dimen/half_padding"
                             android:textColor="@color/action"
-                            android:textSize="20sp"
+                            app:styledTextSize="mediumTitleTextSize"
                             app:styledTextColor="action"/>
 
                         <androidx.appcompat.widget.AppCompatTextView

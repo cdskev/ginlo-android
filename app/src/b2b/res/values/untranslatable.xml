@@ -36,6 +36,7 @@
     <string name="mdm_simsPasswordTries_title" translatable="false">simsPasswordTries</string>
     <string name="app_label_debug" translatable="false">B2B D</string>
     <string name="app_label_debug_stg" translatable="false">B2B DS</string>
+    <string name="app_label_debug_rId" translatable="false">B2B DbgRId</string>
     <string name="app_label_release" translatable="false">ginlo Business</string>
     <string name="app_label_release_stg" translatable="false">B2B RS</string>
 </resources>

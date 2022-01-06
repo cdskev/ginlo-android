@@ -1,163 +1,124 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.preferences
 
+import android.annotation.SuppressLint
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
+import android.widget.NumberPicker
+import android.widget.RelativeLayout
+import androidx.appcompat.app.AlertDialog
 import eu.ginlo_apps.ginlo.BuildConfig
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.activity.preferences.base.PreferencesBaseActivity
-import eu.ginlo_apps.ginlo.controller.NotificationController
 import eu.ginlo_apps.ginlo.controller.PreferencesController
 import eu.ginlo_apps.ginlo.data.network.AppConnectivity
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.log.LogUtil
+import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
 import kotlinx.android.synthetic.main.activity_preferences_appearance.*
 import javax.inject.Inject
 
 class PreferencesAppearanceActivity : PreferencesBaseActivity() {
 
-    private val preferencesController: PreferencesController by lazy { simsMeApplication.preferencesController }
-    private val notificationController: NotificationController by lazy { simsMeApplication.notificationController }
-
-    @Inject
-    internal lateinit var appConnectivity: AppConnectivity
-
-    override fun onCreateActivity(savedInstanceState: Bundle?) {
-        // Handle Darkmode switch
-        // May be disabled by a locked theme (e.g. company layout enforced)
-        if(!preferencesController.isThemeLocked()) {
-            preferences_appearance_switch_darkmode.isEnabled = true
-            preferences_appearance_switch_darkmode.setOnCheckedChangeListener { buttonView, isChecked ->
-                if (!settingsSwitch) {
-                    try {
-                        preferencesController.setDarkmodeEnabled(isChecked)
-                        LogUtil.d(this.javaClass.name, "Darkmode setting is now " + preferencesController.getDarkmodeEnabled())
-                        // Show possible effects immediately
-                        runOnUiThread { recreate() }
-                    } catch (e: LocalizedException) {
-                        setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)
-                        LogUtil.w(this.javaClass.name, e.message, e)
-                    }
-                }
-            }
-
-            try {
-                setCompoundButtonWithoutTriggeringListener(
-                        preferences_appearance_switch_darkmode,
-                    preferencesController.getDarkmodeEnabled()
-                )
-            } catch (e: LocalizedException) {
-                LogUtil.w(this.javaClass.name, e.message, e)
-            }
-        } else {
-            preferences_appearance_switch_darkmode.isEnabled = false
-            preferences_appearance_switch_darkmode.isChecked = false
+        companion object {
+                private const val TAG = "PreferencesAppearanceActivity"
         }
 
-        // Handle Screenshot switch
-        // Disabled, if BuildConfig  says so!
-        if (BuildConfig.ALWAYS_ALLOW_SCREENSHOTS) {
-            preferences_appearance_switch_screenshot.isEnabled = true
-            preferences_appearance_switch_screenshot.setOnCheckedChangeListener { buttonView, isChecked ->
-                if (!settingsSwitch) {
-                    try {
-                        preferencesController.setScreenshotsEnabled(isChecked)
-                    } catch (e: LocalizedException) {
-                        setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)
-                        LogUtil.w(this.javaClass.name, e.message, e)
-                    }
-                }
-            }
+        @Inject
+        internal lateinit var appConnectivity: AppConnectivity
 
-            try {
-                setCompoundButtonWithoutTriggeringListener(
-                        preferences_appearance_switch_screenshot,
-                        preferencesController.getScreenshotsEnabled()
-                )
-            } catch (e: LocalizedException) {
-                LogUtil.w(this.javaClass.name, e.message, e)
-            }
+        override fun onCreateActivity(savedInstanceState: Bundle?) {}
 
-        } else {
-            preferences_appearance_switch_screenshot.isEnabled = false
-            preferences_appearance_switch_screenshot.isChecked = false
+        override fun getActivityLayout(): Int {
+                return R.layout.activity_preferences_appearance
         }
 
-        // Handle ginloOngoingService switch
-        // Disabled, if BuildConfig  says so!
-        if (BuildConfig.HAVE_GINLO_ONGOING_SERVICE) {
-            preferences_appearance_switch_ginlo_ongoing_service.isEnabled = true
-            preferences_appearance_switch_ginlo_ongoing_service.setOnCheckedChangeListener { buttonView, isChecked ->
-                if (!settingsSwitch) {
-                    try {
-                        preferencesController.setGinloOngoingServiceEnabled(isChecked)
-                    } catch (e: LocalizedException) {
-                        setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)
-                        LogUtil.w(this.javaClass.name, e.message, e)
-                    }
+        override fun onResumeActivity() {
+                setThemeModeChooser()
+                if(preferencesController.isThemeLocked()) {
+                        val themeModeView = findViewById<RelativeLayout>(R.id.preferences_appearance_layout_theme_mode)
+                        if(themeModeView != null) {
+                                preferences_appearance_textview_theme_mode.text = "<LOCKED>"
+                                themeModeView.isEnabled = false;
+                        }
                 }
-                if (isChecked) {
-                    preferences_appearance_switch_ongoing_notification.visibility = View.VISIBLE
-                    preferences_appearance_switch_ongoing_notification.isEnabled = true
-                } else {
-                    preferences_appearance_switch_ongoing_notification.visibility = View.GONE
-                }
-            }
-
-            try {
-                setCompoundButtonWithoutTriggeringListener(
-                        preferences_appearance_switch_ginlo_ongoing_service,
-                        preferencesController.getGinloOngoingServiceEnabled()
-                )
-            } catch (e: LocalizedException) {
-                LogUtil.w(this.javaClass.name, e.message, e)
-            }
-
-            if (preferencesController.getGinloOngoingServiceEnabled()) {
-                preferences_appearance_switch_ongoing_notification.visibility = View.VISIBLE
-                preferences_appearance_switch_ongoing_notification.isEnabled = true
-            } else {
-                preferences_appearance_switch_ongoing_notification.visibility = View.GONE
-            }
-        } else {
-            preferences_appearance_header_ginlo_ongoing_service.visibility = View.GONE
-            preferences_appearance_switch_ginlo_ongoing_service.visibility = View.GONE
-            preferences_appearance_switch_ongoing_notification.visibility = View.GONE
-            preferences_appearance_divider_ongoing_notification.visibility = View.GONE
-            // Default setting should always be off
-            preferencesController.setGinloOngoingServiceEnabled(false)
         }
 
-        // Handle ginloOngoingServiceNotification switch
-        preferences_appearance_switch_ongoing_notification.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (!settingsSwitch) {
+        private fun setThemeModeChooser() {
                 try {
-                    preferencesController.setGinloOngoingServiceNotificationEnabled(isChecked)
-                    if(!isChecked) {
-                        notificationController.dismissOngoingNotification()
-                    } else {
-                        notificationController.showOngoingServiceNotification(simsMeApplication.getString(R.string.notification_gos_running))
-                    }
+                        when (preferencesController.getThemeMode()) {
+                                PreferencesController.THEME_MODE_LIGHT ->
+                                        preferences_appearance_textview_theme_mode.setText(R.string.settings_appearance_theme_mode_light)
+                                PreferencesController.THEME_MODE_DARK ->
+                                        preferences_appearance_textview_theme_mode.setText(R.string.settings_appearance_theme_mode_dark)
+                                PreferencesController.THEME_MODE_AUTO ->
+                                        preferences_appearance_textview_theme_mode.setText(R.string.settings_appearance_theme_mode_auto)
+                                else -> {
+                                        LogUtil.w(TAG, "setDarkmodeChooser: Out of range " +
+                                                preferencesController.getThemeMode() + ". Reset setting.")
+
+                                        preferences_appearance_textview_theme_mode.setText(R.string.settings_appearance_theme_mode_light)
+                                        preferencesController.setThemeMode(BuildConfig.DEFAULT_THEME_MODE)
+                                        preferencesController.setThemeChanged(true)
+                                }
+                        }
+
                 } catch (e: LocalizedException) {
-                    setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)
-                    LogUtil.w(this.javaClass.name, e.message, e)
+                        LogUtil.e(TAG, "setDarkmodeChooser: " + e.message)
                 }
-            }
         }
 
-        try {
-            setCompoundButtonWithoutTriggeringListener(
-                    preferences_appearance_switch_ongoing_notification,
-                    preferencesController.getGinloOngoingServiceNotificationEnabled()
-            )
-        } catch (e: LocalizedException) {
-            LogUtil.w(this.javaClass.name, e.message, e)
+        @SuppressLint("InflateParams")
+        fun handleThemeModeClick(@Suppress("UNUSED_PARAMETER") view : View) {
+
+                val dialogView = layoutInflater.inflate(R.layout.dialog_choose_theme_mode, null)
+
+                dialogView.findViewById<NumberPicker>(R.id.theme_mode_picker).apply {
+                        minValue = 0
+                        maxValue = 2
+                        wrapSelectorWheel = false
+                        isClickable = true
+                        displayedValues = arrayOf(
+                                getString(R.string.settings_appearance_theme_mode_light),
+                                getString(R.string.settings_appearance_theme_mode_dark),
+                                getString(R.string.settings_appearance_theme_mode_auto)
+                        )
+                        descendantFocusability = NumberPicker.FOCUS_BLOCK_DESCENDANTS
+                }
+
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle(R.string.settings_appearance_darkmode)
+
+                val onClickListener = DialogInterface.OnClickListener { _, _ ->
+                        try {
+                                when (dialogView.findViewById<NumberPicker>(R.id.theme_mode_picker).value) {
+                                        0 -> preferencesController.setThemeMode(PreferencesController.THEME_MODE_LIGHT)
+                                        1 -> preferencesController.setThemeMode(PreferencesController.THEME_MODE_DARK)
+                                        2 -> preferencesController.setThemeMode(PreferencesController.THEME_MODE_AUTO)
+                                }
+                                setThemeModeChooser()
+                        } catch (e: LocalizedException) {
+                                LogUtil.e(TAG, "handleThemeModeClick: " + e.message)
+                        }
+                        runOnUiThread { recreate() }
+
+                }
+                builder.setView(dialogView).setPositiveButton(android.R.string.ok, onClickListener)
+                val dialog = builder.create()
+                DialogBuilderUtil.colorizeButtons(this, dialog)
+                dialog.show()
         }
-    }
 
-    override fun getActivityLayout(): Int {
-        return R.layout.activity_preferences_appearance
-    }
-
-    override fun onResumeActivity() {}
+        fun handleDesignConfigResetClick(@Suppress("UNUSED_PARAMETER") view: View) {
+                try {
+                        preferencesController.setThemeMode(BuildConfig.DEFAULT_THEME_MODE)
+                        preferencesController.setThemeName(BuildConfig.DEFAULT_THEME)
+                        preferencesController.setThemeChanged(true)
+                        setThemeModeChooser()
+                } catch (e: LocalizedException) {
+                        LogUtil.e(TAG, "handleDesignConfigResetClick: " + e.message)
+                }
+                runOnUiThread { recreate() }
+        }
 }

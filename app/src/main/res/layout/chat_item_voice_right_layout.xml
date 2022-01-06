@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:dpag="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -55,7 +55,7 @@
                         android:layout_centerInParent="true"
                         android:layout_gravity="center_vertical|center_horizontal"
                         android:src="@drawable/channel_item_bg_black"
-                        dpag:mask="@drawable/sound_placeholder_not_loaded" />
+                        app:mask="@drawable/sound_placeholder_not_loaded" />
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/chat_item_data_placeholder"
@@ -82,7 +82,7 @@
                         android:gravity="center_horizontal"
                         android:text="@string/chats_voiceMessage_title"
                         android:textColor="@color/main"
-                        android:textSize="17sp"
+                        app:styledTextSize="messageTextSize"
                         android:textStyle="normal" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -94,7 +94,7 @@
                         android:singleLine="true"
                         android:text="@string/chats_voiceMessage_play"
                         android:textColor="@color/main"
-                        android:textSize="17sp"
+                        app:styledTextSize="messageTextSize"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>

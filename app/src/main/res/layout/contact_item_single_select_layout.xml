@@ -66,7 +66,7 @@
                         android:maxLength="@integer/profile_and_group_name_max_length"
                         android:singleLine="true"
                         android:text=""
-                        android:textSize="17sp"
+                        app:styledTextSize="messageTextSize"
                         app:styledTextColor="mainContrast" />
 
                     <androidx.emoji.widget.EmojiAppCompatTextView
@@ -98,7 +98,7 @@
                     android:paddingBottom="2dp"
                     android:singleLine="true"
                     android:text="@string/simsme"
-                    android:textSize="10sp"
+                    app:styledTextSize="labelTextSize"
                     android:visibility="visible"
                     app:textAllCaps="true" />
             </RelativeLayout>

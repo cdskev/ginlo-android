@@ -2,15 +2,15 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'testdroid'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'io.sentry.android.gradle'
 apply plugin: "de.mannodermaus.android-junit5"
 
-project.gradle.taskGraph.whenReady {
-    connectedAndroidTest {
-        ignoreFailures = true
-    }
+def localProperties = new Properties()
+try {
+    localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+} catch (Exception e) {
+    logger.warn("No Local Properties File Found!")
 }
 
 static def getHostName() {
@@ -58,10 +58,14 @@ dependencies {
             }
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     implementation 'com.googlecode.libphonenumber:libphonenumber:8.10.11'
 
     implementation 'org.slf4j:slf4j-api:1.7.25'
     implementation 'com.github.tony19:logback-android:2.0.0'
+
+    // Google Play Billing Library
+    implementation "com.android.billingclient:billing:$billing_version"
 
     // Exoplayer
     implementation 'com.google.android.exoplayer:exoplayer-core:2.14.1'
@@ -90,11 +94,6 @@ dependencies {
     // sentry integration
     implementation "io.sentry:sentry-android:$sentry_version"
 
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$junit_version"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junit_version"
-    testImplementation "io.mockk:mockk:1.9.3"
-    testImplementation 'com.flextrade.jfixture:jfixture:2.7.2'
-
     // seems having issue updating to new version.
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.1.0"
@@ -102,7 +101,6 @@ dependencies {
 
     implementation "androidx.work:work-runtime:$work_version"
     implementation "androidx.work:work-runtime-ktx:$work_version"
-    androidTestImplementation "androidx.work:work-testing:$work_version"
 }
 
 android {
@@ -119,13 +117,13 @@ android {
         }
         b2creleaseConfig {
             storeFile file('keystore/ginlo-b2capp.keystore')
-            storePassword b2c_keystorePW
+            storePassword localProperties['b2c_keystorePW']
             keyAlias = 'upload'
-            keyPassword b2c_uploadPW
+            keyPassword localProperties['b2c_uploadPW']
         }
     }
-    compileSdkVersion 29
-    buildToolsVersion '29.0.2'
+    compileSdkVersion 30
+    buildToolsVersion '29.0.3'
 
     // For JitsiMeet
     compileOptions {
@@ -135,33 +133,17 @@ android {
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 30
         setVersionCode(generateVersionCode())
         setVersionName(generateVersionName())
         lintAbortOnError = true
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // App constants
-        applicationId 'eu.ginlo_apps.ginlo'
-        // TODO: Remove oldScheme in the future. It is for backward compatibility only - see also AndroidManifest.xml
-        manifestPlaceholders = [appLabel: "@string/app_label_release",
-                                appScheme: "ginlo",
-                                oldScheme: "simsme",
-                                google_maps_key: ""]
-        buildConfigField("String", "APP_URL_SCHEME", '"ginlo"')
-        buildConfigField("String", "CLASS_UTIL", '".util.notobfuscate.ClassUtil"')
         buildConfigField("String", "GINLO_APP_NAME", '"ginlo"')
-        buildConfigField("String", "APP_NAME_INTERNAL", '"ginlo"')
-        buildConfigField("String", "SIMSME_MANDANT", '"default"')
         buildConfigField("String", "SIMSME_MANDANT_DEFAULT", '"default"')
         buildConfigField("String", "SIMSME_MANDANT_BA", '"ba"')
-        buildConfigField("String", "DEFAULT_LIGHT_THEME", '"GinloThemeLight"')
-        buildConfigField("String", "DEFAULT_DARK_THEME", '"GinloThemeDark"')
-        buildConfigField("String", "ACTIVITY_AFTER_INTRO", '".activity.register.PasswordActivity"')
-        buildConfigField("String", "ACTIVITY_AFTER_REGISTRATION", '".ChatsOverviewActivity"')
-        buildConfigField("String", "ACTIVITY_AFTER_CONFIRM_ACCOUNT", '".activity.register.InitProfileActivity"')
-        buildConfigField("String", "ALLOWED_MANDANT_BACKUPS", '"default"')
-        buildConfigField("String", "ALLOWED_BACKUP_SALTS", '"ALLOWED_BACKUP_SALTS"')
+        buildConfigField("String", "DEFAULT_THEME", '"GinloDefaultTheme"')
+        buildConfigField("String", "DEFAULT_THEME_MODE", '"Light"')
         buildConfigField("int", "REGISTER_NAVIGATE_BACK_WAIT_TIME_MILLIS", '300000')
         buildConfigField("String", "RECOMMENDED_CHANNEL_GUID", 'null')
 
@@ -177,55 +159,79 @@ android {
         buildConfigField("String", "SERVER_SALT", '"SERVER_SALT"')
         buildConfigField("String", "APP_PASSWORD_BCRYPT", '""')
         buildConfigField("Boolean", "CERTIFICATE_PINNING_ENABLED", 'false')
-        buildConfigField("String", "APPLICATION_PUBLIC_KEY", 'null')
-
-        // App features
-        buildConfigField("Boolean", "MULTI_DEVICE_SUPPORT", 'true')
-        // If MULTI_DEVICE_SUPPORT is enabled SYNC_PRIVATE_INDEX_TO_SERVER must always be true
-        buildConfigField("Boolean", "SYNC_PRIVATE_INDEX_TO_SERVER", 'true')
-        buildConfigField("Boolean", "ENABLE_CREATION_OF_ANNOUNCEMENT_GROUPS", 'false')
-        buildConfigField("Boolean", "ENABLE_CHANNELS", 'true')
-        buildConfigField("Boolean", "ENABLE_SERVICES", 'false')
-        buildConfigField("Boolean", "ENABLE_INVITE_FRIENDS", 'true')
-        buildConfigField("Boolean", "ALWAYS_ALLOW_SCREENSHOTS", 'true')
 
         // More app configs
-        buildConfigField("Boolean", "ACCOUNT_NEEDS_LICENCE", 'false')
-        buildConfigField("Boolean", "NEED_PHONENUMBER_VALIDATION", 'false')
+        buildConfigField("String", "QR_CODE_VERSION", '"V3"')
         buildConfigField("Boolean", "FORCE_GERMAN", 'false')
         buildConfigField("Boolean", "HAVE_GINLO_ONGOING_SERVICE", 'false')
         buildConfigField("Boolean", "USE_BOOT_COMPLETED_RECEIVER", 'false')
         // Shall APP_GINLO_CONTROL messages be displayed in chats?
         buildConfigField("Boolean", "SHOW_AGC_MESSAGES", 'true')
+        buildConfigField("Boolean", "USE_SYSTEM_ALERT_WINDOW_FOR_AVC", 'true')
         buildConfigField("int", "LICENSE_EXPIRATION_WARNING_DAYS", '7')
         buildConfigField("int", "CHANNEL_DELETE_MESSAGE_MAXDAYS", '7')
     }
 
     productFlavors {
         // ginlo Private
+        // ginlo Private
         b2c {
             signingConfig signingConfigs.b2creleaseConfig
+
+            // TODO: Remove oldScheme in the future. It is for backward compatibility only - see also AndroidManifest.xml
+            manifestPlaceholders = [appLabel: "@string/app_label_release",
+                                    appScheme: "ginlo",
+                                    oldScheme: "simsme",
+                                    google_maps_key: ""]
+
+            // App constants
+            buildConfigField("String", "CLASS_UTIL", '".util.notobfuscate.ClassUtil"')
+            buildConfigField("String", "APP_NAME_INTERNAL", '"ginlo"')
+            buildConfigField("String", "SIMSME_MANDANT", '"default"')
+            buildConfigField("String", "ACTIVITY_AFTER_INTRO", '".activity.register.PasswordActivity"')
+            buildConfigField("String", "ACTIVITY_AFTER_REGISTRATION", '".ChatsOverviewActivity"')
+            buildConfigField("String", "ACTIVITY_AFTER_CONFIRM_ACCOUNT", '".activity.register.InitProfileActivity"')
+            buildConfigField("String", "ALLOWED_MANDANT_BACKUPS", '"default"')
+            buildConfigField("String", "ALLOWED_BACKUP_SALTS", '""')
+
+            // Server and api constants and settings
+            buildConfigField("String", "PUBLIC_KEY_BASE64", 'null')
+            buildConfigField("String", "SERVER_SALT", '""')
+            buildConfigField("int", "DEFAULT_PERSIST_MESSAGE_DAYS", '30')
+
+            // App features
+            buildConfigField("Boolean", "MULTI_DEVICE_SUPPORT", 'true')
+            // If MULTI_DEVICE_SUPPORT is enabled SYNC_PRIVATE_INDEX_TO_SERVER must always be true
+            buildConfigField("Boolean", "SYNC_PRIVATE_INDEX_TO_SERVER", 'true')
+            buildConfigField("Boolean", "ENABLE_CREATION_OF_ANNOUNCEMENT_GROUPS", 'false')
+            buildConfigField("Boolean", "ENABLE_CHANNELS", 'true')
+            buildConfigField("Boolean", "ENABLE_SERVICES", 'false')
+            buildConfigField("Boolean", "ENABLE_INVITE_FRIENDS", 'true')
+            buildConfigField("Boolean", "ALWAYS_ALLOW_SCREENSHOTS", 'true')
+
+            // More app configs
+            buildConfigField("Boolean", "ACCOUNT_NEEDS_LICENCE", 'false')
+            buildConfigField("Boolean", "NEED_PHONENUMBER_VALIDATION", 'false')
         }
     }
 
     buildTypes {
 
         debug {
-            println("Revision:" + generateVersionCode())
             debuggable true
             applicationIdSuffix ".debug"
             versionNameSuffix ".Debug"
             signingConfig signingConfigs.debugConfig
-            manifestPlaceholders = [appLabel: "@string/app_label_debug", appSchemeSuffix: "debug"]
+            manifestPlaceholders = [appLabel: "@string/app_label_debug"]
+            println("Revision: " + generateVersionName() + versionNameSuffix)
             println("Hostname: " + getHostName().toString())
         }
         release {
             debuggable false
+            applicationIdSuffix ""
+            versionNameSuffix ""
             minifyEnabled true
             proguardFile('proguard-project.txt')
-            // (ks) Depends on build flavor
-            // signingConfig signingConfigs.releaseConfig
-            manifestPlaceholders = [appSchemeSuffix: ""]
 
             lintOptions {
                 checkReleaseBuilds true
@@ -233,16 +239,12 @@ android {
                 // but continue the build even when errors are found:
                 abortOnError lintAbortOnError
             }
+
+            println("Revision: " + generateVersionName() + versionNameSuffix)
+            println("Hostname: " + getHostName().toString())
         }
    }
 
-    tasks.withType(Test) {
-        testLogging {
-            exceptionFormat "full"
-            events 'failed', 'skipped', 'started', 'passed'
-            showStandardStreams true
-        }
-    }
     sourceSets {
         b2c {java.srcDirs = ['src/b2c/java', 'src/b2c/java/eu/ginlo_apps/ginlo'] }
     }

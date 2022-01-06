@@ -25,7 +25,7 @@
         android:onClick="handleInviteClick"
         android:text="@string/contact_list_invite_contact"
         android:textColor="@color/overlayContrast"
-        android:textSize="17sp"
+        app:styledTextSize="messageTextSize"
         android:textStyle="bold"
         app:styledIconColor="overlayContrast"
         app:styledTextColor="overlayContrast" />
@@ -46,7 +46,7 @@
         android:onClick="createContact"
         android:text="@string/contact_list_new_contact"
         android:textColor="@color/overlayContrast"
-        android:textSize="17sp"
+        app:styledTextSize="messageTextSize"
         android:textStyle="bold"
         app:styledIconColor="overlayContrast"
         app:styledTextColor="overlayContrast" />
@@ -68,7 +68,7 @@
         android:onClick="refreshContacts"
         android:text="@string/contact_list_refresh"
         android:textColor="@color/overlayContrast"
-        android:textSize="17sp"
+        app:styledTextSize="messageTextSize"
         android:textStyle="bold"
         app:styledIconColor="overlayContrast"
         app:styledTextColor="overlayContrast" />

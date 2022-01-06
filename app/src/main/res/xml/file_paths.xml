@@ -3,6 +3,4 @@
     <files-path name="share" path="share/"/>
     <files-path name="tmp_files" path="tmp_files/"/>
     <files-path name="log_files" path="log_files"/>
-    <external-path name="external_files" path="." />
-    <external-files-path name="ginlo" path="ginlo/" />
 </paths>

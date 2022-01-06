@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.concurrent.task;
 
@@ -104,9 +104,10 @@ public class ConvertToChatItemVOTask
                                                 final String shortLinkText,
                                                 final String channelType)
             throws LocalizedException {
-        BaseChatItemVO returnChatItemVO = null;
-        DecryptedMessage decryptedMsg = chatController.decryptMessage(message);
 
+        BaseChatItemVO returnChatItemVO = null;
+
+        DecryptedMessage decryptedMsg = application.getMessageDecryptionController().decryptMessage(message, false);
         if (decryptedMsg == null) {
             return null;
         }

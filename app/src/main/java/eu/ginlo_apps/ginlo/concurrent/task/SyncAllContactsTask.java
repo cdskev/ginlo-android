@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.concurrent.task;
 
 import android.database.Cursor;
@@ -697,12 +697,12 @@ public class SyncAllContactsTask extends ConcurrentTask {
             final String logMessage;
             //Prüfen ob es die Telefonnummer oder E-Mail-Adresse nochmal an einen anderen Account gibt
             if (hasNewerContact(contact.getPhoneNumber(), contact.getEmail())) {
-                LogUtil.w(TAG, "hideDeletedContactLocally: hasNewerContact: " + contact.getAccountGuid());
+                LogUtil.w(TAG, "notifyChatControllerOfRemovedAccount: hasNewerContact: " + contact.getAccountGuid());
                 logMessage = mContext
                         .getString(R.string.chat_system_message_alertAccountRegistrationAgain2,
                                 name);
             } else {
-                LogUtil.w(TAG, "hideDeletedContactLocally: account has signed out: " + contact.getAccountGuid());
+                LogUtil.w(TAG, "notifyChatControllerOfRemovedAccount: account has signed out: " + contact.getAccountGuid());
                 logMessage = mContext
                         .getString(R.string.chat_system_message_removeAccountRegistrationAgain,
                                 name);

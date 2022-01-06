@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo;
 
@@ -22,6 +22,7 @@ import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
+import eu.ginlo_apps.ginlo.util.PermissionUtil;
 
 import static eu.ginlo_apps.ginlo.util.StringUtil.isNullOrEmpty;
 
@@ -48,6 +49,7 @@ public class AVCallMenuActivity extends AppCompatActivity {
     private String mSenderGuid;
     private int mFromNotification;
     private int mAction;
+    private PermissionUtil mPermissionUtil;
 
     private final SimsMeApplication mApplication;
     private final AVChatController avChatController;
@@ -62,7 +64,9 @@ public class AVCallMenuActivity extends AppCompatActivity {
         mAction = ACTION_NONE;
     }
 
-    // Turn screen on, if device is sleeping/locked
+    /**
+     * Turn screen on, if device is sleeping/locked
+     */
     private void activateAndUnlockScreen() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true);
@@ -77,7 +81,7 @@ public class AVCallMenuActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         // May be null, which is the case if Android version is below 8.0 (Oreo)
         if (avChatController == null) {
             finish();
@@ -86,13 +90,25 @@ public class AVCallMenuActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
+        // Init notification listener
+        NotificationController.AVCNotificationListener notificationListener = new NotificationController.AVCNotificationListener() {
+            @Override
+            public void onCancelAVCNotification() {
+                LogUtil.d(TAG, "onCancelAVCNotification: Called - finish this.");
+                finish();
+            }
+        };
+        notificationController.setAVCallMenuListener(notificationListener);
+
         // Make sure to turn screen on if device is sleeping/locked
         activateAndUnlockScreen();
 
         // First, let's have a look where we come from and what to do ...
-        mFromNotification = getIntent().hasExtra(EXTRA_FROM_NOTIFICATION) ? getIntent().getIntExtra(EXTRA_FROM_NOTIFICATION, -1) : -1;
-        mAction = getIntent().hasExtra(EXTRA_ACTION) ? getIntent().getIntExtra(EXTRA_ACTION, ACTION_NONE) : ACTION_NONE;
+        mFromNotification = getIntent().getIntExtra(EXTRA_FROM_NOTIFICATION, -1);
+        mAction = getIntent().getIntExtra(EXTRA_ACTION, ACTION_NONE);
         mSenderGuid = getIntent().getStringExtra(EXTRA_FROM_GUID);
+
+        LogUtil.d(TAG, "onCreate: Start for EXTRA_ACTION = " + mAction);
 
         // Now see whether we have the user choose the action. If we have ACTION_ASK set, show call menu.
         switch (mAction) {
@@ -107,35 +123,37 @@ public class AVCallMenuActivity extends AppCompatActivity {
                     }
                 }
 
-                // If we are called by notification, set a timeout.
-                if(mFromNotification != -1) {
-                    final Handler dismissHandler = new Handler(Looper.getMainLooper());
-                    Runnable dismissRunner = new Runnable() {
-                        public void run() {
-                            LogUtil.i(TAG, "AvcallActivity Timeout - dismissed!");
-                            notificationController.dismissNotification(mFromNotification);
-                            finish();
-                        }
-                    };
-                    dismissHandler.postDelayed(dismissRunner, NotificationController.DISMISS_NOTIFICATION_TIMEOUT);
-                    LogUtil.i(TAG, "Runner for fullscreen notification cancellation initialized!");
+                // Only play own ringtone if there was not initialization by notification
+                // which plays a ringtone on their own.
+                if(mFromNotification == -1) {
+                    notificationController.playRingtone();
                 }
+
+                // Cancel after DISMISS_NOTIFICATION_TIMEOUT
+                final Handler dismissHandler = new Handler(Looper.getMainLooper());
+                Runnable dismissRunner = new Runnable() {
+                    public void run() {
+                        LogUtil.i(TAG, "AvcallMenuActivity Timeout - dismissed!");
+                        // Cancel all AVC notifications and finish this upon callback.
+                        notificationController.cancelAVCallNotification();
+                    }
+                };
+                dismissHandler.postDelayed(dismissRunner, NotificationController.DISMISS_NOTIFICATION_TIMEOUT);
+                LogUtil.d(TAG, "Runner for fullscreen activity cancellation initialized!");
                 return;
             case ACTION_AUDIO_CALL:
                 avChatController.setCallType(AVChatController.CALL_TYPE_AUDIO_ONLY);
-                notificationController.dismissNotification(mFromNotification);
                 avChatController.sendCallAcceptMessage(mSenderGuid, null);
                 break;
             case ACTION_VIDEO_CALL:
                 avChatController.setCallType(AVChatController.CALL_TYPE_AUDIO_VIDEO);
-                notificationController.dismissNotification(mFromNotification);
                 avChatController.sendCallAcceptMessage(mSenderGuid, null);
                 break;
             case ACTION_DISMISS:
                 // We don't want a call. Finish this and exit
-                notificationController.dismissNotification(mFromNotification);
                 avChatController.sendCallRejectMessage(mSenderGuid, null);
-                finish();
+                // Cancel all AVC notifications and finish this upon callback.
+                notificationController.cancelAVCallNotification();
                 return;
             case ACTION_NONE:
                 // ACTION_NONE means, that we may have been called directly - not through notification.
@@ -143,25 +161,33 @@ public class AVCallMenuActivity extends AppCompatActivity {
                 break;
             default:
                 // Should not happen
-                LogUtil.w(TAG, "Undefined action in AVCActivity. Terminate.");
+                LogUtil.e(TAG, "Undefined action in AVCActivity. Terminate.");
                 avChatController.setCallStatus(AVChatController.CALL_STATUS_ERROR);
                 finish();
                 return;
 
         }
+
         if (!initAndStartAVCall()) {
             LogUtil.w(TAG, "Could not start AVC, initAndStartAVCall() failed for some reason.");
             avChatController.setCallStatus(AVChatController.CALL_STATUS_ERROR);
         }
-        finish();
+
+        // Cancel all AVC notifications and finish this upon callback.
+        notificationController.cancelAVCallNotification();
     }
 
-    public void onButtonClick(View view) {
+    public void onLayoutClick(View view) {
+        notificationController.stopRingtone();
+    }
+
+        public void onButtonClick(View view) {
         boolean doCall = false;
-        notificationController.dismissNotification(mFromNotification);
 
         // Make sure to turn screen on if device is sleeping/locked
         activateAndUnlockScreen();
+
+        LogUtil.d(TAG, "onButtonClick: view.getId = " + view.getId());
 
         switch (view.getId()) {
             case R.id.button_audio_pickup:
@@ -194,7 +220,8 @@ public class AVCallMenuActivity extends AppCompatActivity {
                 avChatController.setCallStatus(AVChatController.CALL_STATUS_ERROR);
             }
         }
-        finish();
+        // Cancel all AVC notifications and finish this upon callback.
+        notificationController.cancelAVCallNotification();
     }
 
     private boolean initAndStartAVCall() {

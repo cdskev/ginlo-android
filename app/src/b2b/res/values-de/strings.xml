@@ -24,7 +24,7 @@
     <string name="business_trial_button_test_now">Jetzt Testphase starten</string>
     <string name="business_trial_days">Tage kostenlos testen</string>
 	<string name="business_trial_days30">30</string>
-    <string name="business_trial_dialog_trial_expired">Ihre 30-tätige Testphase ist abgelaufen.</string>
+    <string name="business_trial_dialog_trial_expired">Ihre 30tägige Testphase ist abgelaufen.</string>
     <string name="business_trial_header">Jetzt ginlo Business kostenlos testen - erst danach brauchen Sie einen Lizenzcode.</string>
     <string name="business_trial_text">Sie haben schon eine gültige ginlo Business Lizenz? Dann bitte hier eingeben.</string>
     <string name="business_trial_title">Ihre Testphase</string>
@@ -68,7 +68,6 @@
     <string name="dialog_email_activiation_code_sent_text">Wir haben eine E-Mail an %1$s geschickt.</string>
     <string name="dialog_email_verfication_code_too_short">Dieser Bestätigungscode stimmt nicht so ganz. Bitte versuchen Sie es nochmal.</string>
     <string name="dialog_email_verfication_succeeded">Prima, das hat geklappt. Die E-Mail-Adresse %1$s ist jetzt mit Ihrem Account verknüpft.</string>
-    <string name="dialog_licence_check">Es wird geprüft, ob zu Ihrer Handynummer eine Lizenz vorhanden ist...</string>
     <string name="dialog_licence_is_about_to_expire_negative">Später erinnern</string>
     <string name="dialog_licence_is_about_to_expire_positive">Lizenz verlängern</string>
     <string name="dialog_licence_is_about_to_expire_text">Ihre Lizenz wird in weniger als einer Woche ablaufen. Bitte fordern Sie von Ihrem Administrator eine Lizenzverlängerung an.</string>
@@ -142,8 +141,6 @@
     <string name="mdm_register_6">Profil wird vervollständigt...</string>
     <string name="mdm_simsLockApplicationDelay_description">Passwortabfrage nach X Minuten</string>
     <string name="mdm_simsPasswordTries_description">Anzahl Versuche Passworteingabe</string>
-	<string name="permission_rationale_title">Bitte erlauben Sie ginlo Business Zugriff</string>
-	<string name="permission_rationale_rec_audio_phone_settings">ginlo Business braucht Berechtigungen, um auf das Mikrofon zuzugreifen. Diese können Sie in den App-Einstellungen Ihres Geräts vergeben.</string>
     <string name="profile_info_email_button_enter_code">Code eingeben</string>
     <string name="profile_info_email_button_extend_licence">Lizenz verlängern</string>
     <string name="profile_info_email_button_register_mail">E-Mail verknüpfen</string>
@@ -155,6 +152,7 @@
     <string name="profile_set_status_empty">Bitte geben Sie einen Statustext ein.</string>
     <string name="purchase_licence_hint">Erwerben Sie jetzt eine Lizenz und genießen Sie die Vorteile von ginlo Business.</string>
     <string name="purchase_licence_title">Lizenz kaufen</string>
+    <string name="purchase_licence_done_title">Vielen Dank für Ihren Kauf. Ihre Lizenz wird jetzt aktiviert.</string>
     <string name="purchse_licence_button_enter_licence_code">Lizenzcode eingeben</string>
     <string name="purchse_licence_button_restore_purchases">Einkäufe wiederherstellen</string>
     <string name="purchse_licence_monthly_licence">Monatslizenz</string>
@@ -290,4 +288,5 @@
     <string name="start_chat_with_company_contact_idle_text">Kontaktdaten werden geladen...</string>
     <string name="unexpected_error_label_next">ginlo Business musste beendet werden, da ein unerwarter Fehler aufgetreten ist. Bitte starten Sie die App neu.</string>
     <string name="settings_termsandcondition">Allgemeine Geschäftsbedingungen</string>
+    <string name="dialog_licence_check">Lizenzinformationen werden geprüft ...</string>
 </resources>

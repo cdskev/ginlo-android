@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:dpag="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -44,7 +44,7 @@
                     android:cropToPadding="true"
                     android:padding="5dp"
                     android:src="@drawable/channel_item_bg_black"
-                    dpag:mask="@drawable/szf_overlay" />
+                    app:mask="@drawable/szf_overlay" />
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/chat_item_data_placeholder"

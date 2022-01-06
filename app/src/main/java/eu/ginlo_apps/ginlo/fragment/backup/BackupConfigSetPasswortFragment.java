@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.fragment.backup;
 
 import android.graphics.PorterDuff;
@@ -183,13 +183,6 @@ public class BackupConfigSetPasswortFragment extends BaseFragment {
             if (mPasswordStrength != null) {
                 mPasswordStrength.setVisibility(View.INVISIBLE);
             }
-        }
-        if (RuntimeConfig.isBAMandant() && activity != null) {
-            final ColorUtil colorUtil = ColorUtil.getInstance();
-            final int appAccentColor = colorUtil.getAppAccentColor(activity.getApplication());
-            final Button button = view.findViewById(R.id.backup_set_password_btn);
-            button.getBackground().setColorFilter(appAccentColor, PorterDuff.Mode.SRC_ATOP);
-            mPasswordView.getBackground().setColorFilter(appAccentColor, PorterDuff.Mode.SRC_ATOP);
         }
         return view;
     }

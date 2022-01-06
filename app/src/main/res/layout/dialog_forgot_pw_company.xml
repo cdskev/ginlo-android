@@ -25,7 +25,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="@string/settings_password_forgot_pw"
-                android:textSize="28sp"
+                app:styledTextSize="mainTitleTextSize"
                 app:styledTextColor="mainContrast" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -34,7 +34,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:text="@string/settings_password_forgot_pw_message"
-                android:textSize="15sp"
+                app:styledTextSize="baseTextSize"
                 app:styledTextColor="mainContrast80" />
 
             <androidx.appcompat.widget.AppCompatImageView

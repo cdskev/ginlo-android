@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.greendao;
 
@@ -7,9 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.database.sqlite.SQLiteStatement;
 import eu.ginlo_apps.ginlo.controller.ContactController;
-import eu.ginlo_apps.ginlo.greendao.CompanyContact;
+import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.constant.NumberConstants;
-import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.util.StreamUtil;
 import org.greenrobot.greendao.AbstractDao;
@@ -259,7 +258,7 @@ public class CompanyContactDao
             String[] selectionArg;
             if (indexType.equals(ContactController.IndexType.INDEX_TYPE_COMPANY)) {
                 selection = Properties.guid.columnName + " LIKE ?";
-                selectionArg = new String[]{GuidUtil.COMPANY_INDEX_ENTRY_GUID_PREFIX + "%"};
+                selectionArg = new String[]{AppConstants.GUID_COMPANY_INDEX_ENTRY_PREFIX + "%"};
             } else {
                 selection = Properties.guid.columnName + " IS NULL";
                 selectionArg = null;

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.greendao;
 
@@ -114,11 +114,14 @@ public class Chat
         this.mLastChatModifiedDate = lastChatModifiedDate;
     }
 
-    public Boolean getIsRemoved()
-            throws LocalizedException {
-        final Boolean rc = (Boolean) GreenDAOSecurityLayer.getInstance().get(this, "removed");
-
-        return rc != null ? rc : false;
+    public Boolean getIsRemoved() {
+        Boolean isRemoved = null;
+        try {
+            isRemoved = (Boolean) GreenDAOSecurityLayer.getInstance().get(this, "removed");
+        } catch (LocalizedException e) {
+            //
+        }
+        return isRemoved != null ? isRemoved : false;
     }
 
     // KEEP METHODS - put your custom methods here
@@ -128,10 +131,14 @@ public class Chat
         GreenDAOSecurityLayer.getInstance().set(this, "removed", isRemoved);
     }
 
-    public Boolean getIsReadOnly()
-            throws LocalizedException {
-        final Boolean retVal = (Boolean) GreenDAOSecurityLayer.getInstance().get(this, "isReadonly");
-        return retVal != null ? retVal : false;
+    public Boolean getIsReadOnly() {
+        Boolean isReadOnly = null;
+        try {
+            isReadOnly = (Boolean) GreenDAOSecurityLayer.getInstance().get(this, "isReadonly");
+        } catch (LocalizedException e) {
+            //
+        }
+        return isReadOnly != null ? isReadOnly : false;
     }
 
     public void setIsReadOnly(final boolean isReadonly)
@@ -379,14 +386,19 @@ public class Chat
         }
     }
 
-    public long getSilentTill()
-            throws LocalizedException {
-        final Object tmp = GreenDAOSecurityLayer.getInstance().get(this, "silentTill");
+    public long getSilentTill() {
+        Object tmp = null;
+        try {
+            tmp = GreenDAOSecurityLayer.getInstance().get(this, "silentTill");
+        } catch (LocalizedException e) {
+            //
+        }
 
         if (tmp instanceof Long) {
             return (long) tmp;
         }
-        return (long) 0;
+
+        return 0L;
     }
 
     public void setSilentTill(final long silentTill)

@@ -8,10 +8,16 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
+import java.nio.charset.StandardCharsets;
+import java.security.PublicKey;
+
+import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
 import eu.ginlo_apps.ginlo.util.ChecksumUtil;
 import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.util.SecurityUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
+import eu.ginlo_apps.ginlo.util.XMLUtil;
 
 /**
  * Hold all currently used QR code versions
@@ -97,8 +103,6 @@ public class QRCodeModel {
 
     final private int mMode;
     private String mGinloID = "";
-    private String mPublicKey = "";
-    private byte[] mPublicKeySHA256 = null;
     private String mPublicKeySHA256Base64 = "";
     private String mVersion = TYPE_UNKNOWN;
     private String mPayload = "";
@@ -138,14 +142,14 @@ public class QRCodeModel {
     /**
      * Constructor for "V2" QR codes, based on given ginloID and public key
      * @param ginloID
-     * @param publicKey
+     * @param publicKeySHA256Base64
      */
     public QRCodeModel(String ginloID,
-                       String publicKey) {
+                       String publicKeySHA256Base64) {
         mMode = FOR_ENCODING;
         mVersion = TYPE_V2;
         mGinloID = (ginloID != null ? ginloID : "");
-        mPublicKey = (publicKey != null ? publicKey : "");
+        mPublicKeySHA256Base64 = (publicKeySHA256Base64 != null ? publicKeySHA256Base64 : "");
         mPayload = buildPayload();
     }
 
@@ -154,20 +158,20 @@ public class QRCodeModel {
      * @param isP2PInvitation
      * @param mustCreateChat
      * @param ginloID
-     * @param publicKey
+     * @param publicKeySHA256Base64
      * @param invitationID
      */
     public QRCodeModel(boolean isP2PInvitation,
                        boolean mustCreateChat,
                        String ginloID,
-                       String publicKey,
+                       String publicKeySHA256Base64,
                        String invitationID) {
         mMode = FOR_ENCODING;
         mVersion = TYPE_V3;
         mIsP2PInvitation = isP2PInvitation;
         mMustCreateChat = mustCreateChat;
         mGinloID = (ginloID != null ? ginloID : "");
-        mPublicKey = (publicKey != null ? publicKey : "");
+        mPublicKeySHA256Base64 = (publicKeySHA256Base64 != null ? publicKeySHA256Base64 : "");
         mInvitationID = (invitationID != null ? invitationID : "");
         mPayload = buildPayload();
     }
@@ -180,8 +184,8 @@ public class QRCodeModel {
         return mGinloID;
     }
 
-    public byte[] getPublicKeySHA256() {
-        return mPublicKeySHA256;
+    public String getPublicKeySHA256Base64() {
+        return mPublicKeySHA256Base64;
     }
 
     public String getTAN() {
@@ -212,11 +216,12 @@ public class QRCodeModel {
             if(!StringUtil.isNullOrEmpty(value)) {
                 int valEnd = value.indexOf('\r');
                 qrm.mGinloID = value.substring(0, valEnd);
+                LogUtil.d(TAG, "parseQRString: V2 mGinloID = " + qrm.mGinloID);
                 valStart = valEnd + 1;
                 value = value.substring(valStart);
                 if(!StringUtil.isNullOrEmpty(value)) {
                     qrm.mPublicKeySHA256Base64 = value;
-                    qrm.mPublicKeySHA256 = Base64.decode(qrm.mPublicKeySHA256Base64, Base64.DEFAULT);
+                    LogUtil.d(TAG, "parseQRString: V2 mPublicKeySHA256Base64 = " + qrm.mPublicKeySHA256Base64);
                 } else {
                     parseError = "QR code seems to be V2, but found no key info";
                     malformedData = true;
@@ -229,73 +234,81 @@ public class QRCodeModel {
             // We may (!) have a TYPE_V3 QR code
             // First step: Unpack p
             qrm.mVersion = TYPE_V3;
-            final String p = new String(Base64.decode(genericData.substring(TYPE_V3_PREFIX.length(), genericData.indexOf("&q=")), Base64.DEFAULT));
-            final String q = genericData.substring(genericData.indexOf("&q=") + 3);
-
-            // Verify integrity of the given data
-            String pSha1 = ChecksumUtil.getSHA1ChecksumForString(p + V3_SALT);
-            if(!pSha1.equals(q)) {
+            if(genericData.indexOf("&q=") < TYPE_V3_PREFIX.length()) {
                 // Wrong checksum in data!
-                parseError = "QR code seems to be of TYPE_V3, but wrong checksum";
+                parseError = "QR code seems to be of TYPE_V3 but cannot parse q parameter";
                 malformedData = true;
             } else {
-                // Second step: Parse and save URL arguments
-                final int pLength = p.length();
-                int valStart, valLen;
-                // Parameter p
-                valStart = p.indexOf("p=") + 2;
-                valLen = 1;
-                if (valStart != 1 && (valStart + valLen) < pLength) {
-                    qrm.mIsP2PInvitation = p.substring(valStart, valStart + valLen).equals("1");
-                } else {
+                final String p = new String(Base64.decode(genericData.substring(TYPE_V3_PREFIX.length(), genericData.indexOf("&q=")), Base64.DEFAULT));
+                final String q = genericData.substring(genericData.indexOf("&q=") + 3);
+
+                // Verify integrity of the given data
+                String pSha1 = ChecksumUtil.getSHA1ChecksumForString(p + V3_SALT);
+                if (!pSha1.equals(q)) {
+                    // Wrong checksum in data!
+                    parseError = "QR code seems to be of TYPE_V3 but wrong checksum";
                     malformedData = true;
-                    parseError = "Missing mandatory parameter p";
-                }
-                // Parameter c
-                valStart = p.indexOf("&c=") + 3;
-                if (valStart != 2 && (valStart + valLen) < pLength) {
-                    qrm.mMustCreateChat = p.substring(valStart, valStart + valLen).equals("1");
                 } else {
-                    malformedData = true;
-                    parseError = "Missing mandatory parameter c";
-                }
-                // Parameter i
-                valStart = p.indexOf("&i=") + 3;
-                valLen = 8;
-                if (valStart != 2 && (valStart + valLen) < pLength) {
-                    qrm.mGinloID = p.substring(valStart, valStart + valLen);
-                } else {
-                    malformedData = true;
-                    parseError = "Missing mandatory parameter i";
-                }
-                // Parameter s
-                valStart = p.indexOf("&s=") + 3;
-                if (valStart != 2) {
-                    final int valEnd = p.substring(valStart).indexOf('&');
-                    if (valEnd == -1) {
-                        // s ist the last parameter
-                        qrm.mPublicKeySHA256Base64 = p.substring(valStart);
-                        qrm.mPublicKeySHA256 = Base64.decode(qrm.mPublicKeySHA256Base64, Base64.DEFAULT);
+                    // Second step: Parse and save URL arguments
+                    final int pLength = p.length();
+                    int valStart, valLen;
+                    // Parameter p
+                    valStart = p.indexOf("p=") + 2;
+                    valLen = 1;
+                    if (valStart != 1 && (valStart + valLen) < pLength) {
+                        qrm.mIsP2PInvitation = p.substring(valStart, valStart + valLen).equals("1");
+                        LogUtil.d(TAG, "parseQRString: V3 mIsP2PInvitation = " + qrm.mIsP2PInvitation);
                     } else {
-                        qrm.mPublicKeySHA256Base64 = p.substring(valStart, valEnd);
-                        qrm.mPublicKeySHA256 = Base64.decode(qrm.mPublicKeySHA256Base64, Base64.DEFAULT);
-                    }
-                } else {
-                    malformedData = true;
-                    parseError = "Missing mandatory parameter s";
-                }
-                // Parameter b (optional)
-                valStart = p.indexOf("&b=") + 3;
-                if (valStart != 2) {
-                    final int valEnd = p.substring(valStart).indexOf('&');
-                    if (valEnd == -1) {
-                        // b ist the last parameter
-                        qrm.mInvitationID = p.substring(valStart);
-                    } else {
-                        // This is undefined! There should be no more parameters!
-                        qrm.mInvitationID = p.substring(valStart, valEnd);
-                        parseError = "QR code seems to be V3, but found unexpected data";
                         malformedData = true;
+                        parseError = "Missing mandatory parameter p";
+                    }
+                    // Parameter c
+                    valStart = p.indexOf("&c=") + 3;
+                    if (valStart != 2 && (valStart + valLen) < pLength) {
+                        qrm.mMustCreateChat = p.substring(valStart, valStart + valLen).equals("1");
+                        LogUtil.d(TAG, "parseQRString: V3 mMustCreateChat = " + qrm.mMustCreateChat);
+                    } else {
+                        malformedData = true;
+                        parseError = "Missing mandatory parameter c";
+                    }
+                    // Parameter i
+                    valStart = p.indexOf("&i=") + 3;
+                    valLen = 8;
+                    if (valStart != 2 && (valStart + valLen) < pLength) {
+                        qrm.mGinloID = p.substring(valStart, valStart + valLen);
+                        LogUtil.d(TAG, "parseQRString: V3 mGinloID = " + qrm.mGinloID);
+                    } else {
+                        malformedData = true;
+                        parseError = "Missing mandatory parameter i";
+                    }
+                    // Parameter s
+                    valStart = p.indexOf("&s=") + 3;
+                    if (valStart != 2) {
+                        final int valEnd = p.substring(valStart).indexOf('&');
+                        if (valEnd == -1) {
+                            // s ist the last parameter
+                            qrm.mPublicKeySHA256Base64 = p.substring(valStart);
+                        } else {
+                            qrm.mPublicKeySHA256Base64 = p.substring(valStart, valEnd);
+                        }
+                        LogUtil.d(TAG, "parseQRString: V3 mPublicKeySHA256Base64 = " + qrm.mPublicKeySHA256Base64);
+                    } else {
+                        malformedData = true;
+                        parseError = "Missing mandatory parameter s";
+                    }
+                    // Parameter b (optional)
+                    valStart = p.indexOf("&b=") + 3;
+                    if (valStart != 2) {
+                        final int valEnd = p.substring(valStart).indexOf('&');
+                        if (valEnd == -1) {
+                            // b ist the last parameter
+                            qrm.mInvitationID = p.substring(valStart);
+                        } else {
+                            // This is undefined! There should be no more parameters!
+                            qrm.mInvitationID = p.substring(valStart, valEnd);
+                            parseError = "QR code seems to be V3, but found unexpected data";
+                            malformedData = true;
+                        }
                     }
                 }
             }
@@ -303,7 +316,9 @@ public class QRCodeModel {
             // This looks like a coupling TAN QR code
             qrm.mVersion = TYPE_COUPLING_TAN;
             qrm.mGinloID = genericData.substring(0, 8);
+            LogUtil.d(TAG, "parseQRString: Coupling TAN mGinloID = " + qrm.mGinloID);
             qrm.mTAN = genericData.substring(9);
+            LogUtil.d(TAG, "parseQRString: Coupling TAN mTAN = " + qrm.mTAN);
         } else {
             // Cannot identify QR code type
             qrm.mVersion = TYPE_UNKNOWN;
@@ -330,7 +345,7 @@ public class QRCodeModel {
             case TYPE_V2:
                 payload.append(TYPE_V2_PREFIX)
                         .append(mGinloID).append('\r')
-                        .append(Base64.encodeToString(ChecksumUtil.getSHA256ChecksumAsBytesForString(mPublicKey), Base64.NO_WRAP));
+                        .append(mPublicKeySHA256Base64);
                 break;
             case TYPE_V3:
                 // First step: Build the argument string
@@ -338,7 +353,7 @@ public class QRCodeModel {
                 arguments.append("p=").append(mIsP2PInvitation ? "1" : "0")
                         .append("&c=").append(mMustCreateChat ? "1" : "0")
                         .append("&i=").append(mGinloID)
-                        .append("&s=").append(Base64.encodeToString(ChecksumUtil.getSHA256ChecksumAsBytesForString(mPublicKey), Base64.NO_WRAP));
+                        .append("&s=").append(mPublicKeySHA256Base64);
 
                 if(!StringUtil.isNullOrEmpty(mInvitationID)) {
                     arguments.append("&i=").append(mInvitationID);

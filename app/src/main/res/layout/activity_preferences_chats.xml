@@ -67,7 +67,6 @@
                         app:styledTextColor="mainContrast80" />
                 </RelativeLayout>
 
-
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/preferences_item_height"
@@ -152,14 +151,11 @@
                         android:scaleType="centerCrop"
                         android:visibility="gone" />
 
-
                 </RelativeLayout>
-
 
                 <androidx.appcompat.widget.LinearLayoutCompat
                     style="@style/Divider"
                     app:styledBackground="mainContrast50" />
-
 
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/preferences_chat_header_sounds"
@@ -184,7 +180,6 @@
                     android:theme="@style/SwitchStyle"
                     app:styledTextColor="mainContrast" />
 
-
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/preferences_chats_switch_send_sound"
                     style="@style/FontSettingsElement"
@@ -196,7 +191,6 @@
                     android:text="@string/settings_play_sound_sendMessage"
                     android:theme="@style/SwitchStyle"
                     app:styledTextColor="mainContrast" />
-
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/preferences_pchats_switch_receive_sound"
@@ -210,62 +204,12 @@
                     android:theme="@style/SwitchStyle"
                     app:styledTextColor="mainContrast" />
 
-
                 <androidx.appcompat.widget.LinearLayoutCompat
                     style="@style/Divider"
                     app:styledBackground="mainContrast50" />
 
-                <LinearLayout
-                    android:id="@+id/preferences_chats_backup_container"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-
-                    <androidx.appcompat.widget.AppCompatTextView
-                        android:id="@+id/preferences_chats_header_backup"
-                        style="@style/FontSettingsHeader"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:paddingStart="@dimen/preferences_text_margin_start"
-                        android:paddingTop="@dimen/activity_vertical_margin"
-                        android:text="@string/settings_config_backup"
-                        app:styledTextColor="mainContrast" />
-
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/preferences_item_height"
-                        android:layout_marginBottom="@dimen/text_margin"
-                        android:background="?attr/selectableItemBackground"
-                        android:onClick="handleBackupClick"
-
-                        >
-
-                        <androidx.appcompat.widget.AppCompatTextView
-                            android:id="@+id/preferences_chats_textview_backup"
-                            style="@style/FontSettingsElement"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/text_margin"
-                            android:paddingStart="@dimen/preferences_text_margin_start"
-                            android:text="@string/settings_config_backup"
-                            app:styledTextColor="mainContrast" />
-
-                        <androidx.appcompat.widget.AppCompatTextView
-                            android:id="@+id/preferences_chats_textview_backup_hint"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentBottom="true"
-                            android:layout_marginBottom="@dimen/standard_padding"
-                            android:paddingStart="@dimen/preferences_text_margin_start"
-                            android:text="@string/settings_chats_create_backup"
-                            app:styledTextColor="mainContrast80" />
-                    </RelativeLayout>
-                </LinearLayout>
-
             </LinearLayout>
+
         </ScrollView>
 
         <RelativeLayout

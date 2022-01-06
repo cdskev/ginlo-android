@@ -60,7 +60,7 @@
                 android:layout_marginTop="@dimen/activity_vertical_margin"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:text="@string/enter_licence_code_title"
-                android:textSize="28sp"
+                app:styledTextSize="mainTitleTextSize"
                 app:styledTextColor="mainContrast" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -71,7 +71,7 @@
                 android:layout_marginTop="@dimen/activity_vertical_margin"
                 android:layout_marginEnd="@dimen/activity_horizontal_margin"
                 android:text="@string/enter_licence_code_hint"
-                android:textSize="15sp"
+                app:styledTextSize="baseTextSize"
                 app:styledTextColor="mainContrast80" />
 
 

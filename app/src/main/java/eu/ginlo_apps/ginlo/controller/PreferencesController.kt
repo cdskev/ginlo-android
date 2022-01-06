@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.controller
 
@@ -16,7 +16,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import eu.ginlo_apps.ginlo.BuildConfig
-import eu.ginlo_apps.ginlo.billing.Purchase
+import eu.ginlo_apps.ginlo.billing.GinloPurchaseImpl
 import eu.ginlo_apps.ginlo.concurrent.manager.SerialExecutor
 import eu.ginlo_apps.ginlo.concurrent.task.AsyncHttpTask
 import eu.ginlo_apps.ginlo.context.SimsMeApplication
@@ -39,7 +39,6 @@ import eu.ginlo_apps.ginlo.util.JsonUtil
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener
 import eu.ginlo_apps.ginlo.util.RuntimeConfig
 import eu.ginlo_apps.ginlo.util.SecurityUtil
-import eu.ginlo_apps.ginlo.util.SystemUtil
 import eu.ginlo_apps.ginlo.view.CameraView
 import java.util.ArrayList
 import java.util.Date
@@ -52,13 +51,16 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
     private val TAG = PreferencesController::class.java.simpleName
 
     companion object {
+        private const val TAG = "PreferencesController"
         const val NOTIFICATION_SOUND_NO_SOUND = "noSound"
         const val BACKUP_INTERVAL_OFF = 0
         const val BACKUP_INTERVAL_DAILY = 1
         const val BACKUP_INTERVAL_WEEKLY = 2
         const val BACKUP_INTERVAL_MONTHLY = 3
         const val BACKUP_KEY_ROUNDS_ERROR = -1
-        private const val TAG = "PreferencesController"
+        const val THEME_MODE_LIGHT = "Light"
+        const val THEME_MODE_DARK = "Dark"
+        const val THEME_MODE_AUTO = "Auto"
     }
 
     private val NOTIFICATION_SOUND_DEFAULT = "default"
@@ -68,12 +70,9 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
     private val TYPE_PASSWORD_DEFAULT = Preference.TYPE_PASSWORD_COMPLEX
     private val APP_SETTINGS = "PreferencesController.appSettings"
     private val SENT_MESSAGE_COUNT_SETTING = "PreferencesController.sentMessageCount"
-    private val SOUND_SINGLE_CHAT_ENABLED_SETTING =
-        "PreferencesController.soundForSingleChatSetting"
-    private val SOUND_SERVICE_CHAT_ENABLED_SETTING =
-        "PreferencesController.soundForServiceChatSetting"
-    private val SOUND_CHANNEL_CHAT_ENABLED_SETTING =
-        "PreferencesController.soundForChannelChatSetting"
+    private val SOUND_SINGLE_CHAT_ENABLED_SETTING = "PreferencesController.soundForSingleChatSetting"
+    private val SOUND_SERVICE_CHAT_ENABLED_SETTING = "PreferencesController.soundForServiceChatSetting"
+    private val SOUND_CHANNEL_CHAT_ENABLED_SETTING = "PreferencesController.soundForChannelChatSetting"
     private val SOUND_GROUP_CHAT_ENABLED_SETTING = "PreferencesController.soundForGroupChatSetting"
     private val NEW_MESSAGES_FLAGS = "PreferencesController.newMessageFlags"
     private val HAS_SHOW_OPEN_FILE_WARNING = "PreferencesController.hasShowOpenFileWarning"
@@ -123,8 +122,8 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
     private val CHANNELS_ENABLED = true
     private val BACKUP_KEY_DEFAULT: String? = null
     private val IMAGE_QUALITY = 1  //medium
-    private val GINLO_DARKMODE = "PreferencesController.ginloDarkmode"
-    private val GINLO_THEME_NAME = "PreferencesController.ginloThemeName"
+    private val GINLO_THEME_NAME = "PreferencesController.AppThemeName"
+    private val GINLO_THEME_MODE = "PreferencesController.AppThemeMode"
     private val SCREENSHOTS_ALLOWED = "PreferencesController.screenshotsAllowed"
     private val GINLO_ONGOING_SERVICE = "PreferencesController.ginloOngoingService"
     private val GINLO_ONGOING_SERVICE_NOTIFICATION = "PreferencesController.ginloOngoingServiceNotification"
@@ -489,7 +488,7 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
 
                 override fun asyncLoaderFailed(errorMessage: String) {
                     mServerConfigTask = null
-                    genericActionListener?.onFail(errorMessage, null)
+                    genericActionListener?.onFail(errorMessage, "")
                 }
             }
             mServerConfigTask = AsyncHttpTask(callback)
@@ -1710,21 +1709,31 @@ fun setSendProfileName(value: Boolean) {
         sharedPreferences.edit().putBoolean(SCREENSHOTS_ALLOWED, value).apply()
     }
 
-    fun getDarkmodeEnabled(): Boolean {
-        return sharedPreferences.getBoolean(GINLO_DARKMODE, false)
+    /**
+     * Contains the second part of a theme's name. The full style name must
+     * be constructed with GINLO_THEME_NAME as received by getThemeName() prepended.
+     * Example: GinloDefaultTheme + Light = GinloDefaultThemeLight (the full theme name)
+     */
+    fun getThemeMode(): String? {
+        return sharedPreferences.getString(GINLO_THEME_MODE, THEME_MODE_LIGHT)
     }
 
-    fun setDarkmodeEnabled(value: Boolean) {
-        sharedPreferences.edit().putBoolean(GINLO_DARKMODE, value).apply()
-        if(value) {
-            setThemeName(BuildConfig.DEFAULT_DARK_THEME)
-        } else {
-            setThemeName(BuildConfig.DEFAULT_LIGHT_THEME)
+    fun setThemeMode(value: String?) {
+        if (!value.isNullOrEmpty()) {
+            if(value != getThemeName()) {
+                themeHasChanged = true
+            }
+            sharedPreferences.edit().putString(GINLO_THEME_MODE, value).apply()
         }
     }
 
+    /**
+     * Contains only the first part of a theme's name. The full style name must
+     * be constructed with GINLO_THEME_MODE as received by getThemeMode() appended.
+     * Example: GinloDefaultTheme + Light = GinloDefaultThemeLight (the full theme name)
+     */
     fun getThemeName(): String? {
-        return sharedPreferences.getString(GINLO_THEME_NAME, BuildConfig.DEFAULT_LIGHT_THEME)
+        return sharedPreferences.getString(GINLO_THEME_NAME, BuildConfig.DEFAULT_THEME)
     }
 
     fun setThemeName(value: String?) {
@@ -2014,8 +2023,8 @@ fun setSendProfileName(value: Boolean) {
         //  val preferences: Preference
         return try {
             preferences.hasSystemGeneratedPasword != null && preferences.hasSystemGeneratedPasword
-        } catch (e: LocalizedException) {
-            LogUtil.e(TAG, e.message, e)
+        } catch (e: Exception) {
+            LogUtil.e(TAG, "getHasSystemGeneratedPasword: " + e.message)
             false
         }
     }
@@ -2085,10 +2094,10 @@ fun setSendProfileName(value: Boolean) {
         sharedPreferences.edit().putString(FETCH_IN_BACKGROUND_TOKEN, token).apply()
     }
 
-    fun isPurchaseSaved(purchase: Purchase?): Boolean {
+    fun isPurchaseSaved(ginloPurchase: GinloPurchaseImpl?): Boolean {
         try {
-            purchase?.also {
-                val token = it.token
+            ginloPurchase?.also {
+                val token = it.purchaseToken
                 val savedPurchases = preferences.savedPurchases ?: return false
                 return savedPurchases.contains(token)
             }
@@ -2116,10 +2125,10 @@ fun setSendProfileName(value: Boolean) {
         }
     }
 
-    fun markPurchaseSaved(purchase: Purchase?) {
+    fun markPurchaseSaved(ginloPurchase: GinloPurchaseImpl?) {
         try {
-            purchase?.also {
-                var token = it.token
+            ginloPurchase?.also {
+                var token = it.purchaseToken
                 if (!it.orderId.isNullOrEmpty()) {
                     token = it.orderId
                 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.profile
 
 import android.app.Activity
@@ -68,7 +68,6 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
     protected var imageBytes: ByteArray? = null
     protected lateinit var account: Account
     protected var ownContact: Contact? = null
-    private val chatImageController: ChatImageController by lazy { simsMeApplication.chatImageController }
     private lateinit var qrCodeImageView: ImageView
     private lateinit var profileImageView: RoundedImageView
     private lateinit var profileContentContainer: View
@@ -204,7 +203,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
         return super.onPrepareOptionsMenu(menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item?.itemId) {
             R.id.profile_activity_menu_apply -> {
                 saveData()

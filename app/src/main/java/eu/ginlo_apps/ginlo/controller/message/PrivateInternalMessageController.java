@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2021 ginlo.net GmbH
+// Copyright (c) 2020-2022 ginlo.net GmbH
 
 package eu.ginlo_apps.ginlo.controller.message;
 
@@ -203,7 +203,6 @@ public class PrivateInternalMessageController
                         if (!message.getIsSentMessage()) {
                             try {
                                 decryptedMessage = messageDecryptionController.decryptMessage(message, false);
-
                                 if (decryptedMessage == null) {
                                     continue;
                                 }
@@ -286,22 +285,17 @@ public class PrivateInternalMessageController
                 ContactController contactController = mContext.getContactController();
 
                 for (Message message : messages) {
-                    try {
-                        DecryptedMessage decryptedMessage = messageDecryptionController.decryptMessage(message, false);
-
-                        if (decryptedMessage == null) {
-                            return null;
-                        }
-
-                        messageController.markAsError(message, false);
-
-                        final PrivateInternalMessageModel messageModel = (PrivateInternalMessageModel) MessageModelBuilder
-                                .getInstance(contactController).rebuildMessage(message, groupChatController);
-
-                        messageModels.add(messageModel);
-                    } catch (LocalizedException e) {
-                        LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    DecryptedMessage decryptedMessage = messageDecryptionController.decryptMessage(message, false);
+                    if (decryptedMessage == null) {
+                        return null;
                     }
+
+                    messageController.markAsError(message, false);
+
+                    final PrivateInternalMessageModel messageModel = (PrivateInternalMessageModel) MessageModelBuilder
+                            .getInstance(contactController).rebuildMessage(message, messageDecryptionController);
+
+                    messageModels.add(messageModel);
                 }
 
                 try {
