@@ -535,7 +535,10 @@ public class ContactControllerBusiness
         } catch (LocalizedException e) {
             LogUtil.w(TAG, "startWorkAfterLogin()", e);
         }
+        checkAccountLicense();
+    }
 
+    public void checkAccountLicense() {
         // KS: TODO: This code is obviously wrong here in ContactController
         if (BuildConfig.ACCOUNT_NEEDS_LICENCE) {
             // Check removed because there were messages when the licenses were extended by the backend, that the Android client still did not work.
@@ -545,6 +548,9 @@ public class ContactControllerBusiness
             try {
                 // server request for current purchases to see if the license has expired in the meantime
                 // if it is already known that the license has expired, the request is obsolete
+                LogUtil.i(TAG, "checkAccountLicense: isDeviceManaged = "
+                        + accountController.isDeviceManaged()
+                        + ", hasLicense = " + account.getHasLicence());
 
                 final OnGetPurchasedProductsListener onGetPurchasedProductsListener = new OnGetPurchasedProductsListener() {
 
@@ -552,7 +558,7 @@ public class ContactControllerBusiness
                     public void onGetPurchasedProductsSuccess() {
                         try {
                             if (!account.getHasLicence()) {
-                                LogUtil.i(TAG, "No License");
+                                LogUtil.w(TAG, "checkAccountLicense: No License!");
 
                                 final Activity topAc = mApplication.getAppLifecycleController().getTopActivity();
                                 //Class<?> classForNextIntent = SystemUtil.getClassForBuildConfigClassname(BuildConfig.ACTIVITY_AFTER_CONFIRM_ACCOUNT);
@@ -567,7 +573,7 @@ public class ContactControllerBusiness
                                     calli.add(Calendar.DATE, - BuildConfig.LICENSE_EXPIRATION_WARNING_DAYS);
                                     final long expireMinusWarningDays = calli.getTime().getTime();
 
-                                    LogUtil.i(TAG, "Has License valid until: " + new Date(licenceDate)
+                                    LogUtil.i(TAG, "checkAccountLicense: Has License valid until: " + new Date(licenceDate)
                                             + ", now: " + new Date(now)
                                             + ", expiration warning from: " + new Date(expireMinusWarningDays));
 
@@ -575,7 +581,7 @@ public class ContactControllerBusiness
                                         final BaseActivity topAc = (BaseActivity) mApplication.getAppLifecycleController().getTopActivity();
                                         if (topAc != null) {
                                             if (accountController.getAccount().isAutorenewingLicense()) {
-                                                LogUtil.i(TAG, "Expired License (autorenewing)");
+                                                LogUtil.i(TAG, "checkAccountLicense: Expired License (autorenewing).");
 
                                                 final Intent intent = new Intent(topAc, PurchaseLicenseActivity.class);
                                                 intent.putExtra("PurchaseLicenseActivity.extraDontForwardIfLicenceIsAboutToExpire", true);
@@ -588,7 +594,7 @@ public class ContactControllerBusiness
                                                     mLicenseDaysLeftListener.licenseDaysLeftHasCalculate(mLicenseDaysLeft);
                                                 }
 
-                                                LogUtil.i(TAG, "Expired License (non auto renewing)");
+                                                LogUtil.w(TAG, "checkAccountLicense: Expired License (non auto renewing)!");
 
                                                 DialogInterface.OnClickListener positiveOnClickListener = new DialogInterface.OnClickListener() {
                                                     @Override
@@ -612,13 +618,16 @@ public class ContactControllerBusiness
                                                 alert.show();
                                             }
                                         }
-                                    //} else if ((nowPlus7Day > licenceDate) && (!accountController.getAccount().isAutorenewingLicense())) {
-                                    } else if ((expireMinusWarningDays < now) && (!accountController.getAccount().isAutorenewingLicense())) {
+                                        //} else if ((nowPlus7Day > licenceDate) && (!accountController.getAccount().isAutorenewingLicense())) {
+                                        //} else if ((expireMinusWarningDays < now) && (!accountController.getAccount().isAutorenewingLicense())) {
+                                    } else if (!accountController.getAccount().isAutorenewingLicense()) {
                                         // 1 day in millis (1000 * 60 * 60 * 24) = 86400000
-                                        mLicenseDaysLeft = (int) ((licenceDate - now) / 86400000);
-                                        LogUtil.i(TAG, "Warning: License is not auto renewing! Days left: " + mLicenseDaysLeft);
+                                        final float ldl = (licenceDate - now) / 86400000.0f;
+                                        // Allow user to work without renewal until end of expiration day.
+                                        mLicenseDaysLeft = (ldl >= 0.1f) ? (int) Math.max(ldl, 1) : 0;
+                                        LogUtil.i(TAG, "checkAccountLicense: License is not auto renewing. Days left: " + mLicenseDaysLeft + " (" + ldl + ")");
 
-                                        if (mLicenseDaysLeftListener != null) {
+                                        if (mLicenseDaysLeftListener != null && (expireMinusWarningDays < now || BuildConfig.DEBUG)) {
                                             mLicenseDaysLeftListener.licenseDaysLeftHasCalculate(mLicenseDaysLeft);
                                         }
                                         mApplication.getPreferencesController().setPurchaseCheckDate(DateUtil.getDateStringFromLocale());
@@ -632,7 +641,7 @@ public class ContactControllerBusiness
                                 }
                             }
                         } catch (LocalizedException e) {
-                            LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                            LogUtil.e(TAG, "checkAccountLicense: onGetPurchasedProductsSuccess caught " + e.getMessage());
                         }
                     }
 
@@ -664,8 +673,8 @@ public class ContactControllerBusiness
                                     accountController.getPurchasedProducts(onGetPurchasedProductsListener);
                                 }
 
-                            } catch (final LocalizedException le) {
-                                LogUtil.e(ContactControllerBusiness.this.getClass().getSimpleName(), le.getMessage());
+                            } catch (final LocalizedException e) {
+                                LogUtil.e(TAG, "checkAccountLicense: getTrialVoucherInfoListener onSuccess caught " + e.getMessage());
 
                             }
                         }
@@ -677,7 +686,7 @@ public class ContactControllerBusiness
                                     accountController.getPurchasedProducts(onGetPurchasedProductsListener);
                                 }
                             } catch (LocalizedException e) {
-                                LogUtil.w(ContactControllerBusiness.this.getClass().getSimpleName(), "", e);
+                                LogUtil.e(TAG, "checkAccountLicense: getTrialVoucherInfoListener onFail caught " + e.getMessage());
                             }
                         }
                     };
@@ -686,11 +695,12 @@ public class ContactControllerBusiness
                 }
 
             } catch (LocalizedException e) {
-                LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                LogUtil.e(TAG, "checkAccountLicense: Caught " + e.getMessage());
             }
         } else {
             startTimerForCheck();
         }
+
     }
 
     @Override

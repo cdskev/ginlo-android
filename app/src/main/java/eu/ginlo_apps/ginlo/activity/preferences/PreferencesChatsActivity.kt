@@ -13,27 +13,18 @@ import android.widget.CompoundButton
 import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
 import eu.ginlo_apps.ginlo.BaseActivity
 import eu.ginlo_apps.ginlo.ChatBackgroundActivity
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.ViewAttachmentActivity
 import eu.ginlo_apps.ginlo.activity.preferences.base.PreferencesBaseActivity
 import eu.ginlo_apps.ginlo.controller.AccountController
-import eu.ginlo_apps.ginlo.controller.ChatImageController
-import eu.ginlo_apps.ginlo.controller.PreferencesController
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.router.Router
 import eu.ginlo_apps.ginlo.util.*
 import eu.ginlo_apps.ginlo.view.CameraView
-import kotlinx.android.synthetic.main.activity_preferences_chats.chat_settings_image_view_background_thumbnail
-import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_chats_switch_send_sound
-import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_chats_textview_image_quality
-import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_chats_textview_video_quality
-import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_pchats_switch_receive_sound
-import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_privacy_switch_sd_sound
-import kotlinx.android.synthetic.main.activity_preferences_chats.preferences_switch_save_media
+import kotlinx.android.synthetic.main.activity_preferences_chats.*
 import javax.inject.Inject
 
 class PreferencesChatsActivity : PreferencesBaseActivity() {
@@ -74,12 +65,26 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
             }
         })
 
+        preferences_switch_use_internal_pdf_viewer.setOnCheckedChangeListener(object :
+            CompoundButton.OnCheckedChangeListener {
+            override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
+                if (!settingsSwitch) {
+                    try {
+                        preferencesController.setUseInternalPdfViewer(isChecked)
+                    } catch (e: LocalizedException) {
+                        setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)
+                        LogUtil.w(this.javaClass.name, e.message, e)
+                    }
+                }
+            }
+        })
+
         preferences_privacy_switch_sd_sound.setOnCheckedChangeListener(object :
             CompoundButton.OnCheckedChangeListener {
             override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
                 if (!settingsSwitch) {
                     try {
-                        preferencesController.setPlaySdSound(isChecked)
+                        preferencesController.setPlayMessageSdSound(isChecked)
                     } catch (e: LocalizedException) {
                         setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)
                         LogUtil.w(this.javaClass.name, e.message, e)
@@ -93,7 +98,7 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
             override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
                 if (!settingsSwitch) {
                     try {
-                        preferencesController.setPlaySendSound(isChecked)
+                        preferencesController.setPlayMessageSendSound(isChecked)
                     } catch (e: LocalizedException) {
                         setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)
                         LogUtil.w(this.javaClass.name, e.message, e)
@@ -104,7 +109,7 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
 
         preferences_pchats_switch_receive_sound.setOnCheckedChangeListener { _, isChecked ->
             if (!settingsSwitch) {
-                preferencesController.setMessageReceivedSound(isChecked)
+                preferencesController.setPlayMessageReceivedSound(isChecked)
             }
         }
 
@@ -128,16 +133,20 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
                 preferencesController.getSaveMediaToGallery()
             )
             setCompoundButtonWithoutTriggeringListener(
+                preferences_switch_use_internal_pdf_viewer,
+                preferencesController.getUseInternalPdfViewer()
+            )
+            setCompoundButtonWithoutTriggeringListener(
                 preferences_privacy_switch_sd_sound,
-                preferencesController.getPlaySdSound()
+                preferencesController.getPlayMessageSdSound()
             )
             setCompoundButtonWithoutTriggeringListener(
                 preferences_chats_switch_send_sound,
-                preferencesController.getPlaySendSound()
+                preferencesController.getPlayMessageSendSound()
             )
             setCompoundButtonWithoutTriggeringListener(
                 preferences_pchats_switch_receive_sound,
-                preferencesController.getMessageReceivedSound()
+                preferencesController.getPlayMessageReceivedSound()
             )
 
             setChatBackgroundPreview()
@@ -160,7 +169,7 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
             if (pictureUri != null) {
                 val mimeUtil = MimeUtil(this)
 
-                if (mimeUtil.allowedImageMimeTypes?.contains(mimeUtil.getMimeType(pictureUri).orEmpty().toLowerCase()) == false) {
+                if (mimeUtil.allowedImageMimeTypes?.contains(mimeUtil.getMimeType(pictureUri).orEmpty().lowercase()) == false) {
                     Toast.makeText(
                         this@PreferencesChatsActivity,
                         getString(R.string.chats_addAttachment_wrong_format_or_error),

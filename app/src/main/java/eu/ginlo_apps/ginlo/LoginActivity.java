@@ -1,11 +1,15 @@
 // Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo;
 
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,7 +21,6 @@ import androidx.appcompat.app.ActionBar;
 
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity;
 import eu.ginlo_apps.ginlo.activity.register.IntroActivity;
-import eu.ginlo_apps.ginlo.activity.register.IntroBaseActivity;
 import eu.ginlo_apps.ginlo.activity.register.ShowSimsmeIdActivity;
 import eu.ginlo_apps.ginlo.activity.register.device.WelcomeBackActivity;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
@@ -34,11 +37,9 @@ import eu.ginlo_apps.ginlo.fragment.SimplePasswordFragment;
 import eu.ginlo_apps.ginlo.greendao.Account;
 import eu.ginlo_apps.ginlo.greendao.Preference;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.service.GinloOngoingService;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil.OnCloseListener;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
-import eu.ginlo_apps.ginlo.util.Listener.GenericUpdateListener;
 import eu.ginlo_apps.ginlo.util.OnSingleClickListener;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -60,7 +61,6 @@ public class LoginActivity
     private AccountController mAccountController;
     private LoginController mLoginController;
     private PreferencesController mPreferencesController;
-    private GinloOngoingService gos = null;
     private String mNextActivity;
     private Bundle mSavedExtras;
     private BasePasswordFragment mPasswordFragment;
@@ -171,16 +171,7 @@ public class LoginActivity
         getWindow().setExitTransition(null);
 
         // Start GinloOngoingService if applicable
-        if (BuildConfig.HAVE_GINLO_ONGOING_SERVICE) {
-            if (gos == null) {
-                if (mPreferencesController.getGinloOngoingServiceEnabled()) {
-                    gos = new GinloOngoingService();
-                    GinloOngoingService.launch(this);
-                } else {
-                    LogUtil.i(TAG, " onCreate: GinloOngoingService is disabled by BuildConfig or user!" );
-                }
-            }
-        }
+        startGinloOngoingService();
     }
 
     @Override
@@ -468,6 +459,10 @@ public class LoginActivity
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         if (extras.size() > 0) {
             intent.putExtras(extras);
+        }
+
+        if(preferencesController.getPollingEnabled() && !mApplication.havePlayServices(this)) {
+            requestBatteryWhitelisting();
         }
 
         mAccountController.clearPassword();

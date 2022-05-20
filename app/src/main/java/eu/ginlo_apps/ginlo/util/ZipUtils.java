@@ -49,7 +49,7 @@ public class ZipUtils {
             zipIt((String) mOutputObject);
         } else if (mOutputObject instanceof Uri) {
             try {
-                FileOutputStream fos = (FileOutputStream) context.getContentResolver().openOutputStream((Uri) mOutputObject);
+                FileOutputStream fos = (FileOutputStream) context.getContentResolver().openOutputStream((Uri) mOutputObject, "wt");
                 zipFilesToStream(this.fileList, fos);
                 fos.close();
             } catch (Exception e) {
@@ -163,7 +163,7 @@ public class ZipUtils {
     }
 
     private void zipFilesToStream(List<String> files, FileOutputStream fos) throws LocalizedException {
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[8192];
 
         try {
             ZipOutputStream zos = new ZipOutputStream(fos);
@@ -177,9 +177,9 @@ public class ZipUtils {
                         zos.write(buffer, 0, len);
                     }
                 }
+                zos.closeEntry();
             }
 
-            zos.closeEntry();
         } catch (Exception ex) {
             throw new LocalizedException(LocalizedException.FILE_ZIPPING_FAILED, ex.getMessage(), ex);
         }

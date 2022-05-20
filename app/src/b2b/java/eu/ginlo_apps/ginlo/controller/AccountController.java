@@ -78,7 +78,7 @@ import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.ConfigureCompanyService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.BaManagedConfigUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ConfigUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
@@ -371,7 +371,7 @@ public class AccountController extends AccountControllerBase implements Preferen
                                         final String ident = jsonObject.get("ident").getAsString();
 
                                         if (StringUtil.isEqual(ident, "usage") && jsonObject.has("valid")) {
-                                            LogUtil.i(TAG, "getPurchasedProducts: Got purchased product: " + jsonObject.toString());
+                                            LogUtil.d(TAG, "getPurchasedProducts: Got purchased product: " + jsonObject.toString());
                                             final String date = jsonObject.get("valid").getAsString();
                                             final long dateLong = DateUtil.utcWithoutMillisStringToMillis(date);
                                             bHasUsage = true;
@@ -724,7 +724,7 @@ public class AccountController extends AccountControllerBase implements Preferen
                                 // einmal parsen, um das JsonObjekt zu validieren
                                 // KS: not possible - object is not exactly what we receive from server
                                 //gson.fromJson(companyJson, CompanyLayoutModel.class);
-                                mApplication.getPreferencesController().getSharedPreferences().edit().putString(ColorUtil.COMPANY_LAYOUT_JSON, companyJson).apply();
+                                mApplication.getPreferencesController().getSharedPreferences().edit().putString(ScreenDesignUtil.COMPANY_LAYOUT_JSON, companyJson).apply();
                             }
                         } catch (final JsonParseException je) {
                             LogUtil.e(TAG, je.getMessage(), je);
@@ -2668,7 +2668,7 @@ public class AccountController extends AccountControllerBase implements Preferen
     }
 
     private void resetColorLayoutAndCallListener() {
-        ColorUtil.getInstance().reset(mApplication);
+        ScreenDesignUtil.getInstance().reset(mApplication);
         if (mLayoutChangeListeners != null) {
             for (final OnCompanyLayoutChangeListener listener : mLayoutChangeListeners) {
                 listener.onCompanyLayoutChanged();
@@ -2742,7 +2742,7 @@ public class AccountController extends AccountControllerBase implements Preferen
     }
 
     public void deleteAccount() {
-        mApplication.getPreferencesController().getSharedPreferences().edit().remove(ColorUtil.COMPANY_LAYOUT_JSON).apply();
+        mApplication.getPreferencesController().getSharedPreferences().edit().remove(ScreenDesignUtil.COMPANY_LAYOUT_JSON).apply();
         deleteCompanyLogo();
         resetColorLayoutAndCallListener();
         if (mLogoChangeListener != null) {
@@ -2768,7 +2768,7 @@ public class AccountController extends AccountControllerBase implements Preferen
     }
 
     private void resetLayoutInternally() {
-        mApplication.getPreferencesController().getSharedPreferences().edit().remove(ColorUtil.COMPANY_LAYOUT_JSON).apply();
+        mApplication.getPreferencesController().getSharedPreferences().edit().remove(ScreenDesignUtil.COMPANY_LAYOUT_JSON).apply();
         deleteCompanyLogo();
         resetColorLayoutAndCallListener();
         if (mLogoChangeListener != null) {

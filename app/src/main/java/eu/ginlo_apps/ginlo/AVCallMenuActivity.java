@@ -82,13 +82,13 @@ public class AVCallMenuActivity extends AppCompatActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
         // May be null, which is the case if Android version is below 8.0 (Oreo)
         if (avChatController == null) {
             finish();
             return;
         }
-
-        super.onCreate(savedInstanceState);
 
         // Init notification listener
         NotificationController.AVCNotificationListener notificationListener = new NotificationController.AVCNotificationListener() {
@@ -138,7 +138,7 @@ public class AVCallMenuActivity extends AppCompatActivity {
                         notificationController.cancelAVCallNotification();
                     }
                 };
-                dismissHandler.postDelayed(dismissRunner, NotificationController.DISMISS_NOTIFICATION_TIMEOUT);
+                dismissHandler.postDelayed(dismissRunner, NotificationController.AVC_NOTIFICATION_TIMEOUT);
                 LogUtil.d(TAG, "Runner for fullscreen activity cancellation initialized!");
                 return;
             case ACTION_AUDIO_CALL:

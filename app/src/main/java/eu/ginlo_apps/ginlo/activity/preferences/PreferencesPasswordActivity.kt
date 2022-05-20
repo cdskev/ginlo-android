@@ -23,11 +23,9 @@ import eu.ginlo_apps.ginlo.data.network.AppConnectivity
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.fragment.FingerprintFragment
 import eu.ginlo_apps.ginlo.log.LogUtil
-import eu.ginlo_apps.ginlo.util.ColorUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
 import eu.ginlo_apps.ginlo.util.PermissionUtil
 import eu.ginlo_apps.ginlo.util.RuntimeConfig
-import eu.ginlo_apps.ginlo.util.SystemUtil
 import kotlinx.android.synthetic.main.activity_preferences_password.preferences_overview_text_password
 import kotlinx.android.synthetic.main.activity_preferences_password.preferences_password_ask_after_text
 import kotlinx.android.synthetic.main.activity_preferences_password.preferences_password_delete_after_layout

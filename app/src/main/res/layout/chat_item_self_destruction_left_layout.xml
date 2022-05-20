@@ -40,7 +40,7 @@
                 android:layout_marginBottom="@dimen/standard_padding"
                 android:maxLines="1"
                 android:textColor="#43ad7f"
-                app:styledTextSize="commentTextSize"
+                android:textSize="?attr/labelTextSize"
                 android:visibility="gone"
                 tools:text="Max Mustermann"
                 tools:visibility="visible"/>
@@ -101,7 +101,7 @@
                         android:singleLine="true"
                         android:text="@string/chats_destructionMessageCell_textType"
                         android:textColor="@color/mainContrast"
-                        app:styledTextSize="messageTextSize"
+                        android:textSize="?attr/messageTextSize"
                         android:textStyle="bold" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -111,7 +111,7 @@
                         android:letterSpacing="-0.01"
                         android:lineSpacingExtra="3sp"
                         android:textColor="@color/mainContrast50"
-                        app:styledTextSize="commentTextSize"
+                        android:textSize="?attr/labelTextSize"
                         tools:text="10 sekunden" />
                 </LinearLayout>
             </LinearLayout>

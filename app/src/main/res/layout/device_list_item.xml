@@ -46,7 +46,7 @@
                 android:ellipsize="end"
                 android:lineSpacingExtra="3sp"
                 android:singleLine="true"
-                app:styledTextSize="commentTextSize"
+                app:styledTextSize="labelTextSize"
                 app:styledTextColor="mainContrast50" />
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -55,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:lineSpacingExtra="3sp"
                 android:textColor="@color/secure"
-                app:styledTextSize="commentTextSize"
+                app:styledTextSize="labelTextSize"
                 app:styledTextColor="secure" />
         </LinearLayout>
     </androidx.appcompat.widget.LinearLayoutCompat>

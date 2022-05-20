@@ -56,6 +56,7 @@ public class ConfigureBackupActivity
     private int mState;
     private String mSetPassword;
     private ActivityState mNextState;
+    private boolean mInitalCall = true;
 
     @Override
     protected void onCreateActivity(Bundle savedInstanceState) {
@@ -221,9 +222,8 @@ public class ConfigureBackupActivity
                 LogUtil.d(TAG, "onActivityResult: LOCAL_BACKUP_URI_ACTIONCODE returned " + resultUri);
                 if(resultUri != null) {
                     try {
-                        final int takeFlags = data.getFlags()
-                                & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        //final int takeFlags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
                         getContentResolver().takePersistableUriPermission(resultUri, takeFlags);
                     } catch (Exception e) {
                         LogUtil.e(TAG, "onActivityResult: Caught exception in takePersistableUriPermission: " + e.getMessage(), e);
@@ -266,7 +266,14 @@ public class ConfigureBackupActivity
     public void onFragmentInteraction(int action, Bundle arguments) {
         switch (action) {
             case AppConstants.BACKUP_ACTION_START_BACKUP: {
-                Uri backupDestination = mStorageUtil.getBackupDestinationUri();
+                // Always ask for destination, if user starts backup manually!
+                Uri backupDestination = null;
+                if(!mInitalCall) {
+                    backupDestination = mStorageUtil.getBackupDestinationUri();
+                } else {
+                    mInitalCall = false;
+                }
+
                 if(backupDestination == null || mStorageUtil.getBackupDestinationSize(backupDestination) == 0L) {
                     showBackupFileChooser();
                 } else {

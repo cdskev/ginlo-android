@@ -183,8 +183,6 @@ class LoadPendingAttachmentTask : JobIntentService() {
 
     companion object {
         fun start() {
-            LogUtil.d(LoadPendingAttachmentTask::javaClass.name, "start() called.")
-
             val intent = Intent(SimsMeApplication.getInstance(), LoadPendingAttachmentTask::class.java)
             enqueueWork(SimsMeApplication.getInstance(), LoadPendingAttachmentTask::class.java, 1, intent)
         }

@@ -11,15 +11,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import org.jetbrains.annotations.NotNull;
-
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.MessageDecryptionController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
-import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Account;
 import eu.ginlo_apps.ginlo.greendao.Contact;
@@ -1159,7 +1156,7 @@ public class MessageModelBuilder {
 
         messageModel.attachment = messageModel.requestGuid;
         AttachmentController.saveEncryptedAttachmentFileAsBase64File(messageModel.attachment,
-                AttachmentController.getEncryptedBase64AttachmentFile(messageModel.attachment).getPath());
+                AttachmentController.getTempBase64AttachmentFile(messageModel.attachment).getPath());
     }
 
     private void encryptData(BaseMessageModel messageModel,

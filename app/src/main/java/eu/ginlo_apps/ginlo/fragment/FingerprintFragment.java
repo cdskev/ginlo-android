@@ -19,9 +19,9 @@ import androidx.fragment.app.DialogFragment;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.SecurityUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
+
 import javax.crypto.Cipher;
 
 public class FingerprintFragment extends DialogFragment implements View.OnClickListener {
@@ -111,7 +111,7 @@ public class FingerprintFragment extends DialogFragment implements View.OnClickL
         final FingerprintManager fingerprintManager = context.getSystemService(FingerprintManager.class);
         if (fingerprintManager == null) {
             hintText.setText(context.getText(R.string.dialog_fingerprint_init_error));
-            hintText.setTextColor(ColorUtil.getInstance().getLowColor(application));
+            hintText.setTextColor(ScreenDesignUtil.getInstance().getLowColor(application));
             return;
         }
 
@@ -129,19 +129,19 @@ public class FingerprintFragment extends DialogFragment implements View.OnClickL
                 @Override
                 public void onAuthenticationError(int errMsgId, CharSequence errString) {
                     hintText.setText(errString);
-                    hintText.setTextColor(ColorUtil.getInstance().getLowColor(application));
+                    hintText.setTextColor(ScreenDesignUtil.getInstance().getLowColor(application));
                 }
 
                 @Override
                 public void onAuthenticationHelp(int helpMsgId, CharSequence helpString) {
                     hintText.setText(helpString);
-                    hintText.setTextColor(ColorUtil.getInstance().getMainContrast50Color(application));
+                    hintText.setTextColor(ScreenDesignUtil.getInstance().getMainContrast50Color(application));
                 }
 
                 @Override
                 public void onAuthenticationFailed() {
                     hintText.setText(application.getResources().getString(R.string.dialog_fingerprint_auth_failed));
-                    hintText.setTextColor(ColorUtil.getInstance().getLowColor(application));
+                    hintText.setTextColor(ScreenDesignUtil.getInstance().getLowColor(application));
                 }
 
                 @Override
@@ -149,7 +149,7 @@ public class FingerprintFragment extends DialogFragment implements View.OnClickL
                     FingerprintFragment.this.dismiss();
                     if (result.getCryptoObject() == null || result.getCryptoObject().getCipher() == null) {
                         hintText.setText(application.getResources().getString(R.string.dialog_fingerprint_auth_failed));
-                        hintText.setTextColor(ColorUtil.getInstance().getLowColor(application));
+                        hintText.setTextColor(ScreenDesignUtil.getInstance().getLowColor(application));
                         return;
                     }
 
@@ -164,13 +164,13 @@ public class FingerprintFragment extends DialogFragment implements View.OnClickL
             if (LocalizedException.ANDROID_BIOMETRIC_KEY_INVALIDATED.equals(e.getIdentifier())) {
                 String errDetails = context.getString(R.string.fingerprint_error_invalidated);
                 hintText.setText(errDetails);
-                hintText.setTextColor(ColorUtil.getInstance().getLowColor(application));
+                hintText.setTextColor(ScreenDesignUtil.getInstance().getLowColor(application));
                 application.getAccountController().disableBiometricAuthentication(null);
             } else {
                 String errMsg = context.getString(R.string.dialog_fingerprint_init_error);
                 String errDetails = context.getString(R.string.dialog_fingerprint_init_error_detail, errMsg, e.getIdentifier());
                 hintText.setText(errDetails);
-                hintText.setTextColor(ColorUtil.getInstance().getLowColor(application));
+                hintText.setTextColor(ScreenDesignUtil.getInstance().getLowColor(application));
             }
         }
     }

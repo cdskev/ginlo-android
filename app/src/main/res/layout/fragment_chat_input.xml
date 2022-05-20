@@ -46,7 +46,7 @@
                 android:layout_marginStart="@dimen/half_padding"
                 android:letterSpacing="-0.01"
                 android:lineSpacingExtra="3sp"
-                app:styledTextSize="commentTextSize"
+                app:styledTextSize="labelTextSize"
                 app:styledTextColor="insecureContrast" />
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -65,7 +65,7 @@
                 android:layout_marginStart="@dimen/half_padding"
                 android:letterSpacing="-0.01"
                 android:lineSpacingExtra="3sp"
-                app:styledTextSize="commentTextSize"
+                app:styledTextSize="labelTextSize"
                 app:styledTextColor="insecureContrast" />
 
 

@@ -18,7 +18,7 @@
         android:maxLines="1"
         android:text="09.04.2015"
         android:textColor="@color/white"
-        app:styledTextSize="commentTextSize"
+        android:textSize="?attr/labelTextSize"
         android:textStyle="normal" />
 
 </LinearLayout>

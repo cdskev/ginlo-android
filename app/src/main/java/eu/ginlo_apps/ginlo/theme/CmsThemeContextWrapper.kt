@@ -7,7 +7,7 @@ import android.content.ContextWrapper
 import android.content.res.Resources
 import android.util.TypedValue
 import eu.ginlo_apps.ginlo.R
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 
 class CmsThemeContextWrapper(private val base: Context) : ContextWrapper(base) {
 
@@ -18,7 +18,7 @@ class CmsThemeContextWrapper(private val base: Context) : ContextWrapper(base) {
         resources = object : Resources(base.assets, base.resources.displayMetrics, base.resources.configuration) {
 
             override fun getValue(id: Int, outValue: TypedValue, resolveRefs: Boolean) {
-                with(ColorUtil.getInstance()) {
+                with(ScreenDesignUtil.getInstance()) {
                     when (id) {
                         R.color.app_accent -> outValue.data = getAppAccentColor(application)
                         R.color.actionbar_color -> outValue.data = getMainColor(application)
@@ -37,7 +37,7 @@ class CmsThemeContextWrapper(private val base: Context) : ContextWrapper(base) {
             }
 
             override fun getColor(id: Int): Int {
-                with(ColorUtil.getInstance()) {
+                with(ScreenDesignUtil.getInstance()) {
                     return when (id) {
                         R.color.app_accent -> getAppAccentColor(application)
                         R.color.actionbar_color -> getMainColor(application)

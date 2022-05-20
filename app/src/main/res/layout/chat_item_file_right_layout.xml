@@ -79,7 +79,7 @@
                         android:ellipsize="middle"
                         android:singleLine="true"
                         android:textColor="@color/main"
-                        app:styledTextSize="messageTextSize"
+                        android:textSize="?attr/messageTextSize"
                         android:textStyle="bold"
                         tools:text="Datei.psd" />
 
@@ -89,7 +89,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="@color/main"
-                        app:styledTextSize="commentTextSize"
+                        android:textSize="?attr/labelTextSize"
                         tools:text="220,4 KB" />
                 </LinearLayout>
             </LinearLayout>

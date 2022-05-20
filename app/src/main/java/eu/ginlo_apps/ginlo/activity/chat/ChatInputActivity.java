@@ -41,24 +41,19 @@ import com.leinardi.android.speeddial.SpeedDialActionItem;
 import com.leinardi.android.speeddial.SpeedDialOverlayLayout;
 import com.leinardi.android.speeddial.SpeedDialView;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import eu.ginlo_apps.ginlo.AVCActivity;
 import eu.ginlo_apps.ginlo.BaseActivity;
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.ContactDetailActivity;
 import eu.ginlo_apps.ginlo.DestructionActivity;
 import eu.ginlo_apps.ginlo.LocationActivity;
+import eu.ginlo_apps.ginlo.LocationActivityOSM;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewAttachmentActivity;
 import eu.ginlo_apps.ginlo.activity.profile.ProfileActivity;
 import eu.ginlo_apps.ginlo.adapter.ChatAdapter;
 import eu.ginlo_apps.ginlo.concurrent.task.HttpBaseTask;
-import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
-import eu.ginlo_apps.ginlo.controller.AudioManager;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
@@ -74,7 +69,6 @@ import eu.ginlo_apps.ginlo.greendao.Chat;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.model.AppGinloControlMessage;
 import eu.ginlo_apps.ginlo.model.CitationModel;
 import eu.ginlo_apps.ginlo.model.DecryptedMessage;
 import eu.ginlo_apps.ginlo.model.chat.AVChatItemVO;
@@ -87,11 +81,12 @@ import eu.ginlo_apps.ginlo.model.chat.TextChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VCardChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VoiceChatItemVO;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
+import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.model.param.SendActionContainer;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.router.RouterConstants;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
@@ -103,11 +98,9 @@ import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
 import eu.ginlo_apps.ginlo.view.MaskImageView;
 import ezvcard.VCard;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -221,18 +214,18 @@ public abstract class ChatInputActivity
 
     private void initFabMenu() {
 
-        final ColorUtil colorUtil = ColorUtil.getInstance();
-        final int lowColor = colorUtil.getLowColor(mApplication);
-        final int lowContrastColor = colorUtil.getLowContrastColor(mApplication);
+        final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+        final int lowColor = screenDesignUtil.getLowColor(mApplication);
+        final int lowContrastColor = screenDesignUtil.getLowContrastColor(mApplication);
 
         final int fabColor;
         final int fabIconColor;
         if (RuntimeConfig.isBAMandant()) {
-            fabColor = colorUtil.getMainContrastColor(mApplication);
-            fabIconColor = colorUtil.getMainColor(mApplication);
+            fabColor = screenDesignUtil.getMainContrastColor(mApplication);
+            fabIconColor = screenDesignUtil.getMainColor(mApplication);
         } else {
-            fabColor = colorUtil.getFabColor(mApplication);
-            fabIconColor = colorUtil.getFabIconColor(mApplication);
+            fabColor = screenDesignUtil.getFabColor(mApplication);
+            fabIconColor = screenDesignUtil.getFabIconColor(mApplication);
         }
 
         mSpeedDialView = findViewById(R.id.chat_input_speed_dial_fab);
@@ -603,12 +596,19 @@ public abstract class ChatInputActivity
                                 if ((permission == PermissionUtil.PERMISSION_FOR_LOCATION) && permissionGranted) {
                                     LocationChatItemVO locationChatItemVO = (LocationChatItemVO) baseChatItemVO;
 
-                                    Intent intent = new Intent(ChatInputActivity.this, LocationActivity.class);
-
-                                    intent.putExtra(LocationActivity.EXTRA_MODE, LocationActivity.MODE_SHOW_LOCATION);
-                                    intent.putExtra(LocationActivity.EXTRA_LONGITUDE, locationChatItemVO.longitude);
-                                    intent.putExtra(LocationActivity.EXTRA_LATITUDE, locationChatItemVO.latitude);
-                                    startActivity(intent);
+                                    if(mApplication.havePlayServices(ChatInputActivity.this) && !preferencesController.getOsmEnabled()) {
+                                        Intent intent = new Intent(ChatInputActivity.this, LocationActivity.class);
+                                        intent.putExtra(LocationActivity.EXTRA_MODE, LocationActivity.MODE_SHOW_LOCATION);
+                                        intent.putExtra(LocationActivity.EXTRA_LONGITUDE, locationChatItemVO.longitude);
+                                        intent.putExtra(LocationActivity.EXTRA_LATITUDE, locationChatItemVO.latitude);
+                                        startActivity(intent);
+                                    } else {
+                                        Intent intent = new Intent(ChatInputActivity.this, LocationActivityOSM.class);
+                                        intent.putExtra(LocationActivityOSM.EXTRA_MODE, LocationActivityOSM.MODE_SHOW_LOCATION);
+                                        intent.putExtra(LocationActivityOSM.EXTRA_LONGITUDE, locationChatItemVO.longitude);
+                                        intent.putExtra(LocationActivityOSM.EXTRA_LATITUDE, locationChatItemVO.latitude);
+                                        startActivity(intent);
+                                    }
                                 }
                             }
                         });
@@ -777,11 +777,23 @@ public abstract class ChatInputActivity
                         }
                     }
                 }
+            } else if (baseChatItemVO instanceof VoiceChatItemVO) {
+                LogUtil.d(TAG, "onItemClick: VoiceChatItemVO");
+                VoiceChatItemVO voiceChatItemVO = (VoiceChatItemVO) baseChatItemVO;
+
+                if (!isDownloading(messageGuid)) {
+                    final ProgressBar progressBar = view.findViewById(R.id.progressBar_download);
+                    if (progressBar != null) {
+                        HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(adapterPosition, baseChatItemVO.isPriority);
+                        getChatController().getAttachment(voiceChatItemVO, onAttachmentLoadWrapper, false, onConnectionDataUpdatedListener);
+                        view.setTag("downloading");
+                    } else {
+                        getChatController().getAttachment(voiceChatItemVO, onAttachmentLoadWrapper, false, null);
+                    }
+                }
             } else if (baseChatItemVO instanceof FileChatItemVO) {
                 // Other filetypes
                 LogUtil.d(TAG, "onItemClick: FileChatItemVO");
-                FileChatItemVO imageChatItemVO = (FileChatItemVO) baseChatItemVO;
-
                 if (!mBottomSheetMoving) {
                     if (mPreferencesController.isOpenInAllowed()) {
                         int bottomSheetLayoutResourceID = R.layout.dialog_chat_context_menu_open_share_layout;
@@ -795,7 +807,7 @@ public abstract class ChatInputActivity
                     }
                 }
             } else if (baseChatItemVO instanceof AttachmentChatItemVO) {
-                // Image and Video
+                // Image, Video
                 LogUtil.d(TAG, "onItemClick: AttachmentChatItemVO");
                 AttachmentChatItemVO imageChatItemVO = (AttachmentChatItemVO) baseChatItemVO;
 
@@ -808,20 +820,6 @@ public abstract class ChatInputActivity
                         view.setTag("downloading");
                     } else {
                         getChatController().getAttachment(imageChatItemVO, onAttachmentLoadWrapper, false, null);
-                    }
-                }
-            } else if (baseChatItemVO instanceof VoiceChatItemVO) {
-                LogUtil.d(TAG, "onItemClick: VoiceChatItemVO");
-                VoiceChatItemVO voiceChatItemVO = (VoiceChatItemVO) baseChatItemVO;
-
-                if (!isDownloading(messageGuid)) {
-                    final ProgressBar progressBar = view.findViewById(R.id.progressBar_download);
-                    if (progressBar != null) {
-                        HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(adapterPosition, baseChatItemVO.isPriority);
-                        getChatController().getAttachment(voiceChatItemVO, onAttachmentLoadWrapper, false, onConnectionDataUpdatedListener);
-                        view.setTag("downloading");
-                    } else {
-                        getChatController().getAttachment(voiceChatItemVO, onAttachmentLoadWrapper, false, null);
                     }
                 }
             } else {
@@ -1160,7 +1158,7 @@ public abstract class ChatInputActivity
             try {
                 mShareFileUri = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", dataFile);
             } catch (IllegalArgumentException e) {
-                LogUtil.e(TAG, "onFileLoaded: Failed to get file.", e);
+                LogUtil.e(TAG, "onFileLoaded: Failed to get file " + mShareFileUri, e);
                 return;
             }
 
@@ -1170,11 +1168,30 @@ public abstract class ChatInputActivity
                     shareIntent.putExtra(Intent.EXTRA_STREAM, mShareFileUri);
                     shareIntent.setType(mimeType);
                 } else {
+
+                    if(MimeType.APP_PDF.equals(mimeType) && preferencesController.getUseInternalPdfViewer()) {
+                        // Use internal pdf-viewer
+                        LogUtil.d(TAG, "onFileLoaded: Use internal pdf-viewer for " + dataFile);
+                        Intent intent;
+                        if (ChatInputActivity.this.isActivityInForeground()) {
+                            intent = new Intent(this, ViewAttachmentActivity.class);
+                            intent.putExtra(ViewAttachmentActivity.EXTRA_PDF_URI, dataFile.toURI().toASCIIString());
+                            intent.putExtra(ViewAttachmentActivity.EXTRA_ATTACHMENT_GUID, decryptedMsg.getMessage().getAttachment());
+                            startActivity(intent);
+                        }
+                        return;
+                    }
+
                     shareIntent.setDataAndType(mShareFileUri, mimeType);
                 }
 
-                //List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY);
-                List<ResolveInfo> resInfoList = getPackageManager().queryIntentActivities(shareIntent, PackageManager.MATCH_ALL);
+                List<ResolveInfo> resInfoList;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    resInfoList = getPackageManager().queryIntentActivities(shareIntent, PackageManager.MATCH_ALL);
+                } else {
+                    resInfoList = getPackageManager().queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY);
+                }
+
                 for (ResolveInfo resolveInfo : resInfoList) {
                     String packageName = resolveInfo.activityInfo.packageName;
                     grantUriPermission(packageName, mShareFileUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -1219,7 +1236,7 @@ public abstract class ChatInputActivity
         if (size != 0) {
             if (mToolbarOptionsLayout != null) {
                 mToolbarOptionsLayout.setVisibility(View.VISIBLE);
-                mToolbarOptionsLayout.setBackgroundColor(ColorUtil.getInstance().getToolbarColor(mApplication));
+                mToolbarOptionsLayout.setBackgroundColor(ScreenDesignUtil.getInstance().getToolbarColor(mApplication));
                 getToolbar().setVisibility(View.GONE);
                 for (int i = 0; i < size; ++i) {
                     final ToolbarOptionsItemModel model = toolbarOptionsItemModels.get(i);
@@ -1247,7 +1264,7 @@ public abstract class ChatInputActivity
         Drawable d = ContextCompat.getDrawable(this, drawableId);
         if (d != null) {
             d.mutate();
-            d.setColorFilter(ColorUtil.getInstance().getMainContrast80Color(mApplication), PorterDuff.Mode.SRC_ATOP);
+            d.setColorFilter(ScreenDesignUtil.getInstance().getMainContrast80Color(mApplication), PorterDuff.Mode.SRC_ATOP);
         }
         return d;
     }
@@ -1419,9 +1436,9 @@ public abstract class ChatInputActivity
 
                                         final int color;
                                         if (isPriority) {
-                                            color = ColorUtil.getInstance().getAlertColor(mApplication);
+                                            color = ScreenDesignUtil.getInstance().getAlertColor(mApplication);
                                         } else {
-                                            color = ColorUtil.getInstance().getChatItemColor(mApplication);
+                                            color = ScreenDesignUtil.getInstance().getChatItemColor(mApplication);
                                         }
 
                                         if (StringUtil.isEqual(tag, "destruction")) {
@@ -1704,8 +1721,12 @@ public abstract class ChatInputActivity
         }
         closeBottomSheet(mOnBottomSheetClosedListener);
 
-        // KS: Always show warning
-        mPreferencesController.setHasShowOpenFileWarning(false);
+        // KS: Show warning when opening external programs
+        if(mPreferencesController.getUseInternalPdfViewer()) {
+            mPreferencesController.setHasShowOpenFileWarning(true);
+        } else {
+            mPreferencesController.setHasShowOpenFileWarning(false);
+        }
 
         //Show file export warning
         if (!mPreferencesController.getHasShowOpenFileWarning()) {
@@ -1758,22 +1779,20 @@ public abstract class ChatInputActivity
     private void startGetFileAttachment(final String fileIntentAction) {
         if (mMarkedChatItem instanceof FileChatItemVO) {
             mFileIntentAction = fileIntentAction;
+            final ProgressBar progressBar;
+            if (mClickedView != null) {
+                progressBar = mClickedView.findViewById(R.id.progressBar_download);
+                mClickedView = null;
+            } else {
+                progressBar = null;
+            }
 
-                final ProgressBar progressBar;
-                if (mClickedView != null) {
-                    progressBar = mClickedView.findViewById(R.id.progressBar_download);
-                    mClickedView = null;
-                } else {
-                    progressBar = null;
-                }
-
-                if (progressBar != null) {
-                    final HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(mClickedIndex, mMarkedChatItem.isPriority);
-                    getChatController().getAttachment((AttachmentChatItemVO) mMarkedChatItem, ChatInputActivity.this, true, onConnectionDataUpdatedListener);
-                } else {
-                    getChatController().getAttachment((AttachmentChatItemVO) mMarkedChatItem, ChatInputActivity.this, true, null);
-                }
-            //}
+            if (progressBar != null) {
+                final HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(mClickedIndex, mMarkedChatItem.isPriority);
+                getChatController().getAttachment((AttachmentChatItemVO) mMarkedChatItem, ChatInputActivity.this, true, onConnectionDataUpdatedListener);
+            } else {
+                getChatController().getAttachment((AttachmentChatItemVO) mMarkedChatItem, ChatInputActivity.this, true, null);
+            }
             mClickedIndex = -1;
         }
     }

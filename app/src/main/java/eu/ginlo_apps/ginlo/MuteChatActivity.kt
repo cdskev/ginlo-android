@@ -5,14 +5,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import dagger.android.AndroidInjection
 import eu.ginlo_apps.ginlo.controller.message.contracts.SilenceChatListener
 import eu.ginlo_apps.ginlo.data.network.AppConnectivity
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.util.DateUtil
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
 import eu.ginlo_apps.ginlo.util.GuidUtil
 import kotlinx.android.synthetic.main.activity_mute_chat.mute_chat_duration_textview
@@ -111,7 +110,7 @@ class MuteChatActivity : BaseActivity() {
             }
         } else {
             mute_chat_duration_textview.text = getString(R.string.chat_mute_off_long)
-            mute_chat_duration_textview.setBackgroundColor(ColorUtil.getInstance().getMainContrast50Color(simsMeApplication))
+            mute_chat_duration_textview.setBackgroundColor(ScreenDesignUtil.getInstance().getMainContrast50Color(simsMeApplication))
             mute_chat_duration_textview2.visibility = View.GONE
             mute_item_deactivate.visibility = View.GONE
 

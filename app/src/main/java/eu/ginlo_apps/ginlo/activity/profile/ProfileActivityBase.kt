@@ -204,7 +204,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item?.itemId) {
+        return when (item.itemId) {
             R.id.profile_activity_menu_apply -> {
                 saveData()
                 isEditMode = false
@@ -214,7 +214,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                 editData()
                 true
             }
-            else -> super.onOptionsItemSelected(item as MenuItem)
+            else -> super.onOptionsItemSelected(item)
         }
     }
 
@@ -267,7 +267,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
             val tenantIdent = RuntimeConfig.getMandant()
             val tenant = simsMeApplication.preferencesController.getMandantFromIdent(tenantIdent)
             if (tenant != null) {
-                ColorUtil.getInstance()
+                ScreenDesignUtil.getInstance()
                     .colorizeMandantTextView(simsMeApplication, tenant, tenantTextView, true)
             } else {
                 tenantTextView.visibility = View.GONE

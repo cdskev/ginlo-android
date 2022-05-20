@@ -47,10 +47,13 @@ class SendMessageToBackendTask internal constructor(
                             confirmMsgSendModel = confirmMessageSendModel[0]
                         }
                     }
-                    // Delete this base64 attachment only on success
+                    // Clean up temp attachment files on success
                     if (message != null && message?.attachment?.isNotBlank() == true) {
-                        AttachmentController.deleteBase64AttachmentFile(message?.attachment)
+                        LogUtil.d("SendMessageToBackendTask", "Going to delete temp attachment files for: " + message?.attachment)
+                        AttachmentController.deleteTempBase64AttachmentFile(message?.attachment)
+                        AttachmentController.deleteTempJsonAttachmentFile(message?.attachment)
                     }
+
                 } else {
                     result = toAsyncTaskError()
 

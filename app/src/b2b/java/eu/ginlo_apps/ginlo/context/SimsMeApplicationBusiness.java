@@ -1,6 +1,9 @@
 // Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.context;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+
 import eu.ginlo_apps.ginlo.billing.GinloBillingImpl;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.ContactControllerBusiness;
@@ -64,8 +67,11 @@ public class SimsMeApplicationBusiness extends SimsMeApplication {
 
     @Override
     public GinloBillingImpl getGinloBillingImpl() {
-        if(ginloBillingImpl == null) {
-            ginloBillingImpl = new GinloBillingImpl(this);
+
+        if (havePlayServices(this)) {
+            if(ginloBillingImpl == null) {
+                ginloBillingImpl = new GinloBillingImpl(this);
+            }
         }
         return ginloBillingImpl;
     }

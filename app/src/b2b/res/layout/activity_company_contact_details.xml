@@ -62,7 +62,7 @@
                     android:layout_height="wrap_content"
                     android:labelFor="@+id/company_contact_details_edit_text_firstname"
                     android:text="@string/label_first_name"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.emoji.widget.EmojiAppCompatEditText
@@ -88,7 +88,7 @@
                     android:layout_height="wrap_content"
                     android:labelFor="@+id/company_contact_details_edit_text_lastname"
                     android:text="@string/label_last_name"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.emoji.widget.EmojiAppCompatEditText
@@ -116,7 +116,7 @@
                     android:layout_height="wrap_content"
                     android:labelFor="@+id/company_contact_details_edit_text_mobilenumber"
                     android:text="@string/label_mobile_number"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -146,7 +146,7 @@
                     android:layout_height="wrap_content"
                     android:labelFor="@+id/company_contact_details_edit_text_emailaddress"
                     android:text="@string/label_email_address"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -173,7 +173,7 @@
                     android:layout_height="wrap_content"
                     android:labelFor="@+id/company_contact_details_edit_text_department"
                     android:text="@string/label_departement"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.emoji.widget.EmojiAppCompatEditText
@@ -199,7 +199,7 @@
                     android:layout_marginBottom="@dimen/layout_padding_top_bottom"
                     android:labelFor="@+id/company_contact_details_edit_text_simsmeid"
                     android:text="@string/label_simsme_id"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <RelativeLayout

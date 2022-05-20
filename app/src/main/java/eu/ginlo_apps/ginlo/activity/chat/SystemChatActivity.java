@@ -35,9 +35,10 @@ public class SystemChatActivity
     protected void onCreateActivity(Bundle savedInstanceState) {
         try {
             super.onCreateActivity(savedInstanceState);
-            LogUtil.i(TAG, "onCreate: " + this + "");
+            LogUtil.d(TAG, "onCreate: " + this + "");
 
             mTargetGuid = getIntent().getStringExtra(EXTRA_TARGET_GUID);
+            notificationController.setCurrentChatGuid(mTargetGuid);
 
             getChatController().addListener(this);
 
@@ -67,7 +68,7 @@ public class SystemChatActivity
         try {
             super.onResumeActivity();
 
-            LogUtil.i(TAG, "onResume: " + this + "");
+            LogUtil.d(TAG, "onResume: " + this + "");
 
             if (loginController.getState().equals(LoginController.STATE_LOGGED_OUT)) {
                 return;

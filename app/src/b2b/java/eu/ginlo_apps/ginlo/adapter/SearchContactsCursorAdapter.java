@@ -26,7 +26,7 @@ import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -52,11 +52,11 @@ public class SearchContactsCursorAdapter extends CursorRecycleViewAdapter<Search
 
         mImageLoader = imageLoader;
 
-        final ColorUtil colorUtil = ColorUtil.getInstance();
-        mHighLevelColor = colorUtil.getHighColor((Application) getContext().getApplicationContext());
-        mMediumLevelColor = colorUtil.getMediumColor((Application) getContext().getApplicationContext());
-        mLowLevelColor = colorUtil.getLowColor((Application) getContext().getApplicationContext());
-        mMainColor = colorUtil.getMainColor((Application) getContext().getApplicationContext());
+        final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+        mHighLevelColor = screenDesignUtil.getHighColor((Application) getContext().getApplicationContext());
+        mMediumLevelColor = screenDesignUtil.getMediumColor((Application) getContext().getApplicationContext());
+        mLowLevelColor = screenDesignUtil.getLowColor((Application) getContext().getApplicationContext());
+        mMainColor = screenDesignUtil.getMainColor((Application) getContext().getApplicationContext());
 
         mCheckDrawable = context.getDrawable(R.drawable.profile_check_done);
 
@@ -141,7 +141,7 @@ public class SearchContactsCursorAdapter extends CursorRecycleViewAdapter<Search
                 if (mandant != null) {
                     viewHolder.mandantTextView.setVisibility(View.VISIBLE);
                     boolean isPrivate = item.classType == null || StringUtil.isEqual(Contact.CLASS_PRIVATE_ENTRY, item.classType);
-                    ColorUtil.getInstance().colorizeMandantTextView((Application) getContext().getApplicationContext(), mandant, viewHolder.mandantTextView, isPrivate);
+                    ScreenDesignUtil.getInstance().colorizeMandantTextView((Application) getContext().getApplicationContext(), mandant, viewHolder.mandantTextView, isPrivate);
                 } else {
                     viewHolder.mandantTextView.setVisibility(View.GONE);
                 }

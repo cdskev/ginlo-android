@@ -501,7 +501,7 @@ public class BackupController {
 
     public void copyAttachmentToAttachmentsDirAsBase64(String attachmentGuid)
             throws LocalizedException {
-        File backupDir =  mStorageUtil.getInternalBackupAttachmentDirectory(false);
+        File backupDir =  mStorageUtil.getCurrentInternalBackupAttachmentDirectory(false);
 
         String fileName = attachmentGuid.replace(':', '_');
         File attachmentBuFile = new File(backupDir, fileName);
@@ -511,7 +511,7 @@ public class BackupController {
 
     public void copyBase64AttachmentToAttachmentsDir(String attachmentGuid)
             throws LocalizedException {
-        File backupAttachmentDir = mStorageUtil.getInternalBackupAttachmentDirectory(false);
+        File backupAttachmentDir = mStorageUtil.getCurrentInternalBackupAttachmentDirectory(false);
 
         String fileName = attachmentGuid.replace(':', '_');
         File attachmentBuFile = new File(backupAttachmentDir, fileName);

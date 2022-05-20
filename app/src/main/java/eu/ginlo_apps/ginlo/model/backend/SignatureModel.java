@@ -8,9 +8,6 @@ import com.google.gson.JsonObject;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Message;
-import eu.ginlo_apps.ginlo.model.backend.BaseMessageModel;
-import eu.ginlo_apps.ginlo.model.backend.GroupMessageModel;
-import eu.ginlo_apps.ginlo.model.backend.PrivateMessageModel;
 import eu.ginlo_apps.ginlo.util.ChecksumUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.log.LogUtil;
@@ -138,7 +135,7 @@ public class SignatureModel {
 
         if (messageModel.attachment != null) {
             if (GuidUtil.isRequestGuid(messageModel.attachment)) {
-                File file = AttachmentController.getEncryptedBase64AttachmentFile(messageModel.attachment);
+                File file = AttachmentController.getTempBase64AttachmentFile(messageModel.attachment);
                 if (file != null && file.exists()) {
                     this.attachments = new String[]{useSha256 ? ChecksumUtil.getSHA256ChecksumFromFile(file) : ChecksumUtil.getSHA1ChecksumFromFile(file)};
                 }

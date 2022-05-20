@@ -505,7 +505,7 @@ public class BitmapUtil {
                                                       @NonNull final boolean isAbsent,
                                                       final boolean useContrastforOuterColor) {
         Drawable d = context.getDrawable(R.drawable.contact_state_bubble);
-        final ColorUtil colorUtil = ColorUtil.getInstance();
+        final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
         if (d instanceof LayerDrawable) {
             LayerDrawable contactStateBubble = (LayerDrawable) d;
             int drawableCount = contactStateBubble.getNumberOfLayers();
@@ -521,12 +521,12 @@ public class BitmapUtil {
                     continue;
                 }
                 if (contactStateBubble.getId(i) == R.id.contact_state_bubble_inner) {
-                    final int stateColor = isAbsent ? colorUtil.getLowColor((Application) context.getApplicationContext())
-                            : colorUtil.getHighColor((Application) context.getApplicationContext());
+                    final int stateColor = isAbsent ? screenDesignUtil.getLowColor((Application) context.getApplicationContext())
+                            : screenDesignUtil.getHighColor((Application) context.getApplicationContext());
                     final PorterDuffColorFilter colorFilter = new PorterDuffColorFilter(stateColor, PorterDuff.Mode.SRC_ATOP);
                     childDrawable.setColorFilter(colorFilter);
                 } else if (contactStateBubble.getId(i) == R.id.contact_state_bubble_outter) {
-                    final int mainColor = useContrastforOuterColor ? colorUtil.getMainContrastColor((Application) context.getApplicationContext()) : colorUtil.getMainColor((Application) context.getApplicationContext());
+                    final int mainColor = useContrastforOuterColor ? screenDesignUtil.getMainContrastColor((Application) context.getApplicationContext()) : screenDesignUtil.getMainColor((Application) context.getApplicationContext());
                     final PorterDuffColorFilter colorFilter = new PorterDuffColorFilter(mainColor, PorterDuff.Mode.SRC_ATOP);
                     childDrawable.setColorFilter(colorFilter);
                 }

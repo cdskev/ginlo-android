@@ -1,10 +1,10 @@
 // Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.controller.message.tasks
 
+import android.os.Bundle
 import eu.ginlo_apps.ginlo.concurrent.listener.ConcurrentTaskListener
 import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask
 import eu.ginlo_apps.ginlo.controller.GinloAppLifecycle
-import eu.ginlo_apps.ginlo.controller.GinloAppLifecycleImpl
 import eu.ginlo_apps.ginlo.controller.LoginController
 import eu.ginlo_apps.ginlo.controller.PreferencesController
 import eu.ginlo_apps.ginlo.controller.message.MessageController
@@ -12,12 +12,17 @@ import eu.ginlo_apps.ginlo.greendao.Message
 
 class MessageConcurrentTaskListener(
     private val messageController: MessageController,
+    private val notificationExtras: Map<String, String>,
     private val nextListener: ConcurrentTaskListener?,
     private val informOnMessageReceivedListener: Boolean,
     private val ginloAppLifecycle: GinloAppLifecycle,
     private val loginController: LoginController,
     private val preferencesController: PreferencesController
 ) : ConcurrentTaskListener() {
+
+    fun getNotificationExtras(): Map<String, String> {
+        return notificationExtras
+    }
 
     override fun onStateChanged(
         task: ConcurrentTask,

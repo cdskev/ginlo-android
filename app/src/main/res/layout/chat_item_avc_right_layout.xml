@@ -80,7 +80,7 @@
                         android:gravity="center_horizontal"
                         android:text="@string/chats_AVC_title"
                         android:textColor="@color/main"
-                        app:styledTextSize="messageTextSize"
+                        android:textSize="?attr/messageTextSize"
                         android:textStyle="normal" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -91,7 +91,7 @@
                         android:layout_marginTop="@dimen/half_padding"
                         android:singleLine="true"
                         android:textColor="@color/main"
-                        app:styledTextSize="messageTextSize"
+                        android:textSize="?attr/messageTextSize"
                         android:textStyle="bold"
                         android:visibility="gone" />
                 </LinearLayout>

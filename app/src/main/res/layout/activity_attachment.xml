@@ -54,6 +54,11 @@
                     app:show_timeout="0"
                     app:show_buffering="when_playing" />
 
+                <com.github.barteksc.pdfviewer.PDFView
+                    android:id="@+id/attachment_pdf_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+
             </LinearLayout>
 
             <ScrollView

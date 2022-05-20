@@ -5,7 +5,7 @@ package eu.ginlo_apps.ginlo.view;
 import android.content.Context;
 import android.util.AttributeSet;
 import androidx.emoji.widget.EmojiAppCompatTextView;
-import eu.ginlo_apps.ginlo.util.FontUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 
 /**
  * @author Florian
@@ -37,7 +37,7 @@ public class EmojiconMediumTextView
 
     private void createFont(final Context context) {
         if (!isInEditMode()) {
-            setTypeface(FontUtil.getTypeFace(context));
+            setTypeface(ScreenDesignUtil.getTypeFace(context));
         }
     }
 }

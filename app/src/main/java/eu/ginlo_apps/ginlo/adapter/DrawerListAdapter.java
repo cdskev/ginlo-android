@@ -25,7 +25,7 @@ import eu.ginlo_apps.ginlo.greendao.Account;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.drawer.DrawerListItemVO;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import java.util.List;
@@ -101,9 +101,9 @@ public class DrawerListAdapter
         if (hintTextView != null) {
             if (RuntimeConfig.isBAMandant()) {
                 if (drawerListItemVO.getIsAbsent()) {
-                    hintTextView.setTextColor(ColorUtil.getInstance().getLowColor((Application) getContext().getApplicationContext()));
+                    hintTextView.setTextColor(ScreenDesignUtil.getInstance().getLowColor((Application) getContext().getApplicationContext()));
                 } else {
-                    hintTextView.setTextColor(ColorUtil.getInstance().getHighColor((Application) getContext().getApplicationContext()));
+                    hintTextView.setTextColor(ScreenDesignUtil.getInstance().getHighColor((Application) getContext().getApplicationContext()));
                 }
             }
 

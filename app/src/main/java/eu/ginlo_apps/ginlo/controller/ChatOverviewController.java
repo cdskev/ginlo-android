@@ -100,10 +100,12 @@ public class ChatOverviewController
     private ArrayList<String> mChatsToRefresh;
     private AsyncHttpTask<ArrayMap<String, Boolean>> mCheckContactsOnlineTask;
     private final MessageDecryptionController messageDecryptionController;
+    private final NotificationController notificationController;
 
     public ChatOverviewController(final SimsMeApplication application) {
         super(application);
         this.messageDecryptionController = application.getMessageDecryptionController();
+        this.notificationController = application.getNotificationController();
         this.chatOverviewTaskManager = new ChatOverviewTaskManager();
         this.listeners = new CopyOnWriteArrayList<>();
         application.getChatImageController().addListener(this);
@@ -282,11 +284,11 @@ public class ChatOverviewController
             public void onStateChanged(final ConcurrentTask task,
                                        final int state) {
                 if (chatsAdapter == null) {
-                    LogUtil.w(TAG, "refreshView:adapter is null");
+                    LogUtil.w(TAG, "startChatOverviewTask: Adapter is null.");
                 }
 
                 if (state == ConcurrentTask.STATE_COMPLETE) {
-                    LogUtil.i(TAG, "refreshView:complete");
+                    LogUtil.d(TAG, "startChatOverviewTask: Complete");
 
                     boolean changeItems = true;
 
@@ -411,7 +413,7 @@ public class ChatOverviewController
                     chatsToRefresh = null;
                 }
 
-                LogUtil.i(TAG, "refreshView:start with guids" + (chatsToRefresh != null ? StringUtil.getStringFromList(",", chatsToRefresh) : ""));
+                LogUtil.i(TAG, "startChatOverviewTask: Start with guids " + (chatsToRefresh != null ? StringUtil.getStringFromList(",", chatsToRefresh) : ""));
 
                 boolean refresh = isRefresh && mOverviewMessages.size() > 0;
                 mChatOverviewTask = chatOverviewTaskManager.executeRefreshChatOverviewTask(mApplication, listener, chatsToRefresh, refresh);
@@ -430,19 +432,33 @@ public class ChatOverviewController
     }
 
     public void chatChanged(@Nullable List<String> chatGuids, @Nullable String chatGuid, @Nullable Message message, int changes) {
-        if (chatGuids != null && chatGuids.size() > 0 && ((changes & CHAT_CHANGED_NEW_SEND_MSG) == CHAT_CHANGED_NEW_SEND_MSG
-                || (changes & CHAT_CHANGED_REFRESH_CHAT) == CHAT_CHANGED_REFRESH_CHAT)) {
+        LogUtil.d(TAG, "chatChanged: Called for chatGuids/chatGuid "
+                + chatGuids + "/" + chatGuid
+                + " for message " + ((message != null) ? message.getGuid() : "null")
+                + " with changes = " + changes);
+
+        if (chatGuids != null && chatGuids.size() > 0
+                && ((changes & CHAT_CHANGED_NEW_SEND_MSG) == CHAT_CHANGED_NEW_SEND_MSG || (changes & CHAT_CHANGED_REFRESH_CHAT) == CHAT_CHANGED_REFRESH_CHAT)) {
+            // KS: Cancel notifications, if chats changed
+            notificationController.dismissAll();
             startChatOverviewTask(true, chatGuids);
-        } else if ((changes & CHAT_CHANGED_NEW_CHAT) == CHAT_CHANGED_NEW_CHAT && !StringUtil.isNullOrEmpty(chatGuid)) {
+
+        } else if (!StringUtil.isNullOrEmpty(chatGuid) && (changes & CHAT_CHANGED_NEW_CHAT) == CHAT_CHANGED_NEW_CHAT) {
             List<String> newChatGuids = new ArrayList<>();
             newChatGuids.add(chatGuid);
             startChatOverviewTask(true, newChatGuids);
+
         } else if ((changes & CHAT_CHANGED_IMAGE) == CHAT_CHANGED_IMAGE) {
             notifyListener(true);
+
         } else if (chatChangedInternally(chatGuid, message, changes)) {
+            LogUtil.d(TAG, "chatChanged: chatChangedInternally returned true.");
             notifyListener(false);
-        } else if ((chatGuid != null) && ((changes & CHAT_CHANGED_NEW_SEND_MSG) == CHAT_CHANGED_NEW_SEND_MSG
-                || (changes & CHAT_CHANGED_REFRESH_CHAT) == CHAT_CHANGED_REFRESH_CHAT)) {
+
+        } else if ((chatGuid != null)
+                && ((changes & CHAT_CHANGED_NEW_SEND_MSG) == CHAT_CHANGED_NEW_SEND_MSG || (changes & CHAT_CHANGED_REFRESH_CHAT) == CHAT_CHANGED_REFRESH_CHAT)) {
+            // KS: Cancel notifications, if chats changed
+            notificationController.dismissAll();
             startChatOverviewTask(true, Collections.singletonList(chatGuid));
         }
     }
@@ -498,6 +514,10 @@ public class ChatOverviewController
             }
 
             if ((changes & CHAT_CHANGED_HAS_READ_MSG) == CHAT_CHANGED_HAS_READ_MSG) {
+
+                // KS: Cancel notifications, if chats changed
+                notificationController.dismissAll();
+
                 if (foundItem instanceof ChatOverviewItemVO) {
                     if (((ChatOverviewItemVO) foundItem).messageCount > 0) {
                         ((ChatOverviewItemVO) foundItem).messageCount = 0;

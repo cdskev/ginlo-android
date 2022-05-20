@@ -7,7 +7,6 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
@@ -30,9 +29,8 @@ import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.adapter.PageAdapterItemInfo;
 import eu.ginlo_apps.ginlo.adapter.SimsmeFragmentPagerAdapter;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
-import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 
 import java.util.Calendar;
@@ -46,31 +44,18 @@ public class SelfdestructionFragment
         extends Fragment {
 
     public static final boolean PICKER_MODE_DESTRUCTION = false;
-
     public static final boolean PICKER_MODE_TIMER = true;
-
     private Boolean countDownSelected;
-
     private Date mDestructionDate;
-
     private boolean mMode;
-
     private OnDestructionValueChangedListener mOnDestructionValueChangedListener;
-
     private OnTimerChangedLister mOnTimerChangedLister;
-
     private int mDestructionCountDown;
-
     private TabLayout mTabLayout;
-
     private ViewPager mViewPager;
-
     private NumberPickerFragment mNumberPickerFragment;
-
     private DateTimePickerFragment mDateTimePickerFragment;
-
     private boolean mIsCreated = false;
-
     private static Application simsmeapplication = null;
 
     @Override
@@ -137,23 +122,6 @@ public class SelfdestructionFragment
         } else {
             mTabLayout.setVisibility(View.VISIBLE);
         }
-
-//      if(RuntimeConfig.isBAMandant())
-//
-//      {
-//         final FragmentActivity activity = getActivity();
-//         if (activity != null)
-//         {
-//            final Application application = activity.getApplication();
-//            final ColorUtil colorUtil = RuntimeConfig.getClassUtil().getColorUtil();
-//            final int mainContrastColor = colorUtil.getMainContrastColor(application);
-//            final int mainColor = colorUtil.getMainColor(application);
-//
-//            mTabLayout.setSelectedTabIndicatorColor(colorUtil.getAppAccentColor(application));
-//            mTabLayout.setTabTextColors(mainContrastColor, mainContrastColor);
-//            mTabLayout.setBackgroundColor(mainColor);
-//         }
-//      }
 
         if (mDestructionCountDown != 0) {
             countDownSelected = true;
@@ -407,7 +375,7 @@ public class SelfdestructionFragment
             int day = c.get(Calendar.DAY_OF_MONTH);
 
             // Create a new instance of DatePickerDialog and return it
-            return new DatePickerDialog(getActivity(), ColorUtil.getInstance().getAlertDialogStyle(simsmeapplication), this, year, month, day);
+            return new DatePickerDialog(getActivity(), ScreenDesignUtil.getInstance().getAlertDialogStyle(simsmeapplication), this, year, month, day);
         }
 
         public void onDateSet(DatePicker view,
@@ -450,7 +418,7 @@ public class SelfdestructionFragment
             int minute = c.get(Calendar.MINUTE);
 
             // Create a new instance of TimePickerDialog and return it
-            return new TimePickerDialog(getActivity(), ColorUtil.getInstance().getAlertDialogStyle(simsmeapplication), this, hour, minute, DateFormat.is24HourFormat(getActivity()));
+            return new TimePickerDialog(getActivity(), ScreenDesignUtil.getInstance().getAlertDialogStyle(simsmeapplication), this, hour, minute, DateFormat.is24HourFormat(getActivity()));
         }
 
         public void onTimeSet(TimePicker view,

@@ -30,7 +30,7 @@ import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.chat.BaseChatItemVO;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
@@ -60,7 +60,7 @@ public class SingleChatActivity
     protected void onCreateActivity(final Bundle savedInstanceState) {
         try {
             super.onCreateActivity(savedInstanceState);
-            LogUtil.i(TAG, "onCreate: " + this + "");
+            LogUtil.d(TAG, "onCreate: " + this + "");
 
             if (getSimsMeApplication().getPreferencesController().getPublicOnlineState()) {
                 mSecondaryTitle = findViewById(R.id.toolbar_secondary_title);
@@ -307,7 +307,7 @@ public class SingleChatActivity
             }
         } else {
             final int resourceId = R.drawable.info_stumm_copy;
-            final int customImageColor = ColorUtil.getInstance().getLowColor(getSimsMeApplication());
+            final int customImageColor = ScreenDesignUtil.getInstance().getLowColor(getSimsMeApplication());
 
             if (!mOnlyShowTimed) {
                 setProfilePicture(resourceId,

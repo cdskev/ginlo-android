@@ -11,11 +11,12 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import eu.ginlo_apps.ginlo.R;
+import eu.ginlo_apps.ginlo.model.constant.MimeType;
 
 public class MimeUtil {
 
     public static final int MIMETYPE_NOT_FOUND = -1;
-    private static final String MIME_TYPE_PDF = "application/pdf";
+    private static final String MIME_TYPE_PDF = MimeType.APP_PDF;
     private static final String MIME_TYPE_MSPOWERPOINT = "application/mspowerpoint";
     private static final String MIME_TYPE_MSPOWERPOINT2 = "application/vnd.ms-powerpoint";
     private static final String MIME_TYPE_MSPOWERPOINT_MACRO = "application/vnd.ms-powerpoint.presentation.macroenabled.12";

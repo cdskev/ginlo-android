@@ -17,7 +17,7 @@ import eu.ginlo_apps.ginlo.greendao.CompanyContact
 import eu.ginlo_apps.ginlo.greendao.Contact
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.constant.AppConstants
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.CompanyContactUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
 import eu.ginlo_apps.ginlo.util.PhoneNumberUtil
@@ -84,11 +84,11 @@ class CompanyContactDetailActivity : BaseActivity() {
             if(!phone.isNullOrBlank()) {
                 val countryCode = PhoneNumberUtil.getCountryCodeForPhoneNumber(phone)
                 if (countryCode != null && !countryCode.isEmpty())
-                    company_contact_details_edit_text_mobilenumber.setLinkTextColor(ColorUtil.getInstance().getAppAccentColor(simsMeApplication))
+                    company_contact_details_edit_text_mobilenumber.setLinkTextColor(ScreenDesignUtil.getInstance().getAppAccentColor(simsMeApplication))
             }
 
             if (!email.isNullOrBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches())
-                company_contact_details_edit_text_emailaddress.setLinkTextColor(ColorUtil.getInstance().getMediumColor(simsMeApplication))
+                company_contact_details_edit_text_emailaddress.setLinkTextColor(ScreenDesignUtil.getInstance().getMediumColor(simsMeApplication))
 
             if (contact.accountId.isNullOrBlank()) {
                 company_contact_details_edit_text_simsmeid_label.visibility = View.GONE

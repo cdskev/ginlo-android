@@ -350,7 +350,7 @@ class SearchContactActivity : BaseActivity() {
                     }
                     ContactUtil.SearchType.EMAIL -> {
                         jsonSearchType = JsonConstants.SEARCH_TYPE_EMAIL
-                        searchText = search_contact_edittext_email_id.text.toString().toLowerCase()
+                        searchText = search_contact_edittext_email_id.text.toString().lowercase()
                         if (searchText.isEmpty()) {
                             DialogBuilderUtil.buildErrorDialog(
                                 this,
@@ -367,7 +367,7 @@ class SearchContactActivity : BaseActivity() {
                     }
                     ContactUtil.SearchType.SIMSME_ID -> {
                         jsonSearchType = JsonConstants.SEARCH_TYPE_SIMSME_ID
-                        searchText = search_contact_edittext_ginlo_id.text.toString().toUpperCase()
+                        searchText = search_contact_edittext_ginlo_id.text.toString().uppercase()
                         if (searchText.isEmpty()) {
                             DialogBuilderUtil.buildErrorDialog(
                                 this,

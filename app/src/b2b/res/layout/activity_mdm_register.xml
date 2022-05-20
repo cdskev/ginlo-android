@@ -185,7 +185,7 @@
                         android:lineSpacingExtra="3sp"
                         android:text="@string/backup_restore_progress_secondary"
                         android:textColor="@color/mainContrast50"
-                        app:styledTextSize="commentTextSize"
+                        app:styledTextSize="labelTextSize"
                         android:visibility="gone" />
 
                 </LinearLayout>
@@ -235,7 +235,7 @@
                         android:lineSpacingExtra="3sp"
                         android:text="@string/backup_restore_progress_secondary"
                         android:textColor="@color/mainContrast50"
-                        app:styledTextSize="commentTextSize"
+                        app:styledTextSize="labelTextSize"
                         android:visibility="gone" />
 
                 </LinearLayout>

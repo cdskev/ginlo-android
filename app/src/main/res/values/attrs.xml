@@ -3,6 +3,7 @@
     <declare-styleable name="MaskImageView">
         <attr name="mask" format="integer" />
     </declare-styleable>
+
     <declare-styleable name="FloatingActionButton">
         <attr name="fab_colorPressed" format="color" />
         <attr name="fab_colorDisabled" format="color" />
@@ -15,6 +16,7 @@
             <enum name="mini" value="1" />
         </attr>
     </declare-styleable>
+
     <declare-styleable name="StyledView">
         <attr name="styledTextSize" format="string" />
         <attr name="styledTextColor" format="string" />
@@ -61,17 +63,19 @@
     <attr name="contextMainColor" format="color" />
     <attr name="contextTextColor" format="color" />
 
-    <attr name="baseTextSize" format="float" />
-    <attr name="messageTextSize" format="float" />
-    <attr name="messageEditTextSize" format="float" />
-    <attr name="commentTextSize" format="float" />
-    <attr name="labelTextSize" format="float" />
-    <attr name="statusTextSize" format="float" />
-    <attr name="chooserTextSize" format="float" />
-    <attr name="mainTitleTextSize" format="float" />
-    <attr name="subTitleTextSize" format="float" />
-    <attr name="tanViewTextSize" format="float" />
-    <attr name="tanEditTextSize" format="float" />
-    <attr name="mediumTitleTextSize" format="float" />
+    <attr name="baseTextSize" format="dimension" />
+    <attr name="messageTextSize" format="dimension" />
+    <attr name="messageEditTextSize" format="dimension" />
+    <attr name="labelTextSize" format="dimension" />
+    <attr name="miniLabelTextSize" format="dimension" />
+    <attr name="statusTextSize" format="dimension" />
+    <attr name="chooserTextSize" format="dimension" />
+    <attr name="mainTitleTextSize" format="dimension" />
+    <attr name="subTitleTextSize" format="dimension" />
+    <attr name="tanViewTextSize" format="dimension" />
+    <attr name="tanEditTextSize" format="dimension" />
+    <attr name="mediumTitleTextSize" format="dimension" />
+    <attr name="notesTextSize" format="dimension" />
 
+    <attr name="textScaleFactor" format="float" />
 </resources>

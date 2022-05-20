@@ -23,7 +23,7 @@ import eu.ginlo_apps.ginlo.controller.ContactControllerBusiness
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.fragment.CompanyAddressBookFragment
 import eu.ginlo_apps.ginlo.log.LogUtil
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener
 import eu.ginlo_apps.ginlo.view.ThemedSearchView
 import kotlinx.android.synthetic.main.activity_forward.contacts_activity_content
@@ -117,7 +117,7 @@ class ForwardActivity : ForwardActivityBase(), SearchView.OnQueryTextListener {
 
         searchView = ThemedSearchView(
             supportActionBar!!.themedContext,
-            ColorUtil.getInstance().getMainContrast80Color(simsMeApplication)
+                ScreenDesignUtil.getInstance().getMainContrast80Color(simsMeApplication)
         ).apply {
             queryHint = getString(R.string.android_search_placeholder_contacts)
             setOnCloseListener(getSearchCloseListener())
@@ -291,8 +291,8 @@ class ForwardActivity : ForwardActivityBase(), SearchView.OnQueryTextListener {
 
             private fun adjustTabColor(tab: TabLayout.Tab?) =
                 tab?.icon?.apply {
-                    ColorUtil.setColorFilter(this,
-                        ColorUtil.getInstance().getAppAccentColor(this@ForwardActivity.simsMeApplication))
+                    ScreenDesignUtil.setColorFilter(this,
+                            ScreenDesignUtil.getInstance().getAppAccentColor(this@ForwardActivity.simsMeApplication))
                 }
         }
     }

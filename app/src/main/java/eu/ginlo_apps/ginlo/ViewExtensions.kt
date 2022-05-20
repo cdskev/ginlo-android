@@ -3,15 +3,13 @@ package eu.ginlo_apps.ginlo
 
 import android.app.Application
 import android.content.Context
-import android.graphics.PorterDuff
 import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import eu.ginlo_apps.ginlo.context.SimsMeApplication
 import eu.ginlo_apps.ginlo.theme.ThemedLayoutInflater
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 
 internal inline fun View.setThrottledClick(
     throttleTimeMs: Long = 1000L,
@@ -56,6 +54,6 @@ private fun getInflatedView(
 
 internal fun MenuItem.applyColorFilter(application: Application) {
     if(this.icon != null) {
-        ColorUtil.setColorFilter(this.icon, ColorUtil.getInstance().getMainContrast80Color(application))
+        ScreenDesignUtil.setColorFilter(this.icon, ScreenDesignUtil.getInstance().getMainContrast80Color(application))
     }
 }

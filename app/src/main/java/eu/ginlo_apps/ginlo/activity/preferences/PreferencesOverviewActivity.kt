@@ -100,7 +100,8 @@ class PreferencesOverviewActivity : NewBaseActivity() {
 
                 preferences_textview_backup_hint.text = text
             }
-            preferences_textview_backup_hint.setTextColor(ColorUtil.getInstance().getHighColor(simsMeApplication))
+            preferences_textview_backup_hint.setTextColor(ScreenDesignUtil.getInstance().getHighColor(simsMeApplication))
+            preferences_textview_backup_hint.textSize = ScreenDesignUtil.getInstance().getNamedTextSize("statusTextSize", simsMeApplication)
         } else {
             preferences_textview_backup_hint.text =
                     getString(R.string.settings_chats_create_backup)

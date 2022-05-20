@@ -4,7 +4,6 @@ package eu.ginlo_apps.ginlo
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Bitmap
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -23,7 +22,6 @@ import eu.ginlo_apps.ginlo.activity.chat.ChannelChatActivity
 import eu.ginlo_apps.ginlo.adapter.ChannelRecycleViewAdapter
 import eu.ginlo_apps.ginlo.adapter.ChannelRecycleViewAdapter.OnChannelItemClickListener
 import eu.ginlo_apps.ginlo.adapter.FilterChannelsAdapter
-import eu.ginlo_apps.ginlo.context.SimsMeApplication.getInstance
 import eu.ginlo_apps.ginlo.controller.ChannelController
 import eu.ginlo_apps.ginlo.controller.ChannelController.ChannelAsyncLoaderCallback
 import eu.ginlo_apps.ginlo.controller.ChannelController.ChannelIdentifier
@@ -35,7 +33,7 @@ import eu.ginlo_apps.ginlo.model.backend.ChannelCategoryModel
 import eu.ginlo_apps.ginlo.model.backend.ChannelListModel
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil.OnCloseListener
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.UrlHandlerUtil
 import eu.ginlo_apps.ginlo.view.ThemedSearchView
@@ -110,7 +108,7 @@ class ChannelListActivity : BaseActivity(), OnChannelItemClickListener,
             sortButton = findViewById(R.id.action_bar_image_view_profile_picture)
             sortButton.apply {
                 setImageResource(R.drawable.ico_sort_up)
-                setColorFilter(ColorUtil.getInstance().getMainContrastColor(simsMeApplication))
+                setColorFilter(ScreenDesignUtil.getInstance().getMainContrastColor(simsMeApplication))
                 visibility = View.VISIBLE
                 contentDescription = resources.getString(R.string.content_description_channellist_sort_down)
                 setOnClickListener { sortList() }
@@ -216,7 +214,7 @@ class ChannelListActivity : BaseActivity(), OnChannelItemClickListener,
     }
 
     private fun openRequestedChannel() {
-        channelList?.firstOrNull { it.shortDesc.toUpperCase() == requestedChannel?.toUpperCase() }?.let { model ->
+        channelList?.firstOrNull { it.shortDesc.uppercase() == requestedChannel?.uppercase() }?.let { model ->
             val intent = if (model.isSubscribed) {
                 Intent(this@ChannelListActivity, ChannelChatActivity::class.java).apply {
                     putExtra(BaseChatActivity.EXTRA_TARGET_GUID, model.guid)
@@ -237,7 +235,7 @@ class ChannelListActivity : BaseActivity(), OnChannelItemClickListener,
         val supportActionBar = supportActionBar ?: return true
 
         searchView =
-            ThemedSearchView(supportActionBar.themedContext, ColorUtil.getInstance().getMainContrastColor(simsMeApplication))
+            ThemedSearchView(supportActionBar.themedContext, ScreenDesignUtil.getInstance().getMainContrastColor(simsMeApplication))
         (searchView as ThemedSearchView).queryHint = getString(R.string.android_search_placeholder_channels)
         (searchView as ThemedSearchView).setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {

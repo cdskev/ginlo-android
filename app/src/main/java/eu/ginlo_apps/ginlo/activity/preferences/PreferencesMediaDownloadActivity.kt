@@ -10,11 +10,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.activity.preferences.base.PreferencesBaseActivity
-import eu.ginlo_apps.ginlo.controller.PreferencesController
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.greendao.Preference
 import eu.ginlo_apps.ginlo.log.LogUtil
-import eu.ginlo_apps.ginlo.util.ColorUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
 import kotlinx.android.synthetic.main.activity_preferences_media_download.preferences_media_download_textview_files
 import kotlinx.android.synthetic.main.activity_preferences_media_download.preferences_media_download_textview_fotos

@@ -84,7 +84,7 @@ public final class ToolbarColorizeHelper {
                     }
                 }
             } else if (v instanceof SwitchCompat) {
-                ColorUtil.getInstance().colorizeSwitch((SwitchCompat) v, (Application) context.getApplicationContext());
+                ScreenDesignUtil.getInstance().colorizeSwitch((SwitchCompat) v, (Application) context.getApplicationContext());
             } else if (v instanceof TextView) {
                 ((TextView) v).setTextColor(toolbarIconsColor);
             /* KS: Don't colorize *any* image!

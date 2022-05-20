@@ -8,13 +8,10 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.android.billingclient.api.Purchase;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.List;
 
 import eu.ginlo_apps.ginlo.activity.register.InitProfileActivityBusiness;
 import eu.ginlo_apps.ginlo.activity.register.PurchaseLicenseActivity;
@@ -127,17 +124,22 @@ public class LoginActivityBusiness extends LoginActivity {
         // Prüfen, ob es noch eine aktive AndroidSubscription gibt
         checkAndExtendPurchase();
 
-        if (nextActivityClass == null && !getSimsMeApplication().getAccountController().getAccount().getHasLicence()) {
-            if (accountController.isValidTrial()) {
-                if (Account.ACCOUNT_STATE_FULL != accountController.getAccount().getState()) {
-                    nextActivityClass = InitProfileActivityBusiness.class;
-                }
+        if (nextActivityClass == null) {
+            if (getSimsMeApplication().getAccountController().getAccount().getHasLicence()) {
+                LogUtil.i(TAG, "checkDeviceManagementAndLicense: Account has license.");
+            }
+            else {
+                if (accountController.isValidTrial()) {
+                    if (Account.ACCOUNT_STATE_FULL != accountController.getAccount().getState()) {
+                        nextActivityClass = InitProfileActivityBusiness.class;
+                    }
 
-            } else {
-                if (accountController.testVoucherAvailable() && !accountController.isDeviceManaged()) {
-                    nextActivityClass = BusinessTrialActivity.class;
                 } else {
-                    nextActivityClass = PurchaseLicenseActivity.class;
+                    if (accountController.testVoucherAvailable() && !accountController.isDeviceManaged()) {
+                        nextActivityClass = BusinessTrialActivity.class;
+                    } else {
+                        nextActivityClass = PurchaseLicenseActivity.class;
+                    }
                 }
             }
         }
@@ -147,7 +149,7 @@ public class LoginActivityBusiness extends LoginActivity {
 
     private void checkAndExtendPurchase() {
         if(ginloBillingImpl == null ) {
-            LogUtil.e(TAG, "checkAndExtendPurchaseQuery: Missing ginloBillingImpl instance!");
+            LogUtil.i(TAG, "checkAndExtendPurchase: No ginloBillingImpl instance!");
         } else {
             // Initialize billing and connect.
             ginloBillingImpl.initialize(new GinloBillingImpl.OnBillingInitializeFinishedListener() {
@@ -177,7 +179,7 @@ public class LoginActivityBusiness extends LoginActivity {
                                                         LogUtil.i(TAG, "checkAndExtendPurchase: onConsumePurchaseFinished successful for token = " + purchaseToken);
                                                     } else {
                                                         LogUtil.i(TAG, "checkAndExtendPurchase: onConsumePurchaseFinished returned " +
-                                                                billingResult.getResponseCode() + " (" + billingResult.geResponsetMessage() + ")");
+                                                                billingResult.getResponseCode() + " (" + billingResult.getResponseMessage() + ")");
                                                     }
                                                 }
                                             });
@@ -204,12 +206,12 @@ public class LoginActivityBusiness extends LoginActivity {
                                         LogUtil.e(TAG, "Query purchase inventory failed with: " + e.getMessage());
                                     }
                                 } else {
-                                    LogUtil.w(TAG, "checkAndExtendPurchase: onQueryPurchasesFinished returned with: " + result.geResponsetMessage());
+                                    LogUtil.w(TAG, "checkAndExtendPurchase: onQueryPurchasesFinished returned with: " + result.getResponseMessage());
                                 }
                             }
                         });
                     } else {
-                            LogUtil.w(TAG, "checkAndExtendPurchase: onBillingInitializeFinished returned with: " + result.geResponsetMessage());
+                            LogUtil.w(TAG, "checkAndExtendPurchase: onBillingInitializeFinished returned with: " + result.getResponseMessage());
                     }
                 }
             });

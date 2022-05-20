@@ -58,7 +58,7 @@
                     android:paddingTop="@dimen/activity_vertical_margin"
                     android:paddingBottom="@dimen/activity_vertical_margin"
                     android:text="@string/chat_mute_choose"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     app:styledTextColor="mainContrast80" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -127,7 +127,7 @@
                     android:paddingTop="@dimen/activity_vertical_margin"
                     android:paddingBottom="@dimen/activity_vertical_margin"
                     android:text="@string/chat_mute_hint"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     app:styledTextColor="mainContrast80" />
 
             </LinearLayout>

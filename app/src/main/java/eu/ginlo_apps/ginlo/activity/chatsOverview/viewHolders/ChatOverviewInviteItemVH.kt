@@ -12,7 +12,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.GroupChatOverviewItemInvitationVO
 import eu.ginlo_apps.ginlo.model.chat.overview.SingleChatOverviewItemInvitationVO
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.TimeUtil
 import kotlinx.android.synthetic.main.chat_overview_invite_item_layout.view.chat_overview_item_invite_description
@@ -46,15 +46,15 @@ class ChatOverviewInviteItemVH(
 
         when (chatOverviewItemVO.state) {
             Contact.STATE_HIGH_TRUST -> {
-                itemView.trust_state_divider.setBackgroundColor(ColorUtil.getInstance().getHighColor(itemView.context.applicationContext as Application))
+                itemView.trust_state_divider.setBackgroundColor(ScreenDesignUtil.getInstance().getHighColor(itemView.context.applicationContext as Application))
                 itemView.trust_state_divider.visibility = View.VISIBLE
             }
             Contact.STATE_MIDDLE_TRUST -> {
-                itemView.trust_state_divider.setBackgroundColor(ColorUtil.getInstance().getMediumColor(itemView.context.applicationContext as Application))
+                itemView.trust_state_divider.setBackgroundColor(ScreenDesignUtil.getInstance().getMediumColor(itemView.context.applicationContext as Application))
                 itemView.trust_state_divider.visibility = View.VISIBLE
             }
             Contact.STATE_LOW_TRUST -> {
-                itemView.trust_state_divider.setBackgroundColor(ColorUtil.getInstance().getLowColor(itemView.context.applicationContext as Application))
+                itemView.trust_state_divider.setBackgroundColor(ScreenDesignUtil.getInstance().getLowColor(itemView.context.applicationContext as Application))
                 itemView.trust_state_divider.visibility = View.VISIBLE
             }
             Contact.STATE_UNSIMSABLE -> {

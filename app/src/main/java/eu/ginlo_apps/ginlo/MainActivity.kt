@@ -20,7 +20,6 @@ class MainActivity : Activity() {
     }
 
     private var backButtonPressed: Boolean = false
-    private var supportsGCM = true
 
     private val application: SimsMeApplication by lazy { getApplication() as SimsMeApplication }
 
@@ -56,12 +55,9 @@ class MainActivity : Activity() {
             return
         }
 
-        supportsGCM = application.gcmController.checkPlayServices(this)
-
         if (isUserLoggedIn()) {
             Intent(this, RuntimeConfig.getClassUtil().getStartActivityClass(application)).apply {
-                flags =
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             }.let {
                 startActivity(it)
             }
@@ -73,8 +69,7 @@ class MainActivity : Activity() {
             hasNoAccount() -> {
                 SimsMeApplication.getInstance().securePreferences.reset()
                 Intent(this, IntroActivity::class.java).apply {
-                    flags =
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                 }.let {
                     startActivity(it)
                 }
@@ -88,8 +83,7 @@ class MainActivity : Activity() {
                     this,
                     RuntimeConfig.getClassUtil().getStartActivityClass(application)
                 ).apply {
-                    flags =
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                 }.let {
                     startActivity(it)
                 }
@@ -105,16 +99,9 @@ class MainActivity : Activity() {
 
     private fun navigateNext() {
         Handler().postDelayed(Runnable {
-            if (supportsGCM) {
-                if (!backButtonPressed)
-                    startApp()
-                return@Runnable
-            }
-
-            val listener = OnDismissListener {
+            if (!backButtonPressed)
                 startApp()
-            }
-            application.gcmController.dialog.setOnDismissListener(listener)
+            return@Runnable
         }, 1000)
     }
 
@@ -122,16 +109,14 @@ class MainActivity : Activity() {
         if (isAccountLoaded()) {
             Intent(this, RuntimeConfig.getClassUtil().loginActivityClass)
                     .apply {
-                    flags =
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
             }.let {
                 startActivity(it)
             }
         } else {
             Intent(this, IntroActivity::class.java)
                     .apply {
-                    flags =
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                 }
                 .let {
                     startActivity(it)

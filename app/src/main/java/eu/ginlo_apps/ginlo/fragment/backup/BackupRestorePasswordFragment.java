@@ -18,7 +18,7 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.fragment.BaseFragment;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -58,8 +58,8 @@ public class BackupRestorePasswordFragment extends BaseFragment {
             }
         });
         if (RuntimeConfig.isBAMandant() && activity != null) {
-            final ColorUtil colorUtil = ColorUtil.getInstance();
-            final int appAccentColor = colorUtil.getAppAccentColor((Application) activity.getApplicationContext());
+            final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+            final int appAccentColor = screenDesignUtil.getAppAccentColor((Application) activity.getApplicationContext());
             final Button button = view.findViewById(R.id.backup_restore_password_btn);
             button.getBackground().setColorFilter(appAccentColor, PorterDuff.Mode.SRC_ATOP);
             mPasswordView.getBackground().setColorFilter(appAccentColor, PorterDuff.Mode.SRC_ATOP);

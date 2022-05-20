@@ -146,7 +146,7 @@ public class ContactController
             "((" + ContactsContract.Data.MIMETYPE + "='" + Phone.CONTENT_ITEM_TYPE + "') OR (" +
                     ContactsContract.Data.MIMETYPE + "='" + ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE + "'))";
 
-    public static final int ONLINE_STATE_POLL_DELAY = 30000; // Millis
+    public static final int ONLINE_STATE_POLL_DELAY = 10000; // Millis
     public static final String ONLINE_STATE_INVALID = "invalid";
     public static final String ONLINE_STATE_ONLINE = "online";
     public static final String ONLINE_STATE_WRITING = "writing";
@@ -2221,12 +2221,6 @@ public class ContactController
 
         boolean isSameDay = isSameDay(dateAsString);
 
-        // KS TEST: Renew token everytime!
-        if(BuildConfig.DEBUG) {
-            LogUtil.d(TAG, "Debug mode detected: Get a new access token everytime!");
-            isSameDay = false;
-        }
-
         if (!isSameDay || StringUtil.isNullOrEmpty(ContactController.this.mApplication.getPreferencesController().getFetchInBackgroundAccessToken())) {
             ContactController.this.mApplication.getMessageController().getBackgroundAccessToken(new GenericActionListener<String>() {
                 @Override
@@ -3681,19 +3675,9 @@ public class ContactController
                 return;
             }
 
-            // KS: Save backend port resources - do polling only after every ONLINE_STATE_POLL_DELAY millis.
-            new CountDownTimer(ONLINE_STATE_POLL_DELAY, 10000) {
-                public void onTick(final long millisUntilFinished) {
-                    LogUtil.d(TAG, "OnlineStateTask: Countdown to next state poll: " + millisUntilFinished / 1000);
-                }
-
-                public void onFinish() {
-                    if (!mIsCancel) {
-                        mApp.getContactController().mGetOnlineStateTask = null;
-                        mApp.getContactController().getOnlineState(mContactGuid, mLastOnlineState, mGenericActionListener, false);
-                    }
-                }
-            }.start();
+            // Task done
+            mApp.getContactController().mGetOnlineStateTask = null;
+            mApp.getContactController().getOnlineState(mContactGuid, mLastOnlineState, mGenericActionListener, false);
 
             if (mGenericActionListener != null) {
                 LogUtil.d(TAG, "OnlineStateTask: asyncLoaderFinished successfully.");
@@ -3706,8 +3690,8 @@ public class ContactController
                 return;
             }
 
-            // KS: Save backend port resources - do polling only after every ONLINE_STATE_POLL_DELAY millis.
-            new CountDownTimer(ONLINE_STATE_POLL_DELAY, 10000) {
+            // KS: Retry poll request after ONLINE_STATE_POLL_DELAY millis.
+            new CountDownTimer(ONLINE_STATE_POLL_DELAY, 1000) {
                 public void onTick(final long millisUntilFinished) {
                 }
 

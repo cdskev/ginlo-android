@@ -65,7 +65,7 @@
                         android:gravity="center_horizontal"
                         android:text="@string/chats_contactMessageCell_sendContactTittle"
                         android:textColor="@color/main"
-                        app:styledTextSize="messageTextSize"
+                        android:textSize="?attr/messageTextSize"
                         android:textStyle="normal" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -76,7 +76,7 @@
                         android:singleLine="true"
                         android:text="@string/chats_contactMessageCell_showContact"
                         android:textColor="@color/main"
-                        app:styledTextSize="chooserTextSize"
+                        android:textSize="?attr/chooserTextSize"
                         android:textStyle="bold" />
 
                 </LinearLayout>

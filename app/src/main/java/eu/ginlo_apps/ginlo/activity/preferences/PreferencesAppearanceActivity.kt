@@ -36,12 +36,24 @@ class PreferencesAppearanceActivity : PreferencesBaseActivity() {
 
         override fun onResumeActivity() {
                 setThemeModeChooser()
-                if(preferencesController.isThemeLocked()) {
+                setThemeNameChooser()
+
+                if(preferencesController.isThemeColorSettingLocked()) {
+                        // Disable all configuration which affect color settings
                         val themeModeView = findViewById<RelativeLayout>(R.id.preferences_appearance_layout_theme_mode)
                         if(themeModeView != null) {
                                 preferences_appearance_textview_theme_mode.text = "<LOCKED>"
                                 themeModeView.isEnabled = false;
                         }
+
+                        /* KS: There are only font size default themes so far. They may be applied even if we have a company layout
+                        val themeNameView = findViewById<RelativeLayout>(R.id.preferences_appearance_layout_theme_name)
+                        if(themeNameView != null) {
+                                preferences_appearance_textview_theme_name.text = "<LOCKED>"
+                                themeNameView.isEnabled = false;
+                        }
+
+                         */
                 }
         }
 
@@ -55,7 +67,7 @@ class PreferencesAppearanceActivity : PreferencesBaseActivity() {
                                 PreferencesController.THEME_MODE_AUTO ->
                                         preferences_appearance_textview_theme_mode.setText(R.string.settings_appearance_theme_mode_auto)
                                 else -> {
-                                        LogUtil.w(TAG, "setDarkmodeChooser: Out of range " +
+                                        LogUtil.w(TAG, "setThemeModeChooser: Out of range " +
                                                 preferencesController.getThemeMode() + ". Reset setting.")
 
                                         preferences_appearance_textview_theme_mode.setText(R.string.settings_appearance_theme_mode_light)
@@ -65,7 +77,7 @@ class PreferencesAppearanceActivity : PreferencesBaseActivity() {
                         }
 
                 } catch (e: LocalizedException) {
-                        LogUtil.e(TAG, "setDarkmodeChooser: " + e.message)
+                        LogUtil.e(TAG, "setThemeModeChooser: " + e.message)
                 }
         }
 
@@ -110,12 +122,78 @@ class PreferencesAppearanceActivity : PreferencesBaseActivity() {
                 dialog.show()
         }
 
+        private fun setThemeNameChooser() {
+                try {
+                        when (preferencesController.getThemeName()) {
+                                PreferencesController.THEME_NAME_DEFAULT ->
+                                        preferences_appearance_textview_theme_name.setText(R.string.settings_appearance_theme_name_default)
+                                PreferencesController.THEME_NAME_SMALL ->
+                                        preferences_appearance_textview_theme_name.setText(R.string.settings_appearance_theme_name_small)
+                                PreferencesController.THEME_NAME_LARGE ->
+                                        preferences_appearance_textview_theme_name.setText(R.string.settings_appearance_theme_name_large)
+                                else -> {
+                                        LogUtil.w(TAG, "setThemeNameChooser: Out of range " +
+                                                preferencesController.getThemeName() + ". Reset setting.")
+
+                                        preferences_appearance_textview_theme_name.setText(R.string.settings_appearance_theme_name_default)
+                                        preferencesController.setThemeName(BuildConfig.DEFAULT_THEME)
+                                        preferencesController.setThemeChanged(true)
+                                }
+                        }
+
+                } catch (e: LocalizedException) {
+                        LogUtil.e(TAG, "setThemeNameChooser: " + e.message)
+                }
+        }
+
+        @SuppressLint("InflateParams")
+        fun handleThemeNameClick(@Suppress("UNUSED_PARAMETER") view : View) {
+
+                val dialogView = layoutInflater.inflate(R.layout.dialog_choose_theme_mode, null)
+
+                dialogView.findViewById<NumberPicker>(R.id.theme_mode_picker).apply {
+                        minValue = 0
+                        maxValue = 2
+                        wrapSelectorWheel = false
+                        isClickable = true
+                        displayedValues = arrayOf(
+                                getString(R.string.settings_appearance_theme_name_default),
+                                getString(R.string.settings_appearance_theme_name_small),
+                                getString(R.string.settings_appearance_theme_name_large)
+                        )
+                        descendantFocusability = NumberPicker.FOCUS_BLOCK_DESCENDANTS
+                }
+
+                val builder = AlertDialog.Builder(this)
+                builder.setTitle(R.string.settings_appearance_theme)
+
+                val onClickListener = DialogInterface.OnClickListener { _, _ ->
+                        try {
+                                when (dialogView.findViewById<NumberPicker>(R.id.theme_mode_picker).value) {
+                                        0 -> preferencesController.setThemeName(PreferencesController.THEME_NAME_DEFAULT)
+                                        1 -> preferencesController.setThemeName(PreferencesController.THEME_NAME_SMALL)
+                                        2 -> preferencesController.setThemeName(PreferencesController.THEME_NAME_LARGE)
+                                }
+                                setThemeNameChooser()
+                        } catch (e: LocalizedException) {
+                                LogUtil.e(TAG, "handleThemeNameClick: " + e.message)
+                        }
+                        runOnUiThread { recreate() }
+
+                }
+                builder.setView(dialogView).setPositiveButton(android.R.string.ok, onClickListener)
+                val dialog = builder.create()
+                DialogBuilderUtil.colorizeButtons(this, dialog)
+                dialog.show()
+        }
+
         fun handleDesignConfigResetClick(@Suppress("UNUSED_PARAMETER") view: View) {
                 try {
                         preferencesController.setThemeMode(BuildConfig.DEFAULT_THEME_MODE)
                         preferencesController.setThemeName(BuildConfig.DEFAULT_THEME)
                         preferencesController.setThemeChanged(true)
                         setThemeModeChooser()
+                        setThemeNameChooser()
                 } catch (e: LocalizedException) {
                         LogUtil.e(TAG, "handleDesignConfigResetClick: " + e.message)
                 }

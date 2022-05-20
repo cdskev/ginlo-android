@@ -14,12 +14,10 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
-import eu.ginlo_apps.ginlo.BaseActivity;
-import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
@@ -94,16 +92,16 @@ public class CameraActivity
 
         recordButton = findViewById(R.id.recordButton);
         if (RuntimeConfig.isBAMandant()) {
-            ColorUtil colorUtil = ColorUtil.getInstance();
-            final int appAccentContrastColor = colorUtil.getAppAccentContrastColor(getSimsMeApplication());
-            final int appAccentColor = colorUtil.getAppAccentColor(getSimsMeApplication());
+            ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+            final int appAccentContrastColor = screenDesignUtil.getAppAccentContrastColor(getSimsMeApplication());
+            final int appAccentColor = screenDesignUtil.getAppAccentColor(getSimsMeApplication());
             recordButton.setColorNormal(appAccentColor);
             recordButton.setColorPressed(appAccentColor);
             recordButton.setColorDisabled(appAccentColor);
 
             final Drawable drawable = recordButton.getIconDrawable();
-            ColorUtil.setColorFilter(drawable, appAccentContrastColor);
-            ColorUtil.setColorFilter(stopIcon, appAccentContrastColor);
+            ScreenDesignUtil.setColorFilter(drawable, appAccentContrastColor);
+            ScreenDesignUtil.setColorFilter(stopIcon, appAccentContrastColor);
         }
 
         mButtonOnClickListener = new Button.OnClickListener() {

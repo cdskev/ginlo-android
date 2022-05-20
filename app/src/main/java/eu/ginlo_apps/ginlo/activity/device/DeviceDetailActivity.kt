@@ -9,14 +9,13 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import eu.ginlo_apps.ginlo.LoginActivity
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity
 import eu.ginlo_apps.ginlo.controller.DeviceController
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.model.backend.DeviceModel
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener
 import eu.ginlo_apps.ginlo.util.RuntimeConfig
@@ -51,12 +50,12 @@ class DeviceDetailActivity : NewBaseActivity() {
 
         if (model.guid == deviceController.ownDevice?.guid) {
             device_detail_info_tv.setText(R.string.device_own_device)
-            device_detail_info_tv.setTextColor(ColorUtil.getInstance().getMediumColor(simsMeApplication))
+            device_detail_info_tv.setTextColor(ScreenDesignUtil.getInstance().getMediumColor(simsMeApplication))
             val deleteBtn = findViewById<View>(R.id.device_detail_delete_btn)
             deleteBtn.visibility = View.GONE
         } else {
             device_detail_info_tv.text = model.lastOnlineDateString
-            device_detail_info_tv.setTextColor(ColorUtil.getInstance().getNamedColor("actionSecondary", simsMeApplication))
+            device_detail_info_tv.setTextColor(ScreenDesignUtil.getInstance().getNamedColor("actionSecondary", simsMeApplication))
         }
 
         device_detail_version_tv.text = model.versionString

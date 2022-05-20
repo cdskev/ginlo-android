@@ -4,10 +4,8 @@ package eu.ginlo_apps.ginlo;
 
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.PorterDuff;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.Icon;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,7 +15,6 @@ import android.view.View.OnFocusChangeListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
@@ -27,24 +24,17 @@ import android.widget.ListView;
 import android.widget.Toast;
 import org.jetbrains.annotations.NotNull;
 
-import eu.ginlo_apps.ginlo.BaseActivity;
-import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.TextExtensionsKt;
-import eu.ginlo_apps.ginlo.activity.profile.ProfileActivityBase;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.StatusTextController;
-import eu.ginlo_apps.ginlo.controller.contracts.UpdateAccountInfoCallback;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.fragment.emojipicker.EmojiPickerCallback;
 import eu.ginlo_apps.ginlo.fragment.emojipicker.EmojiPickerFragment;
 import eu.ginlo_apps.ginlo.greendao.StatusText;
-import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
-import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.FragmentUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
-import eu.ginlo_apps.ginlo.util.StringUtil;
+
 import java.util.ArrayList;
 
 public class StatusTextActivity
@@ -73,7 +63,7 @@ public class StatusTextActivity
         mStatusEditText.setText(callerIntent.getStringExtra(EXTRA_CURRENT_STATUS));
 
         if (RuntimeConfig.isBAMandant()) {
-            mStatusEditText.getBackground().setColorFilter(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()), Mode.SRC_ATOP);
+            mStatusEditText.getBackground().setColorFilter(ScreenDesignUtil.getInstance().getAppAccentColor(getSimsMeApplication()), Mode.SRC_ATOP);
         }
         mAddEmojiButton = findViewById(R.id.status_text_check_box_add_emoji_status);
 
@@ -210,7 +200,7 @@ public class StatusTextActivity
                 if(menuIcon != null)
                 {
                     menuIcon.setColorFilter(
-                            ColorUtil.getInstance().getMainContrast80Color(
+                            ScreenDesignUtil.getInstance().getMainContrast80Color(
                                     getSimsMeApplication()
                             ), Mode.SRC_ATOP
                     );

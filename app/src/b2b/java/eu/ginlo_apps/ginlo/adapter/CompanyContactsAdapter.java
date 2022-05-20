@@ -26,7 +26,7 @@ import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.CompanyContact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.Mandant;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.CompanyContactUtil;
 import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -82,9 +82,9 @@ public class CompanyContactsAdapter extends ArrayAdapter<CompanyContact> {
             LogUtil.w(this.getClass().getName(), e.getMessage(), e);
         }
 
-        final ColorUtil colorUtil = ColorUtil.getInstance();
-        mHighLevelColor = colorUtil.getHighColor((Application) getContext().getApplicationContext());
-        mMainColor = colorUtil.getMainColor((Application) getContext().getApplicationContext());
+        final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+        mHighLevelColor = screenDesignUtil.getHighColor((Application) getContext().getApplicationContext());
+        mMainColor = screenDesignUtil.getMainColor((Application) getContext().getApplicationContext());
 
         mCheckDrawable = context.getDrawable(R.drawable.profile_check_done);
     }
@@ -237,7 +237,7 @@ public class CompanyContactsAdapter extends ArrayAdapter<CompanyContact> {
             final TextView tenantTextView = itemView.findViewById(R.id.contact_item_mandant_label);
             if (tenantTextView != null) {
                 if (tenant != null) {
-                    ColorUtil.getInstance().colorizeMandantTextView((Application) getContext().getApplicationContext(), tenant, tenantTextView, false);
+                    ScreenDesignUtil.getInstance().colorizeMandantTextView((Application) getContext().getApplicationContext(), tenant, tenantTextView, false);
                 }
             }
         } catch (LocalizedException e) {

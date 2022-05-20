@@ -20,7 +20,7 @@ import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.ChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.GroupChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.SingleChatOverviewItemVO
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.TimeUtil
 import eu.ginlo_apps.ginlo.util.ViewUtil
@@ -76,15 +76,15 @@ class ChatOverviewItemVH(
             is SingleChatOverviewItemVO, is GroupChatOverviewItemVO -> {
                 when (chatOverviewItemVO.state) {
                     Contact.STATE_HIGH_TRUST -> {
-                        trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getHighColor(itemView.context.applicationContext as Application))
+                        trustedStateDivider.setBackgroundColor(ScreenDesignUtil.getInstance().getHighColor(itemView.context.applicationContext as Application))
                         trustedStateDivider.visibility = View.VISIBLE
                     }
                     Contact.STATE_MIDDLE_TRUST -> {
-                        trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getMediumColor(itemView.context.applicationContext as Application))
+                        trustedStateDivider.setBackgroundColor(ScreenDesignUtil.getInstance().getMediumColor(itemView.context.applicationContext as Application))
                         trustedStateDivider.visibility = View.VISIBLE
                     }
                     Contact.STATE_LOW_TRUST -> {
-                        trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getLowColor(itemView.context.applicationContext as Application))
+                        trustedStateDivider.setBackgroundColor(ScreenDesignUtil.getInstance().getLowColor(itemView.context.applicationContext as Application))
                         trustedStateDivider.visibility = View.VISIBLE
                     }
                     Contact.STATE_UNSIMSABLE -> {
@@ -156,11 +156,11 @@ class ChatOverviewItemVH(
 
             val backgroundDrawable = messageCounter.background
             if (backgroundDrawable != null) {
-                val colorUtil = ColorUtil.getInstance()
+                val screenDesignUtil = ScreenDesignUtil.getInstance()
 
-                val bgColor = colorUtil.getLowColor(itemView.context.applicationContext as Application)
+                val bgColor = screenDesignUtil.getLowColor(itemView.context.applicationContext as Application)
                 val bgContrastColor =
-                    colorUtil.getLowContrastColor(itemView.context.applicationContext as Application)
+                        screenDesignUtil.getLowContrastColor(itemView.context.applicationContext as Application)
                 messageCounter.setTextColor(bgContrastColor)
                 val colorFilter = PorterDuffColorFilter(bgColor, PorterDuff.Mode.SRC_ATOP)
                 backgroundDrawable.colorFilter = colorFilter

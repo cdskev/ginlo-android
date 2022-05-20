@@ -2,17 +2,21 @@
 package eu.ginlo_apps.ginlo.util;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.BlendMode;
 import android.graphics.BlendModeColorFilter;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
+import android.util.DisplayMetrics;
+import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.EditText;
@@ -27,40 +31,53 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
+import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.model.backend.CompanyLayoutModel;
 import eu.ginlo_apps.ginlo.model.backend.serialization.CompanyLayoutDeserializer;
 
 import static eu.ginlo_apps.ginlo.util.RuntimeConfig.isBAMandant;
 
-public class ColorUtil {
-    private static final String TAG = ColorUtil.class.getSimpleName();
-    private static ColorUtil instance;
+public class ScreenDesignUtil {
+    private static final String TAG = ScreenDesignUtil.class.getSimpleName();
+    private static final SparseArray<Typeface> TYPE_FACES = new SparseArray<>(1);
+    private static ScreenDesignUtil instance;
+    private static DisplayMetrics displayMetrics;
+    private static float textScaleFactor;
     private static Resources.Theme currentTheme;
     private static Map<String, String> tenantColorMap;
     private CompanyLayoutModel companyLayoutModel;
 
     public static final String COMPANY_LAYOUT_JSON = "AccountControllerBusiness.companyLayoutJson";
 
-    private ColorUtil() {
+    private ScreenDesignUtil() {
         tenantColorMap = new HashMap<>();
         tenantColorMap.put("default_color", "#00C1A7");
         tenantColorMap.put("default_contrast_color", "#FFFFFF");
         tenantColorMap.put("ba_color", "#00C1A7");
         tenantColorMap.put("ba_contrast_color", "#FFFFFF");
+
+        textScaleFactor = 1.0F;
     }
 
-    public static ColorUtil getInstance() {
+    public static ScreenDesignUtil getInstance() {
         if (instance == null) {
-            instance = new ColorUtil();
+            instance = new ScreenDesignUtil();
         }
         return instance;
+    }
+
+    public void initDisplayMetrics(final Application context) {
+        displayMetrics = context.getResources().getDisplayMetrics();
+        LogUtil.d(TAG, "initDisplayMetrics: displayMetrics.density = " + displayMetrics.density);
     }
 
     // KS: setColorFilter is deprecated/has changed since API29
@@ -76,9 +93,28 @@ public class ColorUtil {
         }
     }
 
-    // KS
-    public void setCurrentTheme(Resources.Theme theme) {
+    public static Typeface getTypeFace(Context context) {
+        Typeface typeface = TYPE_FACES.get(0);
+
+        if (typeface == null) {
+            typeface = Typeface.createFromAsset(context.getAssets(), "fonts/roboto_medium.ttf");
+            TYPE_FACES.append(0, typeface);
+        }
+
+        return typeface;
+    }
+
+    public void setCurrentTheme(@NotNull Resources.Theme theme) {
         currentTheme = theme;
+
+        TypedValue tv = new TypedValue();
+        currentTheme.resolveAttribute(R.attr.textScaleFactor, tv, true);
+        textScaleFactor = tv.getFloat();
+        LogUtil.d(TAG, "setCurrentTheme: textScaleFactor = " + textScaleFactor);
+    }
+
+    public float getTextScaleFactor() {
+        return textScaleFactor;
     }
 
     public static void changeEditTextUnderlineColor(EditText editText, int focusedColor, int normalColor, int disabledColor) {
@@ -194,8 +230,8 @@ public class ColorUtil {
             mandantTextView.getBackground().setColorFilter(getColorForTenant(context, mandant.ident, false), PorterDuff.Mode.SRC_ATOP);
         } else {
             mandantTextView.setText(context.getResources().getText(R.string.intern_contact_label_text));
-            mandantTextView.setTextColor(ColorUtil.getInstance().getHighContrastColor(context));
-            mandantTextView.getBackground().setColorFilter(ColorUtil.getInstance().getHighColor(context), PorterDuff.Mode.SRC_ATOP);
+            mandantTextView.setTextColor(ScreenDesignUtil.getInstance().getHighContrastColor(context));
+            mandantTextView.getBackground().setColorFilter(ScreenDesignUtil.getInstance().getHighColor(context), PorterDuff.Mode.SRC_ATOP);
         }
     }
 
@@ -212,36 +248,42 @@ public class ColorUtil {
     }
 
     // Return style value for given size attribute in current theme
-    public float getThemeAttributeTextSize(int size_attribute) {
+    // May be scaled by R.attr.textScaleFactor (see also styles.xml)
+    public float getThemeAttributeTextSize(int size_attribute, Application c) {
         TypedValue tv = new TypedValue();
         currentTheme.resolveAttribute(size_attribute, tv, true);
-        return tv.getFloat();
+
+        // Must "normalize" this (sic!)
+        final float size = tv.getDimension(displayMetrics);
+        return size / displayMetrics.density * textScaleFactor;
     }
 
     public Float getNamedTextSize(String name, Application c) {
         switch (name) {
             case "baseTextSize":
-                return getThemeAttributeTextSize(R.attr.baseTextSize);
+                return getThemeAttributeTextSize(R.attr.baseTextSize,c);
             case "messageTextSize":
-                return getThemeAttributeTextSize(R.attr.messageTextSize);
-            case "commentTextSize":
-                return getThemeAttributeTextSize(R.attr.commentTextSize);
+                return getThemeAttributeTextSize(R.attr.messageTextSize,c);
             case "labelTextSize":
-                return getThemeAttributeTextSize(R.attr.labelTextSize);
+                return getThemeAttributeTextSize(R.attr.labelTextSize,c);
+            case "miniLabelTextSize":
+                return getThemeAttributeTextSize(R.attr.miniLabelTextSize,c);
             case "statusTextSize":
-                return getThemeAttributeTextSize(R.attr.statusTextSize);
+                return getThemeAttributeTextSize(R.attr.statusTextSize,c);
             case "chooserTextSize":
-                return getThemeAttributeTextSize(R.attr.chooserTextSize);
+                return getThemeAttributeTextSize(R.attr.chooserTextSize,c);
             case "mainTitleTextSize":
-                return getThemeAttributeTextSize(R.attr.mainTitleTextSize);
+                return getThemeAttributeTextSize(R.attr.mainTitleTextSize,c);
             case "subTitleTextSize":
-                return getThemeAttributeTextSize(R.attr.subTitleTextSize);
+                return getThemeAttributeTextSize(R.attr.subTitleTextSize,c);
             case "tanViewTextSize":
-                return getThemeAttributeTextSize(R.attr.tanViewTextSize);
+                return getThemeAttributeTextSize(R.attr.tanViewTextSize,c);
             case "tanEditTextSize":
-                return getThemeAttributeTextSize(R.attr.tanEditTextSize);
+                return getThemeAttributeTextSize(R.attr.tanEditTextSize,c);
             case "mediumTitleTextSize":
-                return getThemeAttributeTextSize(R.attr.mediumTitleTextSize);
+                return getThemeAttributeTextSize(R.attr.mediumTitleTextSize,c);
+            case "notesTextSize":
+                return getThemeAttributeTextSize(R.attr.notesTextSize,c);
             default:
                 return null;
         }

@@ -19,8 +19,7 @@ import eu.ginlo_apps.ginlo.BaseActivity;
 import eu.ginlo_apps.ginlo.LoginActivity;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
-import eu.ginlo_apps.ginlo.fragment.BasePasswordFragment;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -50,8 +49,8 @@ public class ComplexPasswordFragment
             final Button nextButton = activity.findViewById(R.id.next_button);
 
             if (RuntimeConfig.isBAMandant() && nextButton != null) {
-                nextButton.getBackground().setColorFilter(ColorUtil.getInstance().getAppAccentColor(activity.getApplication()), PorterDuff.Mode.SRC_ATOP);
-                nextButton.setTextColor(ColorUtil.getInstance().getAppAccentContrastColor(activity.getApplication()));
+                nextButton.getBackground().setColorFilter(ScreenDesignUtil.getInstance().getAppAccentColor(activity.getApplication()), PorterDuff.Mode.SRC_ATOP);
+                nextButton.setTextColor(ScreenDesignUtil.getInstance().getAppAccentContrastColor(activity.getApplication()));
             }
 
             mComplexEditText.setOnEditorActionListener(new EditText.OnEditorActionListener() {

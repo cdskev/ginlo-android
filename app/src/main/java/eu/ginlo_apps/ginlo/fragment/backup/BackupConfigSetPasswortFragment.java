@@ -1,7 +1,6 @@
 // Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.fragment.backup;
 
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -10,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -24,10 +22,8 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.fragment.BaseFragment;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
-import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
 

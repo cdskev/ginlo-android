@@ -217,15 +217,17 @@ public class ChatsOverviewActivityBusiness extends ChatsOverviewActivity impleme
 
         final ContactControllerBusiness contactController = (ContactControllerBusiness) getSimsMeApplication().getContactController();
 
+        final int trialDaysLeft = contactController.getTrialVoucherDaysLeft();
+        LogUtil.i(TAG, "onResumeActivity: Trial voucher days left: " + trialDaysLeft);
         contactController.setTrialVoucherDaysLeftListener(this);
-        LogUtil.i(TAG, "contactController: trial voucher days left: " + contactController.getTrialVoucherDaysLeft());
-        licenseDaysLeftHasCalculate(contactController.getTrialVoucherDaysLeft());
 
         final int licenseDaysLeft = contactController.getLicenseDaysLeft();
-        LogUtil.i(TAG, "contactController: license days left: " + licenseDaysLeft);
+        LogUtil.i(TAG, "onResumeActivity: License days left: " + licenseDaysLeft);
+        contactController.setLicenseDaysLeftListener(this);
 
-        if (licenseDaysLeft < BuildConfig.LICENSE_EXPIRATION_WARNING_DAYS) {
-            contactController.setLicenseDaysLeftListener(this);
+        licenseDaysLeftHasCalculate(trialDaysLeft);
+
+        if (BuildConfig.DEBUG || (licenseDaysLeft < BuildConfig.LICENSE_EXPIRATION_WARNING_DAYS)) {
             licenseDaysLeftHasCalculate(licenseDaysLeft);
         }
 
@@ -425,6 +427,8 @@ public class ChatsOverviewActivityBusiness extends ChatsOverviewActivity impleme
             return;
         }
 
+        LogUtil.d(TAG, "licenseDaysLeftHasCalculate: mLicenseDaysLeft = " + mLicenseDaysLeft + ".");
+        //if (mLicenseDaysLeft != daysLeft && daysLeft != LICENSE_DAYS_LEFT_NO_VALUE) {
         if (BuildConfig.DEBUG || (mLicenseDaysLeft != daysLeft && daysLeft != LICENSE_DAYS_LEFT_NO_VALUE)) {
             mLicenseDaysLeft = daysLeft;
 

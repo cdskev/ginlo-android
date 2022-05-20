@@ -6,8 +6,10 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.widget.CompoundButton
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProviders
 import dagger.android.AndroidInjection
@@ -25,7 +27,7 @@ import eu.ginlo_apps.ginlo.fragment.emojipicker.EmojiPickerFragment
 import eu.ginlo_apps.ginlo.greendao.Contact
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.util.BitmapUtil
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.DateUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
 import eu.ginlo_apps.ginlo.util.FragmentUtil
@@ -46,6 +48,7 @@ import kotlinx.android.synthetic.b2b.activity_profile.profile_text_view_last_nam
 import kotlinx.android.synthetic.b2b.activity_profile.profile_top_warning
 import kotlinx.android.synthetic.b2b.activity_profile.profile_top_warning_text
 import kotlinx.android.synthetic.b2b.activity_profile.profile_trial_container
+import org.jetbrains.annotations.NotNull
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -93,7 +96,7 @@ class ProfileActivity : ProfileActivityBase() {
         get() = CompoundButton.OnCheckedChangeListener { _, _ ->
             if (addEmojiNicknameButton.isChecked) {
                 if (!emojiFragmentVisible) {
-                    val handler = Handler()
+                    val handler = Handler(Looper.getMainLooper())
                     val runnable = Runnable {
                         emojiFragment = EmojiPickerFragment()
                         FragmentUtil.toggleFragment(
@@ -149,7 +152,7 @@ class ProfileActivity : ProfileActivityBase() {
             } else {
                 if (AccountController.PENDING_PHONE_STATUS_WAIT_CONFIRM == accountController.pendingPhoneStatus) {
                     profile_phoneNumberState.visibility = View.VISIBLE
-                    profile_phoneNumberState.setTextColor(ColorUtil.getInstance().getLowColor(simsMeApplication))
+                    profile_phoneNumberState.setTextColor(ScreenDesignUtil.getInstance().getLowColor(simsMeApplication))
                     profile_phoneNumberState.text = getString(R.string.profile_info_email_address_waiting_for_confirm)
 
                     profile_top_warning.visibility = View.VISIBLE
@@ -172,15 +175,15 @@ class ProfileActivity : ProfileActivityBase() {
 
             trialUsageDate = accountController.trialUsage
 
-            val colorUtil = ColorUtil.getInstance()
-            val accentColor = colorUtil.getAppAccentColor(simsMeApplication)
+            val screenDesignUtil = ScreenDesignUtil.getInstance()
+            val accentColor = screenDesignUtil.getAppAccentColor(simsMeApplication)
 
             hasLicense = account.hasLicence
             if (!hasLicense && trialUsageDate != null) {
                 val sdtF = SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY)
 
                 profile_button_trial_usage.text =
-                    String.format(resources.getString(R.string.profile_label_valid_until), sdtF.format(trialUsageDate))
+                    String.format(resources.getString(R.string.profile_label_valid_until), sdtF.format(trialUsageDate!!))
                 profile_button_extend_licence.background.colorFilter =
                     PorterDuffColorFilter(accentColor, PorterDuff.Mode.SRC_ATOP)
                 profile_button_extend_licence.setTextColor(accentColor)
@@ -192,10 +195,10 @@ class ProfileActivity : ProfileActivityBase() {
             }
 
             if (accountController.isDeviceManaged) {
-                val mainContrast80Color = colorUtil.getMainContrast80Color(simsMeApplication)
+                val mainContrast80Color = screenDesignUtil.getMainContrast80Color(simsMeApplication)
 
-                getDrawable(R.drawable.ic_lock_black_24dp)?.apply {
-                    ColorUtil.setColorFilter(this, mainContrast80Color)
+                AppCompatResources.getDrawable(this, R.drawable.ic_lock_black_24dp)?.apply {
+                    ScreenDesignUtil.setColorFilter(this, mainContrast80Color)
                 }?.let {
                     profile_text_view_first_name.setCompoundDrawablesWithIntrinsicBounds(null, null, it, null)
                     profile_text_view_last_name.setCompoundDrawablesWithIntrinsicBounds(null, null, it, null)
@@ -225,14 +228,14 @@ class ProfileActivity : ProfileActivityBase() {
                 if (isWaitingForEmailConfirmation) {
                     emailAddress = accountController.pendingEmailAddress
                     profile_emailAddressState.visibility = View.VISIBLE
-                    profile_emailAddressState.setTextColor(ColorUtil.getInstance().getLowColor(simsMeApplication))
+                    profile_emailAddressState.setTextColor(ScreenDesignUtil.getInstance().getLowColor(simsMeApplication))
                     profile_emailAddressState.text =
                         resources.getString(R.string.profile_info_email_address_waiting_for_confirm)
                     profile_top_warning.visibility = View.VISIBLE
                     profile_top_warning_text.text = resources.getText(R.string.profile_email_waiting_for_confirmation)
                 } else {
                     profile_emailAddressState.visibility = View.VISIBLE
-                    profile_emailAddressState.setTextColor(ColorUtil.getInstance().getHighColor(simsMeApplication))
+                    profile_emailAddressState.setTextColor(ScreenDesignUtil.getInstance().getHighColor(simsMeApplication))
                     profile_emailAddressState.text = resources.getString(R.string.profile_info_email_address_confirmed)
                 }
                 profile_email_address_edittext.setText(emailAddress)
@@ -249,11 +252,11 @@ class ProfileActivity : ProfileActivityBase() {
             } else {
                 if (!isWaitingForPhoneConfirmation) {
                     profile_phoneNumberState.visibility = View.VISIBLE
-                    profile_phoneNumberState.setTextColor(ColorUtil.getInstance().getHighColor(simsMeApplication))
+                    profile_phoneNumberState.setTextColor(ScreenDesignUtil.getInstance().getHighColor(simsMeApplication))
                     profile_phoneNumberState.text = resources.getString(R.string.profile_info_email_address_confirmed)
                 } else {
                     profile_phoneNumberState.visibility = View.VISIBLE
-                    profile_phoneNumberState.setTextColor(ColorUtil.getInstance().getLowColor(simsMeApplication))
+                    profile_phoneNumberState.setTextColor(ScreenDesignUtil.getInstance().getLowColor(simsMeApplication))
                     profile_phoneNumberState.text =
                         resources.getString(R.string.profile_info_email_address_waiting_for_confirm)
                     phone = accountController.pendingPhoneNumber
@@ -332,7 +335,7 @@ class ProfileActivity : ProfileActivityBase() {
     }
 
     override fun rescaleView() {
-        val handler = Handler()
+        val handler = Handler(Looper.getMainLooper())
         val runnable = Runnable {
             val height = main_layout.measuredHeight - emojiContainer.measuredHeight
 

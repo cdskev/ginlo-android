@@ -16,7 +16,7 @@ import eu.ginlo_apps.ginlo.controller.PreferencesController
 import eu.ginlo_apps.ginlo.data.network.AppConnectivity
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.log.LogUtil
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.DateUtil
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener
 import eu.ginlo_apps.ginlo.util.RuntimeConfig
@@ -210,7 +210,7 @@ abstract class PreferencesPrivacyBaseActivity : PreferencesBaseActivity() {
             val absenceText = findViewById<TextView>(R.id.preferences_privacy_absence_text)
             val absenceHeaderValue = findViewById<TextView>(R.id.preferences_privacy_absence_header_value)
 
-            val colorUtil = ColorUtil.getInstance()
+            val screenDesignUtil = ScreenDesignUtil.getInstance()
 
             if (RuntimeConfig.isBAMandant()) {
                 if (ownContact?.isAbsent == true) {
@@ -224,11 +224,11 @@ abstract class PreferencesPrivacyBaseActivity : PreferencesBaseActivity() {
                         )
                     }
                     absenceHeaderValue.text = resources.getString(R.string.peferences_absence_absent)
-                    absenceHeaderValue.setTextColor(colorUtil.getLowColor(simsMeApplication))
+                    absenceHeaderValue.setTextColor(screenDesignUtil.getLowColor(simsMeApplication))
                 } else {
                     absenceText.text = resources.getString(R.string.peferences_absence_present)
                     absenceHeaderValue.text = resources.getString(R.string.peferences_absence_present)
-                    absenceHeaderValue.setTextColor(colorUtil.getHighColor(simsMeApplication))
+                    absenceHeaderValue.setTextColor(screenDesignUtil.getHighColor(simsMeApplication))
                 }
             }
         } catch (e: LocalizedException) {

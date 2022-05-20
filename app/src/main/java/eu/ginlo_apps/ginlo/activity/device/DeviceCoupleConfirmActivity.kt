@@ -14,7 +14,7 @@ import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity
 import eu.ginlo_apps.ginlo.controller.AccountController
 import eu.ginlo_apps.ginlo.greendao.Account
 import eu.ginlo_apps.ginlo.log.LogUtil
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener
 import kotlinx.android.synthetic.main.activity_device_couple_confirm.*
 
@@ -147,9 +147,9 @@ class DeviceCoupleConfirmActivity : NewBaseActivity() {
     override fun colorizeActivity() {
         super.colorizeActivity()
 
-        val colorUtil = ColorUtil.getInstance()
-        val appAccent = colorUtil.getAppAccentColor(simsMeApplication)
-        val appAccentContrast = colorUtil.getAppAccentContrastColor(simsMeApplication)
+        val screenDesignUtil = ScreenDesignUtil.getInstance()
+        val appAccent = screenDesignUtil.getAppAccentColor(simsMeApplication)
+        val appAccentContrast = screenDesignUtil.getAppAccentContrastColor(simsMeApplication)
         val colorFilterAccent = PorterDuffColorFilter(appAccent, PorterDuff.Mode.SRC_ATOP)
         device_couple_confirm_device_btn.background.colorFilter = colorFilterAccent
         device_couple_confirm_device_btn.setTextColor(appAccent)
