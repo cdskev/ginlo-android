@@ -56,7 +56,7 @@ import eu.ginlo_apps.ginlo.model.chat.ChannelChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.ChannelSelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.util.ChannelColorUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.ImageLoader;
@@ -176,7 +176,7 @@ public class ChannelChatActivity
 
     protected void hideToolbarOptions() {
         super.hideToolbarOptions();
-        mToolbarOptionsLayout.setBackgroundColor(ColorUtil.getInstance().getToolbarColor(getSimsMeApplication()));
+        mToolbarOptionsLayout.setBackgroundColor(ScreenDesignUtil.getInstance().getToolbarColor(getSimsMeApplication()));
     }
 
     @Override
@@ -191,7 +191,7 @@ public class ChannelChatActivity
         // bilder aus Kanal weiterleiten - idle-Dioalog schliesst nicht - workarround
         dismissIdleDialog();
 
-        LogUtil.i(TAG, "onResume: " + this);
+        LogUtil.d(TAG, "onResume: " + this);
 
         if (loginController.getState().equals(LoginController.STATE_LOGGED_OUT)) {
             return;

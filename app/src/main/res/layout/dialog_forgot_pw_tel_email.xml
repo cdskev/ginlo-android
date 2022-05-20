@@ -86,7 +86,7 @@
                         android:gravity="center"
                         android:text="@string/settings_password_forgot_pw_request_mail"
                         android:textAllCaps="true"
-                        app:styledTextSize="commentTextSize"
+                        app:styledTextSize="labelTextSize"
                         app:styledTextColor="mainContrast" />
                 </LinearLayout>
 
@@ -131,7 +131,7 @@
                         android:gravity="center"
                         android:text="@string/settings_password_forgot_pw_request_sms"
                         android:textAllCaps="true"
-                        app:styledTextSize="commentTextSize"
+                        app:styledTextSize="labelTextSize"
                         app:styledTextColor="mainContrast" />
                 </LinearLayout>
             </LinearLayout>

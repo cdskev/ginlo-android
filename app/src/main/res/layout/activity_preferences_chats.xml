@@ -112,6 +112,22 @@
                     style="@style/Divider"
                     app:styledBackground="mainContrast50" />
 
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/preferences_switch_use_internal_pdf_viewer"
+                    style="@style/FontSettingsElement"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingStart="@dimen/preferences_text_margin_start"
+                    android:paddingEnd="@dimen/preferences_text_margin_start"
+                    android:text="@string/settings_chat_use_internal_pdf_viewer"
+                    android:theme="@style/SwitchStyle"
+                    app:styledTextColor="mainContrast" />
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    style="@style/Divider"
+                    app:styledBackground="mainContrast50" />
+
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/preferences_chat_header_background"
                     style="@style/FontSettingsHeader"

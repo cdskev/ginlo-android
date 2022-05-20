@@ -25,7 +25,7 @@ class CouplingRequestModel constructor(couplingRequestJson: JsonObject, private 
     private val signature: String? = getStringFromJson(JsonConstants.SIG, couplingRequestJson)
     val publicKey: String? = getStringFromJson("pubKey", couplingRequestJson)
     val appData: String? = getStringFromJson(JsonConstants.APP_DATA, couplingRequestJson)
-    val publicKeySha: String = ChecksumUtil.getSHA256ChecksumForString(publicKey).toUpperCase()
+    val publicKeySha: String = ChecksumUtil.getSHA256ChecksumForString(publicKey).uppercase()
 
     init {
         if (!checkSignature()) {

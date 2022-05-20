@@ -3,28 +3,26 @@ package eu.ginlo_apps.ginlo.service;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
+
+import java.util.HashMap;
 import java.util.Map;
 
 public class FCMService extends FirebaseMessagingService {
     private final static String TAG = "FCMService";
-    public final static String WAKELOCK_TAG = "ginlo:" + TAG;
-    public final static int WAKELOCK_TIMEOUT = 30000;
-    public final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
+    private final static String WAKELOCK_TAG = "ginlo:" + TAG;
+    private final static int WAKELOCK_TIMEOUT = 15000; // 15 seconds
+    private final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
 
     @Override
     public void onNewToken(String s) {
-        LogUtil.i(TAG, "New FCM Token: " + s);
+        LogUtil.i(TAG, "onNewToken: New FCM Token: " + s);
 
         SimsMeApplication app = getSimsmeApplication();
         if (app != null) {
@@ -32,16 +30,18 @@ public class FCMService extends FirebaseMessagingService {
         }
     }
 
-    /*
-    Firebase messaging service reports new incoming message.
-    If message content is available and app is not in foreground build notification using GCMIntentService.
+    /**
+     * Firebase messaging service reports new incoming message.
+     * If message content is available and app is not in foreground
+     * build notification using NotificationIntentService.
+     * @param remoteMessage
      */
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         LogUtil.d(TAG, "onMessageReceived: Firebase message received: " + remoteMessage.getData());
 
         if (remoteMessage.getData().size() < 1) {
-            LogUtil.i(TAG, "onMessageReceived: nothing will be shown to the user. no push data");
+            LogUtil.d(TAG, "onMessageReceived: Nothing will be shown to the user. No push data");
             return;
         }
 
@@ -57,39 +57,22 @@ public class FCMService extends FirebaseMessagingService {
         PowerManager.WakeLock wl = pm.newWakeLock(WAKELOCK_FLAGS, WAKELOCK_TAG);
         wl.acquire(WAKELOCK_TIMEOUT);
 
-        Intent intent = new Intent(this, GCMIntentService.class);
-
-        // Retrieve and set message extras such as "action", "messageGuid", "accountGuid", "loc-key", ...
-        for (Map.Entry<String, String> entry : remoteMessage.getData().entrySet()) {
-            intent.putExtra(entry.getKey(), entry.getValue());
-        }
-
-        // Check extra params if we have a true message action.
-        // Only a message action generates a notification to the user
-        if (!GCMIntentService.haveToShowNotificationOrSetBadge(app, intent)) {
-            LogUtil.i(TAG, "onMessageReceived: haveToShowNotificationOrSetBadge false");
+        if(app.getAppLifecycleController().isAppInForeground()) {
+            // Message is (already) going to be retrieved and handled by running GetMessageTask.
+            LogUtil.d(TAG, "onMessageReceived: Done here. Message processing is to be done by running GetMessagesTask.");
+            wl.release();
             return;
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (GCMIntentService.haveToStartAsForegroundService(app, intent)) {
-                LogUtil.i(TAG, "onMessageReceived: haveToStartAsForegroundService true");
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    LogUtil.d(TAG, "onMessageReceived: Start GCMIntentService as foreground service.");
-                    startForegroundService(intent);
-                } else {
-                    LogUtil.d(TAG, "onMessageReceived: Start GCMIntentService.");
-                    startService(intent);
-                }
-            } else {
-                LogUtil.i(TAG, "onMessageReceived: showNotification");
-                GCMIntentService.showNotification(app, intent);
-            }
-        } else {
-            LogUtil.d(TAG, "onMessageReceived: Start GCMIntentService.");
-            startService(intent);
+        // Retrieve and set message extras such as "action", "messageGuid", "accountGuid", "loc-key", ...
+        Map<String, String> extras = new HashMap<String, String>();
+        for (Map.Entry<String, String> entry : remoteMessage.getData().entrySet()) {
+            extras.put(entry.getKey(), entry.getValue());
         }
+
+        NotificationIntentService.postProcessFcmNotification(app, extras);
+        // Keep WAKELOCK until WAKELOCK_TIMEOUT
+        //wl.release();
     }
 
     private SimsMeApplication getSimsmeApplication() {

@@ -75,7 +75,7 @@ class ChannelRecycleViewAdapter(private val imageLoader: ImageLoader?) : Adapter
         }
 
         fun bind(model: ChannelListModel) {
-            val separator = model.shortDesc.first().toUpperCase().toString()
+            val separator = model.shortDesc.first().uppercase().toString()
             if (separators.contains(separator) && !model.isFirstItemOfGroup) {
                 itemView.channel_initial_text.visibility = View.INVISIBLE
                 itemView.channel_divider.visibility = View.GONE

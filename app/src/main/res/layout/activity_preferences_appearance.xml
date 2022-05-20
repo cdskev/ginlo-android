@@ -60,11 +60,46 @@
                 </RelativeLayout>
 
                 <androidx.appcompat.widget.LinearLayoutCompat
-                    android:id="@+id/preferences_appearance_divider_theme"
+                    style="@style/Divider"
+                    app:styledBackground="mainContrast50" />
+
+                <RelativeLayout
+                    android:id="@+id/preferences_appearance_layout_theme_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preferences_item_height"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:onClick="handleThemeNameClick">
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_appearance_theme"
+                        app:styledTextColor="mainContrast" />
+
+                    <androidx.appcompat.widget.AppCompatTextView
+                        android:id="@+id/preferences_appearance_textview_theme_name"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_appearance_theme_name_default"
+                        app:styledTextColor="mainContrast80" />
+
+                </RelativeLayout>
+
+                <androidx.appcompat.widget.LinearLayoutCompat
                     style="@style/Divider"
                     app:styledBackground="mainContrast50" />
 
             </LinearLayout>
+
         </ScrollView>
     </LinearLayout>
 

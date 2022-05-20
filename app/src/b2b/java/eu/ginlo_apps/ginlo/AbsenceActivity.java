@@ -22,7 +22,7 @@ import eu.ginlo_apps.ginlo.greendao.Account;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
@@ -247,7 +247,7 @@ public class AbsenceActivity extends BaseActivity {
             };
 
             final DatePickerDialog datePickerDialog = new DatePickerDialog(this,
-                    ColorUtil.getInstance().getAlertDialogStyle(getSimsMeApplication()),
+                    ScreenDesignUtil.getInstance().getAlertDialogStyle(getSimsMeApplication()),
                     onDateSetListener, year, month, day);
             datePickerDialog.show();
 
@@ -271,7 +271,7 @@ public class AbsenceActivity extends BaseActivity {
         };
 
         new TimePickerDialog(AbsenceActivity.this,
-                ColorUtil.getInstance().getAlertDialogStyle(getSimsMeApplication()),
+                ScreenDesignUtil.getInstance().getAlertDialogStyle(getSimsMeApplication()),
                 onTimeSetListener,
                 hour,
                 minute,

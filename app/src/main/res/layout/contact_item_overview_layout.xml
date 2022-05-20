@@ -72,7 +72,7 @@
                     android:lineSpacingExtra="5sp"
                     android:singleLine="true"
                     android:text="Hallo! Ich nutze SIMSme."
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     android:visibility="visible"
                     app:styledTextColor="mainContrast50" />
 
@@ -87,7 +87,7 @@
                     android:lineSpacingExtra="5sp"
                     android:singleLine="true"
                     android:text="horst.dahlenbeck@email.com"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     android:visibility="visible"
                     app:styledTextColor="mainContrast" />
 

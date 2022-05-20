@@ -12,7 +12,7 @@ import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemLongClick
 import eu.ginlo_apps.ginlo.controller.ChannelController
 import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.ChannelChatOverviewItemVO
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.TimeUtil
 import eu.ginlo_apps.ginlo.util.ViewUtil
@@ -72,10 +72,10 @@ class ChatOverviewChannelItemVH(
         if (item.messageCount > 0) {
             itemView.chat_overview_item_text_view_message_counter.text = item.messageCount.toString()
             itemView.chat_overview_item_text_view_message_counter.visibility = View.VISIBLE
-            val colorUtil = ColorUtil.getInstance()
-            val bgColor = colorUtil.getLowColor(itemView.context.applicationContext as Application)
+            val screenDesignUtil = ScreenDesignUtil.getInstance()
+            val bgColor = screenDesignUtil.getLowColor(itemView.context.applicationContext as Application)
             val bgContrastColor =
-                colorUtil.getLowContrastColor(itemView.context.applicationContext as Application)
+                    screenDesignUtil.getLowContrastColor(itemView.context.applicationContext as Application)
 
             itemView.chat_overview_item_text_view_message_counter.setTextColor(bgContrastColor)
             itemView.chat_overview_item_text_view_message_counter.background.colorFilter =

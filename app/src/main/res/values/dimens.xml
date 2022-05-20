@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <!-- Default screen margins, per the Android Design guidelines. -->
@@ -36,33 +37,36 @@
     <dimen name="chatoverview_slideheight">96dp</dimen>
 
 
-    <!-- Styleable text sizes -->
-
+    <!-- Styleable text sizes - the default values -->
     <!-- Basic descriptive text size -->
-    <dimen name="baseTextSize">16.0</dimen>
+    <dimen name="baseTextSize">15sp</dimen>
     <!-- Main message text size -->
-    <dimen name="messageTextSize">17.0</dimen>
+    <dimen name="messageTextSize">17sp</dimen>
     <!-- Main edit message text size -->
-    <dimen name="messageEditTextSize">18.0</dimen>
-    <!-- Smaller text size for comments, notes etc. -->
-    <dimen name="commentTextSize">13.0</dimen>
+    <dimen name="messageEditTextSize">18sp</dimen>
+    <!-- Smaller text size for labels etc. -->
+    <dimen name="labelTextSize">13sp</dimen>
     <!-- Small text size for subtitles, status etc. -->
-    <dimen name="statusTextSize">12.0</dimen>
-    <!-- Very small text size for labels, badges etc. -->
-    <dimen name="labelTextSize">10.0</dimen>
+    <dimen name="miniLabelTextSize">10sp</dimen>
     <!-- Larger text size mainly for choosers -->
-    <dimen name="chooserTextSize">16.0</dimen>
+    <dimen name="statusTextSize">12sp</dimen>
+    <!-- Very small text size for small labels, badges etc. -->
+    <dimen name="chooserTextSize">16sp</dimen>
     <!-- Main title text size -->
-    <dimen name="mainTitleTextSize">28.0</dimen>
+    <dimen name="mainTitleTextSize">28sp</dimen>
     <!-- Sub title text size -->
-    <dimen name="subTitleTextSize">26.0</dimen>
+    <dimen name="subTitleTextSize">26sp</dimen>
     <!-- TAN view text size -->
-    <dimen name="tanViewTextSize">24.0</dimen>
+    <dimen name="tanViewTextSize">24sp</dimen>
     <!-- TAN input text size -->
-    <dimen name="tanEditTextSize">34.0</dimen>
+    <dimen name="tanEditTextSize">34sp</dimen>
     <!-- Medium title text size -->
-    <dimen name="mediumTitleTextSize">20.0</dimen>
+    <dimen name="mediumTitleTextSize">20sp</dimen>
+    <!-- Smaller text size for notes, descriptions etc. -->
+    <dimen name="notesTextSize">14sp</dimen>
 
+    <!-- Scale factor for text size in themes -->
+    <dimen name="textScaleFactor">1.0</dimen>
 
     <dimen name="preferences_slideheight">160dp</dimen>
     <!-- 48 * x + 8 + 8 + 5 = itemheigth * x + padding + padding + shadow-->

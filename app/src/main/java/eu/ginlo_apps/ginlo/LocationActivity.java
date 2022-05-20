@@ -31,11 +31,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import eu.ginlo_apps.ginlo.BaseActivity;
-import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 
@@ -78,8 +76,8 @@ public class LocationActivity
 
         getLocationButton = findViewById(R.id.location_button_get_location);
         if (RuntimeConfig.isBAMandant()) {
-            getLocationButton.getBackground().setColorFilter(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()), PorterDuff.Mode.SRC_ATOP);
-            getLocationButton.setTextColor(ColorUtil.getInstance().getAppAccentContrastColor(getSimsMeApplication()));
+            getLocationButton.getBackground().setColorFilter(ScreenDesignUtil.getInstance().getAppAccentColor(getSimsMeApplication()), PorterDuff.Mode.SRC_ATOP);
+            getLocationButton.setTextColor(ScreenDesignUtil.getInstance().getAppAccentContrastColor(getSimsMeApplication()));
         }
         SupportMapFragment locationMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.location_support_map_fragment);
         locationMapFragment.getMapAsync(new OnMapReadyCallback() {

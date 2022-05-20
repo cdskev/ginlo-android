@@ -23,7 +23,7 @@ import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.fragment.BaseFragment;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import javax.inject.Inject;
@@ -124,8 +124,8 @@ public class BackupConfigFragment extends BaseFragment {
 
         if (RuntimeConfig.isBAMandant() && activity != null) {
             //colorize
-            final ColorUtil colorUtil = ColorUtil.getInstance();
-            final int appAccentColor = colorUtil.getAppAccentColor((Application) activity.getApplicationContext());
+            final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+            final int appAccentColor = screenDesignUtil.getAppAccentColor((Application) activity.getApplicationContext());
 
             final Button configButton = root.findViewById(R.id.settings_backup_config_button);
             configButton.getBackground().setColorFilter(appAccentColor, PorterDuff.Mode.SRC_ATOP);

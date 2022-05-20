@@ -513,7 +513,7 @@
     <string name="content_description_profile_image_choose">Select user picture</string>
     <string name="content_description_profile_qr_code">QR code</string>
     <string name="content_description_send_media_delete">Delete Element</string>
-    <string name="content_description_view_attachment_save">Save in gallery</string>
+    <string name="content_description_view_attachment_save">Save file</string>
     <string name="content_rss_link_more">more …</string>
     <string name="context_group_menu_add_as_admin_label">Make Admin</string>
     <string name="context_group_menu_delete_member_label">Remove Participant</string>
@@ -587,7 +587,7 @@
     <string name="dialog_licence_is_expired">Your license has expired. Please request a license extension from your administrator.</string>
     <string name="dialog_licence_is_expired_title">License notification</string>
     <string name="dialog_saveToGallery_bitmap_finished">Image saved.</string>
-    <string name="dialog_saveToGallery_body">Save to gallery?</string>
+    <string name="dialog_saveToGallery_body">Save to device folder</string>
     <string name="dialog_saveToGallery_title">Save</string>
     <string name="dialog_saveToGallery_video_finished">Video saved.</string>
     <string name="dialog_saveToGallery_voice_finished">Audio message saved.</string>
@@ -1338,4 +1338,7 @@
     <string name="settings_appearance_theme_mode_light">Light</string>
     <string name="settings_appearance_theme_mode_dark">Dark</string>
     <string name="settings_appearance_theme_mode_auto">Auto</string>
+    <string name="settings_others_use_osm_title">Location service</string>
+    <string name="settings_others_use_osm_text">Use OpenStreetMap</string>
+    <string name="settings_chat_use_internal_pdf_viewer">Use internal reader for pdf-files</string>
 </resources>

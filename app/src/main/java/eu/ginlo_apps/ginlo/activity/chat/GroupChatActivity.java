@@ -27,7 +27,7 @@ import eu.ginlo_apps.ginlo.fragment.emojipicker.EmojiPickerFragment;
 import eu.ginlo_apps.ginlo.greendao.Chat;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.chat.BaseChatItemVO;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
@@ -52,7 +52,7 @@ public class GroupChatActivity
 
             mClearChatQuestionText = R.string.chat_button_clear_confirm_group;
 
-            LogUtil.i(TAG, "onCreate: " + this);
+            LogUtil.d(TAG, "onCreate: " + this);
 
             mOnSendMessageListener = createOnSendMessageListener(mTargetGuid);
             getChatController().addListener(this);
@@ -197,7 +197,7 @@ public class GroupChatActivity
             };
             mRefreshTimer.scheduleAtFixedRate(refreshTask, 0, 5000);
 
-            LogUtil.i(TAG, "onResume: " + this + "");
+            LogUtil.d(TAG, "onResume: " + this + "");
             if (mChat != null) {
                 if (!mChat.getIsRemoved()) {
                     setMuteIcon();
@@ -471,7 +471,7 @@ public class GroupChatActivity
             }
         } else {
             final int resourceId = R.drawable.info_stumm_copy;
-            final int customColor = ColorUtil.getInstance().getLowColor(getSimsMeApplication());
+            final int customColor = ScreenDesignUtil.getInstance().getLowColor(getSimsMeApplication());
 
             if (!mOnlyShowTimed) {
                 setProfilePicture(resourceId,

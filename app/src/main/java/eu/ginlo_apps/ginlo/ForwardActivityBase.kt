@@ -5,7 +5,6 @@ package eu.ginlo_apps.ginlo
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -37,7 +36,7 @@ import eu.ginlo_apps.ginlo.greendao.Contact
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.param.SendActionContainer
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.FileUtil
 import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.StringUtil
@@ -154,25 +153,25 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
         return object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 if (tab != null) {
-                    val colorUtil = ColorUtil.getInstance()
-                    ColorUtil.setColorFilter(tab.icon,
-                            colorUtil.getAppAccentColor(SimsMeApplication.getInstance()))
+                    val screenDesignUtil = ScreenDesignUtil.getInstance()
+                    ScreenDesignUtil.setColorFilter(tab.icon,
+                            screenDesignUtil.getAppAccentColor(SimsMeApplication.getInstance()))
                 }
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {
                 if (tab != null) {
-                    val colorUtil = ColorUtil.getInstance()
-                    ColorUtil.setColorFilter(tab.icon,
-                            colorUtil.getMainContrast80Color(SimsMeApplication.getInstance()))
+                    val screenDesignUtil = ScreenDesignUtil.getInstance()
+                    ScreenDesignUtil.setColorFilter(tab.icon,
+                            screenDesignUtil.getMainContrast80Color(SimsMeApplication.getInstance()))
                 }
             }
 
             override fun onTabReselected(tab: TabLayout.Tab?) {
                 if (tab != null) {
-                    val colorUtil = ColorUtil.getInstance()
-                    ColorUtil.setColorFilter(tab.icon,
-                            colorUtil.getAppAccentColor(SimsMeApplication.getInstance()))
+                    val screenDesignUtil = ScreenDesignUtil.getInstance()
+                    ScreenDesignUtil.setColorFilter(tab.icon,
+                            screenDesignUtil.getAppAccentColor(SimsMeApplication.getInstance()))
                 }
             }
         }
@@ -298,10 +297,10 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
     }
 
     override fun onResumeActivity() {
-        val colorUtil = ColorUtil.getInstance()
+        val screenDesignUtil = ScreenDesignUtil.getInstance()
         val pagerAdapter = mViewPager.adapter as? SimsmeFragmentPagerAdapter ?: return
 
-        initializeTabLayout(pagerAdapter, colorUtil)
+        initializeTabLayout(pagerAdapter, screenDesignUtil)
 
         //FIXME aussortieren
         mChatOverviewController.setListRefreshedListener(null)
@@ -320,21 +319,21 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
         }
 
         // farben erst hier setzen, da jetzt erst die tabs geladne wurden
-        colorUtil.colorizeTabLayoutHeader(simsMeApplication, mTabLayout)
+        screenDesignUtil.colorizeTabLayoutHeader(simsMeApplication, mTabLayout)
 
         val selectedTabIndex = mTabLayout.selectedTabPosition
         if (selectedTabIndex > -1) {
             val tab = mTabLayout.getTabAt(selectedTabIndex)
             if(tab != null) {
-                ColorUtil.setColorFilter(tab.icon,
-                        colorUtil.getAppAccentColor(SimsMeApplication.getInstance()))
+                ScreenDesignUtil.setColorFilter(tab.icon,
+                        screenDesignUtil.getAppAccentColor(SimsMeApplication.getInstance()))
             }
         }
     }
 
     private fun initializeTabLayout(
-        pagerAdapter: SimsmeFragmentPagerAdapter,
-        colorUtil: ColorUtil
+            pagerAdapter: SimsmeFragmentPagerAdapter,
+            screenDesignUtil: ScreenDesignUtil
     ) {
         for (i in 0 until pagerAdapter.count) {
             val fragment = pagerAdapter.getItem(i)
@@ -342,50 +341,50 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
             if (tab == null) continue
 
             if (fragment is BaseContactsFragment) {
-                initializeBaseContactsFragment(fragment, tab, colorUtil)
+                initializeBaseContactsFragment(fragment, tab, screenDesignUtil)
             } else if (fragment is ForwardChatListFragment) {
-                initializeForwardChatListFragment(fragment, tab, colorUtil)
+                initializeForwardChatListFragment(fragment, tab, screenDesignUtil)
             }
         }
     }
 
     private fun initializeBaseContactsFragment(
-        fragment: BaseContactsFragment,
-        tab: TabLayout.Tab,
-        colorUtil: ColorUtil
+            fragment: BaseContactsFragment,
+            tab: TabLayout.Tab,
+            screenDesignUtil: ScreenDesignUtil
     ) {
         val type = fragment.contactsFragmentType
         if (type == BaseContactsFragment.ContactsFragmentType.TYPE_COMPANY) {
-            setTabIconAndTag(tab, R.drawable.business, TAB_COMPANY, colorUtil)
+            setTabIconAndTag(tab, R.drawable.business, TAB_COMPANY, screenDesignUtil)
         } else if (type == BaseContactsFragment.ContactsFragmentType.TYPE_DOMAIN) {
-            setTabIconAndTag(tab, R.drawable.mail, TAB_DOMAIN, colorUtil)
+            setTabIconAndTag(tab, R.drawable.mail, TAB_DOMAIN, screenDesignUtil)
         } else if (type == BaseContactsFragment.ContactsFragmentType.TYPE_PRIVATE) {
-            setTabIconAndTag(tab, R.drawable.phone, TAB_CONTACT, colorUtil)
+            setTabIconAndTag(tab, R.drawable.phone, TAB_CONTACT, screenDesignUtil)
         }
     }
 
     private fun initializeForwardChatListFragment(
-        fragment: ForwardChatListFragment,
-        tab: TabLayout.Tab,
-        colorUtil: ColorUtil
+            fragment: ForwardChatListFragment,
+            tab: TabLayout.Tab,
+            screenDesignUtil: ScreenDesignUtil
     ) {
         if (fragment.mode == ChatOverviewController.MODE_FORWARD_SINGLE) {
-            setTabIconAndTag(tab, R.drawable.chat, TAB_SINGLE, colorUtil)
+            setTabIconAndTag(tab, R.drawable.chat, TAB_SINGLE, screenDesignUtil)
         } else if (fragment.mode == ChatOverviewController.MODE_FORWARD_GROUP) {
-            setTabIconAndTag(tab, R.drawable.group, TAB_GROUP, colorUtil)
+            setTabIconAndTag(tab, R.drawable.group, TAB_GROUP, screenDesignUtil)
         }
     }
 
     private fun setTabIconAndTag(
-        tab: TabLayout.Tab,
-        resId: Int,
-        tag: String,
-        colorUtil: ColorUtil
+            tab: TabLayout.Tab,
+            resId: Int,
+            tag: String,
+            screenDesignUtil: ScreenDesignUtil
     ) {
         tab.setIcon(resId)
         tab.tag = tag
-        ColorUtil.setColorFilter(tab.icon,
-                colorUtil.getMainContrast80Color(SimsMeApplication.getInstance()))
+        ScreenDesignUtil.setColorFilter(tab.icon,
+                screenDesignUtil.getMainContrast80Color(SimsMeApplication.getInstance()))
     }
 
     override fun onClick(item: BaseChatOverviewItemVO) {
@@ -538,7 +537,7 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
 
     override fun colorizeActivity() {
         super.colorizeActivity()
-        val colorUtil = ColorUtil.getInstance()
-        mTabLayout.setSelectedTabIndicatorColor(colorUtil.getAppAccentColor(simsMeApplication))
+        val screenDesignUtil = ScreenDesignUtil.getInstance()
+        mTabLayout.setSelectedTabIndicatorColor(screenDesignUtil.getAppAccentColor(simsMeApplication))
     }
 }

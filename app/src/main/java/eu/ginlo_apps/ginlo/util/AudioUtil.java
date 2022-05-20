@@ -8,6 +8,7 @@ import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -26,8 +27,8 @@ import java.io.InputStream;
  */
 public class AudioUtil {
 
+    private static final String TAG = "AudioUtil";
     private static final int THUMBNAIL_WIDTH = 133;
-
     private static final int THUMNAIL_HEIGHT = 100;
 
     public static byte[] decodeUri(Activity activity,
@@ -39,7 +40,7 @@ public class AudioUtil {
             }
             return byteOutputStream.toByteArray();
         } catch (IOException e) {
-            LogUtil.e(AudioUtil.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, "decodeUri: Caught " + e.getMessage());
         }
         return null;
     }
@@ -104,14 +105,16 @@ public class AudioUtil {
             final MediaPlayer mp = new MediaPlayer();
 
             mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-            mp.setAudioStreamType(AudioManager.STREAM_RING);
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
+                    .build();
+            mp.setAudioAttributes(audioAttributes);
             mp.prepare();
             return mp;
-        } catch (IOException | SecurityException e) {
-            LogUtil.e(AudioUtil.class.getName(), e.getMessage(), e);
-            return null;
-        } catch (IllegalStateException e) {
-            LogUtil.e(AudioUtil.class.getName(), e.getMessage(), e);
+        } catch (IOException | SecurityException | IllegalStateException e) {
+            LogUtil.e(TAG, "createMediaPlayer: Caught " + e.getMessage());
             return null;
         }
     }
@@ -123,8 +126,8 @@ public class AudioUtil {
      * @return AudioVolume
      */
     public static float getAudioVolume(final AudioManager audioManager) {
-        final int curVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
-        final int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+        final int curVolume = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM);
+        final int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_SYSTEM);
 
         return 1 - (float) (Math.log(maxVolume - curVolume) / Math.log(maxVolume));
     }

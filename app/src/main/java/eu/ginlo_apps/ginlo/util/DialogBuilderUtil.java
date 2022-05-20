@@ -40,7 +40,7 @@ public class DialogBuilderUtil {
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context,
-                ColorUtil.getInstance().getAlertDialogStyle(context.getApplication()));
+                ScreenDesignUtil.getInstance().getAlertDialogStyle(context.getApplication()));
 
         builder.setMessage(errorMessage);
 
@@ -202,8 +202,8 @@ public class DialogBuilderUtil {
                     if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) && eu.ginlo_apps.ginlo.util.RuntimeConfig.isBAMandant()) {
                         final Drawable d = checkbox.getButtonDrawable();
                         if (d != null) {
-                            final ColorUtil colorUtil = ColorUtil.getInstance();
-                            final int accentColor = colorUtil.getAppAccentColor(activity.getSimsMeApplication());
+                            final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+                            final int accentColor = screenDesignUtil.getAppAccentColor(activity.getSimsMeApplication());
                             d.setColorFilter(accentColor, PorterDuff.Mode.SRC_ATOP);
                         }
                     }
@@ -237,11 +237,11 @@ public class DialogBuilderUtil {
             dialog.setOnShowListener(new DialogInterface.OnShowListener() {
                 @Override
                 public void onShow(DialogInterface d) {
-                    final ColorUtil colorUtil = ColorUtil.getInstance();
+                    final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
 
-                    int appAccentColor = colorUtil.getAppAccentColor((Application) context.getApplicationContext());
+                    int appAccentColor = screenDesignUtil.getAppAccentColor((Application) context.getApplicationContext());
                     if (appAccentColor == -1) {
-                        appAccentColor = colorUtil.getAppAccentContrastColor((Application) context.getApplicationContext());
+                        appAccentColor = screenDesignUtil.getAppAccentContrastColor((Application) context.getApplicationContext());
                     }
 
                     final Button button1 = dialog.getButton(AlertDialog.BUTTON_POSITIVE);

@@ -45,7 +45,7 @@
                 android:layout_marginBottom="@dimen/standard_padding"
                 android:maxLines="1"
                 android:textColor="#43ad7f"
-                app:styledTextSize="commentTextSize"
+                android:textSize="?attr/labelTextSize"
                 android:visibility="gone"
                 tools:text="Max Mustermann"
                 tools:visibility="visible" />
@@ -107,7 +107,7 @@
                         android:gravity="center_horizontal"
                         android:text="@string/chats_AVC_title"
                         android:textColor="@color/text_color"
-                        app:styledTextSize="messageTextSize"
+                        android:textSize="?attr/messageTextSize"
                         android:textStyle="normal" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -119,7 +119,7 @@
                         android:singleLine="true"
                         android:text="@string/chats_AVC_talk"
                         android:textColor="@color/text_color"
-                        app:styledTextSize="messageTextSize"
+                        android:textSize="?attr/messageTextSize"
                         android:textStyle="bold"
                         android:visibility="visible" />
 

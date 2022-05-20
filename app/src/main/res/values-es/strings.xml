@@ -514,7 +514,7 @@
     <string name="content_description_profile_image_choose">Seleccionar foto de usuario</string>
     <string name="content_description_profile_qr_code">Código QR</string>
     <string name="content_description_send_media_delete">Eliminar elemento</string>
-    <string name="content_description_view_attachment_save">Guardar en la galería</string>
+    <string name="content_description_view_attachment_save">Guardar archivo</string>
     <string name="content_rss_link_more">más...</string>
     <string name="context_group_menu_add_as_admin_label">Añadir como administrador</string>
     <string name="context_group_menu_delete_member_label">Eliminar miembro del grupo</string>
@@ -588,7 +588,7 @@
     <string name="dialog_licence_is_expired">Your license has expired. Please request a license extension from your administrator.</string>
     <string name="dialog_licence_is_expired_title">License notification</string>
     <string name="dialog_saveToGallery_bitmap_finished">Imagen guardada.</string>
-    <string name="dialog_saveToGallery_body">Guardar en la galería?</string>
+    <string name="dialog_saveToGallery_body">Guardar en la carpeta del dispositivo</string>
     <string name="dialog_saveToGallery_title">Guardar</string>
     <string name="dialog_saveToGallery_video_finished">Vídeo guardado.</string>
     <string name="dialog_saveToGallery_voice_finished">Mensaje de audio guardado.</string>
@@ -1337,4 +1337,7 @@
     <string name="settings_appearance_theme_mode_light">Brillante</string>
     <string name="settings_appearance_theme_mode_dark">Oscuro</string>
     <string name="settings_appearance_theme_mode_auto">Auto</string>
+    <string name="settings_others_use_osm_title">Servicio de localización</string>
+    <string name="settings_others_use_osm_text">Utilizar OpenStreetMap</string>
+    <string name="settings_chat_use_internal_pdf_viewer">Utilizar el lector interno para los archivos pdf</string>
 </resources>

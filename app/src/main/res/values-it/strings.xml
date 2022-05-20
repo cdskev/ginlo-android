@@ -514,7 +514,7 @@
     <string name="content_description_profile_image_choose">Seleziona immagine utente</string>
     <string name="content_description_profile_qr_code">Codice QR</string>
     <string name="content_description_send_media_delete">Cancella elemento</string>
-    <string name="content_description_view_attachment_save">Salva nella galleria</string>
+    <string name="content_description_view_attachment_save">Salvare il file</string>
     <string name="content_rss_link_more">altro...</string>
     <string name="context_group_menu_add_as_admin_label">Aggiungi come amministratore</string>
     <string name="context_group_menu_delete_member_label">Cancella membro del gruppo</string>
@@ -588,7 +588,7 @@
     <string name="dialog_licence_is_expired">La tua licenza è scaduta. Richiedi un\'estensione della licenza al tuo amministratore.</string>
     <string name="dialog_licence_is_expired_title">Notifica licenza</string>
     <string name="dialog_saveToGallery_bitmap_finished">Immagine salvata.</string>
-    <string name="dialog_saveToGallery_body">Salvare in galleria?</string>
+    <string name="dialog_saveToGallery_body">Salva nella cartella del dispositivo</string>
     <string name="dialog_saveToGallery_title">Salvare</string>
     <string name="dialog_saveToGallery_video_finished">Video salvato.</string>
     <string name="dialog_saveToGallery_voice_finished">Messaggio audio salvato.</string>
@@ -1337,4 +1337,7 @@
     <string name="settings_appearance_theme_mode_light">Luminoso</string>
     <string name="settings_appearance_theme_mode_dark">Scuro</string>
     <string name="settings_appearance_theme_mode_auto">Auto</string>
+    <string name="settings_others_use_osm_title">Servizio di localizzazione</string>
+    <string name="settings_others_use_osm_text">Utilizzare OpenStreetMap</string>
+    <string name="settings_chat_use_internal_pdf_viewer">Utilizzare il lettore interno per i file pdf</string>
 </resources>

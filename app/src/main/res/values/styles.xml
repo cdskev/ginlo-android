@@ -1,8 +1,151 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
+
+
+    <!-- The ginlo app light theme with small fonts -->
+    <style name="GinloDefaultSmallLight" parent="GinloDefaultLight">
+        <item name="baseTextSize">12sp</item>
+        <item name="messageTextSize">13.6sp</item>
+        <item name="messageEditTextSize">14.4sp</item>
+        <item name="labelTextSize">10.4sp</item>
+        <item name="miniLabelTextSize">8sp</item>
+        <item name="statusTextSize">9.6sp</item>
+        <item name="chooserTextSize">12.8sp</item>
+        <item name="mainTitleTextSize">22.4sp</item>
+        <item name="subTitleTextSize">20.8sp</item>
+        <item name="tanViewTextSize">20sp</item>
+        <item name="tanEditTextSize">27.2sp</item>
+        <item name="mediumTitleTextSize">16sp</item>
+        <item name="notesTextSize">11.2sp</item>
+    </style>
+
+    <!-- The ginlo app dark theme with small fonts -->
+    <style name="GinloDefaultSmallDark" parent="GinloDefaultDark">
+        <item name="baseTextSize">12sp</item>
+        <item name="messageTextSize">13.6sp</item>
+        <item name="messageEditTextSize">14.4sp</item>
+        <item name="labelTextSize">10.4sp</item>
+        <item name="miniLabelTextSize">8sp</item>
+        <item name="statusTextSize">9.6sp</item>
+        <item name="chooserTextSize">12.8sp</item>
+        <item name="mainTitleTextSize">22.4sp</item>
+        <item name="subTitleTextSize">20.8sp</item>
+        <item name="tanViewTextSize">20sp</item>
+        <item name="tanEditTextSize">27.2sp</item>
+        <item name="mediumTitleTextSize">16sp</item>
+        <item name="notesTextSize">11.2sp</item>
+    </style>
+
+    <!-- The ginlo app light theme with large fonts -->
+    <style name="GinloDefaultLargeLight" parent="GinloDefaultLight">
+        <item name="baseTextSize">18sp</item>
+        <item name="messageTextSize">20.4sp</item>
+        <item name="messageEditTextSize">21.6sp</item>
+        <item name="labelTextSize">15.6sp</item>
+        <item name="miniLabelTextSize">12sp</item>
+        <item name="statusTextSize">14.4sp</item>
+        <item name="chooserTextSize">19.2sp</item>
+        <item name="mainTitleTextSize">33.6sp</item>
+        <item name="subTitleTextSize">31.2sp</item>
+        <item name="tanViewTextSize">28.8sp</item>
+        <item name="tanEditTextSize">40.8sp</item>
+        <item name="mediumTitleTextSize">24sp</item>
+        <item name="notesTextSize">16.8sp</item>
+    </style>
+
+    <!-- The ginlo app dark theme with large fonts -->
+    <style name="GinloDefaultLargeDark" parent="GinloDefaultDark">
+        <item name="baseTextSize">18sp</item>
+        <item name="messageTextSize">20.4sp</item>
+        <item name="messageEditTextSize">21.6sp</item>
+        <item name="labelTextSize">15.6sp</item>
+        <item name="miniLabelTextSize">12sp</item>
+        <item name="statusTextSize">14.4sp</item>
+        <item name="chooserTextSize">19.2sp</item>
+        <item name="mainTitleTextSize">33.6sp</item>
+        <item name="subTitleTextSize">31.2sp</item>
+        <item name="tanViewTextSize">28.8sp</item>
+        <item name="tanEditTextSize">40.8sp</item>
+        <item name="mediumTitleTextSize">24sp</item>
+        <item name="notesTextSize">16.8sp</item>
+    </style>
+
     <!-- The ginlo app default light theme -->
-    <style name="GinloDefaultThemeLight" parent="@style/Theme.AppCompat.Light.NoActionBar">
+    <style name="GinloDefaultLight" parent="GinloDefaultThemeBaseLight">
+        <item name="textScaleFactor">@dimen/textScaleFactor</item>
+        <!-- All text sizes that are set programmatically by ScreenDesignUtil class -->
+        <item name="baseTextSize">@dimen/baseTextSize</item>
+        <item name="messageTextSize">@dimen/messageTextSize</item>
+        <item name="messageEditTextSize">@dimen/messageEditTextSize</item>
+        <item name="labelTextSize">@dimen/labelTextSize</item>
+        <item name="miniLabelTextSize">@dimen/miniLabelTextSize</item>
+        <item name="statusTextSize">@dimen/statusTextSize</item>
+        <item name="chooserTextSize">@dimen/chooserTextSize</item>
+        <item name="mainTitleTextSize">@dimen/mainTitleTextSize</item>
+        <item name="subTitleTextSize">@dimen/subTitleTextSize</item>
+        <item name="tanViewTextSize">@dimen/tanViewTextSize</item>
+        <item name="tanEditTextSize">@dimen/tanEditTextSize</item>
+        <item name="mediumTitleTextSize">@dimen/mediumTitleTextSize</item>
+        <item name="notesTextSize">@dimen/notesTextSize</item>
+        <!-- Others -->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:windowSharedElementEnterTransition">@android:transition/move</item>
+        <item name="android:windowSharedElementExitTransition">@android:transition/move</item>
+        <item name="android:scrollbarThumbVertical">@drawable/scrollbar</item>
+        <item name="android:scrollbarAlwaysDrawVerticalTrack">false</item>
+        <item name="android:scrollbarFadeDuration">1000</item>
+        <item name="android:scrollbarDefaultDelayBeforeFade">0</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:editTextStyle">@style/EditTextStyle</item>
+        <item name="android:spinnerStyle">@style/SpinnerStyle</item>
+        <item name="android:textViewStyle">@style/RobotoTextViewStyle</item>
+        <item name="android:buttonStyle">@style/ButtonStyle</item>
+        <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+        <item name="android:itemTextAppearance">@style/MenuItemTextAppearance</item>
+    </style>
+
+    <!-- The ginlo app default dark theme -->
+    <style name="GinloDefaultDark" parent="GinloDefaultThemeBaseDark">
+        <item name="textScaleFactor">@dimen/textScaleFactor</item>
+        <!-- All text sizes that are set programmatically by ScreenDesignUtil class -->
+        <item name="baseTextSize">@dimen/baseTextSize</item>
+        <item name="messageTextSize">@dimen/messageTextSize</item>
+        <item name="messageEditTextSize">@dimen/messageEditTextSize</item>
+        <item name="labelTextSize">@dimen/labelTextSize</item>
+        <item name="miniLabelTextSize">@dimen/miniLabelTextSize</item>
+        <item name="statusTextSize">@dimen/statusTextSize</item>
+        <item name="chooserTextSize">@dimen/chooserTextSize</item>
+        <item name="mainTitleTextSize">@dimen/mainTitleTextSize</item>
+        <item name="subTitleTextSize">@dimen/subTitleTextSize</item>
+        <item name="tanViewTextSize">@dimen/tanViewTextSize</item>
+        <item name="tanEditTextSize">@dimen/tanEditTextSize</item>
+        <item name="mediumTitleTextSize">@dimen/mediumTitleTextSize</item>
+        <item name="notesTextSize">@dimen/notesTextSize</item>
+        <!-- Others -->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:windowSharedElementEnterTransition">@android:transition/move</item>
+        <item name="android:windowSharedElementExitTransition">@android:transition/move</item>
+        <item name="android:scrollbarAlwaysDrawVerticalTrack">false</item>
+        <item name="android:scrollbarFadeDuration">1000</item>
+        <item name="android:scrollbarDefaultDelayBeforeFade">0</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:editTextStyle">@style/EditTextStyle</item>
+        <item name="android:spinnerStyle">@style/SpinnerStyle</item>
+        <item name="android:textViewStyle">@style/RobotoTextViewStyle</item>
+        <item name="android:buttonStyle">@style/ButtonStyle</item>
+        <item name="android:scrollbarThumbVertical">@drawable/scrollbar</item>
+        <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+        <item name="android:itemTextAppearance">@style/MenuItemTextAppearance</item>
+    </style>
+
+
+    <!-- The base for the default light theme containing all color/dark/light dependencies -->
+    <style name="GinloDefaultThemeBaseLight" parent="@style/Theme.AppCompat.Light.NoActionBar">
         <item name="android:colorAccent">@color/action</item>
         <item name="android:colorBackground">@android:color/background_light</item>
         <item name="android:colorButtonNormal">@color/color_button_normal</item>
@@ -17,7 +160,7 @@
         <item name="android:textColorSecondary">@android:color/secondary_text_light</item>
         <item name="android:textColorHint">@color/color5</item>
         <item name="android:windowBackground">@android:color/background_light</item>
-        <!-- All colors that are set programmatically by ColorUtil class -->
+        <!-- All colors that are set programmatically by ScreenDesignUtil class -->
         <item name="mainColor">@color/main</item>
         <item name="main50Color">#80FFFFFF</item>
         <item name="mainContrastColor">@color/mainContrast</item>
@@ -52,45 +195,16 @@
         <item name="chatItemColor">@color/color_chatitem_icon</item>
         <item name="contextMainColor">@color/main</item>
         <item name="contextTextColor">@color/text_color</item>
-        <!-- All text sizes that are set programmatically by ColorUtil class -->
-        <item name="baseTextSize">@dimen/baseTextSize</item>
-        <item name="messageTextSize">@dimen/messageTextSize</item>
-        <item name="messageEditTextSize">@dimen/messageEditTextSize</item>
-        <item name="commentTextSize">@dimen/commentTextSize</item>
-        <item name="labelTextSize">@dimen/labelTextSize</item>
-        <item name="statusTextSize">@dimen/statusTextSize</item>
-        <item name="chooserTextSize">@dimen/chooserTextSize</item>
-        <item name="mainTitleTextSize">@dimen/mainTitleTextSize</item>
-        <item name="subTitleTextSize">@dimen/subTitleTextSize</item>
-        <item name="tanViewTextSize">@dimen/tanViewTextSize</item>
-        <item name="tanEditTextSize">@dimen/tanEditTextSize</item>
-        <item name="mediumTitleTextSize">@dimen/mediumTitleTextSize</item>
-        <!-- Others -->
-        <item name="android:windowContentTransitions">true</item>
-        <item name="android:windowAllowEnterTransitionOverlap">true</item>
-        <item name="android:windowAllowReturnTransitionOverlap">true</item>
-        <item name="android:windowSharedElementEnterTransition">@android:transition/move</item>
-        <item name="android:windowSharedElementExitTransition">@android:transition/move</item>
-        <item name="android:scrollbarThumbVertical">@drawable/scrollbar</item>
-        <item name="android:scrollbarAlwaysDrawVerticalTrack">false</item>
-        <item name="android:scrollbarFadeDuration">1000</item>
-        <item name="android:scrollbarDefaultDelayBeforeFade">0</item>
-        <item name="android:windowNoTitle">true</item>
+        <!-- All styles that are color/light/dark dependant -->
         <item name="alertDialogTheme">@style/AlertDialogThemeLight</item>
         <item name="android:toolbarStyle">@style/AppThemeToolbarLight</item>
         <item name="android:popupMenuStyle">@style/AppThemePopupMenuStyleLight</item>
-        <item name="android:editTextStyle">@style/EditTextStyle</item>
-        <item name="android:spinnerStyle">@style/SpinnerStyle</item>
-        <item name="android:textViewStyle">@style/RobotoTextViewStyleLight</item>
-        <item name="android:buttonStyle">@style/ButtonStyle</item>
         <item name="android:progressBarStyle">@style/ProgressBarStyleLight</item>
         <item name="android:progressBarStyleHorizontal">@style/ProgressBarStyleHorizontalLight</item>
-        <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
-        <item name="android:itemTextAppearance">@style/MenuItemTextAppearance</item>
     </style>
 
-    <!-- The ginlo app default dark theme -->
-    <style name="GinloDefaultThemeDark" parent="@style/Theme.AppCompat.DayNight.NoActionBar">
+    <!-- The base for the default dark theme containing all color/dark/light dependencies -->
+    <style name="GinloDefaultThemeBaseDark" parent="@style/Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:colorAccent">@color/action</item>
         <item name="android:colorBackground">@android:color/background_dark</item>
         <item name="android:colorControlActivated">@color/action</item>
@@ -105,7 +219,7 @@
         <item name="android:textColorSecondary">@android:color/secondary_text_dark</item>
         <item name="android:textColorHint">@color/mainContrast</item>
         <item name="android:windowBackground">@android:color/background_dark</item>
-        <!-- All colors that are set programmatically by ColorUtil class -->
+        <!-- All colors that are set programmatically by ScreenDesignUtil class -->
         <item name="mainColor">@color/black</item>
         <item name="main50Color">#80000000</item>
         <item name="mainContrastColor">@color/color7</item>
@@ -140,41 +254,12 @@
         <item name="chatItemColor">@color/color_chatitem_icon</item>
         <item name="contextMainColor">@color/main</item>
         <item name="contextTextColor">@color/text_color</item>
-        <!-- All text sizes that are set programmatically by ColorUtil class -->
-        <item name="baseTextSize">@dimen/baseTextSize</item>
-        <item name="messageTextSize">@dimen/messageTextSize</item>
-        <item name="messageEditTextSize">@dimen/messageEditTextSize</item>
-        <item name="labelTextSize">@dimen/labelTextSize</item>
-        <item name="commentTextSize">@dimen/commentTextSize</item>
-        <item name="statusTextSize">@dimen/statusTextSize</item>
-        <item name="chooserTextSize">@dimen/chooserTextSize</item>
-        <item name="mainTitleTextSize">@dimen/mainTitleTextSize</item>
-        <item name="subTitleTextSize">@dimen/subTitleTextSize</item>
-        <item name="tanViewTextSize">@dimen/tanViewTextSize</item>
-        <item name="tanEditTextSize">@dimen/tanEditTextSize</item>
-        <item name="mediumTitleTextSize">@dimen/mediumTitleTextSize</item>
-        <!-- Others -->
-        <item name="android:windowContentTransitions">true</item>
-        <item name="android:windowAllowEnterTransitionOverlap">true</item>
-        <item name="android:windowAllowReturnTransitionOverlap">true</item>
-        <item name="android:windowSharedElementEnterTransition">@android:transition/move</item>
-        <item name="android:windowSharedElementExitTransition">@android:transition/move</item>
-        <item name="android:scrollbarAlwaysDrawVerticalTrack">false</item>
-        <item name="android:scrollbarFadeDuration">1000</item>
-        <item name="android:scrollbarDefaultDelayBeforeFade">0</item>
-        <item name="android:windowNoTitle">true</item>
+        <!-- All styles that are color/light/dark dependant -->
         <item name="alertDialogTheme">@style/AlertDialogThemeDark</item>
         <item name="android:toolbarStyle">@style/AppThemeToolbarDark</item>
         <item name="android:popupMenuStyle">@style/AppThemePopupMenuStyleDark</item>
-        <item name="android:editTextStyle">@style/EditTextStyle</item>
-        <item name="android:spinnerStyle">@style/SpinnerStyle</item>
-        <item name="android:textViewStyle">@style/RobotoTextViewStyleDark</item>
-        <item name="android:buttonStyle">@style/ButtonStyle</item>
         <item name="android:progressBarStyle">@style/ProgressBarStyleDark</item>
         <item name="android:progressBarStyleHorizontal">@style/ProgressBarStyleHorizontalDark</item>
-        <item name="android:scrollbarThumbVertical">@drawable/scrollbar</item>
-        <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
-        <item name="android:itemTextAppearance">@style/MenuItemTextAppearance</item>
     </style>
 
     <style name="SplashTheme" parent="@android:style/Theme.Holo.NoActionBar">
@@ -189,14 +274,19 @@
     <style name="TitleTextViewStyle" parent="android:Widget.TextView">
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">20sp</item>
+        <item name="android:textSize">?attr/mediumTitleTextSize</item>
+    </style>
+
+    <style name="BodyTextViewStyle" parent="android:Widget.TextView">
+        <item name="android:textStyle">normal</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
     </style>
 
     <style name="BaseButtonStyle" parent="android:Widget.Material.Button">
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
-        <item name="android:textSize">17sp</item>
+        <item name="android:textSize">?attr/messageTextSize</item>
         <item name="android:minHeight">52dp</item>
         <item name="android:minWidth">88dp</item>
         <item name="android:background">@drawable/button_mtrl_default</item>
@@ -216,7 +306,7 @@
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textStyle">normal</item>
         <item name="android:textAllCaps">false</item>
-        <item name="android:textSize">17sp</item>
+        <item name="android:textSize">?attr/messageTextSize</item>
         <item name="android:minHeight">52dp</item>
         <item name="android:padding">0dp</item>
         <item name="android:layout_margin">0dp</item>
@@ -257,7 +347,7 @@
 
     <style name="SwitchStyleTextBase" parent="TextAppearance.AppCompat.Widget.Switch">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
         <item name="android:textAllCaps">false</item>
     </style>
 
@@ -327,49 +417,37 @@
     <!-- ############# TextView ################################### -->
 
 
-    <style name="RobotoTextViewStyleLight" parent="android:Widget.TextView">
+    <style name="RobotoTextViewStyle" parent="android:Widget.TextView">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
         <!-- <item name="android:background">@color/main</item> -->
     </style>
 
-    <style name="RobotoTextViewStyleDark" parent="android:Widget.TextView">
-        <item name="android:textStyle">normal</item>
-        <item name="android:textSize">14sp</item>
-        <!-- <item name="android:background">@color/mainContrast</item> -->
-    </style>
-
-
     <style name="HeadlineTextViewStyle" parent="android:Widget.TextView">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">24sp</item>
+        <item name="android:textSize">?attr/tanViewTextSize</item>
     </style>
 
     <style name="SubheadlineTextViewStyle" parent="android:Widget.TextView">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
     </style>
 
     <style name="SubheadlineBoldTextViewStyle" parent="android:Widget.TextView">
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">16sp</item>
-    </style>
-
-    <style name="BodyTextViewStyle" parent="android:Widget.TextView">
-        <item name="android:textStyle">normal</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
     </style>
 
     <style name="CaptionTextViewStyle" parent="android:Widget.TextView">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">?attr/statusTextSize</item>
         <item name="android:lineSpacingExtra">4sp</item>
         <item name="android:letterSpacing">-0.01</item>
     </style>
 
     <style name="CaptionTextViewStyleShadow" parent="android:Widget.TextView">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">?attr/statusTextSize</item>
         <item name="android:textColor">@color/black_caption</item>
         <item name="android:shadowColor">#FFFFFF</item>
         <item name="android:shadowDx">2</item>
@@ -380,12 +458,12 @@
 
     <style name="CaptionTextViewStyleBold" parent="android:Widget.TextView">
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">?attr/statusTextSize</item>
     </style>
 
     <style name="AttachmentDescriptionTextViewStyle" parent="android:Widget.TextView">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
         <item name="android:textColor">@color/white_body</item>
         <item name="android:shadowColor">#333333</item>
         <item name="android:shadowDx">1</item>
@@ -394,70 +472,70 @@
     </style>
 
     <style name="FontL1" parent="android:Widget.TextView">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
         <item name="android:textStyle">bold</item>
     </style>
 
     <style name="FontH2" parent="android:Widget.TextView">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
         <item name="android:textStyle">bold</item>
     </style>
 
     <style name="FontH3" parent="android:Widget.TextView">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
         <item name="android:textStyle">normal</item>
     </style>
 
     <style name="FontI2" parent="android:Widget.TextView">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
     </style>
 
     <style name="FontU1" parent="android:Widget.TextView">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
         <item name="android:textStyle">bold</item>
     </style>
 
     <style name="FontU2" parent="android:Widget.TextView">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
         <item name="android:textStyle">normal</item>
     </style>
 
     <style name="FontF1" parent="android:Widget.TextView">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">?attr/statusTextSize</item>
     </style>
 
     <style name="FontS1" parent="android:Widget.TextView">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
     </style>
 
 
     <style name="FontP2" parent="android:Widget.TextView">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
     </style>
 
     <style name="FontP3" parent="android:Widget.TextView">
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
     </style>
 
 
     <style name="FontP4" parent="android:Widget.TextView">
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
         <item name="android:textColor">@color/color9</item>
     </style>
 
     <style name="FontT2" parent="android:Widget.TextView">
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">?attr/statusTextSize</item>
     </style>
 
 
     <style name="FontX1" parent="android:Widget.TextView">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
         <item name="android:textStyle">bold</item>
     </style>
 
@@ -483,7 +561,7 @@
 
 
     <style name="BodyTextViewBoldStyle">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
         <item name="android:textStyle">bold</item>
     </style>
 
@@ -515,28 +593,28 @@
 
     <style name="CaptionTextViewStyleBoldAppAccent" parent="android:Widget.TextView">
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">12sp</item>
+        <item name="android:textSize">?attr/statusTextSize</item>
         <item name="android:textColor">@color/app_accent</item>
     </style>
 
 
     <style name="Font16sp" parent="android:Widget.TextView">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
     </style>
 
 
     <style name="FontSettingsElement" parent="android:Widget.TextView">
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
         <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 
     <style name="FontSettingsHeader">
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
     </style>
 
     <style name="style_support_title" parent="FontSettingsElement">
-        <item name="android:textSize">17sp</item>
+        <item name="android:textSize">?attr/messageTextSize</item>
         <item name="android:layout_marginStart">16dp</item>
         <item name="android:layout_marginTop">16dp</item>
         <item name="android:layout_marginEnd">16dp</item>
@@ -551,7 +629,7 @@
     </style>
 
     <style name="style_support_hint" parent="FontSettingsElement">
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
         <item name="android:layout_marginStart">16dp</item>
         <item name="android:layout_marginTop">10dp</item>
         <item name="android:layout_marginEnd">16dp</item>
@@ -566,21 +644,21 @@
     <style name="style_channel_list_item_group_char" parent="android:Widget.TextView">
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">24sp</item>
+        <item name="android:textSize">?attr/tanViewTextSize</item>
         <item name="android:letterSpacing">0</item>
     </style>
 
     <style name="style_channel_list_item_title" parent="android:Widget.TextView">
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">16sp</item>
+        <item name="android:textSize">?attr/chooserTextSize</item>
         <item name="android:letterSpacing">0</item>
     </style>
 
     <style name="style_channel_list_item_description" parent="android:Widget.TextView">
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textStyle">normal</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">?attr/notesTextSize</item>
         <item name="android:letterSpacing">0</item>
     </style>
 

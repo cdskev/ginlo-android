@@ -180,6 +180,9 @@ abstract class ActivityModuleBase {
     abstract fun contributeLocationActivity(): LocationActivity
 
     @ContributesAndroidInjector
+    abstract fun contributeLocationActivityNG(): LocationActivityOSM
+
+    @ContributesAndroidInjector
     abstract fun contributeDestructionActivity(): DestructionActivity
 
     @ContributesAndroidInjector

@@ -33,7 +33,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.backend.BackendResponse;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.IManagedConfigUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
@@ -551,7 +551,7 @@ public class MdmRegisterActivity extends BaseActivity {
         a.setState(Account.ACCOUNT_STATE_FULL);
         accountControllerBusiness.saveOrUpdateAccount(a);
 
-        ColorUtil.getInstance().reset(getSimsMeApplication());
+        ScreenDesignUtil.getInstance().reset(getSimsMeApplication());
 
         // Passwort setzen erzwingen
         if (getSimsMeApplication().getPreferencesController().checkPassword("") != null || getSimsMeApplication().getPreferencesController().isPasswordOnStartRequired()) {

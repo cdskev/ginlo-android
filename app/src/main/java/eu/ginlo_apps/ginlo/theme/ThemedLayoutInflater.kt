@@ -20,7 +20,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.emoji.widget.EmojiAppCompatTextView
 import androidx.appcompat.widget.AppCompatImageView
 import eu.ginlo_apps.ginlo.R
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview
 import eu.ginlo_apps.ginlo.view.EmojiconMediumTextView
 import eu.ginlo_apps.ginlo.view.MaskImageView
@@ -36,6 +36,7 @@ class ThemedLayoutInflater(
     }
 
     companion object {
+        private const val TAG = "ThemedLayoutInflater"
         val genericViewTypes = listOf(
                 "LinearLayout",
                 "androidx.appcompat.widget.LinearLayoutCompat",
@@ -93,7 +94,7 @@ class ThemedLayoutInflater(
                 else -> parentFactory2.onCreateView(view, s, context, attributeSet)
             }
         } finally {
-            // styledAttributes.recycle()
+            styledAttributes.recycle()
         }
     }
 
@@ -180,7 +181,7 @@ class ThemedLayoutInflater(
         if (rc == null) {
             rc = androidx.appcompat.widget.SwitchCompat(context, attributeSet)
         }
-        ColorUtil.getInstance().colorizeSwitch(rc, this.context?.applicationContext as Application)
+        ScreenDesignUtil.getInstance().colorizeSwitch(rc, this.context?.applicationContext as Application)
         Style.setStyledTextColor(rc, styledAttributes)
         return rc
     }
@@ -240,6 +241,8 @@ class ThemedLayoutInflater(
     ): View? {
         var textView = parentFactory2.onCreateView(view, s, context, attributeSet) as? TextView
         if (textView == null) {
+            //LogUtil.d(TAG, "getTextView: ------------------------> $s + styledAttributes = $styledAttributes")
+
             textView = when (s) {
                 "TextView" -> TextView(context, attributeSet)
                 "eu.ginlo_apps.ginlo.view.EmojiconMediumTextView" -> EmojiconMediumTextView(context, attributeSet)
@@ -254,6 +257,7 @@ class ThemedLayoutInflater(
                 else -> null
             }
         }
+        //LogUtil.d(TAG, "getTextView: ------------------------> weiter gehts ")
         Style.setStyledTextSize(textView, styledAttributes)
         Style.setStyledTextColor(textView, styledAttributes)
         Style.setStyledBackground(textView, styledAttributes)

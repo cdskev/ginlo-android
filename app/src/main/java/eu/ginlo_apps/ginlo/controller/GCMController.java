@@ -2,16 +2,12 @@
 
 package eu.ginlo_apps.ginlo.controller;
 
-import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 import androidx.annotation.NonNull;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -43,20 +39,12 @@ import io.sentry.Sentry;
  * @version $Revision$, $Date$, $Author$
  */
 public class GCMController {
-    public final static String TAG = GCMController.class.getSimpleName();
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-
+    private static final String TAG = GCMController.class.getSimpleName();
     private static final String PROPERTY_APP_VERSION = "appVersion";
-
-    //private static final String SENDER_ID                        = "26355693843";
-
     private static final String PROPERTY_FCM_TOKEN = "fcm_token";
-
     private static final String PROPERTY_FCM_TOKEN_REG_AT_SERVER = "fcm_token_server_flag";
 
     private final SimsMeApplication context;
-
-    private Dialog dialog;
 
     /**
      * GCMController
@@ -193,33 +181,11 @@ public class GCMController {
         editor.apply();
     }
 
-    public boolean checkPlayServices(Activity activity) {
-        int resultCode =
-            GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(activity);
-
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (GoogleApiAvailability.getInstance().isUserResolvableError(resultCode)) {
-                dialog = GoogleApiAvailability.getInstance()
-                    .getErrorDialog(activity, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST);
-                dialog.show();
-            } else {
-                LogUtil.i(TAG, "This device is not supported.");
-                activity.finish();
-            }
-            return false;
-        }
-        return true;
-    }
-
     private SharedPreferences getGCMPreferences(Context context) {
         // This sample app persists the registration ID in shared preferences,
         // but
         // how you store the regID in your app is up to you.
         return context.getSharedPreferences(TAG, Context.MODE_PRIVATE);
-    }
-
-    public Dialog getDialog() {
-        return dialog;
     }
 
     public void clearGCMValues() {
@@ -333,10 +299,9 @@ public class GCMController {
 
         private void logSentry(BackendResponse response) {
             String msg = String.format("[%s] Error @sendRegistrationIdToBackend: %s  ", Thread.currentThread().getName(), response.errorMessage);
-            LogUtil.i(
-                TAG, msg);
+            LogUtil.i(TAG, msg);
             Exception ex = new Exception(msg);
-            Sentry.capture(ex);
+            Sentry.captureException(ex);
         }
 
         @Override

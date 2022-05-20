@@ -2,15 +2,21 @@
 
 package eu.ginlo_apps.ginlo;
 
+import static android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS;
+
 import android.app.Application;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.PorterDuff;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -58,8 +64,9 @@ import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.ResultContainer;
+import eu.ginlo_apps.ginlo.service.GinloOngoingService;
 import eu.ginlo_apps.ginlo.theme.CmsThemeContextWrapper;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
@@ -128,6 +135,8 @@ public abstract class BaseActivity
     protected ClipBoardController clipBoardController;
     protected GinloBillingImpl ginloBillingImpl = null;
 
+    protected boolean ginloOngoingServiceRunning = false;
+
     private TextView mTitleView;
     private boolean mCheckIsLogout;
     private View mRightImageView;
@@ -151,6 +160,29 @@ public abstract class BaseActivity
         }
     }
 
+    protected void startGinloOngoingService() {
+        // Start GinloOngoingService if applicable
+        if (BuildConfig.HAVE_GINLO_ONGOING_SERVICE) {
+            if (!ginloOngoingServiceRunning) {
+                preferencesController.setGinloOngoingServiceEnabled(true);
+                GinloOngoingService.launch(this);
+                ginloOngoingServiceRunning = true;
+            }
+        } else {
+            LogUtil.i(TAG, " onCreate: GinloOngoingService is disabled by BuildConfig." );
+        }
+    }
+
+    protected void stopGinloOngoingService() {
+        if (BuildConfig.HAVE_GINLO_ONGOING_SERVICE) {
+            if (ginloOngoingServiceRunning) {
+                preferencesController.setGinloOngoingServiceEnabled(false);
+                GinloOngoingService.abort(this);
+                ginloOngoingServiceRunning = false;
+            }
+        }
+    }
+
     protected Toolbar getToolbar() {
         return mToolbar;
     }
@@ -169,9 +201,11 @@ public abstract class BaseActivity
         mSaveInstanceState = callerIntent.getBundleExtra(getSavedInstanceStateKey());
 
         if (mSaveInstanceState == null) {
-            LogUtil.i(TAG, "mSaveInstanceState is null");
+            LogUtil.d(TAG, "mSaveInstanceState is null");
             mSaveInstanceState = savedInstanceState;
         }
+
+        ScreenDesignUtil.getInstance().initDisplayMetrics(getSimsMeApplication());
 
         loginController = getSimsMeApplication().getLoginController();
         preferencesController = getSimsMeApplication().getPreferencesController();
@@ -186,12 +220,11 @@ public abstract class BaseActivity
             ginloBillingImpl = getSimsMeApplication().getGinloBillingImpl();
         }
 
+        super.onCreate(savedInstanceState);
+
         // Check for device night mode and initialize configured theme
-        // Must be done before super.onCreate() and further layout inflation!
         int currentNightMode = this.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         setAppTheme(currentNightMode);
-
-        super.onCreate(savedInstanceState);
 
         if (!RuntimeConfig.isScreenshotEnabled()) {
             getWindow().setFlags(LayoutParams.FLAG_SECURE, LayoutParams.FLAG_SECURE);
@@ -224,16 +257,19 @@ public abstract class BaseActivity
 
     protected void setAppTheme(int currentNightMode) {
         // Set UI theme according to preferences - only if there is no company layout!
-        // Important: Must also handle theme over to ColorUtil instance before first themed inflates!
-        if(ColorUtil.getInstance().hasLayoutModel(getSimsMeApplication())) {
-            mCurrentThemeName = BuildConfig.DEFAULT_THEME;
+        // Important: Must also handle theme over to ScreenDesignUtil instance before first themed inflates!
+        if(ScreenDesignUtil.getInstance().hasLayoutModel(getSimsMeApplication())) {
+            mCurrentThemeName = preferencesController.getThemeName();
+            if(!mCurrentThemeName.startsWith("GinloDefault")) {
+                mCurrentThemeName = BuildConfig.DEFAULT_THEME;
+            }
             mCurrentThemeMode = BuildConfig.DEFAULT_THEME_MODE;
-            preferencesController.setThemeLocked(true);
-            LogUtil.i(TAG, "setCurrentTheme: We have a cockpit layout model - ignore settings and use default: " + mCurrentThemeName + mCurrentThemeMode);
+            preferencesController.setThemeColorSettingLocked(true);
+            LogUtil.i(TAG, "setCurrentTheme: We have a cockpit layout model - ignore color/darkmode settings: " + mCurrentThemeName + mCurrentThemeMode);
         } else {
             mCurrentThemeName = preferencesController.getThemeName();
             mCurrentThemeMode = preferencesController.getThemeMode();
-            preferencesController.setThemeLocked(false);
+            preferencesController.setThemeColorSettingLocked(false);
 
             if(PreferencesController.THEME_MODE_AUTO.equals(mCurrentThemeMode)) {
                 // We are in THEME_MODE_AUTO. Set the appropriate theme mode
@@ -254,7 +290,7 @@ public abstract class BaseActivity
         if(themID != 0) {
             setTheme(themID);
         }
-        ColorUtil.getInstance().setCurrentTheme(getTheme());
+        ScreenDesignUtil.getInstance().setCurrentTheme(getTheme());
     }
 
     protected void initToolbar() {
@@ -304,8 +340,8 @@ public abstract class BaseActivity
             return;
         }
         ToolbarColorizeHelper.colorizeToolbar(mToolbar,
-                ColorUtil.getInstance().getMainContrast80Color(getSimsMeApplication()),
-                ColorUtil.getInstance().getToolbarColor(getSimsMeApplication()),
+                ScreenDesignUtil.getInstance().getMainContrast80Color(getSimsMeApplication()),
+                ScreenDesignUtil.getInstance().getToolbarColor(getSimsMeApplication()),
                 this
         );
     }
@@ -366,7 +402,7 @@ public abstract class BaseActivity
         if (this instanceof LoginActivity) {
             return false;
         }
-        LogUtil.i(TAG, "isLogout: loginController state:" + loginController.getState());
+        LogUtil.d(TAG, "isLogout: loginController state: " + loginController.getState());
         if (loginController.getState().equals(LoginController.STATE_LOGGED_OUT)) {
             return true;
         } else if (loginController.getState().equals(LoginController.STATE_NO_ACCOUNT)) {
@@ -399,7 +435,7 @@ public abstract class BaseActivity
     protected void onSaveInstanceState(Bundle outState) {
         try {
             if (results != null) {
-                LogUtil.i(TAG, "Save results instance state: " + results);
+                LogUtil.d(TAG, "Save results instance state: " + results);
                 outState.putParcelable(SAVED_RESULTS, results);
             }
             super.onSaveInstanceState(outState);
@@ -428,7 +464,7 @@ public abstract class BaseActivity
     protected void onStart() {
         super.onStart();
 
-        LogUtil.i("BaseActivity.onStart() loginController state:", loginController.getState());
+        LogUtil.d(TAG, "onStart: loginController state: " + loginController.getState());
 
         if (mExceptionWasThrownInOnCreate) {
             return;
@@ -465,6 +501,9 @@ public abstract class BaseActivity
     @Override
     protected void onResume() {
         super.onResume();
+
+        LogUtil.d(TAG, "onResume: ------------------------> hasThemeChanged = " + preferencesController.hasThemeChanged());
+
 
         if (mExceptionWasThrownInOnCreate && mAfterCreate) {
 
@@ -516,11 +555,11 @@ public abstract class BaseActivity
 
     private void callOnActivityPostLoginResult() {
         if (results != null) {
-            LogUtil.i(TAG, "callOnActivityPostLoginResult with resultCode " + results.resultCode);
+            LogUtil.d(TAG, "callOnActivityPostLoginResult with resultCode " + results.resultCode);
             onActivityPostLoginResult(results.requestCode, results.resultCode, results.data);
             results = null;
         } else {
-            LogUtil.i(TAG, "callOnActivityPostLoginResult without results");
+            LogUtil.d(TAG, "callOnActivityPostLoginResult without results");
         }
     }
 
@@ -704,7 +743,7 @@ public abstract class BaseActivity
             imageView.setVisibility(View.VISIBLE);
 
             imageView.setColorFilter(customImgColor == -1
-                    ? ColorUtil.getInstance().getMainContrast80Color(getSimsMeApplication())
+                    ? ScreenDesignUtil.getInstance().getMainContrast80Color(getSimsMeApplication())
                     : customImgColor, PorterDuff.Mode.SRC_ATOP);
 
             imageView.setImageResource(drawableId);
@@ -878,11 +917,11 @@ public abstract class BaseActivity
         int hexColor;
 
         if (contactState == Contact.STATE_HIGH_TRUST) {
-            hexColor = ColorUtil.getInstance().getHighColor(getSimsMeApplication());
+            hexColor = ScreenDesignUtil.getInstance().getHighColor(getSimsMeApplication());
         } else if (contactState == Contact.STATE_MIDDLE_TRUST) {
-            hexColor = ColorUtil.getInstance().getMediumColor(getSimsMeApplication());
+            hexColor = ScreenDesignUtil.getInstance().getMediumColor(getSimsMeApplication());
         } else {
-            hexColor = ColorUtil.getInstance().getLowColor(getSimsMeApplication());
+            hexColor = ScreenDesignUtil.getInstance().getLowColor(getSimsMeApplication());
         }
 
         final View divider = findViewById(R.id.trust_state_divider);
@@ -919,7 +958,7 @@ public abstract class BaseActivity
 
             // KS: Must add background color to avoid transparent appearance of BottomSheet
             // TODO: Add style/theme configuration for that to avoid hard coded color setting
-            fragmentView.setBackgroundColor(ColorUtil.getInstance().getToolbarColor(mApplication));
+            fragmentView.setBackgroundColor(ScreenDesignUtil.getInstance().getToolbarColor(mApplication));
 
             fragmentView.startAnimation(mAnimationSlideIn);
             mBottomSheetOpen = true;
@@ -965,6 +1004,26 @@ public abstract class BaseActivity
     public void requestPermission(final int permission, final int permissionRationaleMsg, @NonNull PermissionUtil.PermissionResultCallback callback) {
         mPermissionUtil = new PermissionUtil(this, callback);
         mPermissionUtil.requestPermission(permission, permissionRationaleMsg);
+    }
+
+    public void requestBatteryWhitelisting() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                LogUtil.i(TAG, "requestBatteryWhitelisting: No play services - app is battery whitelisted.");
+            } else {
+                LogUtil.i(TAG, "requestBatteryWhitelisting: No play services - app is not battery whitelisted.");
+                LogUtil.i(TAG, "requestBatteryWhitelisting: Trying to ask user ...");
+                Intent i = new Intent();
+                i.setAction(ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                i.setData(Uri.parse("package:" + getPackageName()));
+                try {
+                    startActivity(i);
+                } catch (ActivityNotFoundException e) {
+                    LogUtil.e(TAG, "requestBatteryWhitelisting: Caught: " + e.getMessage());
+                }
+            }
+        }
     }
 
     protected void setDynamicHeight(final ListView listView, final int minHeight) {
@@ -1022,7 +1081,7 @@ public abstract class BaseActivity
 
     @Override
     protected void attachBaseContext(final Context newBase) {
-        if (RuntimeConfig.isBAMandant() && ColorUtil.getInstance().hasLayoutModel((Application) newBase.getApplicationContext())) {
+        if (RuntimeConfig.isBAMandant() && ScreenDesignUtil.getInstance().hasLayoutModel((Application) newBase.getApplicationContext())) {
             super.attachBaseContext(new CmsThemeContextWrapper(newBase));
         } else {
             super.attachBaseContext(new ContextWrapper(newBase));

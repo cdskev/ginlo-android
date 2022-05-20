@@ -107,7 +107,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/activity_vertical_margin"
                     android:text="@string/search_contact_header_country"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <androidx.appcompat.widget.AppCompatSpinner
@@ -123,7 +123,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/activity_vertical_margin"
                     android:text="@string/search_contact_header_phone_number"
-                    app:styledTextSize="commentTextSize"
+                    app:styledTextSize="labelTextSize"
                     app:styledTextColor="mainContrast50" />
 
                 <LinearLayout
@@ -179,8 +179,7 @@
                     style="@style/EditTextStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:textAllCaps="true"
+                    android:inputType="textCapCharacters"
                     app:styledTextSize="chooserTextSize"
                     app:styledTextColor="mainContrast" />
 

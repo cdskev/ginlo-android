@@ -22,7 +22,7 @@
         android:padding="4dp"
         android:text="@string/chat_system_nickname"
         android:textColor="@color/mainContrast"
-        app:styledTextSize="chooserTextSize"
+        android:textSize="?attr/chooserTextSize"
         android:textStyle="normal"/>
 
 </LinearLayout>

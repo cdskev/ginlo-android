@@ -40,7 +40,6 @@ import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.util.BroadcastNotifier;
 import eu.ginlo_apps.ginlo.util.ConfigUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
-import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.SecurityUtil;
 import eu.ginlo_apps.ginlo.util.StorageUtil;
@@ -69,7 +68,6 @@ public class BackupService extends IntentService {
     private SimsMeApplication mApplication = null;
     private NotificationController mNotificationController = null;
     private PreferencesController mPreferencesController = null;
-    private FileUtil mFileUtil;
     private StorageUtil mStorageUtil;
     private File mBackupDir;
     private SecretKey mBackUpAesKey;
@@ -100,17 +98,6 @@ public class BackupService extends IntentService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-
-        /* KS: Wrong place for that
-        if (mBackupDir != null) {
-            if (mFileUtil.deleteAllFilesInDir(mBackupDir)) {
-                //noinspection ResultOfMethodCallIgnored
-                mBackupDir.delete();
-                mBackupDir = null;
-            }
-        }
-
-         */
     }
 
     @Override
@@ -132,11 +119,11 @@ public class BackupService extends IntentService {
         PowerManager.WakeLock wl = pm.newWakeLock(WAKELOCK_FLAGS, WAKELOCK_TAG);
         wl.acquire(30*60*1000L /*30 minutes to be sure*/);
 
-        mNotificationController.showOngoingServiceNotification(mApplication.getString(R.string.settings_backup_config_create_backup));
+        mNotificationController.showInfoNotification(mApplication.getString(R.string.settings_backup_config_create_backup));
 
         try {
             mStorageUtil = new StorageUtil(mApplication);
-            mBackupDir = mStorageUtil.getInternalBackupDirectory(true);
+            mBackupDir = mStorageUtil.getCurrentInternalBackupDirectory(true);
             final Uri zipDestination = mStorageUtil.getBackupDestinationUri();
             if(zipDestination == null) {
                 LogUtil.e(TAG, "onHandleIntent: No valid backup destination!");
@@ -147,8 +134,6 @@ public class BackupService extends IntentService {
 
             mSaveMedia = mApplication.getPreferencesController().getSaveMediaInBackup();
             LogUtil.i(TAG, "Starting backup service intent with mSaveMedia = " + mSaveMedia);
-
-            //mFileUtil = new FileUtil(mApplication);
 
             LogUtil.i(TAG, "Load backup key ...");
             loadBackupKey();
@@ -185,14 +170,24 @@ public class BackupService extends IntentService {
 
             mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_FINISHED, mStorageUtil.getBackupDestinationName(zipDestination), null, null);
             LogUtil.i(TAG, "Backup done. Saved to " + zipDestination.toString());
-
         } catch (LocalizedException e) {
             mBroadcaster.broadcastIntentWithState(AppConstants.STATE_ACTION_BACKUP_ERROR, null, null, e);
             LogUtil.e(TAG, "Backup failed. Error: " + e.getMessage(), e);
         }
         finally {
+            if (mBackupDir != null) {
+                LogUtil.i(TAG, "Cleaning up backup dir.");
+                try {
+                    mStorageUtil.getInternalBackupRootDirectory(true);
+                } catch (LocalizedException e) {
+                    LogUtil.w(TAG, "Failure (ignored) cleaning up backup dir: " + e.getMessage());
+                }
+
+                mBackupDir = null;
+            }
+
             mBackupRunning = false;
-            mNotificationController.dismissOngoingNotification();
+            mNotificationController.dismissInfoNotification();
             if(wl.isHeld()) {
                 wl.release();
                 if(wl.isHeld()) {

@@ -42,7 +42,7 @@
                 android:layout_marginBottom="@dimen/standard_padding"
                 android:maxLines="1"
                 android:textColor="#43ad7f"
-                app:styledTextSize="commentTextSize"
+                android:textSize="?attr/labelTextSize"
                 android:visibility="gone"
                 tools:text="Max Mustermann"
                 tools:visibility="visible" />
@@ -76,7 +76,7 @@
                         android:padding="@dimen/half_padding"
                         android:text="@string/chat_location_cell_info_text"
                         android:textColor="@color/text_color"
-                        app:styledTextSize="commentTextSize" />
+                        android:textSize="?attr/labelTextSize" />
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>

@@ -28,7 +28,7 @@ import eu.ginlo_apps.ginlo.fragment.ContactsFragment;
 import eu.ginlo_apps.ginlo.greendao.CompanyContact;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -284,7 +284,7 @@ public class ContactsActivityBusiness
         }
 
         // farben erst hier setzen, da jetzt erst die tabs geladne wurden
-        ColorUtil.getInstance().colorizeTabLayoutHeader(getSimsMeApplication(), mTabLayout);
+        ScreenDesignUtil.getInstance().colorizeTabLayoutHeader(getSimsMeApplication(), mTabLayout);
     }
 
     @Override
@@ -355,8 +355,8 @@ public class ContactsActivityBusiness
     protected void colorizeActivity() {
         super.colorizeActivity();
         // fab
-        final ColorUtil colorUtil = ColorUtil.getInstance();
-        final int accentColor = colorUtil.getAppAccentColor(getSimsMeApplication());
+        final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+        final int accentColor = screenDesignUtil.getAppAccentColor(getSimsMeApplication());
 
         if (mTabLayout != null) {
             mTabLayout.setSelectedTabIndicatorColor(accentColor);

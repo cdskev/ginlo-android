@@ -3,10 +3,12 @@ package eu.ginlo_apps.ginlo.controller.message;
 
 import android.content.ComponentCallbacks2;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -30,7 +32,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
@@ -593,7 +597,9 @@ public class MessageController
                                 final QueryDatabaseListener queryDatabaseListener) {
         final QueryBuilder<Message> queryBuilder = messageDao.queryBuilder();
 
-        queryBuilder.where(Properties.Type.eq(type)).whereOr(Properties.From.eq(chatGuid), Properties.To.eq(chatGuid));
+        queryBuilder.where(Properties.Type.eq(type))
+                .whereOr(Properties.From.eq(chatGuid), Properties.To.eq(chatGuid));
+
         if (sortDesc) {
             queryBuilder.orderDesc(Properties.Id).list();
         } else {
@@ -616,7 +622,9 @@ public class MessageController
                 .where(Properties.DateSendTimed.isNull())
                 .where(Properties.DateSend.ge(from))
                 .where(Properties.DateSend.le(till))
-                .orderDesc(Properties.Id);
+                // KS: Ensure to pack them in ascending DateSend order for coupling/backup purposes
+                // .orderDesc(Properties.Id);
+                .orderAsc(Properties.DateSend);
 
         messageTaskManager.executeQueryDatabaseTask(queryBuilder, QueryDatabaseTask.MODE_LIST, queryDatabaseListener);
     }
@@ -1140,6 +1148,7 @@ public class MessageController
 
             if (StringUtil.isEqual(action.name, ConfirmV1Action.ACTION_CONFIRM_DOWNLOAD_V1)) {
                 for (final Message message : messages) {
+                    LogUtil.d(TAG, "handleConfirmActions: " + message.getGuid() + " -> " + ConfirmV1Action.ACTION_CONFIRM_DOWNLOAD_V1);
                     if (markSendMessageAsDownloaded(message, action, receiverChangedMessages)) {
                         if (!allMarkedMessages.contains(message)) {
                             allMarkedMessages.add(message);
@@ -1148,6 +1157,7 @@ public class MessageController
                 }
             } else if (StringUtil.isEqual(action.name, ConfirmV1Action.ACTION_CONFIRM_READ_V1)) {
                 for (final Message message : messages) {
+                    LogUtil.d(TAG, "handleConfirmActions: " + message.getGuid() + " -> " + ConfirmV1Action.ACTION_CONFIRM_READ_V1);
                     if (markSendMessageAsRead(message, action, receiverChangedMessages)) {
                         if (!allMarkedMessages.contains(message)) {
                             allMarkedMessages.add(message);
@@ -1447,7 +1457,7 @@ public class MessageController
             }
         };
 
-        final long executionTime = mApplication.getPreferencesController().getListRefreshRate() * 1000;
+        final long executionTime = mApplication.getPreferencesController().getListRefreshRate() * 1000L;
 
         refreshTimer.scheduleAtFixedRate(refreshTask, 0, executionTime);
     }
@@ -1484,7 +1494,7 @@ public class MessageController
             // KS: Message with file attachment. These can be *very* big so the serializer only returned
             // a filename marker instead of the full attachment contents as "attachment".
             // This must be processed now (before MD5 checksum building).
-            messageJson = loadFileWithFullMessageIncludingAttachment(messageJson, true);
+            messageJson = loadFileWithFullMessageIncludingAttachment(messageJson);
         }
 
         if (messageJson == null) {
@@ -1524,16 +1534,16 @@ public class MessageController
      * Get a message string and look for a pattern that points to an attachment file.
      * If no pattern is found, create the new message file with the contents of message.
      * @param message String with message
-     * @param deleteAttachmentFile Delete file which the attachment pattern points to?
      * @return Pathname of the newly created message file
      */
-    private String loadFileWithFullMessageIncludingAttachment(final String message,
-                                                             final Boolean deleteAttachmentFile) {
+    private String loadFileWithFullMessageIncludingAttachment(final String message) {
         FileUtil fu = new FileUtil(mApplication);
         File messageFile = null;
+        FileWriter fw = null;
+        FileInputStream afi = null;
         try {
             messageFile = fu.getTempFile();
-            FileWriter fw = new FileWriter(messageFile);
+            fw = new FileWriter(messageFile);
             int read = 0;
             byte[] data = new byte[StreamUtil.STREAM_BUFFER_SIZE];
             String dataString = null;
@@ -1549,25 +1559,37 @@ public class MessageController
                 fw.append(firstPart);
 
                 // Replace filename with attachment json file contents
-                FileInputStream afi = new FileInputStream(jsonFilename);
+                afi = new FileInputStream(jsonFilename);
                 while ((read = afi.read(data, 0, StreamUtil.STREAM_BUFFER_SIZE)) > 0) {
                     dataString = new String(data, StandardCharsets.UTF_8).substring(0, read);
                     fw.append(dataString);
                 }
                 fw.append(secondPart);
-                afi.close();
+                /* KS: The temp json file will be deleted in SendMessageToBackendTask.class on successful transaction.
                 if(deleteAttachmentFile) {
                     FileUtil.deleteFile(new File(jsonFilename));
                 }
+                 */
             } else {
                 // No attachment pattern found - build "normal" message
                 fw.append(message);
             }
-            fw.close();
 
         } catch (IOException | JsonIOException e) {
             LogUtil.e(TAG, "Could not create/build message file: " + messageFile.getPath(), e);
             return null;
+
+        } finally {
+            try {
+                if(afi != null) {
+                    afi.close();
+                }
+                if(fw != null) {
+                    fw.close();
+                }
+            } catch (IOException e) {
+                LogUtil.e(TAG, "loadFileWithFullMessageIncludingAttachment: Failed finally: " + e.getMessage());
+            }
         }
 
         return messageFile.getPath();
@@ -1651,6 +1673,7 @@ public class MessageController
 
             final MessageConcurrentTaskListener messageConcurrentTaskListener = new MessageConcurrentTaskListener(
                     this,
+                    new HashMap<String, String>(),
                     listener,
                     informOnMessageReceivedListener,
                     mApplication.getAppLifecycleController(),
@@ -1663,23 +1686,21 @@ public class MessageController
         }
     }
 
-    public void startMessageTaskSyncFromAppBackground(final ConcurrentTaskListener nextListner) {
-        final MessageConcurrentTaskListener messageConcurrentTaskListener = new MessageConcurrentTaskListener(
-                this,
-                nextListner,
-                false,
-                mApplication.getAppLifecycleController(),
-                mApplication.getLoginController(),
-                mApplication.getPreferencesController());
-
-        ConcurrentTask concurrentTask = messageTaskManager.getMessageTask(mApplication, messageConcurrentTaskListener, false, true, false);
-        concurrentTask.runSync();
+    public void startMessageTaskSyncFromAppBackground(final ConcurrentTaskListener nextListener, Map<String, String> notificationExtras) {
+        //startMessageTaskSync(nextListener, notificationExtras, false, true, false);
+        startMessageTaskSync(nextListener, notificationExtras, false, false, false);
     }
 
-    public void startMessageTaskSync(final ConcurrentTaskListener nextListner, boolean useLazyMsgService, boolean useInBackground, boolean onlyPrio1Msg) {
+    public void startMessageTaskSync(final ConcurrentTaskListener nextListener, Map<String, String> notificationExtras, boolean useLazyMsgService, boolean useInBackground, boolean onlyPrio1Msg) {
+        Map<String, String> extras = notificationExtras;
+        if(extras == null) {
+            extras = new HashMap<String, String>();
+        }
+
         final MessageConcurrentTaskListener messageConcurrentTaskListener = new MessageConcurrentTaskListener(
                 this,
-                nextListner,
+                extras,
+                nextListener,
                 false,
                 mApplication.getAppLifecycleController(),
                 mApplication.getLoginController(),
@@ -1708,7 +1729,13 @@ public class MessageController
     @Override
     public void appGoesToBackGround() {
         if (mApplication.getAccountController().hasAccountFullState()) {
-            stopGetMessageTask();
+            // KS: Do not stop getting messages if polling is enabled
+            if(mApplication.getPreferencesController().getPollingEnabled()) {
+                LogUtil.i(TAG, "appGoesToBackGround: Polling enabled.");
+            } else {
+                stopGetMessageTask();
+                LogUtil.i(TAG, "appGoesToBackGround: Polling disabled.");
+            }
 
             // Reset BadgeIdent
             resetBadgeInBackground();

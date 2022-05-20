@@ -36,7 +36,7 @@ public class GinloBillingResult {
         return mBillingResult.getResponseCode();
     }
 
-    public String geResponsetMessage() {
+    public String getResponseMessage() {
         return mBillingResult.getDebugMessage();
     }
 

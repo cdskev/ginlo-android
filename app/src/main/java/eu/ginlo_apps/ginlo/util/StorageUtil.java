@@ -43,8 +43,9 @@ public class StorageUtil {
     private final Context context;
     private final SimsMeApplication mApplication;
     private final PreferencesController mPreferencesController;
-
     private final FileUtil mFileUtil;
+
+    private File mCurrentBackupDir = null;
 
     public StorageUtil(Context context) {
         this.context = context;
@@ -257,16 +258,22 @@ public class StorageUtil {
         return internalBackupSubDir;
     }
 
-    public File getInternalBackupDirectory(boolean clear) throws LocalizedException {
-        return getInternalBackupSubDirectory(INTERNAL_BACKUP_SUBDIR, clear);
+    public File getCurrentInternalBackupDirectory(boolean clear) throws LocalizedException {
+        if(mCurrentBackupDir == null) {
+            mCurrentBackupDir = getInternalBackupSubDirectory(INTERNAL_BACKUP_SUBDIR, clear);
+        }
+        return mCurrentBackupDir;
     }
 
     public File getInternalBackupUnzipDirectory(boolean clear) throws LocalizedException {
         return getInternalBackupSubDirectory(INTERNAL_BACKUP_UNZIP_SUBDIR, clear);
     }
 
-    public File getInternalBackupAttachmentDirectory(boolean clear) throws LocalizedException {
-        return getInternalBackupSubDirectory(INTERNAL_BACKUP_ATTACHMENT_SUBDIR, clear);
+    public File getCurrentInternalBackupAttachmentDirectory(boolean clear) throws LocalizedException {
+        String backupAttachmentPath = getCurrentInternalBackupDirectory(clear).getName()
+                + "/"
+                + INTERNAL_BACKUP_ATTACHMENT_SUBDIR;
+        return getInternalBackupSubDirectory(backupAttachmentPath, clear);
     }
 
 }

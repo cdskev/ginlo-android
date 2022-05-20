@@ -27,12 +27,7 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.tabs.TabLayout;
 
-import eu.ginlo_apps.ginlo.BaseActivity;
-import eu.ginlo_apps.ginlo.ContactDetailActivity;
-import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.SearchContactActivity;
 import eu.ginlo_apps.ginlo.UseCases.InviteFriendUseCase;
-import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity;
 import eu.ginlo_apps.ginlo.adapter.ContactsAdapter;
 import eu.ginlo_apps.ginlo.adapter.PageAdapterItemInfo;
@@ -50,12 +45,11 @@ import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.model.param.SendActionContainer;
 import eu.ginlo_apps.ginlo.router.Router;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.ImageLoader;
-import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
 import eu.ginlo_apps.ginlo.view.FloatingActionButton;
@@ -136,7 +130,7 @@ public class ContactsActivity
         if (mMode != MODE_NON_SIMSME) {
             SearchView.OnQueryTextListener onQueryTextListener = getSearchOnQueryTextListener();
 
-            mSearchView = new ThemedSearchView(getSupportActionBar().getThemedContext(), ColorUtil.getInstance().getMainContrast80Color(getSimsMeApplication()));
+            mSearchView = new ThemedSearchView(getSupportActionBar().getThemedContext(), ScreenDesignUtil.getInstance().getMainContrast80Color(getSimsMeApplication()));
             mSearchView.setQueryHint(getString(R.string.android_search_placeholder_contacts));
             mSearchView.setOnQueryTextListener(onQueryTextListener);
             mSearchView.setOnCloseListener(getSearchCloseListener());
@@ -263,7 +257,7 @@ public class ContactsActivity
         if (pagerAdapter.getCount() < 2) {
             mTabLayout.setVisibility(View.GONE);
         } else {
-            final ColorUtil colorUtil = ColorUtil.getInstance();
+            final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
 
             for (int i = 0; i < pagerAdapter.getCount(); i++) {
                 Fragment f = pagerAdapter.getItem(i);
@@ -282,7 +276,7 @@ public class ContactsActivity
                     }
 
                     if (tab != null && tab.getIcon() != null) {
-                        tab.getIcon().setColorFilter(colorUtil.getMainContrast80Color(SimsMeApplication.getInstance()), PorterDuff.Mode.SRC_ATOP);
+                        tab.getIcon().setColorFilter(screenDesignUtil.getMainContrast80Color(SimsMeApplication.getInstance()), PorterDuff.Mode.SRC_ATOP);
                     }
                 }
             }
@@ -292,7 +286,7 @@ public class ContactsActivity
                 TabLayout.Tab tab = mTabLayout.getTabAt(selectedTabIndex);
 
                 if (tab != null && tab.getIcon() != null) {
-                    tab.getIcon().setColorFilter(colorUtil.getAppAccentColor(SimsMeApplication.getInstance()), PorterDuff.Mode.SRC_ATOP);
+                    tab.getIcon().setColorFilter(screenDesignUtil.getAppAccentColor(SimsMeApplication.getInstance()), PorterDuff.Mode.SRC_ATOP);
                 }
             }
         }
@@ -318,21 +312,21 @@ public class ContactsActivity
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 if (tab != null && tab.getIcon() != null) {
-                    tab.getIcon().setColorFilter(ColorUtil.getInstance().getAppAccentColor(SimsMeApplication.getInstance()), PorterDuff.Mode.SRC_ATOP);
+                    tab.getIcon().setColorFilter(ScreenDesignUtil.getInstance().getAppAccentColor(SimsMeApplication.getInstance()), PorterDuff.Mode.SRC_ATOP);
                 }
             }
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
                 if (tab != null && tab.getIcon() != null) {
-                    tab.getIcon().setColorFilter(ColorUtil.getInstance().getMainContrast80Color(SimsMeApplication.getInstance()), PorterDuff.Mode.SRC_ATOP);
+                    tab.getIcon().setColorFilter(ScreenDesignUtil.getInstance().getMainContrast80Color(SimsMeApplication.getInstance()), PorterDuff.Mode.SRC_ATOP);
                 }
             }
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
                 if (tab != null && tab.getIcon() != null) {
-                    tab.getIcon().setColorFilter(ColorUtil.getInstance().getAppAccentColor(SimsMeApplication.getInstance()), PorterDuff.Mode.SRC_ATOP);
+                    tab.getIcon().setColorFilter(ScreenDesignUtil.getInstance().getAppAccentColor(SimsMeApplication.getInstance()), PorterDuff.Mode.SRC_ATOP);
                 }
             }
         };
@@ -579,10 +573,10 @@ public class ContactsActivity
     @Override
     protected void colorizeActivity() {
         super.colorizeActivity();
-        final ColorUtil colorUtil = ColorUtil.getInstance();
+        final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
 
-        final int fabOverviewColor = colorUtil.getFabOverviewColor(getSimsMeApplication());
-        final int fabOverviewIconColor = colorUtil.getFabIconOverviewColor(getSimsMeApplication());
+        final int fabOverviewColor = screenDesignUtil.getFabOverviewColor(getSimsMeApplication());
+        final int fabOverviewIconColor = screenDesignUtil.getFabIconOverviewColor(getSimsMeApplication());
 
         if (mFabButton != null) {
             final FloatingActionButton castedFab = (FloatingActionButton) mFabButton;

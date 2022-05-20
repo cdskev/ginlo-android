@@ -378,6 +378,7 @@ public class Preference
         }
     }
 
+    /* KS: Moved to shared prefs
     public Boolean getPlaySdSound()
             throws LocalizedException {
         synchronized (this) {
@@ -405,6 +406,7 @@ public class Preference
             GreenDAOSecurityLayer.getInstance().set(this, PLAY_SEND_SOUND, value);
         }
     }
+     */
 
     public String getBackupKey()
             throws LocalizedException {

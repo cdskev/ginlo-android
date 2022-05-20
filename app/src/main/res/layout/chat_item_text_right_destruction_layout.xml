@@ -43,7 +43,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/main"
-                app:styledTextSize="messageTextSize"
+                android:textSize="?attr/messageTextSize"
                 android:textStyle="normal"
                 tools:text="tesggs hallo hallo hallo\n hallo h" />
         </LinearLayout>

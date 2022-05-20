@@ -29,7 +29,7 @@
         android:letterSpacing="-0.02"
         android:lineSpacingExtra="10sp"
         android:text="@string/contacts_fragment_header_subtitle"
-        app:styledTextSize="commentTextSize"
+        app:styledTextSize="labelTextSize"
         android:textStyle="bold"
         app:styledTextColor="mainContrast" />
 
@@ -66,7 +66,7 @@
         android:lineSpacingExtra="3sp"
         android:text="@string/contacts_fragment_header_last_contacts"
         android:textAllCaps="true"
-        app:styledTextSize="commentTextSize"
+        app:styledTextSize="labelTextSize"
         android:visibility="visible"
         app:styledTextColor="mainContrast" />
 

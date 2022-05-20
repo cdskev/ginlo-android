@@ -58,9 +58,12 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
         const val BACKUP_INTERVAL_WEEKLY = 2
         const val BACKUP_INTERVAL_MONTHLY = 3
         const val BACKUP_KEY_ROUNDS_ERROR = -1
-        const val THEME_MODE_LIGHT = "Light"
+        const val THEME_MODE_LIGHT = BuildConfig.DEFAULT_THEME_MODE
         const val THEME_MODE_DARK = "Dark"
         const val THEME_MODE_AUTO = "Auto"
+        const val THEME_NAME_DEFAULT = BuildConfig.DEFAULT_THEME
+        const val THEME_NAME_SMALL = "GinloDefaultSmall"
+        const val THEME_NAME_LARGE = "GinloDefaultLarge"
     }
 
     private val NOTIFICATION_SOUND_DEFAULT = "default"
@@ -83,7 +86,10 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
     private val LATEST_BACKUP_IS_IN_CLOUD = "PreferencesController.latestBackupIsInCloud"
     private val FIRST_BACKUP_AFTER_CREATE_ACCOUNT =
         "PreferencesController.fistBackupAfterCreateAccount"
+    private val USE_INTERNAL_PDF_VIEWER = "PreferencesController.useInternalPdfViewer"
     private val PLAY_MESSAGE_RECEIVED_SOUND = "PreferencesController.playMessageReceivedSound"
+    private val PLAY_MESSAGE_SEND_SOUND = "PreferencesController.playMessageSendSound"
+    private val PLAY_MESSAGE_SD_SOUND = "PreferencesController.playMessageSdSound"
     private val RECOVERY_TOKEN_PHONE = "PreferencesController.RecoverTokenPhone"
     private val RECOVERY_TOKEN_EMAIL = "PreferencesController.RecoverTokenEmail"
     private val NOTIFICATION_PREVIEW_ENABLED = "PreferencesController.NotificationPreviewEnabled"
@@ -114,8 +120,6 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
     private val IS_SEND_PROFILE_NAME_SET_DEFAULT = false
     private val LAZY_MSG_SERVICE_TIMEOUT_DEFAULT = 300
     private val USE_LAZY_MSG_SERVICE_DEFAULT = 1
-    private val PLAY_DESTRUCTION_SOUND_DEFAULT = true
-    private val PLAY_SEND_SOUND_DEFAULT = true
     private val PUBLIC_ONLINE_STATE_DEFAULT = true
     private val SINGLE_CHATS_ENABLED = true
     private val GROUP_CHATS_ENABLED = true
@@ -125,6 +129,9 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
     private val GINLO_THEME_NAME = "PreferencesController.AppThemeName"
     private val GINLO_THEME_MODE = "PreferencesController.AppThemeMode"
     private val SCREENSHOTS_ALLOWED = "PreferencesController.screenshotsAllowed"
+    private val USE_OSM = "PreferencesController.UseOsm"
+    private val POLL_MESSAGES = "PreferencesController.pollMessages"
+    private val USE_PLAY_SERVICES = "PreferencesController.usePlayServices"
     private val GINLO_ONGOING_SERVICE = "PreferencesController.ginloOngoingService"
     private val GINLO_ONGOING_SERVICE_NOTIFICATION = "PreferencesController.ginloOngoingServiceNotification"
     private val VIBRATION_FOR_SINGLECHATS = "PreferencesController.vibrationForSingle"
@@ -267,8 +274,6 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
         passwordType = TYPE_PASSWORD_DEFAULT
         saveMediaToGallary = SAVE_MEDIA_TO_GALLERY_DEFAULT
         setStreamRefreshRate(STREAM_REFRESH_RATE_DEFAULT)
-        playSdSound = PLAY_DESTRUCTION_SOUND_DEFAULT
-        playSendSound = PLAY_SEND_SOUND_DEFAULT
         lazyMsgServiceTimeout = LAZY_MSG_SERVICE_TIMEOUT_DEFAULT
         useLazyMsgService = USE_LAZY_MSG_SERVICE_DEFAULT
         singleChatsEnabled = SINGLE_CHATS_ENABLED
@@ -460,18 +465,12 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
                                     }
 
                                     override fun onLoadTenantFailed() {
-                                        LogUtil.e(
-                                            TAG,
-                                            "loadServerConfigVersions: Failed to load tenant"
-                                        )
+                                        LogUtil.e(TAG, "loadServerConfigVersions: Failed to load tenant")
                                     }
                                 })
                             } else {
                                 // THIS SHOULD NOT RUN!!! UNLESS someone added a new server version key.
-                                LogUtil.w(
-                                    PreferencesController::class.java.simpleName,
-                                    "NO LISTENER FOR SERVER VERSION KEY: $key"
-                                )
+                                LogUtil.w(TAG, "No listener for server version key: $key")
                                 mNewServerVersion?.remove(key)
                             }
                         }
@@ -1382,42 +1381,36 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
         return sharedPreferences
     }
 
-    @Throws(LocalizedException::class)
-    fun getPlaySdSound(): Boolean {
-        return if (preferences.playSdSound == null) {
-            PLAY_DESTRUCTION_SOUND_DEFAULT
-        } else preferences.playSdSound
+    fun getPlayMessageSdSound(): Boolean {
+        return sharedPreferences.getBoolean(PLAY_MESSAGE_SD_SOUND, true)
     }
 
-    @Throws(LocalizedException::class)
-    fun setPlaySdSound(value: Boolean) {
-        preferences.playSdSound = value
-        synchronized(preferenceDao) {
-            preferenceDao.update(preferences)
-        }
+    fun setPlayMessageSdSound(value: Boolean) {
+        sharedPreferences.edit().putBoolean(PLAY_MESSAGE_SD_SOUND, value).apply()
     }
 
-    @Throws(LocalizedException::class)
-    fun getPlaySendSound(): Boolean {
-        return if (preferences.playSendSound == null) {
-            PLAY_SEND_SOUND_DEFAULT
-        } else preferences.playSendSound
+    fun getPlayMessageSendSound(): Boolean {
+        return sharedPreferences.getBoolean(PLAY_MESSAGE_SEND_SOUND, true)
     }
 
-    @Throws(LocalizedException::class)
-    fun setPlaySendSound(value: Boolean) {
-        preferences.playSendSound = value
-        synchronized(preferenceDao) {
-            preferenceDao.update(preferences)
-        }
+    fun setPlayMessageSendSound(value: Boolean) {
+        sharedPreferences.edit().putBoolean(PLAY_MESSAGE_SEND_SOUND, value).apply()
     }
 
-    fun getMessageReceivedSound(): Boolean {
+    fun getPlayMessageReceivedSound(): Boolean {
         return sharedPreferences.getBoolean(PLAY_MESSAGE_RECEIVED_SOUND, true)
     }
 
-    fun setMessageReceivedSound(value: Boolean) {
+    fun setPlayMessageReceivedSound(value: Boolean) {
         sharedPreferences.edit().putBoolean(PLAY_MESSAGE_RECEIVED_SOUND, value).apply()
+    }
+
+    fun getUseInternalPdfViewer(): Boolean {
+        return sharedPreferences.getBoolean(USE_INTERNAL_PDF_VIEWER, true)
+    }
+
+    fun setUseInternalPdfViewer(value: Boolean) {
+        sharedPreferences.edit().putBoolean(USE_INTERNAL_PDF_VIEWER, value).apply()
     }
 
     /**
@@ -1709,6 +1702,30 @@ fun setSendProfileName(value: Boolean) {
         sharedPreferences.edit().putBoolean(SCREENSHOTS_ALLOWED, value).apply()
     }
 
+    fun getOsmEnabled(): Boolean {
+        return sharedPreferences.getBoolean(USE_OSM, BuildConfig.OSM_ENABLED_BY_DEFAULT)
+    }
+
+    fun setOsmEnabled(value: Boolean) {
+        sharedPreferences.edit().putBoolean(USE_OSM, value).apply()
+    }
+
+    fun getPollingEnabled(): Boolean {
+        return sharedPreferences.getBoolean(POLL_MESSAGES, BuildConfig.POLLING_ENABLED_BY_DEFAULT)
+    }
+
+    fun setPollingEnabled(value: Boolean) {
+        sharedPreferences.edit().putBoolean(POLL_MESSAGES, value).apply()
+    }
+
+    fun getPlayServicesEnabled(): Boolean {
+        return sharedPreferences.getBoolean(USE_PLAY_SERVICES, BuildConfig.USE_PLAY_SERVICES)
+    }
+
+    fun setPlayServicesEnabled(value: Boolean) {
+        sharedPreferences.edit().putBoolean(USE_PLAY_SERVICES, value).apply()
+    }
+
     /**
      * Contains the second part of a theme's name. The full style name must
      * be constructed with GINLO_THEME_NAME as received by getThemeName() prepended.
@@ -1753,11 +1770,11 @@ fun setSendProfileName(value: Boolean) {
         themeHasChanged = value
     }
 
-    fun isThemeLocked(): Boolean {
+    fun isThemeColorSettingLocked(): Boolean {
         return themeLocked
     }
 
-    fun setThemeLocked(value: Boolean) {
+    fun setThemeColorSettingLocked(value: Boolean) {
         themeLocked = value
     }
 
@@ -1767,14 +1784,6 @@ fun setSendProfileName(value: Boolean) {
 
     fun setGinloOngoingServiceEnabled(value: Boolean) {
         sharedPreferences.edit().putBoolean(GINLO_ONGOING_SERVICE, value).apply()
-    }
-
-    fun getGinloOngoingServiceNotificationEnabled(): Boolean {
-        return sharedPreferences.getBoolean(GINLO_ONGOING_SERVICE_NOTIFICATION, true)
-    }
-
-    fun setGinloOngoingServiceNotificationEnabled(value: Boolean) {
-        sharedPreferences.edit().putBoolean(GINLO_ONGOING_SERVICE_NOTIFICATION, value).apply()
     }
 
     fun getVibrationForSingleChatsEnabled(): Boolean {

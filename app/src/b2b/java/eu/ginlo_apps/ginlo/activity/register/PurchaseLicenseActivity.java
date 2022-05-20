@@ -42,10 +42,8 @@ import eu.ginlo_apps.ginlo.util.StringUtil;
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 public class PurchaseLicenseActivity extends BaseActivity {
     private final static String TAG = PurchaseLicenseActivity.class.getSimpleName();
@@ -124,41 +122,43 @@ public class PurchaseLicenseActivity extends BaseActivity {
                 boolean bDismissIdle = true;
                 LogUtil.d(TAG, "onQuerySkuDetailsFinished: returned with " + result.getResponseCode());
                 try {
-
                     if (result.isFailure()) {
-                        LogUtil.w(TAG, "onQuerySkuDetailsFinished: returned with error: " + result.geResponsetMessage());
-                        DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, result.geResponsetMessage()).show();
-                        return;
-                    }
+                        LogUtil.w(TAG, "onQuerySkuDetailsFinished: returned with error: " + result.getResponseMessage());
+                        runOnUiThread(() -> DialogBuilderUtil.buildErrorDialog(
+                                PurchaseLicenseActivity.this, result.getResponseMessage()).show());
+                    } else {
+                        if (skuDetailsAsJson == null) {
+                            LogUtil.w(TAG, "onQuerySkuDetailsFinished: returned with zero inventory!");
+                            runOnUiThread(() -> DialogBuilderUtil.buildErrorDialog(
+                                    PurchaseLicenseActivity.this, getString(R.string.connecting_playstore_failed)).show());
+                        } else {
 
-                    if (skuDetailsAsJson == null) {
-                        LogUtil.w(TAG, "onQuerySkuDetailsFinished: returned with zero inventory!");
-                        DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, getString(R.string.connecting_playstore_failed)).show();
-                        return;
-                    }
+                            // Vorhandene Käufe ermitteln
+                            List<GinloPurchaseImpl> allPurchases = ginloBillingImpl.getAllPurchases();
+                            LogUtil.d(TAG, "onQuerySkuDetailsFinished: getAllPurchases returned " + allPurchases);
+                            List<GinloPurchaseImpl> purchaseToSend = new ArrayList<>();
 
-                    // Vorhandene Käufe ermitteln
-                    List<GinloPurchaseImpl> allPurchases = ginloBillingImpl.getAllPurchases();
-                    LogUtil.d(TAG, "onQuerySkuDetailsFinished: getAllPurchases returned " + allPurchases);
-                    List<GinloPurchaseImpl> purchaseToSend = new ArrayList<>();
+                            for (int i = 0; i < allPurchases.size(); i++) {
+                                GinloPurchaseImpl p = allPurchases.get(i);
+                                LogUtil.i(TAG, "onQuerySkuDetailsFinished: Existing purchase: " + p.getOriginalJson());
 
-                    for (int i = 0; i < allPurchases.size(); i++) {
-                        GinloPurchaseImpl p = allPurchases.get(i);
-                        LogUtil.i(TAG, "onQuerySkuDetailsFinished: Existing purchase: " + p.getOriginalJson());
-
-                        if (!getSimsMeApplication().getPreferencesController().isPurchaseSaved(p)) {
-                            synchronized (this) {
-                                mNumberofPurchasesToSave++;
+                                if (!getSimsMeApplication().getPreferencesController().isPurchaseSaved(p)) {
+                                    synchronized (this) {
+                                        mNumberofPurchasesToSave++;
+                                    }
+                                    bDismissIdle = false;
+                                    purchaseToSend.add(p);
+                                }
                             }
-                            bDismissIdle = false;
-                            purchaseToSend.add(p);
-                        }
-                    }
 
-                    // Send collected purchases to backend and consume them to acknowledge billing.
-                    for (int i = 0; i < purchaseToSend.size(); i++) {
-                        consumeNewPurchase(purchaseToSend.get(i));
-                        savePurchaseToBackend(purchaseToSend.get(i));
+                            // Send collected purchases to backend and consume them to acknowledge billing.
+                            for (int i = 0; i < purchaseToSend.size(); i++) {
+                                consumeNewPurchase(purchaseToSend.get(i));
+                                savePurchaseToBackend(purchaseToSend.get(i));
+                            }
+
+                            runOnUiThread(() -> buildPurchaseView());
+                        }
                     }
                 } catch (Exception e) {
                     LogUtil.e(TAG, "onQuerySkuDetailsFinished: " + e.getMessage(), e);
@@ -167,13 +167,6 @@ public class PurchaseLicenseActivity extends BaseActivity {
                         dismissIdleDialog();
                     }
                 }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        buildPurchaseView();
-                    }
-                });
             }
         };
 
@@ -185,13 +178,17 @@ public class PurchaseLicenseActivity extends BaseActivity {
                     if(response != null) {
                         if (response.errorMessage != null) {
                             LogUtil.w(TAG, "productResponseListener: Got error from backend: " + response.errorMessage);
-                            DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, response.errorMessage).show();
+                            runOnUiThread(() -> DialogBuilderUtil.buildErrorDialog(
+                                    PurchaseLicenseActivity.this, response.errorMessage).show());
                         } else if (response.jsonArray != null) {
                             mProducts = response.jsonArray;
                             LogUtil.d(TAG, "productResponseListener: Got products: " + mProducts.toString());
-                            bDismissIdle = false;
-                            parseProducts();
-                            ginloBillingImpl.querySkuDetails(mProductIds, inventoryFinishedListener);
+                            // KS - Forget the rest, if we have no billing API.
+                            if (ginloBillingImpl != null) {
+                                bDismissIdle = false;
+                                parseProducts();
+                                ginloBillingImpl.querySkuDetails(mProductIds, inventoryFinishedListener);
+                            }
                         }
                     } else {
                         LogUtil.w(TAG, "productResponseListener: Got null response from backend!");
@@ -294,7 +291,7 @@ public class PurchaseLicenseActivity extends BaseActivity {
                 String productId = mProductIds.get(i);
                 GinloSkuDetailsImpl details = ginloBillingImpl.getSkuDetails(productId);
                 if (details != null) {
-                    LogUtil.i(TAG, "onContentChanged: Parsing PlayStore inventory found: " + details);
+                    LogUtil.d(TAG, "onContentChanged: Parsing PlayStore inventory found: " + details);
                     String title = details.getTitle();
                     if (title.contains("(")) {
                         title = title.substring(0, title.indexOf("("));
@@ -345,7 +342,7 @@ public class PurchaseLicenseActivity extends BaseActivity {
                 String productId = product.has("productId") ? product.get("productId").getAsString() : "";
                 String duration = product.has("duration") ? product.get("duration").getAsString() : null;
                 productIds.add(productId);
-                LogUtil.i(TAG, "Parsing products found: " + productId);
+                LogUtil.d(TAG, "Parsing products found: " + productId);
             }
         }
         mProductIds = productIds;
@@ -438,7 +435,7 @@ public class PurchaseLicenseActivity extends BaseActivity {
                     LogUtil.i(TAG, "onResume: onConsumePurchaseFinished successful for token = " + purchaseToken);
                 } else {
                     LogUtil.e(TAG, "onResume: onConsumePurchaseFinished returned " +
-                            billingResult.getResponseCode() + " (" + billingResult.geResponsetMessage() + ")");
+                            billingResult.getResponseCode() + " (" + billingResult.getResponseMessage() + ")");
                 }
             }
         });
@@ -469,7 +466,7 @@ public class PurchaseLicenseActivity extends BaseActivity {
                         }
                     } else {
                         LogUtil.w(TAG, "onPurchasesUpdated returned error: " +
-                                result.getResponseCode() + " (" + result.geResponsetMessage() + ")");
+                                result.getResponseCode() + " (" + result.getResponseMessage() + ")");
                         DialogBuilderUtil.buildErrorDialog(PurchaseLicenseActivity.this, "Error").show();
                     }
                 }

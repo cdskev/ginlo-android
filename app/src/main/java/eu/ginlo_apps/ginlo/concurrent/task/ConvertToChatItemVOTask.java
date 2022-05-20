@@ -49,6 +49,7 @@ import java.util.List;
 
 public class ConvertToChatItemVOTask
         extends ConcurrentTask {
+    private final static String TAG = ConvertToChatItemVOTask.class.getSimpleName();
     private final ChatController mChatController;
 
     private final ChannelController mChannelController;
@@ -412,14 +413,14 @@ public class ConvertToChatItemVOTask
             chatItemVO.message = chatItemVO.messageContent = decryptedMsg.getText();
 
             String decryptedText = decryptedMsg.getText();
+            LogUtil.d(TAG, "getChannelChatItem: " + decryptedText);
 
             //index of nutzen, falls nur ein zeilenumbruch drin ist
             int idx = decryptedText.indexOf('\n');
 
             if (idx > 1 && split) {
                 String messageText = decryptedText.substring(idx + 1);
-
-                String headerText = decryptedText.substring(0, idx - 1);
+                String headerText = decryptedText.substring(0, idx);
 
                 if (headerText.endsWith("\r")) {
                     headerText = headerText.substring(0, headerText.length() - 1);

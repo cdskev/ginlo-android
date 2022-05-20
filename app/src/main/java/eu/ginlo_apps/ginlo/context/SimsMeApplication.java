@@ -1,20 +1,31 @@
 // Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.context;
 
-import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.database.SQLException;
 import android.media.MediaPlayer;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
 import androidx.emoji.bundled.BundledEmojiCompatConfig;
 import androidx.emoji.text.EmojiCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ProcessLifecycleOwner;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
+
+import org.greenrobot.greendao.database.Database;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import javax.inject.Inject;
+
 import dagger.android.AndroidInjector;
 import dagger.android.DispatchingAndroidInjector;
-import dagger.android.HasActivityInjector;
+import dagger.android.HasAndroidInjector;
 import dagger.android.support.HasSupportFragmentInjector;
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
@@ -57,17 +68,16 @@ import eu.ginlo_apps.ginlo.greendao.NotificationDao;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.log.Logger;
 import eu.ginlo_apps.ginlo.util.AudioUtil;
+import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.SystemUtil;
-import io.sentry.Sentry;
-import io.sentry.android.AndroidSentryClientFactory;
-import org.greenrobot.greendao.database.Database;
-import javax.inject.Inject;
-import java.util.ArrayList;
+import io.sentry.SentryLevel;
+import io.sentry.android.core.SentryAndroid;
 
 public class SimsMeApplication
-        extends Application implements HasActivityInjector, HasSupportFragmentInjector {
+        extends Application implements HasAndroidInjector, HasSupportFragmentInjector {
 
+    private static final String TAG = SimsMeApplication.class.getSimpleName();
     private static final String DB_NAME = "simsme-db";
     private static SimsMeApplication instance;
 
@@ -106,19 +116,18 @@ public class SimsMeApplication
     private boolean dbHasBeenUpdated;
 
     private MediaPlayer mReceivedSoundPlayer;
+    private MediaPlayer mSendSoundPlayer;
+    private MediaPlayer mSdSoundPlayer;
     private android.media.AudioManager mMediaAudioManager;
+
+    protected final GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
 
     public SimsMeApplication() {
         instance = this;
     }
 
     @Inject
-    DispatchingAndroidInjector<Activity> dispatchingAndroidInjector;
-
-    @Override
-    public AndroidInjector<Activity> activityInjector() {
-        return dispatchingAndroidInjector;
-    }
+    DispatchingAndroidInjector<Object> dispatchingAndroidInjector;
 
     @Inject
     DispatchingAndroidInjector<Fragment> dispatchingFragmentInjector;
@@ -130,6 +139,11 @@ public class SimsMeApplication
 
     public static SimsMeApplication getInstance() {
         return instance;
+    }
+
+    @Override
+    public AndroidInjector<Object> androidInjector() {
+        return dispatchingAndroidInjector;
     }
 
     @Inject
@@ -149,6 +163,7 @@ public class SimsMeApplication
 
     @Override
     public void onCreate() {
+
         DaggerAppComponent.builder()
                 .application(this)
                 .build()
@@ -156,41 +171,80 @@ public class SimsMeApplication
 
         LogUtil.init(logger);
 
+        super.onCreate();
+
+        initSentry();
+
         initControllers();
 
         mReceivedSoundPlayer = AudioUtil.createMediaPlayer(this, R.raw.read_sound);
+        mSendSoundPlayer = AudioUtil.createMediaPlayer(this, R.raw.send_sound);
+        mSdSoundPlayer = AudioUtil.createMediaPlayer(this, R.raw.sd_sound);
         mMediaAudioManager = (android.media.AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        super.onCreate();
-
         Thread.setDefaultUncaughtExceptionHandler(ginloUncaughtExceptionHandler);
-
-        initSentry();
 
         ProcessLifecycleOwner.get().getLifecycle().addObserver(ginloLifecycleObserver);
 
         EmojiCompat.init(new BundledEmojiCompatConfig(this));
+
+        LogUtil.i(TAG, "onCreate: " + BuildConfig.VERSION_NAME + " started.");
     }
 
     private void initSentry() {
-        if (!BuildConfig.DEBUG)
-            Sentry.init(getString(R.string.sentry_dsn), new AndroidSentryClientFactory(this));
+
+        SentryAndroid.init(this, options -> {
+            // Add a callback that will be used before the event is sent to Sentry.
+            // With this callback, you can modify the event or, when returning null, also discard the event.
+            options.setBeforeSend((event, hint) -> {
+                if (SentryLevel.DEBUG.equals(event.getLevel()))
+                    return null;
+                else
+                    return event;
+            });
+        });
     }
 
     public void playMessageReceivedSound() {
-        try {
-            if (mMediaAudioManager != null && mReceivedSoundPlayer != null && preferencesController.getMessageReceivedSound()) {
-                float log1 = AudioUtil.getAudioVolume(mMediaAudioManager);
-                mReceivedSoundPlayer.setVolume(log1, log1);
-                mReceivedSoundPlayer.start();
-            }
-        } catch (IllegalStateException e) {
-            LogUtil.e(this.getClass().getSimpleName(), e.toString());
+        if (mReceivedSoundPlayer != null && preferencesController.getPlayMessageReceivedSound()) {
+            float volume = AudioUtil.getAudioVolume(mMediaAudioManager);
+            LogUtil.i(TAG, "playMessageReceivedSound: Volume = " + volume );
+            playGinloAppSound(mReceivedSoundPlayer, volume);
         }
     }
 
-    public android.media.AudioManager getMediaAudioManager() {
-        return mMediaAudioManager;
+    public void playMessageSendSound() {
+        if (mSendSoundPlayer != null && preferencesController.getPlayMessageSendSound()) {
+            float volume = AudioUtil.getAudioVolume(mMediaAudioManager);
+            LogUtil.i(TAG, "playMessageSendSound: Volume = " + volume );
+            playGinloAppSound(mSendSoundPlayer, volume);
+        }
+    }
+
+    public void playMessageSdSound() {
+        if (mSdSoundPlayer != null && preferencesController.getPlayMessageSdSound()) {
+            float volume = AudioUtil.getAudioVolume(mMediaAudioManager);
+            LogUtil.i(TAG, "playMessageSdSound: Volume = " + volume );
+            playGinloAppSound(mSdSoundPlayer, volume);
+        }
+    }
+
+    public void playGinloAppSound(@NonNull MediaPlayer soundToPlay, float volume) {
+        float vol;
+        try {
+            if (mMediaAudioManager != null) {
+                if(volume < 0 || volume > 1.0) {
+                    // Incorrect value - derive from device setting.
+                    vol = AudioUtil.getAudioVolume(mMediaAudioManager);
+                } else {
+                    vol = volume;
+                }
+                soundToPlay.setVolume(vol, vol);
+                soundToPlay.start();
+            }
+        } catch (IllegalStateException e) {
+            LogUtil.e(TAG, "playGinloAppSound: Caught " + e.getMessage());
+        }
     }
 
     protected void initDaos() {
@@ -211,7 +265,7 @@ public class SimsMeApplication
 
         if (exceptionList != null) {
             for (SQLException e : exceptionList) {
-                LogUtil.e(this.getClass().getSimpleName(), e.getMessage(), e);
+                LogUtil.e(TAG, e.getMessage(), e);
             }
         }
 
@@ -252,6 +306,15 @@ public class SimsMeApplication
         }
     }
 
+    public boolean havePlayServices(Context context) {
+        boolean havePlayServices = false;
+        if(getPreferencesController().getPlayServicesEnabled()) {
+            final int resultCode = googleApiAvailability.isGooglePlayServicesAvailable(context);
+            havePlayServices = (resultCode == ConnectionResult.SUCCESS);
+        }
+        return havePlayServices;
+    }
+
     private void checkAccountState() {
         //accountState auch bei alten clients setzen
 
@@ -266,7 +329,7 @@ public class SimsMeApplication
                         account.setState(Account.ACCOUNT_STATE_CONFIRMED);
                     }
                 } catch (LocalizedException e) {
-                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                 }
             }
             getAccountController().updateAccoutDao();
@@ -584,4 +647,5 @@ public class SimsMeApplication
     public ChannelDao getChannelDao() {
         return mChannelDao;
     }
+
 }

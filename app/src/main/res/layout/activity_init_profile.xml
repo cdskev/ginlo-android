@@ -71,7 +71,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/settings_profile_nickNameLabel"
-                        app:styledTextSize="commentTextSize"
+                        app:styledTextSize="labelTextSize"
                         app:styledTextColor="mainContrast50" />
 
 
@@ -115,7 +115,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/activity_vertical_margin"
                         android:text="@string/settings_profile_title_phone"
-                        app:styledTextSize="commentTextSize"
+                        app:styledTextSize="labelTextSize"
                         app:styledTextColor="mainContrast50" />
 
                     <androidx.appcompat.widget.AppCompatEditText
@@ -137,7 +137,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/activity_vertical_margin"
                         android:text="@string/label_simsme_id"
-                        app:styledTextSize="commentTextSize"
+                        app:styledTextSize="labelTextSize"
                         app:styledTextColor="mainContrast50" />
 
 

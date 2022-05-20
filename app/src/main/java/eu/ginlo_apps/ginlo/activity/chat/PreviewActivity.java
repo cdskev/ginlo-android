@@ -3,15 +3,12 @@
 package eu.ginlo_apps.ginlo.activity.chat;
 
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -22,10 +19,9 @@ import android.view.animation.TranslateAnimation;
 import static android.widget.AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.MediaController;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
-import android.widget.VideoView;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -60,7 +56,7 @@ import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.ImageLoader;
@@ -358,9 +354,9 @@ public class PreviewActivity
                             mChatInputFragment.requestFocusForInput();
                             if (RuntimeConfig.isBAMandant()) {
                                 if (selected) {
-                                    vh.mBorderView.getBackground().setColorFilter(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()), PorterDuff.Mode.SRC_ATOP);
+                                    vh.mBorderView.getBackground().setColorFilter(ScreenDesignUtil.getInstance().getAppAccentColor(getSimsMeApplication()), PorterDuff.Mode.SRC_ATOP);
                                 } else {
-                                    vh.mBorderView.getBackground().setColorFilter(ColorUtil.getInstance().getNamedColor("actionSecondary", getSimsMeApplication()),
+                                    vh.mBorderView.getBackground().setColorFilter(ScreenDesignUtil.getInstance().getNamedColor("actionSecondary", getSimsMeApplication()),
                                             PorterDuff.Mode.SRC_ATOP);
                                 }
                             }
@@ -653,7 +649,7 @@ public class PreviewActivity
                 if (vh != null) {
                     vh.mBorderView.setSelected(false);
                     if (RuntimeConfig.isBAMandant()) {
-                        vh.mBorderView.getBackground().setColorFilter(ColorUtil.getInstance().getNamedColor("actionSecondary", getSimsMeApplication()),
+                        vh.mBorderView.getBackground().setColorFilter(ScreenDesignUtil.getInstance().getNamedColor("actionSecondary", getSimsMeApplication()),
                                 PorterDuff.Mode.SRC_ATOP);
                     }
                 }
@@ -1163,9 +1159,9 @@ public class PreviewActivity
                 holder.mBorderView.setSelected(selected);
                 if (RuntimeConfig.isBAMandant()) {
                     if (selected) {
-                        holder.mBorderView.getBackground().setColorFilter(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()), PorterDuff.Mode.SRC_ATOP);
+                        holder.mBorderView.getBackground().setColorFilter(ScreenDesignUtil.getInstance().getAppAccentColor(getSimsMeApplication()), PorterDuff.Mode.SRC_ATOP);
                     } else {
-                        holder.mBorderView.getBackground().setColorFilter(ColorUtil.getInstance().getNamedColor("actionSecondary", getSimsMeApplication()),
+                        holder.mBorderView.getBackground().setColorFilter(ScreenDesignUtil.getInstance().getNamedColor("actionSecondary", getSimsMeApplication()),
                                 PorterDuff.Mode.SRC_ATOP);
                     }
                 }

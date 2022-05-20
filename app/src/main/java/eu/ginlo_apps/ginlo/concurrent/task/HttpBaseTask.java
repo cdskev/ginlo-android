@@ -38,6 +38,7 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLSocketFactory;
 
+import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.log.LogUtil;
@@ -58,6 +59,8 @@ public abstract class HttpBaseTask
     
     private final static String TAG = HttpBaseTask.class.getSimpleName();
     private final static int WAKELOCK_FLAGS = PowerManager.PARTIAL_WAKE_LOCK;
+    private final static long HTTP_TASK_WAKELOCK_TIMEOUT = 10 * 60 * 1000L; // 10 minutes
+    private final static int DEFAULT_HTTP_CONNECT_TIMEOUT = 60 * 1000; // 60 seconds
     private final String WAKELOCK_TAG;
     private final String mUsername;
     private final String mPassword;
@@ -66,7 +69,7 @@ public abstract class HttpBaseTask
     private final KeyStore mKeyStore;
     private final OnConnectionDataUpdatedListener mOnConnectionDataUpdatedListener;
     private final SimsMeApplication simsMeApplication = SimsMeApplication.getInstance();
-    int mConnectionTimeout;
+    int mConnectTimeout;
     String mCommand;
     private String mResult;
 
@@ -186,10 +189,20 @@ public abstract class HttpBaseTask
 
         // No WakeLock on lazy task and only one try to connect to backend
         if(isLazyTask) {
-            LogUtil.d(TAG, "No WakeLock on lazy task.");
+            if(BuildConfig.KEEP_WAKELOCK_FOR_LAZY_REQUESTS) {
+                if(mConnectTimeout > 0) {
+                    wl.acquire(mConnectTimeout + 1000L);
+                    LogUtil.d(TAG, "WakeLock on lazy task as requested by build config: mConnectTimeout = " + mConnectTimeout);
+                } else {
+                    LogUtil.d(TAG, "WakeLock on lazy task requested by build config but mConnectTimeout = 0!");
+                }
+
+            } else {
+                LogUtil.d(TAG, "No WakeLock on lazy task.");
+            }
             i = 2;
         } else {
-            wl.acquire(10 * 60 * 1000L /*10 minutes*/);
+            wl.acquire(HTTP_TASK_WAKELOCK_TIMEOUT);
         }
 
         for (; i < 3; i++) {
@@ -271,21 +284,21 @@ public abstract class HttpBaseTask
                         + " (Size: " + outputFileSize + ")");
 
 
-                if (mConnectionTimeout == 0) {
-                    mConnectionTimeout = 60 * 1000;
+                if (mConnectTimeout == 0) {
+                    mConnectTimeout = DEFAULT_HTTP_CONNECT_TIMEOUT;
                 }
 
-                urlConnection.setConnectTimeout(mConnectionTimeout);
+                urlConnection.setConnectTimeout(mConnectTimeout);
 
                 // KS: Calculate read timeout depending on send request size. Otherwise we run
                 // into the timeout, if sending the request takes too long.
                 // Assume upload rate at min. 100 Kbit/s
                 int readTimeoutInMillis = (int) (outputFileSize / 100);
-                if (readTimeoutInMillis < mConnectionTimeout) {
-                    readTimeoutInMillis = mConnectionTimeout;
+                if (readTimeoutInMillis < mConnectTimeout) {
+                    readTimeoutInMillis = mConnectTimeout;
                 }
                 urlConnection.setReadTimeout(readTimeoutInMillis);
-                LogUtil.i(TAG, "Start " + (isLazyTask ? "lazy ":"")  + "request with connect/read timeouts set to: " +
+                LogUtil.d(TAG, "Start " + (isLazyTask ? "lazy ":"")  + "request with connect/read timeouts set to: " +
                         urlConnection.getConnectTimeout() + "/" +
                         urlConnection.getReadTimeout());
 
@@ -362,7 +375,10 @@ public abstract class HttpBaseTask
                     }
 
                 } catch (IOException e) {
-                    LogUtil.w(TAG, "Got IOException while connecting to backend: " + e.getMessage());
+                    LogUtil.e(TAG, "Got IOException while connecting to backend: " + e.getMessage());
+                    if(!isLazyTask) {
+                        throw new IOException("IOException while connecting to backend!");
+                    }
                 } finally {
                     StreamUtil.closeStream(in);
                     urlConnection.disconnect();
@@ -370,6 +386,7 @@ public abstract class HttpBaseTask
             } catch (SocketTimeoutException e) {
                 LogUtil.w(TAG, "Got SocketTimeoutException while connecting to backend: " + e.getMessage());
                 if (i < 2) {
+                    LogUtil.w(TAG, "Retrying #" + i);
                     continue;
                 }
                 if (!(this instanceof HttpLazyMessageTask)) {
@@ -382,7 +399,9 @@ public abstract class HttpBaseTask
                     return;
                 }
             } catch (UnsupportedEncodingException | IllegalStateException | ProtocolException e) {
+                LogUtil.e(TAG, "Got Exception: " + e.getMessage());
                 if (i < 2) {
+                    LogUtil.w(TAG, "Retrying #" + i);
                     continue;
                 }
                 LogUtil.e(TAG, e.getMessage(), e);
@@ -393,23 +412,17 @@ public abstract class HttpBaseTask
                 error();
                 return;
             } catch (IOException e) {
+                LogUtil.e(TAG, "Got IOException: " + e.getMessage());
                 if (i < 2) {
+                    LogUtil.w(TAG, "Retrying #" + i);
                     continue;
-                }
-                if (e instanceof SSLHandshakeException) {
-                    /* SSL certificate error*/
-                    mLocalizedException = new LocalizedException(
-                            LocalizedException.SSL_HANDSHAKE_FAILED, e);
-                    LogUtil.e(TAG, e.getMessage(), e);
-                    releaseWakelock(wl);
-                    error();
-                    return;
                 }
 
                 if (isLazyTask) {
-                    if ((e instanceof SSLException) || (e instanceof EOFException)
-                        || (e
-                        .getCause() instanceof EOFException) || (e instanceof InterruptedIOException)) {
+                    if ((e instanceof SSLException) ||
+                            (e instanceof EOFException) ||
+                            (e.getCause() instanceof EOFException) ||
+                            (e instanceof InterruptedIOException)) {
                         LogUtil.w(TAG, e.getMessage(), e);
                     } else {
                         LogUtil.e(TAG, e.getMessage(), e);
@@ -430,7 +443,9 @@ public abstract class HttpBaseTask
                     return;
                 }
             } catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException | KeyManagementException e) {
+                LogUtil.e(TAG, "Got Exception: " + e.getMessage());
                 if (i < 2) {
+                    LogUtil.w(TAG, "Retrying #" + i);
                     continue;
                 }
                 mLocalizedException = new LocalizedException(LocalizedException.SSL_HANDSHAKE_FAILED, e);
@@ -480,7 +495,7 @@ public abstract class HttpBaseTask
     }
 
     public void setConnectionTimeout(int connectionTimeout) {
-        this.mConnectionTimeout = connectionTimeout;
+        this.mConnectTimeout = connectionTimeout;
     }
 
     public interface OnConnectionDataUpdatedListener {

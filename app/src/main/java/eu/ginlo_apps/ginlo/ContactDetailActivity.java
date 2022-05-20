@@ -48,7 +48,7 @@ import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.router.RouterConstants;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
@@ -478,7 +478,7 @@ public class ContactDetailActivity
                 final Mandant mandant = preferencesController.getMandantFromIdent(mandantIdent);
                 if (mandant != null) {
                     boolean isPrivate = StringUtil.isNullOrEmpty(mContact.getClassEntryName()) || StringUtil.isEqual(mContact.getClassEntryName(), Contact.CLASS_PRIVATE_ENTRY);
-                    ColorUtil.getInstance().colorizeMandantTextView(getSimsMeApplication(), mandant, tenantTextView, isPrivate);
+                    ScreenDesignUtil.getInstance().colorizeMandantTextView(getSimsMeApplication(), mandant, tenantTextView, isPrivate);
                 } else {
                     tenantTextView.setVisibility(View.GONE);
                 }
@@ -584,7 +584,7 @@ public class ContactDetailActivity
 
             String countryCode = PhoneNumberUtil.getCountryCodeForPhoneNumber(phoneNumber);
             if (countryCode != null && !countryCode.isEmpty())
-                mMobileNumberEditText.setLinkTextColor(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()));
+                mMobileNumberEditText.setLinkTextColor(ScreenDesignUtil.getInstance().getAppAccentColor(getSimsMeApplication()));
 
             Linkify.addLinks(mMobileNumberEditText, Linkify.PHONE_NUMBERS);
 
@@ -597,7 +597,7 @@ public class ContactDetailActivity
             mEmailAddressEditText.setText(email);
             mEmailAddressEditText.setVisibility(View.VISIBLE);
             if (Patterns.EMAIL_ADDRESS.matcher(email).matches())
-                mEmailAddressEditText.setLinkTextColor(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()));
+                mEmailAddressEditText.setLinkTextColor(ScreenDesignUtil.getInstance().getAppAccentColor(getSimsMeApplication()));
             Linkify.addLinks(mEmailAddressEditText, Linkify.EMAIL_ADDRESSES);
         } else {
             mEmailAddressLabel.setVisibility(View.GONE);
@@ -1113,13 +1113,13 @@ public class ContactDetailActivity
             switch (mContact.getState()) {
                 case Contact.STATE_HIGH_TRUST:
                     mScanButton.setVisibility(View.GONE);
-                    trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getHighColor(getSimsMeApplication()));
+                    trustedStateDivider.setBackgroundColor(ScreenDesignUtil.getInstance().getHighColor(getSimsMeApplication()));
                     break;
                 case Contact.STATE_MIDDLE_TRUST:
-                    trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getMediumColor(getSimsMeApplication()));
+                    trustedStateDivider.setBackgroundColor(ScreenDesignUtil.getInstance().getMediumColor(getSimsMeApplication()));
                     break;
                 case Contact.STATE_LOW_TRUST:
-                    trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getLowColor(getSimsMeApplication()));
+                    trustedStateDivider.setBackgroundColor(ScreenDesignUtil.getInstance().getLowColor(getSimsMeApplication()));
                     break;
                 case Contact.STATE_UNSIMSABLE: {
                     trustedStateDivider.setVisibility(View.GONE);
@@ -1135,7 +1135,7 @@ public class ContactDetailActivity
             //Setze den Vertrauensstatus von Company- und Domainkontakten auf sehr Hoch
             if (StringUtil.isEqual(mContact.getClassEntryName(), Contact.CLASS_COMPANY_ENTRY) || StringUtil.isEqual(mContact.getClassEntryName(), Contact.CLASS_DOMAIN_ENTRY)) {
                 mScanButton.setVisibility(View.GONE);
-                trustedStateDivider.setBackgroundColor(ColorUtil.getInstance().getHighColor(getSimsMeApplication()));
+                trustedStateDivider.setBackgroundColor(ScreenDesignUtil.getInstance().getHighColor(getSimsMeApplication()));
             }
         } catch (final LocalizedException e) {
             LogUtil.e(TAG, e.getMessage(), e);

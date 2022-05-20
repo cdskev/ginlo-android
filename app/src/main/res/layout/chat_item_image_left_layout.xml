@@ -47,7 +47,7 @@
                 android:lineSpacingExtra="3sp"
                 android:maxLines="1"
                 android:textColor="#43ad7f"
-                app:styledTextSize="commentTextSize"
+                android:textSize="?attr/labelTextSize"
                 android:visibility="gone"
                 tools:text="Max Mustermann" />
 
@@ -118,7 +118,7 @@
                 android:paddingEnd="8dp"
                 android:paddingBottom="3dp"
                 android:textColor="@color/mainContrast"
-                app:styledTextSize="baseTextSize"
+                android:textSize="?attr/baseTextSize"
                 android:visibility="gone"
                 tools:text="Bildbeschreibung" />
 

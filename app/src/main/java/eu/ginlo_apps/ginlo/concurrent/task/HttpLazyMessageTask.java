@@ -3,7 +3,6 @@
 package eu.ginlo_apps.ginlo.concurrent.task;
 
 import eu.ginlo_apps.ginlo.cert.CustomSSLSocketFactory;
-import eu.ginlo_apps.ginlo.concurrent.task.HttpBaseTask;
 import eu.ginlo_apps.ginlo.model.param.HttpPostParams;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -19,11 +18,11 @@ public class HttpLazyMessageTask
                                String username,
                                String password,
                                String requestGuid,
-                               int connectionTimeout) {
+                               int connectTimeout) {
         super(keyStore, httpPostParams, username, password, requestGuid);
 
-        if (mConnectionTimeout != connectionTimeout) {
-            mConnectionTimeout = connectionTimeout;
+        if (mConnectTimeout != connectTimeout) {
+            mConnectTimeout = connectTimeout;
         }
     }
 

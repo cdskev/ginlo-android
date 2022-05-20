@@ -10,7 +10,6 @@ import android.content.res.Configuration;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,6 +35,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+
 import org.jetbrains.annotations.NotNull;
 
 import eu.ginlo_apps.ginlo.BuildConfig;
@@ -44,17 +46,14 @@ import eu.ginlo_apps.ginlo.ContactsActivity;
 import eu.ginlo_apps.ginlo.ForwardActivity;
 import eu.ginlo_apps.ginlo.ForwardActivityBase;
 import eu.ginlo_apps.ginlo.LocationActivity;
+import eu.ginlo_apps.ginlo.LocationActivityOSM;
 import eu.ginlo_apps.ginlo.OnLinkClickListener;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.TextExtensionsKt;
 import eu.ginlo_apps.ginlo.concurrent.task.HttpBaseTask.OnConnectionDataUpdatedListener;
-import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
 import eu.ginlo_apps.ginlo.controller.AttachmentController.OnAttachmentLoadedListener;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
-import eu.ginlo_apps.ginlo.controller.ClipBoardController;
-import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.controller.message.SingleChatController;
@@ -93,8 +92,7 @@ import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.model.param.SendActionContainer;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.router.RouterConstants;
-import eu.ginlo_apps.ginlo.util.AudioUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil.OnCloseListener;
 import eu.ginlo_apps.ginlo.util.FileUtil;
@@ -177,7 +175,6 @@ public abstract class BaseChatActivity
      * doesn't work with EXTRA_OUTPUT
      */
     private Uri mTakePhotoUri;
-    private MediaPlayer mSendSoundPlayer;
     private Animation mSlideOutAcc;
     private Animation mNewTimedMsgAnimation;
     private Toast mNewMessagesToast;
@@ -282,8 +279,9 @@ public abstract class BaseChatActivity
         if (mNeedsTargetGuid && mTargetGuid == null) {
             if (getIntent().getStringExtra(EXTRA_TARGET_GUID) != null) {
                 mTargetGuid = getIntent().getStringExtra(EXTRA_TARGET_GUID);
-
                 mChat = getChatController().getChatByGuid(mTargetGuid);
+                // Know where we are
+                notificationController.setCurrentChatGuid(mTargetGuid);
             } else {
                 LogUtil.e(TAG, "targetGuid is null");
                 finish();
@@ -291,16 +289,13 @@ public abstract class BaseChatActivity
             }
         }
 
-        mOnBottomSheetClosedListener = new OnBottomSheetClosedListener() {
-            @Override
-            public void onBottomSheetClosed(final boolean bottomSheetWasOpen) {
-                if (!mChatInputDisabled && (mChatInputFragment != null)) {
-                    hideOrShowFragment(mChatInputFragment, true, true);
-                    mChatInputFragment.requestFocusForInput();
-                }
-                if ((mAnimationSlideOut != null) && (mBottomSheetFragment != null) && mBottomSheetFragment.getView() != null) {
-                    mBottomSheetFragment.getView().startAnimation(mAnimationSlideOut);
-                }
+        mOnBottomSheetClosedListener = bottomSheetWasOpen -> {
+            if (!mChatInputDisabled && (mChatInputFragment != null)) {
+                hideOrShowFragment(mChatInputFragment, true, true);
+                mChatInputFragment.requestFocusForInput();
+            }
+            if ((mAnimationSlideOut != null) && (mBottomSheetFragment != null) && mBottomSheetFragment.getView() != null) {
+                mBottomSheetFragment.getView().startAnimation(mAnimationSlideOut);
             }
         };
         checkIntentForAction(null, false);
@@ -310,12 +305,12 @@ public abstract class BaseChatActivity
         //listener wird nur im single udn gruppenchat benutzt, also auch nur dort angestoszen
         mOnTimedMessagesListener = new QueryDatabaseListener() {
             @Override
-            public void onListResult(final List<Message> messages) {
+            public void onListResult(@NonNull final List<Message> messages) {
 
             }
 
             @Override
-            public void onUniqueResult(final Message message) {
+            public void onUniqueResult(@NonNull final Message message) {
 
             }
 
@@ -355,20 +350,20 @@ public abstract class BaseChatActivity
     void createOnDeleteTimedMessageListener() {
         mOnDeleteTimedMessageListener = new OnDeleteTimedMessageListener() {
             @Override
-            public void onDeleteMessageError(final String message) {
+            public void onDeleteMessageError(@NonNull final String message) {
                 if (!StringUtil.isNullOrEmpty(message)) {
                     DialogBuilderUtil.buildErrorDialog(BaseChatActivity.this, message).show();
                 }
             }
 
             @Override
-            public void onDeleteAllMessagesSuccess(final String chatGuid) {
+            public void onDeleteAllMessagesSuccess(@NonNull final String chatGuid) {
                 //wird nur aufgerufen, wenn ein chat komplett geloescht wurde
                 finish();
             }
 
             @Override
-            public void onDeleteSingleMessageSuccess(final String chatGuid) {
+            public void onDeleteSingleMessageSuccess(@NonNull final String chatGuid) {
                 if (!StringUtil.isNullOrEmpty(chatGuid)) {
                     getSimsMeApplication().getChatOverviewController().chatChanged(null, chatGuid, null,
                             ChatOverviewController.CHAT_CHANGED_MSG_DELETED);
@@ -379,19 +374,13 @@ public abstract class BaseChatActivity
 
     void createOnTimedMessagesDeliveredListener() {
         // refresh, wnen eine getimte nachricht ausgeliefert wurde und man sich im selben chat befindet
-        mOnTimedMessagesDeliveredListener = new OnTimedMessagesDeliveredListener() {
-            @Override
-            public void timedMessageDelivered(final List<String> chatGuids) {
-                final Handler handler = new Handler(getMainLooper());
-                final Runnable runnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        filterTimedMessages(mOnlyShowTimed);
-                        getChatController().countTimedMessages(mOnTimedMessagesListener);
-                    }
-                };
-                handler.post(runnable);
-            }
+        mOnTimedMessagesDeliveredListener = chatGuids -> {
+            final Handler handler = new Handler(getMainLooper());
+            final Runnable runnable = () -> {
+                filterTimedMessages(mOnlyShowTimed);
+                getChatController().countTimedMessages(mOnTimedMessagesListener);
+            };
+            handler.post(runnable);
         };
     }
 
@@ -404,23 +393,17 @@ public abstract class BaseChatActivity
     protected void onResumeActivity() {
         super.onResumeActivity();
 
+        // Know where we are
+        notificationController.setCurrentChatGuid(mTargetGuid);
+
         hideToolbarOptions();
         if (mOnTimedMessagesDeliveredListener != null) {
             mMessageController.addTimedMessagedDeliveredListener(mOnTimedMessagesDeliveredListener);
         }
 
-        try {
-            if (mPreferencesController.getPlaySendSound()) {
-                mSendSoundPlayer = AudioUtil.createMediaPlayer(this, R.raw.send_sound);
-            }
-        } catch (final LocalizedException e) {
-            LogUtil.e(TAG, "onResumeActivity: createMediaPlayer caught " + e.getMessage());
-            mSendSoundPlayer = null;
-        }
-
         // after colorize activity
-        final int lowColor = ColorUtil.getInstance().getLowColor(getSimsMeApplication());
-        final int lowContrastColor = ColorUtil.getInstance().getLowContrastColor(getSimsMeApplication());
+        final int lowColor = ScreenDesignUtil.getInstance().getLowColor(getSimsMeApplication());
+        final int lowContrastColor = ScreenDesignUtil.getInstance().getLowContrastColor(getSimsMeApplication());
 
         mTimedCounterView.getBackground().setColorFilter(lowColor, PorterDuff.Mode.SRC_ATOP);
         mTimedCounterView.setTextColor(lowContrastColor);
@@ -1106,33 +1089,21 @@ public abstract class BaseChatActivity
 
                 if (mSelfdestructionFragment.getTimerDate().after(oneYear.getTime())) {
                     final String msg = getResources().getString(R.string.chats_timedmessage_invalid_date2);
-                    DialogBuilderUtil.buildErrorDialog(this, msg, 0, new OnCloseListener() {
-                        @Override
-                        public void onClose(final int unused) {
-                            mChatInputFragment.showAudioPreviewUI();
-                        }
-                    }).show();
+                    DialogBuilderUtil.buildErrorDialog(this, msg, 0,
+                            unused -> mChatInputFragment.showAudioPreviewUI()).show();
                     return;
                 }
                 if (!mSelfdestructionFragment.getTimerDate().after(Calendar.getInstance().getTime())) {
                     final String msg = getResources().getString(R.string.chats_selfdestruction_invalid_date);
-                    DialogBuilderUtil.buildErrorDialog(this, msg, 0, new OnCloseListener() {
-                        @Override
-                        public void onClose(final int unused) {
-                            mChatInputFragment.showAudioPreviewUI();
-                        }
-                    }).show();
+                    DialogBuilderUtil.buildErrorDialog(this, msg, 0,
+                            unused -> mChatInputFragment.showAudioPreviewUI()).show();
                     return;
                 } else if (destructionParams != null
                         && destructionParams.date != null
                         && destructionParams.date.before(mSelfdestructionFragment.getTimerDate())) {
                     final String msg = getResources().getString(R.string.chats_selfdestruction_sddate_before_senddate);
-                    DialogBuilderUtil.buildErrorDialog(this, msg, 0, new OnCloseListener() {
-                        @Override
-                        public void onClose(final int unused) {
-                            mChatInputFragment.showAudioPreviewUI();
-                        }
-                    }).show();
+                    DialogBuilderUtil.buildErrorDialog(this, msg, 0,
+                            unused -> mChatInputFragment.showAudioPreviewUI()).show();
                     return;
                 } else {
                     checkChat();
@@ -1159,27 +1130,23 @@ public abstract class BaseChatActivity
             return;
         }
         requestPermission(PermissionUtil.PERMISSION_FOR_CAMERA, R.string.permission_rationale_camera,
-                new PermissionUtil.PermissionResultCallback() {
-                    @Override
-                    public void permissionResult(final int permission,
-                                                 final boolean permissionGranted) {
-                        if ((permission == PermissionUtil.PERMISSION_FOR_CAMERA) && permissionGranted) {
-                            final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                (permission, permissionGranted) -> {
+                    if ((permission == PermissionUtil.PERMISSION_FOR_CAMERA) && permissionGranted) {
+                        final Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-                            // KS:Always null on some devices since SDK 30 ???
-                            //if (intent.resolveActivity(getPackageManager()) != null) {
-                                try {
-                                    final FileUtil fu = new FileUtil(getSimsMeApplication());
-                                    final File takenPhotoFile = fu.createTmpImageFileAddInIntent(intent);
-                                    mTakePhotoUri = Uri.fromFile(takenPhotoFile);
-                                    closeBottomSheet(mOnBottomSheetClosedListener);
+                        // KS:Always null on some devices since SDK 30 ???
+                        //if (intent.resolveActivity(getPackageManager()) != null) {
+                            try {
+                                final FileUtil fu = new FileUtil(getSimsMeApplication());
+                                final File takenPhotoFile = fu.createTmpImageFileAddInIntent(intent);
+                                mTakePhotoUri = Uri.fromFile(takenPhotoFile);
+                                closeBottomSheet(mOnBottomSheetClosedListener);
 
-                                    router.startExternalActivityForResult(intent, RouterConstants.TAKE_PHOTO_RESULT_CODE);
-                                } catch (final Exception e) {
-                                    LogUtil.w(TAG, "handleTakePhotoClick: permissionResult returned with " + e.getMessage());
-                                }
-                            //}
-                        }
+                                router.startExternalActivityForResult(intent, RouterConstants.TAKE_PHOTO_RESULT_CODE);
+                            } catch (final Exception e) {
+                                LogUtil.w(TAG, "handleTakePhotoClick: permissionResult returned with " + e.getMessage());
+                            }
+                        //}
                     }
                 });
     }
@@ -1192,19 +1159,15 @@ public abstract class BaseChatActivity
             return;
         }
         requestPermission(PermissionUtil.PERMISSION_FOR_VIDEO, R.string.permission_rationale_camera,
-                new PermissionUtil.PermissionResultCallback() {
-                    @Override
-                    public void permissionResult(final int permission,
-                                                 final boolean permissionGranted) {
-                        if ((permission == PermissionUtil.PERMISSION_FOR_VIDEO) && permissionGranted) {
-                            final Intent intent = new Intent(BaseChatActivity.this, CameraActivity.class);
+                (permission, permissionGranted) -> {
+                    if ((permission == PermissionUtil.PERMISSION_FOR_VIDEO) && permissionGranted) {
+                        final Intent intent = new Intent(BaseChatActivity.this, CameraActivity.class);
 
-                            closeBottomSheet(mOnBottomSheetClosedListener);
-                            try {
-                                startActivityForResult(intent, RouterConstants.TAKE_VIDEO_RESULT_CODE);
-                            } catch (final Exception e) {
-                                LogUtil.w(TAG, "handleTakeVideoClick: startActivityForResult returned with " + e.getMessage());
-                            }
+                        closeBottomSheet(mOnBottomSheetClosedListener);
+                        try {
+                            startActivityForResult(intent, RouterConstants.TAKE_VIDEO_RESULT_CODE);
+                        } catch (final Exception e) {
+                            LogUtil.w(TAG, "handleTakeVideoClick: startActivityForResult returned with " + e.getMessage());
                         }
                     }
                 });
@@ -1232,14 +1195,10 @@ public abstract class BaseChatActivity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
-                    new PermissionUtil.PermissionResultCallback() {
-                        @Override
-                        public void permissionResult(int permission,
-                                                     boolean permissionGranted) {
-                            if ((permission == PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE)
-                                    && permissionGranted) {
-                                startAttachPhotoIntent();
-                            }
+                    (permission, permissionGranted) -> {
+                        if ((permission == PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE)
+                                && permissionGranted) {
+                            startAttachPhotoIntent();
                         }
                     });
         } else {
@@ -1263,14 +1222,10 @@ public abstract class BaseChatActivity
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
                     R.string.permission_rationale_read_external_storage,
-                    new PermissionUtil.PermissionResultCallback() {
-                        @Override
-                        public void permissionResult(final int permission,
-                                                     final boolean permissionGranted) {
-                            if ((permission == PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE)
-                                    && permissionGranted) {
-                                startAttachVideoIntent();
-                            }
+                    (permission, permissionGranted) -> {
+                        if ((permission == PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE)
+                                && permissionGranted) {
+                            startAttachVideoIntent();
                         }
                     });
         } else {
@@ -1292,14 +1247,21 @@ public abstract class BaseChatActivity
     // OnClick of menu in attachment dialog (dialog_attachment_selection_layout.xml)
     public void handleAttachLocationClick(final View view) {
         requestPermission(PermissionUtil.PERMISSION_FOR_LOCATION, R.string.permission_rationale_location,
-                new PermissionUtil.PermissionResultCallback() {
-                    @Override
-                    public void permissionResult(final int permission,
-                                                 final boolean permissionGranted) {
-                        if ((permission == PermissionUtil.PERMISSION_FOR_LOCATION) && permissionGranted) {
-                            final Intent intent = new Intent(BaseChatActivity.this, LocationActivity.class);
+                (permission, permissionGranted) -> {
+                    if ((permission == PermissionUtil.PERMISSION_FOR_LOCATION) && permissionGranted) {
 
+                        if(mApplication.havePlayServices(BaseChatActivity.this) && !preferencesController.getOsmEnabled()) {
+                            final Intent intent = new Intent(BaseChatActivity.this, LocationActivity.class);
                             intent.putExtra(LocationActivity.EXTRA_MODE, LocationActivity.MODE_GET_LOCATION);
+                            closeBottomSheet(mOnBottomSheetClosedListener);
+                            try {
+                                startActivityForResult(intent, RouterConstants.GET_LOCATION_RESULT_CODE);
+                            } catch (final Exception e) {
+                                LogUtil.w(TAG, "handleAttachLocationClick: startActivityForResult returned with " + e.getMessage());
+                            }
+                        } else {
+                            final Intent intent = new Intent(BaseChatActivity.this, LocationActivityOSM.class);
+                            intent.putExtra(LocationActivityOSM.EXTRA_MODE, LocationActivityOSM.MODE_GET_LOCATION);
                             closeBottomSheet(mOnBottomSheetClosedListener);
                             try {
                                 startActivityForResult(intent, RouterConstants.GET_LOCATION_RESULT_CODE);
@@ -1318,36 +1280,22 @@ public abstract class BaseChatActivity
         final String extern = getResources().getString(R.string.send_contact_extern);
         final String intern = getResources().getString(R.string.send_contact_intern);
 
-        DialogInterface.OnClickListener externOnClickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog,
-                                int which) {
-                requestPermission(PermissionUtil.PERMISSION_FOR_READ_CONTACTS, R.string.permission_rationale_contacts,
-                        new PermissionUtil.PermissionResultCallback() {
-                            @Override
-                            public void permissionResult(final int permission,
-                                                         final boolean permissionGranted) {
-                                if ((permission == PermissionUtil.PERMISSION_FOR_READ_CONTACTS) && permissionGranted) {
-                                    final Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        DialogInterface.OnClickListener externOnClickListener = (dialog, which) -> requestPermission(PermissionUtil.PERMISSION_FOR_READ_CONTACTS, R.string.permission_rationale_contacts,
+                (permission, permissionGranted) -> {
+                    if ((permission == PermissionUtil.PERMISSION_FOR_READ_CONTACTS) && permissionGranted) {
+                        final Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
 
-                                    closeBottomSheet(mOnBottomSheetClosedListener);
-                                    router.startExternalActivityForResult(intent, RouterConstants.SELECT_CONTACT_RESULT_CODE);
-                                }
-                            }
-                        });
-            }
-        };
+                        closeBottomSheet(mOnBottomSheetClosedListener);
+                        router.startExternalActivityForResult(intent, RouterConstants.SELECT_CONTACT_RESULT_CODE);
+                    }
+                });
 
-        DialogInterface.OnClickListener internOnClickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog,
-                                int which) {
-                final Intent intent = new Intent(BaseChatActivity.this, RuntimeConfig.getClassUtil().getContactsActivityClass());
-                intent.putExtra(ContactsActivity.EXTRA_MODE, ContactsActivity.MODE_SEND_CONTACT);
+        DialogInterface.OnClickListener internOnClickListener = (dialog, which) -> {
+            final Intent intent = new Intent(BaseChatActivity.this, RuntimeConfig.getClassUtil().getContactsActivityClass());
+            intent.putExtra(ContactsActivity.EXTRA_MODE, ContactsActivity.MODE_SEND_CONTACT);
 
-                closeBottomSheet(mOnBottomSheetClosedListener);
-                router.startExternalActivityForResult(intent, RouterConstants.SELECT_INTERNAL_CONTACT_RESULT_CODE);
-            }
+            closeBottomSheet(mOnBottomSheetClosedListener);
+            router.startExternalActivityForResult(intent, RouterConstants.SELECT_INTERNAL_CONTACT_RESULT_CODE);
         };
         AlertDialogWrapper attachContactDialog = DialogBuilderUtil.buildResponseDialog(this,
                 text,
@@ -1423,23 +1371,15 @@ public abstract class BaseChatActivity
     @Override
     public void scrollIfLastChatItemIsNotShown() {
         final Handler handler = new Handler();
-        final Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                if(mListView == null) return;
-                final int lastLastPosition = mListView.getLastVisiblePosition() + 1;
-                if (lastLastPosition != mListView.getAdapter().getCount()) {
-                    scrollToEnd();
-                }
-            }
-        };
-
-        final Runnable runnable2 = new Runnable() {
-            @Override
-            public void run() {
+        final Runnable runnable = () -> {
+            if(mListView == null) return;
+            final int lastLastPosition = mListView.getLastVisiblePosition() + 1;
+            if (lastLastPosition != mListView.getAdapter().getCount()) {
                 scrollToEnd();
             }
         };
+
+        final Runnable runnable2 = this::scrollToEnd;
         handler.postDelayed(runnable, 200);
         handler.postDelayed(runnable2, 700);
     }
@@ -1935,21 +1875,13 @@ public abstract class BaseChatActivity
         if (position != null) {
             hideToolbarOptions();
             if (hightlight) {
-                final Runnable highlightRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        final View originalView = mChatAdapter.getView(position);
-                        highlightChatitem(originalView);
-                    }
+                final Runnable highlightRunnable = () -> {
+                    final View originalView = mChatAdapter.getView(position);
+                    highlightChatitem(originalView);
                 };
 
-                final Runnable unHighlightRunnable = new Runnable() {
-                    @Override
-                    public void run() {
-                        //unhighlight aber mit schliessen der toolbaroptions, falls der user inzwischen schon ein weiteres element markiert hat
-                        hideToolbarOptions();
-                    }
-                };
+                //unhighlight aber mit schliessen der toolbaroptions, falls der user inzwischen schon ein weiteres element markiert hat
+                final Runnable unHighlightRunnable = this::hideToolbarOptions;
                 final Handler handler = new Handler();
 
                 handler.postDelayed(highlightRunnable, 500);
@@ -2237,7 +2169,7 @@ public abstract class BaseChatActivity
             }
 
             if (selectionOverlay != null) {
-                selectionOverlay.setBackgroundColor(ColorUtil.getInstance().getAppAccentColor(getSimsMeApplication()));
+                selectionOverlay.setBackgroundColor(ScreenDesignUtil.getInstance().getAppAccentColor(getSimsMeApplication()));
             }
         }
     }
@@ -2250,7 +2182,7 @@ public abstract class BaseChatActivity
             }
             final View selectionOverlay = mClickedView.findViewById(R.id.chat_item_selection_overlay);
             if (selectionOverlay != null) {
-                selectionOverlay.setBackgroundColor(ColorUtil.getInstance().getTransparentColor(getSimsMeApplication()));
+                selectionOverlay.setBackgroundColor(ScreenDesignUtil.getInstance().getTransparentColor(getSimsMeApplication()));
             }
         }
     }
@@ -2288,11 +2220,6 @@ public abstract class BaseChatActivity
 
         if (mOnTimedMessagesDeliveredListener != null) {
             mMessageController.removeTimedMessagedDeliveredListener(mOnTimedMessagesDeliveredListener);
-        }
-
-        if (mSendSoundPlayer != null) {
-            mSendSoundPlayer.release();
-            mSendSoundPlayer = null;
         }
 
         // KS: Re-enable notifications which were set to be ignored in subclass instances to avoid
@@ -2348,19 +2275,7 @@ public abstract class BaseChatActivity
                     getChatController().sendSystemInfo(contactsGuid, mPublicKeyXML, notSendMsg, -1);
                 }
 
-                try {
-                    if (mPreferencesController.getPlaySendSound()) {
-                        final android.media.AudioManager mediaAudioManager = getSimsMeApplication().getMediaAudioManager();
-
-                        if (mSendSoundPlayer != null && mediaAudioManager != null) {
-                            final float log1 = AudioUtil.getAudioVolume(mediaAudioManager);
-                            mSendSoundPlayer.setVolume(log1, log1);
-                            mSendSoundPlayer.start();
-                        }
-                    }
-                } catch (IllegalStateException | LocalizedException e) {
-                    LogUtil.e(TAG, "createOnSendMessageListener: onSendMessageSuccess caught " + e.getMessage());
-                }
+                mApplication.playMessageSendSound();
 
                 setActionbarColorFromTrustState();
                 smoothScrollToEnd();
@@ -2399,12 +2314,7 @@ public abstract class BaseChatActivity
     }
 
     protected void preventSelfConversation() {
-        final OnCloseListener onCloseListener = new OnCloseListener() {
-            @Override
-            public void onClose(final int ref) {
-                finish();
-            }
-        };
+        final OnCloseListener onCloseListener = ref -> finish();
 
         if ((mTargetGuid != null) && mTargetGuid.equals(mAccountController.getAccount().getAccountGuid())) {
             DialogBuilderUtil.buildErrorDialog(this, getString(R.string.chat_sendmessage_ownGuid), 0, onCloseListener)
@@ -2584,7 +2494,7 @@ public abstract class BaseChatActivity
                 }
             }
         } else {
-            final Long forwardMessageId = getIntent().getLongExtra(EXTRA_FORWARD_MESSAGE_ID, -1);
+            final long forwardMessageId = getIntent().getLongExtra(EXTRA_FORWARD_MESSAGE_ID, -1);
 
             if (forwardMessageId == -1) {
                 return;
@@ -2640,35 +2550,29 @@ public abstract class BaseChatActivity
                             LogUtil.d(TAG, "checkActionContainer: Processing SendActionContainer.TYPE_FILE.");
                             if (mActionContainer.uris != null && mActionContainer.uris.size() > 0) {
                                 final Uri fileUri = mActionContainer.uris.get(0);
-                                final DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(final DialogInterface dialog, final int which) {
-                                        // Action may take a while. Remove dialog immediately to signal user that we are on our way.
-                                        dialog.dismiss();
-                                        closeCommentView();
-                                        try {
-                                            final Uri fileUri = mActionContainer.uris.get(0);
+                                final DialogInterface.OnClickListener positiveListener = (dialog, which) -> {
+                                    // Action may take a while. Remove dialog immediately to signal user that we are on our way.
+                                    dialog.dismiss();
+                                    closeCommentView();
+                                    try {
+                                        final Uri fileUri1 = mActionContainer.uris.get(0);
 
-                                            checkChat();
-                                            if (mChatAdapter != null && mChatAdapter.getCount() == 0) {
-                                                mPreferencesController.incNumberOfStartedChats();
-                                            }
-                                            getChatController().sendFile(BaseChatActivity.this, mTargetGuid, mPublicKeyXML,
-                                                    fileUri, true, null, null, mOnSendMessageListener, buildCitationFromSelectedChatItem());
-                                            mActionContainer = null;
-                                            setResult(RESULT_OK);
-                                        } catch (final LocalizedException e) {
-                                            LogUtil.w(TAG, "checkActionContainer: SendActionContainer.TYPE_FILE caught " + e.getMessage());
+                                        checkChat();
+                                        if (mChatAdapter != null && mChatAdapter.getCount() == 0) {
+                                            mPreferencesController.incNumberOfStartedChats();
                                         }
+                                        getChatController().sendFile(BaseChatActivity.this, mTargetGuid, mPublicKeyXML,
+                                                fileUri1, true, null, null, mOnSendMessageListener, buildCitationFromSelectedChatItem());
+                                        mActionContainer = null;
+                                        setResult(RESULT_OK);
+                                    } catch (final LocalizedException e) {
+                                        LogUtil.w(TAG, "checkActionContainer: SendActionContainer.TYPE_FILE caught " + e.getMessage());
                                     }
                                 };
 
-                                final DialogInterface.OnClickListener negativeListener = new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(final DialogInterface dialog, final int which) {
-                                        closeCommentView();
-                                        setResult(RESULT_CANCELED);
-                                    }
+                                final DialogInterface.OnClickListener negativeListener = (dialog, which) -> {
+                                    closeCommentView();
+                                    setResult(RESULT_CANCELED);
                                 };
 
                                 final FileUtil fu = new FileUtil(this);
@@ -2744,7 +2648,6 @@ public abstract class BaseChatActivity
         if (!StringUtil.isNullOrEmpty(filename)) {
             final String sendButton = getResources().getString(R.string.general_send);
             final String cancelButton = getResources().getString(R.string.general_no_thank);
-            final String title = getResources().getString(R.string.send_action_file_send_title);
 
             final StringBuilder sb = new StringBuilder(getResources().getString(R.string.send_action_file_send_hint));
 
@@ -2917,46 +2820,38 @@ public abstract class BaseChatActivity
         if (mOverflowMenuDialog != null) {
             mOverflowMenuDialog.hide();
         }
-        final DialogInterface.OnClickListener positiveOnClickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog,
-                                final int which) {
-                final Chat chat = getChatController().getChatByGuid(mTargetGuid);
+        final DialogInterface.OnClickListener positiveOnClickListener = (dialog, which) -> {
+            final Chat chat = getChatController().getChatByGuid(mTargetGuid);
 
-                if (chat != null) {
-                    showIdleDialog();
-                    getChatController().clearChat(chat, new GenericActionListener<Void>() {
+            if (chat != null) {
+                showIdleDialog();
+                getChatController().clearChat(chat, new GenericActionListener<Void>() {
 
-                        @Override
-                        public void onSuccess(Void object) {
-                            dismissIdleDialog();
-                            mLastMessageId = ChatController.NO_MESSAGE_ID_FOUND;
+                    @Override
+                    public void onSuccess(Void object) {
+                        dismissIdleDialog();
+                        mLastMessageId = ChatController.NO_MESSAGE_ID_FOUND;
 
-                            if (hasHeaderView()) {
-                                mListView.removeHeaderView(mLoadMoreView);
-                            }
-
-                            if (!StringUtil.isNullOrEmpty(mTargetGuid)) {
-                                getSimsMeApplication().getChatOverviewController().chatChanged(null, mTargetGuid, null,
-                                        ChatOverviewController.CHAT_CHANGED_CLEAR_CHAT);
-                            }
+                        if (hasHeaderView()) {
+                            mListView.removeHeaderView(mLoadMoreView);
                         }
 
-                        @Override
-                        public void onFail(String message, String errorIdent) {
-                            dismissIdleDialog();
-                            DialogBuilderUtil.buildErrorDialog(BaseChatActivity.this,
-                                    message).show();
+                        if (!StringUtil.isNullOrEmpty(mTargetGuid)) {
+                            getSimsMeApplication().getChatOverviewController().chatChanged(null, mTargetGuid, null,
+                                    ChatOverviewController.CHAT_CHANGED_CLEAR_CHAT);
                         }
-                    });
-                }
+                    }
+
+                    @Override
+                    public void onFail(String message, String errorIdent) {
+                        dismissIdleDialog();
+                        DialogBuilderUtil.buildErrorDialog(BaseChatActivity.this,
+                                message).show();
+                    }
+                });
             }
         };
-        final DialogInterface.OnClickListener negativeOnClickListener = new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(final DialogInterface dialog,
-                                final int which) {
-            }
+        final DialogInterface.OnClickListener negativeOnClickListener = (dialog, which) -> {
         };
 
         final String title = getResources().getString(R.string.chats_clear_chat);
@@ -2980,7 +2875,7 @@ public abstract class BaseChatActivity
     public void onChatDataChanged(final boolean clearImageCache) {
     }
 
-    class InvalidDateException
+    static class InvalidDateException
             extends Exception {
         private static final long serialVersionUID = -8517774871137413532L;
     }

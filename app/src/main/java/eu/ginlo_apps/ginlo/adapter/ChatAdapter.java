@@ -32,7 +32,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.collection.SparseArrayCompat;
-import androidx.core.content.ContextCompat;
 import androidx.emoji.widget.EmojiAppCompatTextView;
 import com.google.zxing.Dimension;
 
@@ -70,7 +69,7 @@ import eu.ginlo_apps.ginlo.model.chat.VoiceChatItemVO;
 import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
 import eu.ginlo_apps.ginlo.util.ChannelColorUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
@@ -185,7 +184,7 @@ public class ChatAdapter
                 View selectionOverlay = chatItemLayout.findViewById(R.id.chat_item_selection_overlay);
                 if(selectionOverlay != null)
                 {
-                    selectionOverlay.setBackgroundColor(chatItemVO.isSelected() ? ColorUtil.getInstance().getAppAccentColor(mApplication) : ColorUtil.getInstance().getTransparentColor(mApplication));
+                    selectionOverlay.setBackgroundColor(chatItemVO.isSelected() ? ScreenDesignUtil.getInstance().getAppAccentColor(mApplication) : ScreenDesignUtil.getInstance().getTransparentColor(mApplication));
                 }
                 mPositionToViewMapping.put(position, chatItemLayout);
                 return chatItemLayout;
@@ -487,20 +486,20 @@ public class ChatAdapter
                         final TextView contactTypeTextView = linearLayout.findViewById(R.id.chat_item_contact_type);
 
                         // Default fillings
-                        int indicatorColor = ColorUtil.getInstance().getLowColor(mApplication);
-                        int indicatorContrastColor = ColorUtil.getInstance().getLowContrastColor(mApplication);
+                        int indicatorColor = ScreenDesignUtil.getInstance().getLowColor(mApplication);
+                        int indicatorContrastColor = ScreenDesignUtil.getInstance().getLowContrastColor(mApplication);
                         String tmpTextViewText = "     ";
 
                         final Contact contact = mContactController.getContactByGuid(chatItemVO.getFromGuid());
                         if(contact != null) {
                             switch(contact.getState()) {
                                 case Contact.STATE_HIGH_TRUST:
-                                    indicatorColor = ColorUtil.getInstance().getHighColor(mApplication);
-                                    indicatorContrastColor = ColorUtil.getInstance().getHighContrastColor(mApplication);
+                                    indicatorColor = ScreenDesignUtil.getInstance().getHighColor(mApplication);
+                                    indicatorContrastColor = ScreenDesignUtil.getInstance().getHighContrastColor(mApplication);
                                     break;
                                 case Contact.STATE_MIDDLE_TRUST:
-                                    indicatorColor = ColorUtil.getInstance().getMediumColor(mApplication);
-                                    indicatorContrastColor = ColorUtil.getInstance().getMediumContrastColor(mApplication);
+                                    indicatorColor = ScreenDesignUtil.getInstance().getMediumColor(mApplication);
+                                    indicatorContrastColor = ScreenDesignUtil.getInstance().getMediumContrastColor(mApplication);
                                     break;
                                 case Contact.STATE_LOW_TRUST:
                                 default:
@@ -607,9 +606,9 @@ public class ChatAdapter
             }
             textView.setMovementMethod(getLinkMovementMethod());
             if(textChatItemVO.direction == BaseChatItemVO.DIRECTION_RIGHT)
-                textView.setLinkTextColor(ColorUtil.getInstance().getContextMainColor((SimsMeApplication) getContext().getApplicationContext()));
+                textView.setLinkTextColor(ScreenDesignUtil.getInstance().getContextMainColor((SimsMeApplication) getContext().getApplicationContext()));
             else
-                textView.setLinkTextColor(ColorUtil.getInstance().getContextTextColor((SimsMeApplication) getContext().getApplicationContext()));
+                textView.setLinkTextColor(ScreenDesignUtil.getInstance().getContextTextColor((SimsMeApplication) getContext().getApplicationContext()));
 
         }
 
@@ -809,7 +808,7 @@ public class ChatAdapter
                     }
                 }
 
-                background.setImageBitmapFormColor(ColorUtil.getInstance().getChatItemColor((Application) getContext().getApplicationContext()));
+                background.setImageBitmapFormColor(ScreenDesignUtil.getInstance().getChatItemColor((Application) getContext().getApplicationContext()));
             }
         }
         filenameTextView.setText(filename);
@@ -846,7 +845,7 @@ public class ChatAdapter
         if (imageChatItemVO.isPriority) {
             if (importantView != null) {
                 importantView.setVisibility(View.VISIBLE);
-                description.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
+                description.setTextColor(ScreenDesignUtil.getInstance().getAlertColor(mApplication));
             }
         } else {
             if (importantView != null) {
@@ -893,7 +892,7 @@ public class ChatAdapter
         if (videoChatItemVO.isPriority) {
             if (importantView != null) {
                 importantView.setVisibility(View.VISIBLE);
-                description.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
+                description.setTextColor(ScreenDesignUtil.getInstance().getAlertColor(mApplication));
             }
         } else {
             if (importantView != null) {
@@ -916,14 +915,14 @@ public class ChatAdapter
                 }
 
                 if (voiceChatItemVO.isPriority) {
-                    background.setImageBitmapFormColor(ColorUtil.getInstance().getAlertColor(mApplication));
+                    background.setImageBitmapFormColor(ScreenDesignUtil.getInstance().getAlertColor(mApplication));
 
                     final TextView label = linearLayout.findViewById(R.id.chat_item_text_view_type);
                     final TextView clockView = linearLayout.findViewById(R.id.chat_item_text_view_clock);
-                    label.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
-                    clockView.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
+                    label.setTextColor(ScreenDesignUtil.getInstance().getAlertColor(mApplication));
+                    clockView.setTextColor(ScreenDesignUtil.getInstance().getAlertColor(mApplication));
                 } else {
-                    background.setImageBitmapFormColor(ColorUtil.getInstance().getChatItemColor((SimsMeApplication) getContext().getApplicationContext()));
+                    background.setImageBitmapFormColor(ScreenDesignUtil.getInstance().getChatItemColor((SimsMeApplication) getContext().getApplicationContext()));
                 }
             }
         }
@@ -937,9 +936,9 @@ public class ChatAdapter
             textView.setText(appGinloControlChatItemVO.displayMessage);
 
             if(appGinloControlChatItemVO.direction == BaseChatItemVO.DIRECTION_RIGHT)
-                textView.setLinkTextColor(ColorUtil.getInstance().getContextMainColor((SimsMeApplication) getContext().getApplicationContext()));
+                textView.setLinkTextColor(ScreenDesignUtil.getInstance().getContextMainColor((SimsMeApplication) getContext().getApplicationContext()));
             else
-                textView.setLinkTextColor(ColorUtil.getInstance().getContextTextColor((SimsMeApplication) getContext().getApplicationContext()));
+                textView.setLinkTextColor(ScreenDesignUtil.getInstance().getContextTextColor((SimsMeApplication) getContext().getApplicationContext()));
 
         }
     }
@@ -980,7 +979,7 @@ public class ChatAdapter
                     clockView.setVisibility(View.GONE);
                 }
             }
-            background.setImageBitmapFormColor(ColorUtil.getInstance().getBlackColor(mApplication));
+            background.setImageBitmapFormColor(ScreenDesignUtil.getInstance().getBlackColor(mApplication));
         }
     }
 
@@ -1123,13 +1122,13 @@ public class ChatAdapter
 
         if (selfDestructionChatItemVO.isPriority) {
             if (background != null) {
-                background.setImageBitmapFormColor(ColorUtil.getInstance().getAlertColor(mApplication));
+                background.setImageBitmapFormColor(ScreenDesignUtil.getInstance().getAlertColor(mApplication));
             }
-            destructionType.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
-            destructionLabel.setTextColor(ColorUtil.getInstance().getAlertColor(mApplication));
+            destructionType.setTextColor(ScreenDesignUtil.getInstance().getAlertColor(mApplication));
+            destructionLabel.setTextColor(ScreenDesignUtil.getInstance().getAlertColor(mApplication));
         } else {
             if (background != null) {
-                background.setImageBitmapFormColor(ColorUtil.getInstance().getChatItemColor((Application) getContext().getApplicationContext()));
+                background.setImageBitmapFormColor(ScreenDesignUtil.getInstance().getChatItemColor((Application) getContext().getApplicationContext()));
             }
         }
     }

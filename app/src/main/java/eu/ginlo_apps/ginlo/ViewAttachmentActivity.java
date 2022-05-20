@@ -2,6 +2,7 @@
 package eu.ginlo_apps.ginlo;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -16,16 +17,28 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.*;
 
+import com.github.barteksc.pdfviewer.PDFView;
+import com.github.barteksc.pdfviewer.link.DefaultLinkHandler;
+import com.github.barteksc.pdfviewer.link.LinkHandler;
+import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
+import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
+import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
+import com.github.barteksc.pdfviewer.listener.OnRenderListener;
+import com.github.barteksc.pdfviewer.model.LinkTapEvent;
+import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
+import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.chrisbanes.photoview.PhotoView;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ui.StyledPlayerControlView;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
+import com.shockwave.pdfium.PdfDocument;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,17 +48,24 @@ import java.io.OutputStream;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.util.*;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
 
 public class ViewAttachmentActivity
-        extends BaseActivity implements Player.Listener {
+        extends BaseActivity implements Player.Listener,
+        OnLoadCompleteListener,
+        OnPageChangeListener,
+        OnPageErrorListener,
+        OnRenderListener,
+        LinkHandler {
 
     private final static String TAG = ViewAttachmentActivity.class.getSimpleName();
 
     public static final String EXTRA_BITMAP_URI = "AttachmentActivity.imageData";
     public static final String EXTRA_VIDEO_URI = "AttachmentActivity.videoUri";
     public static final String EXTRA_VOICE_URI = "AttachmentActivity.voiceUri";
+    public static final String EXTRA_PDF_URI = "AttachmentActivity.pdfUri";
     public static final String EXTRA_ATTACHMENT_GUID = "AttachmentActivity.atachementGuid";
     public static final String EXTRA_ATTACHMENT_DESCRIPTION = "AttachmentActivity.AttachmentDescription";
 
@@ -58,6 +78,8 @@ public class ViewAttachmentActivity
     private StyledPlayerControlView audioView;
     private Uri videoUri;
     private Uri voiceUri;
+    private Uri pdfUri;
+    private PDFView pdfView;
     private TextView mAttachmentDescriptionView;
     private boolean mHasAttachmentDesc;
     private SimpleExoPlayer mAudioPlayer;
@@ -84,6 +106,7 @@ public class ViewAttachmentActivity
 
         videoView = findViewById(R.id.attachment_video_view);
         audioView = findViewById(R.id.attachment_audio_view);
+        pdfView = findViewById(R.id.attachment_pdf_view);
 
         final ScrollView scrollView = findViewById(R.id.attachment_description_scrollview);
         final PreferencesController preferencesController = ((SimsMeApplication) getApplication()).getPreferencesController();
@@ -93,6 +116,7 @@ public class ViewAttachmentActivity
         final String imageUriString = intent.getStringExtra(EXTRA_BITMAP_URI);
         final String videoUriString = intent.getStringExtra(EXTRA_VIDEO_URI);
         final String voiceUriString = intent.getStringExtra(EXTRA_VOICE_URI);
+        final String pdfUriString = intent.getStringExtra(EXTRA_PDF_URI);
 
         final String attachmentDescription = intent.getStringExtra(EXTRA_ATTACHMENT_DESCRIPTION);
 
@@ -116,6 +140,7 @@ public class ViewAttachmentActivity
             imageView.setVisibility(View.VISIBLE);
             videoView.setVisibility(View.GONE);
             audioView.setVisibility(View.GONE);
+            pdfView.setVisibility(View.GONE);
 
             final View.OnTouchListener imageOtl;
             if (mHasAttachmentDesc) {
@@ -180,6 +205,7 @@ public class ViewAttachmentActivity
             videoView.setVisibility(View.VISIBLE);
             imageView.setVisibility(View.GONE);
             audioView.setVisibility(View.GONE);
+            pdfView.setVisibility(View.GONE);
             scrollView.setVisibility(View.GONE);
 
         } else if (voiceUriString != null) {
@@ -197,6 +223,34 @@ public class ViewAttachmentActivity
             mAudioPlayer.addListener(this);
 
             audioView.setVisibility(View.VISIBLE);
+            imageView.setVisibility(View.GONE);
+            videoView.setVisibility(View.GONE);
+            pdfView.setVisibility(View.GONE);
+            scrollView.setVisibility(View.GONE);
+
+        } else if (pdfUriString != null) {
+            pdfUri = Uri.parse(pdfUriString);
+            LogUtil.d(TAG, "Preparing for pdf viewing: " + pdfUri);
+
+            pdfView.fromUri(pdfUri)
+                    .defaultPage(0)
+
+                    .swipeHorizontal(true)
+                    .pageSnap(true)
+                    .autoSpacing(true)
+                    .pageFling(true)
+
+                    .onPageChange(this)
+                    .enableAnnotationRendering(true)
+                    .linkHandler(this)
+                    .onLoad(this)
+                    .scrollHandle(new DefaultScrollHandle(this))
+                    .spacing(10) // in dp
+                    .onPageError(this)
+                    .load();
+
+            pdfView.setVisibility(View.VISIBLE);
+            audioView.setVisibility(View.GONE);
             imageView.setVisibility(View.GONE);
             videoView.setVisibility(View.GONE);
             scrollView.setVisibility(View.GONE);
@@ -469,6 +523,25 @@ public class ViewAttachmentActivity
                         if (showToast) {
                             Toast.makeText(ViewAttachmentActivity.this, R.string.dialog_saveToGallery_voice_finished, Toast.LENGTH_LONG).show();
                         }
+                    } else if (pdfUri != null) {
+                        final String filename = pdfUri.getLastPathSegment() != null ? pdfUri.getLastPathSegment() : "download.pdf";
+                        if(!mStorageUtil.storeMediaFile(pdfUri,
+                                mMediaDestinationUri,
+                                filename,
+                                MimeType.APP_PDF,
+                                forceOverwrite)) {
+                            LogUtil.e(TAG, "saveMedia: Saving " + filename + " failed!");
+                            Toast.makeText(ViewAttachmentActivity.this,
+                                    mApplication.getResources().getString(R.string.dialog_saveToGallery_pdf_failed, filename),
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        if (showToast) {
+                            Toast.makeText(ViewAttachmentActivity.this,
+                                    mApplication.getResources().getString(R.string.dialog_saveToGallery_pdf_finished, filename),
+                                    Toast.LENGTH_LONG).show();
+                        }
                     }
                 }
             }
@@ -494,26 +567,64 @@ public class ViewAttachmentActivity
     }
 
     @Override
-    public void onPlayerError(ExoPlaybackException error) {
-        if (error.type == ExoPlaybackException.TYPE_SOURCE) {
-            IOException cause = error.getSourceException();
-            if (cause instanceof HttpDataSource.HttpDataSourceException) {
-                // An HTTP error occurred.
-                HttpDataSource.HttpDataSourceException httpError = (HttpDataSource.HttpDataSourceException) cause;
-                // This is the request for which the error occurred.
-                DataSpec requestDataSpec = httpError.dataSpec;
-                // It's possible to find out more about the error both by casting and by
-                // querying the cause.
-                if (httpError instanceof HttpDataSource.InvalidResponseCodeException) {
-                    // Cast to InvalidResponseCodeException and retrieve the response code,
-                    // message and headers.
-                } else {
-                    // Try calling httpError.getCause() to retrieve the underlying cause,
-                    // although note that it may be null.
-                }
-            }
-        }
+    public void onPlayerError(PlaybackException error) {
+        LogUtil.w(TAG, "onPlayerError: " + error.getMessage());
         releasePlayers();
+    }
+
+    @Override
+    public void onPageChanged(int page, int pageCount) {
+
+    }
+
+    @Override
+    public void onPageError(int page, Throwable t) {
+        LogUtil.e(TAG, "onPageError: Cannot load page " + page);
+    }
+
+    @Override
+    public void loadComplete(int nbPages) {
+        PdfDocument.Meta meta = pdfView.getDocumentMeta();
+        LogUtil.d(TAG, "title = " + meta.getTitle());
+        LogUtil.d(TAG, "author = " + meta.getAuthor());
+        LogUtil.d(TAG, "subject = " + meta.getSubject());
+        LogUtil.d(TAG, "keywords = " + meta.getKeywords());
+        LogUtil.d(TAG, "creator = " + meta.getCreator());
+        LogUtil.d(TAG, "producer = " + meta.getProducer());
+        LogUtil.d(TAG, "creationDate = " + meta.getCreationDate());
+        LogUtil.d(TAG, "modDate = " + meta.getModDate());
+    }
+
+    @Override
+    public void handleLinkEvent(LinkTapEvent event) {
+        LogUtil.d(TAG, "handleLinkEvent = " + event.getLink());
+        String uri = event.getLink().getUri();
+        Integer page = event.getLink().getDestPageIdx();
+        if (uri != null && !uri.isEmpty()) {
+            handleUri(uri);
+        } else if (page != null) {
+            handlePage(page);
+        }
+    }
+
+    private void handleUri(String uri) {
+        Uri parsedUri = Uri.parse(uri);
+        Intent intent = new Intent(Intent.ACTION_VIEW, parsedUri);
+        Context context = pdfView.getContext();
+        if (intent.resolveActivity(this.getPackageManager()) != null) {
+            this.startActivity(intent);
+        } else {
+            LogUtil.w(TAG, "handleUri: No activity found for URI: " + uri);
+        }
+    }
+
+    private void handlePage(int page) {
+        pdfView.jumpTo(page);
+    }
+
+    @Override
+    public void onInitiallyRendered(int nbPages) {
+
     }
 }
 

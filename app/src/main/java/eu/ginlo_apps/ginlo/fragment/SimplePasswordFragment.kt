@@ -2,7 +2,6 @@
 
 package eu.ginlo_apps.ginlo.fragment
 
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -13,12 +12,11 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
-import androidx.core.content.ContextCompat
 import eu.ginlo_apps.ginlo.BaseActivity
 import eu.ginlo_apps.ginlo.LoginActivity
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.themedInflater
-import eu.ginlo_apps.ginlo.util.ColorUtil
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.KeyboardUtil
 import eu.ginlo_apps.ginlo.util.RuntimeConfig
 import kotlinx.android.synthetic.main.simple_password_layout.view.simple_password_edit_text_field
@@ -80,7 +78,7 @@ class SimplePasswordFragment : BasePasswordFragment() {
         openKeyboard()
         val nextButton = requireActivity().findViewById<Button>(R.id.next_button)
         if (RuntimeConfig.isBAMandant() && nextButton != null && activity != null) {
-            ColorUtil.setColorFilter(nextButton.background, ColorUtil.getInstance().getAppAccentColor(activity?.application))
+            ScreenDesignUtil.setColorFilter(nextButton.background, ScreenDesignUtil.getInstance().getAppAccentColor(activity?.application))
         }
 
         return rootView

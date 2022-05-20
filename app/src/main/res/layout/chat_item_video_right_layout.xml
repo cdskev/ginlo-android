@@ -86,7 +86,7 @@
                 android:paddingEnd="@dimen/activity_horizontal_margin"
                 android:paddingBottom="8dp"
                 android:textColor="@color/main"
-                app:styledTextSize="messageTextSize"
+                android:textSize="?attr/messageTextSize"
                 android:visibility="gone"
                 tools:text="Bildbeschreibung"
                 tools:visibility="visible" />

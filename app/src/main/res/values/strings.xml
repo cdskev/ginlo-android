@@ -521,7 +521,7 @@
     <string name="content_description_profile_image_choose">Select user picture</string>
     <string name="content_description_profile_qr_code">QR code</string>
     <string name="content_description_send_media_delete">Delete element</string>
-    <string name="content_description_view_attachment_save">Save in gallery</string>
+    <string name="content_description_view_attachment_save">Save file</string>
     <string name="content_rss_link_more">more …</string>
     <string name="context_group_menu_add_as_admin_label">Add as administrator</string>
     <string name="context_group_menu_delete_member_label">Delete group member</string>
@@ -597,10 +597,12 @@
     <string name="dialog_saveToGallery_choose_mediadir">You are now forwarded to the directory picker of your device. Please choose a folder for ginlo to store your media files. This has to be done only once.</string>
     <string name="dialog_saveToGallery_bitmap_finished">Image saved.</string>
     <string name="dialog_saveToGallery_failed">Saving of media file failed.</string>
-    <string name="dialog_saveToGallery_body">Save to gallery?</string>
+    <string name="dialog_saveToGallery_body">Save to device folder</string>
     <string name="dialog_saveToGallery_title">Save</string>
     <string name="dialog_saveToGallery_video_finished">Video saved.</string>
     <string name="dialog_saveToGallery_voice_finished">Audio message saved.</string>
+    <string name="dialog_saveToGallery_pdf_finished">%1$s saved.</string>
+    <string name="dialog_saveToGallery_pdf_failed">Saving of %1$s failed.</string>
     <string name="drawer_promotion_ba_text">Even more features with the ginlo Business Messenger</string>
     <string name="ecommerceTextKey">eCommerce</string>
     <string name="enter_password_hint">Please enter the password to continue with the registration.</string>
@@ -1049,7 +1051,6 @@
     <string name="settings_others_title">Other</string>
     <string name="settings_appearance_screenshots">Screen contents (must restart app)</string>
     <string name="settings_appearance_ginlo_ongoing_service">Keep ginlo awake (must restart app)</string>
-    <string name="settings_appearance_show_ongoing_notification">Show ginlo service notification</string>
     <string name="settings_askForPassword_setTime">Request password after</string>
     <string name="settings_askForPassword_setTime_description">You will be asked to enter the password after the app has been in the background for this number of minutes.</string>
     <string name="settings_askForPassword_setTime_hint">Determines how many minutes the program will be running in the background before it requests your password.</string>
@@ -1095,6 +1096,7 @@
     <string name="settings_chat_blockedContacts_description">Show all blocked contacts</string>
     <string name="settings_chat_blockedContacts_empty">No contacts are currently blocked</string>
     <string name="settings_chat_imagesInCameraRoll">Backup media automatically</string>
+    <string name="settings_chat_use_internal_pdf_viewer">Use internal reader for pdf-files</string>
     <string name="settings_chat_persistmessages_detail">%1$d days</string>
     <string name="settings_chat_persistmessages_title">Messages available on server</string>
     <string name="settings_chat_saveMedia_info">If you activate this option, all media that you receive is automatically saved on your phone and can be viewed outside of ginlo.</string>
@@ -1290,7 +1292,7 @@
     <string name="settings_video_quality_xl">Very high</string>
     <string name="share_file_titel">Open file</string>
     <string name="shoppingTextKey">Shopping</string>
-    <string name="simsme">SIMSme</string>
+    <string name="simsme">ginlo</string>
     <string name="simsme_id_button">Complete your profile</string>
     <string name="simsme_id_header">Your identity on ginlo is linked to the following ginlo ID:</string>
     <string name="simsme_id_hint">Other users can find you with this ID. Please complete your profile so that your colleagues can address you by name.</string>
@@ -1333,6 +1335,11 @@
     <string name="notification_gos_running">ginlo service is running</string>
     <string name="settings_appearance_run_darkmode">Activate Darkmode</string>
     <string name="settings_appearance_allow_screenshots">Allow Screenshots (Caution: also exposes contents to app previews)</string>
+    <string name="settings_others_use_osm_title">Location service</string>
+    <string name="settings_others_use_osm_text">Use OpenStreetMap</string>
+    <string name="settings_others_use_polling_text">Use polling (May increase battery usage!)</string>
+    <string name="settings_others_use_ps_title">Google FCM / Play Services</string>
+    <string name="settings_others_use_ps_text">Use FCM / PlayServices (Only change if you know what you are doing!)</string>
     <string name="settings_appearance_run_ginlo_ongoing_service">Run ginlo service</string>
     <string name="chats_AVC_call_answered">Joining the audio/video call ...</string>
     <string name="chats_AVC_call_rejected">Cannot join the audio/video call</string>
@@ -1346,4 +1353,9 @@
     <string name="settings_appearance_theme_mode_light">Light</string>
     <string name="settings_appearance_theme_mode_dark">Dark</string>
     <string name="settings_appearance_theme_mode_auto">Auto</string>
+    <string name="settings_appearance_theme">Theme (experimental)</string>
+    <string name="settings_appearance_theme_name_default">Default</string>
+    <string name="settings_appearance_theme_name_small">Small Font</string>
+    <string name="settings_appearance_theme_name_large">Large Font</string>
+    <string name="settings_others_use_polling_title">Message Polling</string>
 </resources>

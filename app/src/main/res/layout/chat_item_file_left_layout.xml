@@ -46,7 +46,7 @@
                 android:layout_marginBottom="@dimen/standard_padding"
                 android:maxLines="1"
                 android:textColor="#43ad7f"
-                app:styledTextSize="commentTextSize"
+                android:textSize="?attr/labelTextSize"
                 android:visibility="gone"
                 tools:text="Max Mustermann"
                 tools:visibility="visible" />
@@ -114,7 +114,7 @@
                         android:ellipsize="middle"
                         android:singleLine="true"
                         android:textColor="@color/text_color"
-                        app:styledTextSize="messageTextSize"
+                        android:textSize="?attr/messageTextSize"
                         tools:text="Datei.psd" />
 
                     <androidx.appcompat.widget.AppCompatTextView
@@ -123,7 +123,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="end"
                         android:textColor="@color/text_color"
-                        app:styledTextSize="commentTextSize"
+                        android:textSize="?attr/labelTextSize"
                         tools:text="2,4 MB" />
 
                 </LinearLayout>

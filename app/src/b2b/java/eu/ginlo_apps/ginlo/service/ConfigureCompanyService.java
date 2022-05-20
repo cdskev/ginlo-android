@@ -135,7 +135,7 @@ public class ConfigureCompanyService extends IntentService {
                     app.getLoginController().loginCompleteSuccess(null, null, null);
                 }
 
-                app.getMessageController().startMessageTaskSync(null, false, false, true);
+                app.getMessageController().startMessageTaskSync(null, null, false, false, true);
 
                 long wait = 0;
                 while (wait < 60000) {
@@ -144,7 +144,7 @@ public class ConfigureCompanyService extends IntentService {
                     if (hasEncryptionInfo()) {
                         break;
                     }
-                    app.getMessageController().startMessageTaskSync(null, false, false, true);
+                    app.getMessageController().startMessageTaskSync(null, null, false, false, true);
                 }
 
                 if (!hasEncryptionInfo()) {

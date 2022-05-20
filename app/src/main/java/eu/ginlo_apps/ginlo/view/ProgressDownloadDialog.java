@@ -2,15 +2,12 @@
 package eu.ginlo_apps.ginlo.view;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
-import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 
 /**
  * Created by Florian on 22.06.16.

@@ -26,5 +26,5 @@
         android:maxLines="1"
         android:text="@string/chats_load_previous_messages_title"
         android:textColor="@color/mainContrast"
-        app:styledTextSize="chooserTextSize" />
+        android:textSize="?attr/chooserTextSize" />
 </LinearLayout>

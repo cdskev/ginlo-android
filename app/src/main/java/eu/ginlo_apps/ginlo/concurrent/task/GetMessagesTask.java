@@ -1,46 +1,54 @@
 // Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.concurrent.task;
 
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import org.greenrobot.greendao.query.QueryBuilder;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
-import eu.ginlo_apps.ginlo.AVCallMenuActivity;
 import eu.ginlo_apps.ginlo.BuildConfig;
-import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
+import eu.ginlo_apps.ginlo.concurrent.listener.ConcurrentTaskListener;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
+import eu.ginlo_apps.ginlo.controller.ContactController;
+import eu.ginlo_apps.ginlo.controller.KeyController;
 import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.controller.message.MessageController;
+import eu.ginlo_apps.ginlo.controller.message.tasks.MessageConcurrentTaskListener;
+import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Channel;
+import eu.ginlo_apps.ginlo.greendao.Contact;
+import eu.ginlo_apps.ginlo.greendao.GreenDAOSecurityLayer;
 import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.greendao.MessageDao;
 import eu.ginlo_apps.ginlo.greendao.MessageDao.Properties;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.model.AppGinloControlMessage;
+import eu.ginlo_apps.ginlo.model.DecryptedMessage;
 import eu.ginlo_apps.ginlo.model.backend.BackendResponse;
 import eu.ginlo_apps.ginlo.model.backend.ConfirmReadReceipt;
 import eu.ginlo_apps.ginlo.model.backend.MsgExceptionModel;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.service.BackendService;
+import eu.ginlo_apps.ginlo.service.NotificationIntentService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.MessageDaoHelper;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -56,12 +64,14 @@ public class GetMessagesTask
     private final AttachmentController mAttachmentController;
     private final ChannelController mChannelController;
     private final NotificationController mNotificationController;
+    private final ContactController mContactController;
     private final boolean mUseLazyMsgService;
     private final boolean mUseBgEndpoint;
     private final List<String> mNewSoundMessageGuids = new ArrayList<>();
     private final List<Message> mNewMessages = new ArrayList<>();
     private final SimsMeApplication mApplication;
     private final String mAccountGuid;
+    private Map<String, String> mNotificationExtras;
     private int mNewMessageFlags;
     private boolean mProcessChannelMessages;
     private MsgExceptionModel mMsgExceptionModel;
@@ -84,12 +94,22 @@ public class GetMessagesTask
         mAttachmentController = application.getAttachmentController();
         mChannelController = application.getChannelController();
         mNotificationController = application.getNotificationController();
+        mContactController = application.getContactController();
         mNewMessageFlags = -1;
         mUseLazyMsgService = useLazyMsgService;
         mOnlyPrioMsg = onlyPrioMsg;
 
         mUseBgEndpoint = useInBackground;
         mAccountGuid = application.getAccountController().getAccount().getAccountGuid();
+    }
+
+    @Override
+    public void addListener(ConcurrentTaskListener listener) {
+        super.addListener(listener);
+        if(listener instanceof MessageConcurrentTaskListener) {
+            mNotificationExtras = ((MessageConcurrentTaskListener) listener).getNotificationExtras();
+            LogUtil.d(TAG, "addListener: mNotificationExtras = " + mNotificationExtras);
+        }
     }
 
     @Override
@@ -172,12 +192,12 @@ public class GetMessagesTask
             };
 
         if (mUseBgEndpoint) {
+            // KS: This is getting only Prio1Messages despite other flagging. Why?
             BackendService.withSyncConnection(mApplication).getNewMessagesFromBackground(listener);
         } else if (mOnlyPrioMsg) {
             BackendService.withSyncConnection(mApplication).getPrioMessages(listener);
         } else {
-            BackendService.withSyncConnection(mApplication)
-                .getNewMessages(listener, mUseLazyMsgService);
+            BackendService.withSyncConnection(mApplication).getNewMessages(listener, mUseLazyMsgService);
         }
     }
 
@@ -185,7 +205,7 @@ public class GetMessagesTask
         String msg = String.format("[%s] Error @getNewMessages: %s  ", Thread.currentThread().getName(), response.errorMessage);
         LogUtil.i(TAG, msg);
         Exception ex = new Exception(msg);
-        Sentry.capture(ex);
+        Sentry.captureException(ex);
     }
 
     private void filterResponse(final JsonArray response) {
@@ -261,7 +281,7 @@ public class GetMessagesTask
                                 // Don't push old AVC messages
                                 final long now = new Date().getTime();
                                 LogUtil.d(TAG, "AVC message from " + message.getDateSend() + ". Now: " + now);
-                                if (message.getDateSend() + NotificationController.DISMISS_NOTIFICATION_TIMEOUT < now) {
+                                if (message.getDateSend() + NotificationController.AVC_NOTIFICATION_TIMEOUT < now) {
                                     LogUtil.d(TAG, "filterResponse: Expired AVC message - no notification!");
                                     message.setPushInfo("nopush");
                                     //message.setRead(true);
@@ -272,6 +292,7 @@ public class GetMessagesTask
                 }
 
                 if (message != null && message.getGuid() != null) {
+
                     processMessage(message);
 
                     if (message.getIsSentMessage() != null && message.getIsSentMessage()) {
@@ -385,7 +406,133 @@ public class GetMessagesTask
             if (guid != null) {
                 mNewSoundMessageGuids.add(guid);
                 mNewMessages.add(message);
+                // Trigger notification to user
+                triggerMessageNotification(message, guid);
             }
+        }
+    }
+
+    private void triggerMessageNotification(@NonNull Message message, String targetGuid) {
+
+        final String messageGuid = message.getGuid();
+        final String action = NotificationIntentService.ACTION_NEW_MESSAGES;
+        String senderGuid;
+        String locArgs = "[\"-\"]";
+        String sound = "default";
+        String body = null;
+        String badge = String.valueOf(mNewMessages.size());
+        String pushInfo = message.getPushInfo();
+        String accountGuid = targetGuid;
+
+        // Do we have (FCM) pre-fetched information about the current message? Use it!
+        if(!mNotificationExtras.isEmpty() && mNotificationExtras.containsValue(messageGuid)) {
+            LogUtil.d(TAG, "triggerMessageNotification: Use prefetched FCM infos for " + messageGuid);
+            senderGuid = mNotificationExtras.get("senderGuid");
+            locArgs = mNotificationExtras.get("loc-args");
+            sound = mNotificationExtras.get("sound");
+            badge = mNotificationExtras.get("badge");
+            body = mNotificationExtras.get("body");
+            pushInfo = mNotificationExtras.get("loc-key");
+            accountGuid = mNotificationExtras.get("accountGuid");
+
+        } else {
+            senderGuid = targetGuid;
+            LogUtil.d(TAG, "triggerMessageNotification: No FCM infos, use targetGuid " + senderGuid);
+            if(!StringUtil.isNullOrEmpty(senderGuid)) {
+                try {
+                    final Contact sender = mContactController.getContactByGuid(senderGuid);
+                    if(sender != null) {
+                        final String senderName = sender.getName();
+                        locArgs = "[\"" + senderName + "\"]";
+                    }
+                } catch (LocalizedException e) {
+                    LogUtil.w(TAG, "triggerMessageNotification: Could not get sender's name: " + e.getMessage());
+                }
+            }
+        }
+
+        if(StringUtil.isEqual("nopush", pushInfo)) {
+            LogUtil.i(TAG, "triggerMessageNotification: NoPush flag set for " + messageGuid);
+            return;
+        }
+
+        // Don't push old messages
+        final long now = new Date().getTime();
+        if (message.getDateSend() + NotificationController.OLD_MESSAGE_NOTIFICATION_TIMEOUT < now) {
+            LogUtil.i(TAG, "triggerMessageNotification: Notification expiration exceeded for " + messageGuid);
+            return;
+        }
+
+        // Own message from coupled device?
+        if(StringUtil.isEqual(senderGuid, mAccountGuid)) {
+            LogUtil.i(TAG, "triggerMessageNotification: Own message - no notification for " + messageGuid);
+            return;
+        }
+
+        // Trying to decrypt message - if not possible, it's not for us!
+        // TODO: Decryption is done twice, if we have notification preview enabled!
+        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+            try {
+                // Prepare key for message decryption
+                final KeyController keyController = mApplication.getKeyController();
+                if (!keyController.getInternalKeyReady()) {
+                    keyController.loadInternalEncryptionKeyForNotificationPreview();
+                    GreenDAOSecurityLayer.init(keyController);
+                    keyController.reloadUserKeypairFromAccount();
+                }
+            } catch (final LocalizedException | IOException e) {
+                LogUtil.e(TAG, "triggerMessageNotification: Failed to prepare decryption key for message preview: " + e.getMessage());
+                return;
+            }
+        }
+
+        // Persist decrypted message infos in NotificationController to avoid multiple decryption in further notification processing.
+        final DecryptedMessage decryptedMessage = mApplication.getMessageDecryptionController().decryptMessage(message, false);
+        if(decryptedMessage == null) {
+            LogUtil.w(TAG, "triggerMessageNotification: Message " + messageGuid + " cannot be decrypted! Don't notify user.");
+            return;
+        }
+        mNotificationController.addDecryptedMessageInfo(decryptedMessage);
+
+        // Suppress notification when in same chat - except AVC
+        if(StringUtil.isEqual(targetGuid, mNotificationController.getCurrentChatGuid())
+                && !StringUtil.isEqual(message.getServerMimeType(), MimeType.TEXT_V_CALL)) {
+            LogUtil.d(TAG, "triggerMessageNotification: Suppress message notification for current chat " + targetGuid);
+            return;
+        }
+
+        LogUtil.i(TAG, "triggerMessageNotification: Trigger message notification for " + messageGuid);
+
+        Intent intent = new Intent(mApplication, NotificationIntentService.class);
+        intent.putExtra("accountGuid", accountGuid);
+        intent.putExtra("messageGuid", messageGuid);
+        intent.putExtra("action", action);
+        intent.putExtra("loc-key", pushInfo);
+        intent.putExtra("senderGuid", senderGuid);
+        intent.putExtra("badge", badge);
+        intent.putExtra("loc-args", locArgs);
+        intent.putExtra("sound", sound);
+        if(!StringUtil.isNullOrEmpty(body)) {
+            intent.putExtra("body", body);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (NotificationIntentService.haveToStartAsForegroundService(mApplication, intent)) {
+                LogUtil.d(TAG, "triggerMessageNotification: haveToStartAsForegroundService true");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    LogUtil.d(TAG, "triggerMessageNotification: Start NotificationIntentService as foreground service.");
+                    mApplication.startForegroundService(intent);
+                } else {
+                    LogUtil.d(TAG, "triggerMessageNotification: Start NotificationIntentService.");
+                    mApplication.startService(intent);
+                }
+            } else {
+                LogUtil.d(TAG, "triggerMessageNotification: showNotification");
+                NotificationIntentService.showNotification(mApplication, intent);
+            }
+        } else {
+            LogUtil.d(TAG, "triggerMessageNotification: Start NotificationIntentService.");
+            mApplication.startService(intent);
         }
     }
 

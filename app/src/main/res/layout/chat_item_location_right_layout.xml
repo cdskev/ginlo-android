@@ -61,7 +61,7 @@
                         android:padding="@dimen/half_padding"
                         android:text="@string/chat_location_cell_info_text"
                         android:textColor="@color/mainContrast"
-                        app:styledTextSize="commentTextSize" />
+                        android:textSize="?attr/labelTextSize" />
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>

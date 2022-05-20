@@ -514,7 +514,7 @@
     <string name="content_description_profile_image_choose">Nutzerbild auswählen</string>
     <string name="content_description_profile_qr_code">QR-Code</string>
     <string name="content_description_send_media_delete">Element löschen</string>
-    <string name="content_description_view_attachment_save">In Galerie speichern</string>
+    <string name="content_description_view_attachment_save">Datei speichern</string>
     <string name="content_rss_link_more">mehr…</string>
     <string name="context_group_menu_add_as_admin_label">Admin-Rechte geben</string>
     <string name="context_group_menu_delete_member_label">Teilnehmer entfernen</string>
@@ -589,7 +589,7 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="dialog_licence_is_expired">Ihre Lizenz ist abgelaufen. Bitte fordern Sie von Ihrem Administrator eine Lizenzverlängerung an.</string>
     <string name="dialog_licence_is_expired_title">Lizenzhinweis</string>
     <string name="dialog_saveToGallery_bitmap_finished">Bild gespeichert.</string>
-    <string name="dialog_saveToGallery_body">In Galerie speichern?</string>
+    <string name="dialog_saveToGallery_body">In Geräteordner speichern</string>
     <string name="dialog_saveToGallery_title">Speichern</string>
     <string name="dialog_saveToGallery_video_finished">Video gespeichert.</string>
     <string name="dialog_saveToGallery_voice_finished">Audionachricht gespeichert.</string>
@@ -1321,7 +1321,6 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="settings_appearance_darkmode">Bildschirm-Design</string>
     <string name="settings_appearance_ginlo_ongoing_service">ginlo aktiv halten (App-Neustart erforderlich)</string>
     <string name="settings_appearance_run_ginlo_ongoing_service">ginlo-Service ausführen</string>
-    <string name="settings_appearance_show_ongoing_notification">Statusnachricht anzeigen</string>
     <string name="settings_appearance_run_darkmode">Darkmode aktiv</string>
     <string name="settings_appearance_allow_screenshots">Screenshots erlauben (Vorschauschutz von ginlo wird deaktiviert!)</string>
     <string name="settings_appearance_screenshots">Bildinhalte (App-Neustart erforderlich)</string>
@@ -1347,4 +1346,8 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="settings_appearance_theme_mode_light">Hell</string>
     <string name="settings_appearance_theme_mode_dark">Dunkel</string>
     <string name="settings_appearance_theme_mode_auto">Auto</string>
+    <string name="settings_others_use_osm_title">Standortdienst</string>
+    <string name="settings_others_use_osm_text">OpenStreetMap verwenden</string>
+    <string name="settings_others_use_polling_text">Nachrichten pollen (kann den Akkuverbrauch erhöhen!)</string>
+    <string name="settings_chat_use_internal_pdf_viewer">Internen Reader für pdf-Dateien verwenden</string>
 </resources>

@@ -1,9 +1,7 @@
 // Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.chatsOverview;
 
-import android.app.Activity;
 import android.app.Dialog;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,7 +26,6 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -54,19 +51,15 @@ import eu.ginlo_apps.ginlo.activity.chat.DistributorChatActivity;
 import eu.ginlo_apps.ginlo.activity.chat.GroupChatActivity;
 import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity;
 import eu.ginlo_apps.ginlo.activity.chat.SystemChatActivity;
-import eu.ginlo_apps.ginlo.activity.chatsOverview.ChatsAdapter;
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemClick;
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemLongClick;
 import eu.ginlo_apps.ginlo.activity.device.DevicesOverviewActivity;
 import eu.ginlo_apps.ginlo.activity.preferences.PreferencesInformationActivity;
 import eu.ginlo_apps.ginlo.activity.preferences.PreferencesOverviewActivity;
 import eu.ginlo_apps.ginlo.activity.profile.ProfileActivity;
-import eu.ginlo_apps.ginlo.activity.register.IntroBaseActivity;
 import eu.ginlo_apps.ginlo.activity.reregister.ChangePhoneActivity;
 import eu.ginlo_apps.ginlo.activity.reregister.ConfirmPhoneActivity;
 import eu.ginlo_apps.ginlo.adapter.DrawerListAdapter;
-import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
-import eu.ginlo_apps.ginlo.concurrent.task.SyncAllContactsTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
@@ -98,13 +91,12 @@ import eu.ginlo_apps.ginlo.greendao.Chat;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.model.backend.ToggleSettingsModel;
 import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.drawer.DrawerListItemVO;
 import eu.ginlo_apps.ginlo.router.Router;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ConfigUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.GinloNowUtil;
@@ -749,6 +741,9 @@ public class ChatsOverviewActivity
         //Detect DoubleTap SIMSME-6610
         mFirstTouch = true;
 
+        // Reset current chat info in NotificationController
+        notificationController.setCurrentChatGuid(null);
+
         if (mAccountController.getAccount() == null) {
             //sonst crash beim account loeschen, da hier zu dieser activity zurueckgekehrt wird
             finish();
@@ -903,19 +898,19 @@ public class ChatsOverviewActivity
             throws LocalizedException {
         final SimsMeApplication simsMeApplication = getSimsMeApplication();
 
-        final ColorUtil colorUtil = ColorUtil.getInstance();
-        final int fabOverviewColor = colorUtil.getFabOverviewColor(simsMeApplication);
-        final int fabOverviewIconColor = colorUtil.getFabIconOverviewColor(simsMeApplication);
+        final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+        final int fabOverviewColor = screenDesignUtil.getFabOverviewColor(simsMeApplication);
+        final int fabOverviewIconColor = screenDesignUtil.getFabIconOverviewColor(simsMeApplication);
 
         final int fabColor;
         final int fabIconColor;
 
         if (RuntimeConfig.isBAMandant()) {
-            fabColor = colorUtil.getMainContrastColor(simsMeApplication);
-            fabIconColor = colorUtil.getMainColor(simsMeApplication);
+            fabColor = screenDesignUtil.getMainContrastColor(simsMeApplication);
+            fabIconColor = screenDesignUtil.getMainColor(simsMeApplication);
         } else {
-            fabColor = colorUtil.getFabColor(simsMeApplication);
-            fabIconColor = colorUtil.getFabIconColor(simsMeApplication);
+            fabColor = screenDesignUtil.getFabColor(simsMeApplication);
+            fabIconColor = screenDesignUtil.getFabIconColor(simsMeApplication);
         }
 
         if (mSpeedDialView != null) {
@@ -1160,13 +1155,13 @@ public class ChatsOverviewActivity
     private void registerFcm() {
         GCMController gcmController = getSimsMeApplication().getGcmController();
 
-        if ((gcmController.checkPlayServices(this))
-                && getSimsMeApplication().getLoginController().getState().equals(LoginController.STATE_LOGGED_IN)) {
+        if ((mApplication.havePlayServices(this))
+                && loginController.getState().equals(LoginController.STATE_LOGGED_IN)) {
 
             gcmController.registerForGCM(new GenericActionListener<Void>() {
                 @Override
                 public void onSuccess(Void object) {
-                    LogUtil.i(TAG, "Successfully registered with FCM.");
+                    LogUtil.i(TAG, "registerFcm: Successfully registered with FCM.");
                 }
 
                 @Override
@@ -1179,10 +1174,12 @@ public class ChatsOverviewActivity
                     if (!StringUtil.isNullOrEmpty(errorIdent)) {
                         error = error + "\n(" + errorIdent + ")";
                     }
-                    LogUtil.w(TAG, "A problem occurred while registering with FCM: " + error);
+                    LogUtil.w(TAG, "registerFcm: A problem occurred: " + error);
                     DialogBuilderUtil.buildErrorDialog(ChatsOverviewActivity.this, error);
                 }
             });
+        } else {
+            LogUtil.i(TAG, "registerFcm: Do not register with FCM.");
         }
     }
 
@@ -1738,7 +1735,7 @@ public class ChatsOverviewActivity
 
     @Override
     public void onChatDataLoaded(long lastMessageId) {
-        LogUtil.i(TAG, "onChatDataLoaded");
+        LogUtil.d(TAG, "onChatDataLoaded");
 
         mSwipeLayout.setRefreshing(false);
     }

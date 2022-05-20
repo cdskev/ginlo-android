@@ -29,7 +29,8 @@
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
         android:layout_marginStart="@dimen/standard_padding"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:orientation="vertical">
@@ -37,7 +38,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="15dp">
+            android:layout_marginTop="0dp">
 
             <androidx.emoji.widget.EmojiAppCompatTextView
                 android:id="@+id/chat_overview_item_text_view_title"
@@ -125,7 +126,7 @@
                     android:layout_marginEnd="@dimen/half_padding"
                     android:letterSpacing="-0.02"
                     android:lineSpacingExtra="5sp"
-                    android:textColor="#DC004B"
+                    app:styledTextColor="insecure"
                     app:styledTextSize="baseTextSize"
                     android:textStyle="bold"
 

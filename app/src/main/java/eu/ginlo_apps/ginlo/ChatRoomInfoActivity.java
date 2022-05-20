@@ -58,7 +58,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.router.RouterConstants;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
@@ -71,7 +71,6 @@ import eu.ginlo_apps.ginlo.util.OnSingleClickListener;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
 import eu.ginlo_apps.ginlo.view.RoundedImageView;
 import eu.ginlo_apps.ginlo.view.cropimage.CropImageActivity;
@@ -515,11 +514,11 @@ public class ChatRoomInfoActivity
             TextView removeButtonTextView = findViewById(R.id.chat_room_info_linear_layout_remove_button_text_view);
 
             if (RuntimeConfig.isBAMandant()) {
-                final ColorUtil colorUtil = ColorUtil.getInstance();
-                final int accentColor = colorUtil.getAppAccentColor(getSimsMeApplication());
+                final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+                final int accentColor = screenDesignUtil.getAppAccentColor(getSimsMeApplication());
                 addButtonTextView.setTextColor(accentColor);
                 addAdminButtonTextView.setTextColor(accentColor);
-                removeButtonTextView.setTextColor(colorUtil.getLowColor(getSimsMeApplication()));
+                removeButtonTextView.setTextColor(screenDesignUtil.getLowColor(getSimsMeApplication()));
 
                 for (Drawable drawable : addButtonTextView.getCompoundDrawables()) {
                     if (drawable != null) {
@@ -1271,8 +1270,8 @@ public class ChatRoomInfoActivity
 
         refreshListViews();
 
-        final ColorUtil colorUtil = ColorUtil.getInstance();
-        final int accentColor = colorUtil.getAppAccentColor(getSimsMeApplication());
+        final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
+        final int accentColor = screenDesignUtil.getAppAccentColor(getSimsMeApplication());
         //wenn mehr Nutzer als der Owner in der Gruppe sind
         if (mSelectedContacts.size() > 1) {
             //dann button enable

@@ -1,7 +1,6 @@
 // Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.adapter;
 
-import android.app.Application;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.model.backend.DeviceModel;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import java.util.List;
 
@@ -91,7 +89,7 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Vi
             DeviceModel dm = mDataSet.get(position);
 
             holder.deviceNameTV.setText(dm.name == null ? holder.itemView.getContext().getString(R.string.device_unknown_device_name) : dm.name);
-            //holder.deviceNameTV.setTextColor(ColorUtil.getInstance().getMainContrastColor((Application) holder.itemView.getContext().getApplicationContext()));
+            //holder.deviceNameTV.setTextColor(ScreenDesignUtil.getInstance().getMainContrastColor((Application) holder.itemView.getContext().getApplicationContext()));
 
             if (StringUtil.isEqual(dm.guid, mOwnDeviceGuid)) {
                 holder.infoTV.setText(R.string.device_own_device);
@@ -99,10 +97,10 @@ public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.Vi
                 holder.infoTV.setText(dm.getLastOnlineDateString());
             }
 
-            //holder.infoTV.setTextColor(ColorUtil.getInstance().getHighColor((Application) holder.itemView.getContext().getApplicationContext()));
+            //holder.infoTV.setTextColor(ScreenDesignUtil.getInstance().getHighColor((Application) holder.itemView.getContext().getApplicationContext()));
 
             holder.versionTV.setText(dm.getVersionString());
-            //holder.versionTV.setTextColor(ColorUtil.getInstance().getMainContrast50Color((Application) holder.itemView.getContext().getApplicationContext()));
+            //holder.versionTV.setTextColor(ScreenDesignUtil.getInstance().getMainContrast50Color((Application) holder.itemView.getContext().getApplicationContext()));
 
             holder.deviceIconIV.setImageResource(dm.getDeviceImageRessource());
         }

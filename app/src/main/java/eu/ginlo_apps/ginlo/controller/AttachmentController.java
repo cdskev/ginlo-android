@@ -28,7 +28,6 @@ import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.*;
-import eu.ginlo_apps.ginlo.view.ProgressDownloadDialog;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
@@ -126,7 +125,8 @@ public class AttachmentController {
         }
 
         final File encryptedBase64File = new File(attachmentsDir, attachmentGuid + "-Base64");
-        final File jsonFile = new File(attachmentsDir, attachmentGuid + "-json");
+        final File jsonFile = getTempJsonAttachmentFile(attachmentGuid);
+        //final File jsonFile = new File(attachmentsDir, attachmentGuid + "-json");
 
         try {
             int read = 0;
@@ -198,13 +198,13 @@ public class AttachmentController {
         return loadEncryptedDataFromAttachment(fileName);
     }
 
-    public static File getEncryptedBase64AttachmentFile(@NonNull String attachmentGuid) {
-        if (attachmentsDir == null) {
-            return null;
-        }
-
+    public static File getTempBase64AttachmentFile(@NonNull String attachmentGuid) {
         String fileName = attachmentGuid + "-Base64";
+        return getAttachmentFile(fileName);
+    }
 
+    public static File getTempJsonAttachmentFile(@NonNull String attachmentGuid) {
+        String fileName = attachmentGuid + "-json";
         return getAttachmentFile(fileName);
     }
 
@@ -242,12 +242,12 @@ public class AttachmentController {
         return returnValue;
     }
 
-    public static File getAttachmentFile(@NonNull String attachmentGuid) {
+    public static File getAttachmentFile(@NonNull String attachmentFileName) {
         if (attachmentsDir == null) {
             return null;
         }
 
-        return new File(attachmentsDir, attachmentGuid);
+        return new File(attachmentsDir, attachmentFileName);
     }
 
     public static void saveEncryptedAttachmentFileAsBase64File(final String attachmentGuid, final String base64OutputPath)
@@ -309,9 +309,14 @@ public class AttachmentController {
     /**
      * @param attachmentFilename attachmentGuid
      */
-    public static void deleteBase64AttachmentFile(final String attachmentFilename) {
-        FileUtil.deleteFile(getEncryptedBase64AttachmentFile(attachmentFilename));
+    public static void deleteTempBase64AttachmentFile(final String attachmentFilename) {
+        FileUtil.deleteFile(getTempBase64AttachmentFile(attachmentFilename));
     }
+
+    public static void deleteTempJsonAttachmentFile(final String attachmentFilename) {
+        FileUtil.deleteFile(getTempJsonAttachmentFile(attachmentFilename));
+    }
+
 
     /**
      * @throws LocalizedException [!EXC_DESCRIPTION!]
@@ -391,7 +396,7 @@ public class AttachmentController {
             final File encryptedFile = new File(attachmentsDir, attachmentGuid);
 
             if (!encryptedFile.exists()) {
-                File base64File = getEncryptedBase64AttachmentFile(attachmentGuid);
+                File base64File = getTempBase64AttachmentFile(attachmentGuid);
                 if (base64File != null && base64File.exists()) {
                     saveBase64FileAsEncryptedAttachment(attachmentGuid, base64File.getAbsolutePath());
                 } else {
@@ -476,17 +481,9 @@ public class AttachmentController {
             } else if (contentType.equals(MimeType.TEXT_PLAIN) && (message.getMessage().getType() == Message.TYPE_CHANNEL)) {
                 listener.onBitmapLoaded(file, message);
             } else {
+                // KS: A file may be of any other mime type!
                 listener.onFileLoaded(file, message);
             }
-            // KS: A file may be of any other mime type!
-                /*
-            } else if (contentType.equals(MimeType.APP_OCTET_STREAM)) {
-                listener.onFileLoaded(file, message);
-            } else {
-                listener.onLoadedFailed(null);
-            }
-
-                 */
         }
     }
 

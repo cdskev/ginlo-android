@@ -298,6 +298,7 @@ class DestructionActivity : BaseActivity() {
     private fun fireTheBomb() {
         stopTimer()
         chatController.deleteMessage(messageGuid, true, null)
+        simsMeApplication.playMessageSdSound()
         finishAfterTransition()
     }
 
@@ -481,8 +482,8 @@ class DestructionActivity : BaseActivity() {
         if (toolbar != null) {
             ToolbarColorizeHelper.colorizeToolbar(
                 toolbar,
-                ColorUtil.getInstance().getLowContrastColor(simsMeApplication),
-                ColorUtil.getInstance().getLowColor(simsMeApplication),
+                ScreenDesignUtil.getInstance().getLowContrastColor(simsMeApplication),
+                ScreenDesignUtil.getInstance().getLowColor(simsMeApplication),
                 this
             )
         }

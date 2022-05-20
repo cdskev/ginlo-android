@@ -59,7 +59,7 @@
                     android:layout_marginBottom="@dimen/standard_padding"
                     android:maxLines="1"
                     android:textColor="#43ad7f"
-                    app:styledTextSize="commentTextSize"
+                    android:textSize="?attr/labelTextSize"
                     android:visibility="gone"
                     tools:text="Max Mustermann"
                     tools:visibility="visible" />
@@ -69,7 +69,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/text_color"
-                    app:styledTextSize="messageTextSize"
+                    android:textSize="?attr/messageTextSize"
                     android:textStyle="normal"
                     tools:text="Apparently" />
 

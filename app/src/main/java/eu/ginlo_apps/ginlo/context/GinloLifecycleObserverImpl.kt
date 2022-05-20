@@ -24,6 +24,7 @@ import javax.inject.Singleton
 class GinloLifecycleObserverImpl @Inject constructor(private val application: SimsMeApplication) :
     GinloLifecycleObserver {
     companion object {
+        private const val TAG = "GinloLifecycleObserverImpl"
         private var inBackground = true
     }
 
@@ -63,11 +64,8 @@ class GinloLifecycleObserverImpl @Inject constructor(private val application: Si
         }
 
         inBackground = false
-
-        LogUtil.i("GinloLifecycleObserverImpl", "onEnterForeground: APP DID ENTER FOREGROUND")
-
+        LogUtil.i(TAG, "onEnterForeground: App enters foreground.")
         registeredAppLifecycleCallbacks.forEach { it.appDidEnterForeground() }
-
         stopLogoutService()
     }
 
@@ -76,22 +74,20 @@ class GinloLifecycleObserverImpl @Inject constructor(private val application: Si
         if (avoidLogoutWhenGoesInBackground) return
 
         inBackground = true
-
-        LogUtil.i("OnLifeGinloLifecycleObserverImplcycleEvent", "onEnterBackground: APP DID ENTER BACKGROUND")
-
+        LogUtil.i(TAG, "onEnterBackground: App enters background.")
+        // Re-enable all notifications
+        application.notificationController.currentChatGuid = null
         registeredAppLifecycleCallbacks.forEach { it.appGoesToBackGround() }
-
         logOut()
     }
 
     private fun logOut() {
-        LogUtil.i(this.javaClass.simpleName, "Logout!!")
-
+        LogUtil.i(TAG, "logOut: Do logout.")
         startLogoutService(false)
     }
 
     override fun startLogoutService(isMinimumOneMinute: Boolean) {
-        LogUtil.i("GinloLifecycleObserverImpl", "startLogoutService")
+        LogUtil.d(TAG, "startLogoutService")
 
         if (application.loginController.state != LoginController.STATE_LOGGED_IN) return
 

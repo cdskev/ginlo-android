@@ -15,14 +15,14 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.SpannableString;
 import android.util.SparseArray;
 import android.widget.RemoteViews;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.TaskStackBuilder;
 
@@ -45,12 +45,15 @@ import eu.ginlo_apps.ginlo.greendao.DaoMaster;
 import eu.ginlo_apps.ginlo.greendao.DaoSession;
 import eu.ginlo_apps.ginlo.greendao.NotificationDao;
 import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.DecryptedMessage;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.query.QueryBuilder;
@@ -63,6 +66,7 @@ public class NotificationController {
     public static final int NEW_CHANNEL_MESSAGE = 2;
     public static final int GROUP_NOTIFICATION_ID = 199089;
     public static final int INFO_NOTIFICATION_ID = 199090;
+    public static final int GOS_NOTIFICATION_ID = 199091;
     public static final int MESSAGE_NOTIFICATION_ID = 219711;
     public static final int AVC_NOTIFICATION_ID = 131966;
     public static final int AVC_REQUEST_ID_AUDIO = 131967;
@@ -70,7 +74,8 @@ public class NotificationController {
     public static final int AVC_REQUEST_ID_DISMISS = 131969;
     public static final int AVC_REQUEST_ID_OPEN = 131970;
 
-    public static final int DISMISS_NOTIFICATION_TIMEOUT = 30000; //Millis
+    public static final long AVC_NOTIFICATION_TIMEOUT = 30 * 1000; // 30 seconds in millis
+    public static final long OLD_MESSAGE_NOTIFICATION_TIMEOUT = 7 * 24 * 3600 * 1000; // 7 days in millis
 
     private static final String MESSAGE_NOTIFICATION_CHANNEL_ID = "nc_pm";
     private static final String AVC_NOTIFICATION_CHANNEL_ID = "nc_avc";
@@ -94,11 +99,18 @@ public class NotificationController {
     private String ignoredGuid;
     private boolean ignoreAll;
 
+    // Keep decrypted message infos here - prefetched by early notification processing.
+    private Map<String, DecryptedMessage> decryptedMessageMap;
+
+    // Current guid of the chat a user is in
+    private String currentChatGuid;
+
     public NotificationController(final SimsMeApplication application) {
         this.mApplication = application;
         mAVChatController = mApplication.getAVChatController(); // Is null if Android version < 8.0
         mContactController = mApplication.getContactController();
         mPreferencesController = mApplication.getPreferencesController();
+        this.decryptedMessageMap = new HashMap<>();
         this.infoContainerArray = new SparseArray<>();
         this.ignoreAll = true;
         this.notificationManager = (NotificationManager) application.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -114,6 +126,31 @@ public class NotificationController {
         Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
         mRingtone = RingtoneManager.getRingtone(mApplication, notification);
 
+    }
+
+    public void setCurrentChatGuid(@Nullable String chatGuid) {
+        currentChatGuid = chatGuid;
+    }
+
+    public String getCurrentChatGuid() {
+        return currentChatGuid;
+    }
+
+    public void addDecryptedMessageInfo(@NonNull DecryptedMessage decryptedMessage) {
+        LogUtil.d(TAG, "addDecryptedMessageInfo: " + decryptedMessage.getMessage().getGuid());
+        if(!decryptedMessageMap.containsKey(decryptedMessage.getMessage().getGuid())) {
+            decryptedMessageMap.put(decryptedMessage.getMessage().getGuid(), decryptedMessage);
+        }
+    }
+
+    public DecryptedMessage getAndClearDecryptedMessageInfo(@NonNull String messageGuid) {
+        LogUtil.d(TAG, "getAndClearDecryptedMessageInfo: " + messageGuid);
+        DecryptedMessage dM = null;
+        if(decryptedMessageMap.containsKey(messageGuid)) {
+            dM = decryptedMessageMap.get(messageGuid);
+            decryptedMessageMap.remove(messageGuid);
+        }
+        return dM;
     }
 
     public static Notification getLoadMessageNotification(final Context context) {
@@ -570,7 +607,7 @@ public class NotificationController {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_CALL)
-                .setTimeoutAfter(DISMISS_NOTIFICATION_TIMEOUT)
+                .setTimeoutAfter(AVC_NOTIFICATION_TIMEOUT)
                 .setAutoCancel(true)
                 .setContentIntent(pOpenIntent);
 
@@ -998,7 +1035,7 @@ public class NotificationController {
         }
     }
 
-    public void showOngoingServiceNotification(String notificationInfo) {
+    public void showInfoNotification(String notificationInfo) {
         final Notification notification = buildOngoingServiceNotification(notificationInfo);
         if(notification != null) {
             notificationManager.notify(INFO_NOTIFICATION_ID, notification);
@@ -1113,7 +1150,7 @@ public class NotificationController {
         dismissNotification(-1);
     }
 
-    public void dismissOngoingNotification() {
+    public void dismissInfoNotification() {
         dismissNotification(INFO_NOTIFICATION_ID);
     }
 

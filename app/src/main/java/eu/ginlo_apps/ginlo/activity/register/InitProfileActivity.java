@@ -22,7 +22,6 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +40,6 @@ import eu.ginlo_apps.ginlo.TextExtensionsKt;
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.contracts.UpdateAccountInfoCallback;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -54,7 +52,7 @@ import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.router.RouterConstants;
 import eu.ginlo_apps.ginlo.util.BitmapUtil;
-import eu.ginlo_apps.ginlo.util.ColorUtil;
+import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.FragmentUtil;
@@ -170,7 +168,7 @@ public class InitProfileActivity
             final String mandantIdent = RuntimeConfig.getMandant();
             final Mandant mandant = mApplication.getPreferencesController().getMandantFromIdent(mandantIdent);
             if (mandant != null) {
-                ColorUtil.getInstance().colorizeMandantTextView(mApplication, mandant, mandantTextView, true);
+                ScreenDesignUtil.getInstance().colorizeMandantTextView(mApplication, mandant, mandantTextView, true);
             } else {
                 mandantTextView.setVisibility(View.GONE);
             }

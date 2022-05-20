@@ -23,7 +23,7 @@ object Style {
         if (textView == null) return
 
         styledAttributes.getString(R.styleable.StyledView_styledTextColor)?.let { styledAttribute ->
-            ColorUtil.getInstance().getNamedColor(
+            ScreenDesignUtil.getInstance().getNamedColor(
                 styledAttribute,
                 textView.getApplication()
             )?.let { color ->
@@ -41,13 +41,13 @@ object Style {
         if (textView == null) return
 
         styledAttributes.getString(R.styleable.StyledView_styledIconColor)?.let { styledAttribute ->
-            ColorUtil.getInstance().getNamedColor(
+            ScreenDesignUtil.getInstance().getNamedColor(
                 styledAttribute,
                 textView.getApplication()
             ).let { colorFilter ->
                 textView.compoundDrawables.forEach { drawable ->
                     //drawable?.setColorFilter(colorFilter, PorterDuff.Mode.SRC_ATOP)
-                    ColorUtil.setColorFilter(drawable, colorFilter)
+                    ScreenDesignUtil.setColorFilter(drawable, colorFilter)
                 }
             }
         }
@@ -57,12 +57,10 @@ object Style {
         if (view == null) return
 
         styledAttributes.getString(R.styleable.StyledView_styledBackground)?.let { styledBackground ->
-            ColorUtil.getInstance().getNamedColor(
+            ScreenDesignUtil.getInstance().getNamedColor(
                 styledBackground,
                 view.getApplication()
             )?.let { color ->
-                // KS: Argh! Value -1 is a valid color!
-                //if (color == -1) return
                 view.setBackgroundColor(color)
             }
         }
@@ -72,13 +70,13 @@ object Style {
         if (view == null) return
 
         styledAttributes.getString(R.styleable.StyledView_styledBackgroundColorFilter)?.let { styledBackground ->
-            ColorUtil.getInstance().getNamedColor(
+            ScreenDesignUtil.getInstance().getNamedColor(
                 styledBackground,
                 view.getApplication()
             )?.let { color ->
                 val background = view.background
                 //background?.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
-                ColorUtil.setColorFilter(background, color)
+                ScreenDesignUtil.setColorFilter(background, color)
             }
         }
     }
@@ -96,7 +94,7 @@ object Style {
 
             var color: Int? = null
             if (styledBackground.isNotBlank()) {
-                color = ColorUtil.getInstance().getNamedColor(
+                color = ScreenDesignUtil.getInstance().getNamedColor(
                     styledBackground,
                     button.getApplication()
                 )
@@ -105,7 +103,7 @@ object Style {
             when (styledButtonType) {
                 "borderless" -> {
                     if (color == null) {
-                        color = ColorUtil.getInstance()
+                        color = ScreenDesignUtil.getInstance()
                             .getMainContrastColor(button.context.applicationContext as Application)
                     }
 
@@ -115,7 +113,7 @@ object Style {
                     rippleColor = ContextCompat.getColor(button.context, R.color.rippleColorButtonNormal)
 
                     if (color == null) {
-                        color = ColorUtil.getInstance().getAppAccentColor(button.getApplication())
+                        color = ScreenDesignUtil.getInstance().getAppAccentColor(button.getApplication())
                     }
 
                     colorDrawable = ColorDrawable(color)
@@ -125,7 +123,7 @@ object Style {
                         if (color != null) {
                             val background = button.background
                             //background?.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
-                            ColorUtil.setColorFilter(background, color)
+                            ScreenDesignUtil.setColorFilter(background, color)
                         }
                     }
                     return
@@ -164,11 +162,11 @@ object Style {
             }
         } else {
             if (styledBackground.isNotBlank()) {
-                val c = ColorUtil.getInstance().getNamedColor(styledBackground, button.getApplication())
+                val c = ScreenDesignUtil.getInstance().getNamedColor(styledBackground, button.getApplication())
                 if (c != null) {
                     val background = button.background
                     //background?.setColorFilter(c, PorterDuff.Mode.SRC_ATOP)
-                    ColorUtil.setColorFilter(background, c)
+                    ScreenDesignUtil.setColorFilter(background, c)
                 }
             }
         }
@@ -184,27 +182,27 @@ object Style {
         val styledBackground = styledAttributes.getString(R.styleable.StyledView_styledBackgroundColorFilter).orEmpty()
         val activeColor: Int =
             if (styledBackground.isNotBlank()) {
-                ColorUtil.getInstance().getNamedColor(styledBackground, editText.getApplication())
+                ScreenDesignUtil.getInstance().getNamedColor(styledBackground, editText.getApplication())
             } else {
-                ColorUtil.getInstance().getAppAccentColor(editText.getApplication())
+                ScreenDesignUtil.getInstance().getAppAccentColor(editText.getApplication())
             }
 
         val mainContrastColor =
-            ColorUtil.getInstance().getMainContrastColor(editText.getApplication())
+            ScreenDesignUtil.getInstance().getMainContrastColor(editText.getApplication())
 
         val normalColor =
             Color.argb(27, Color.red(mainContrastColor), Color.green(mainContrastColor), Color.blue(mainContrastColor))
         val disabledColor =
             Color.argb(77, Color.red(mainContrastColor), Color.green(mainContrastColor), Color.blue(mainContrastColor))
 
-        ColorUtil.changeEditTextUnderlineColor(editText, activeColor, normalColor, disabledColor)
+        ScreenDesignUtil.changeEditTextUnderlineColor(editText, activeColor, normalColor, disabledColor)
     }
 
     fun setStyledTextColorHint(textView: TextView?, styledAttributes: TypedArray) {
         if (textView == null) return
 
         styledAttributes.getString(R.styleable.StyledView_styledTextColorHint)?.let { styledTextColorHint ->
-            ColorUtil.getInstance().getNamedColor(styledTextColorHint, textView.getApplication())?.let {
+            ScreenDesignUtil.getInstance().getNamedColor(styledTextColorHint, textView.getApplication())?.let {
                 textView.setHintTextColor(it)
             }
         }
@@ -215,7 +213,7 @@ object Style {
 
         styledAttributes.getString(R.styleable.StyledView_styledTextSize)?.let { styledTextSize ->
 
-            ColorUtil.getInstance().getNamedTextSize(styledTextSize, textView.getApplication())?.let {
+            ScreenDesignUtil.getInstance().getNamedTextSize(styledTextSize, textView.getApplication())?.let {
                 textView.textSize = it
             }
         }
@@ -225,7 +223,7 @@ object Style {
         if (imageView == null) return
 
         styledAttributes.getString(R.styleable.StyledView_styledIconColor)?.let { styledIconColor ->
-            ColorUtil.getInstance().getNamedColor(styledIconColor, imageView.getApplication())?.let { color ->
+            ScreenDesignUtil.getInstance().getNamedColor(styledIconColor, imageView.getApplication())?.let { color ->
                 imageView.setColorFilter(color, PorterDuff.Mode.SRC_ATOP)
 
             }
