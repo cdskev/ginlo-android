@@ -35,7 +35,6 @@ import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
 import eu.ginlo_apps.ginlo.controller.ChannelController.ChannelIdentifier;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.GinloAppLifecycle;
@@ -56,6 +55,7 @@ import eu.ginlo_apps.ginlo.model.chat.ChannelChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.ChannelSelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.util.ChannelColorUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
@@ -532,7 +532,7 @@ public class ChannelChatActivity
 
     private ImageLoader initImageLoader(final ChannelController channelController) {
         // Image Loader zum Laden der ChatoverviewItems Icons
-        final ImageLoader imageLoader = new ImageLoader(this, ChatImageController.SIZE_CHAT_OVERVIEW, false) {
+        final ImageLoader imageLoader = new ImageLoader(this, ImageUtil.SIZE_CHAT_OVERVIEW, false) {
             @Override
             protected Bitmap processBitmap(final Object data) {
                 try {
@@ -669,6 +669,12 @@ public class ChannelChatActivity
                                       DecryptedMessage decryptedMsg) {
                 finishDownloading(mMessageGuid);
                 ChannelChatActivity.this.onAudioLoaded(audioFile, decryptedMsg);
+            }
+
+            @Override
+            public void onRichContentLoaded(File dataFile, DecryptedMessage decryptedMsg) {
+                finishDownloading(mMessageGuid);
+                ChannelChatActivity.this.onFileLoaded(dataFile, decryptedMsg);
             }
 
             @Override

@@ -10,7 +10,6 @@ import android.os.Looper
 import android.view.View
 import android.widget.CompoundButton
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProviders
 import dagger.android.AndroidInjection
 import eu.ginlo_apps.ginlo.AbsenceActivity
@@ -26,7 +25,7 @@ import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.fragment.emojipicker.EmojiPickerFragment
 import eu.ginlo_apps.ginlo.greendao.Contact
 import eu.ginlo_apps.ginlo.log.LogUtil
-import eu.ginlo_apps.ginlo.util.BitmapUtil
+import eu.ginlo_apps.ginlo.util.ImageUtil
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.DateUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
@@ -48,7 +47,6 @@ import kotlinx.android.synthetic.b2b.activity_profile.profile_text_view_last_nam
 import kotlinx.android.synthetic.b2b.activity_profile.profile_top_warning
 import kotlinx.android.synthetic.b2b.activity_profile.profile_top_warning_text
 import kotlinx.android.synthetic.b2b.activity_profile.profile_trial_container
-import org.jetbrains.annotations.NotNull
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -166,7 +164,7 @@ class ProfileActivity : ProfileActivityBase() {
                 }
             }
 
-            BitmapUtil.getConfiguredStateDrawable(simsMeApplication, ownContact.isAbsent, false)?.let {
+            ImageUtil.getConfiguredStateDrawable(simsMeApplication, ownContact.isAbsent, false)?.let {
                 profile_status_view.background = it
             }
 

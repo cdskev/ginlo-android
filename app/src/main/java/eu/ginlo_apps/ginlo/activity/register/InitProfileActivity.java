@@ -51,7 +51,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.router.RouterConstants;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
@@ -244,18 +244,17 @@ public class InitProfileActivity
 
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
-                case RouterConstants.SELECT_GALLARY_RESULT_CODE: {
-                    Uri selectedGallaryItem = returnIntent.getData();
+                case RouterConstants.SELECT_GALLERY_RESULT_CODE: {
+                    Uri selectedGalleryItem = returnIntent.getData();
                     FileUtil fileUtil = new FileUtil(this);
-                    MimeUtil mimeUtil = new MimeUtil(this);
 
-                    if (!mimeUtil.checkImageUriMimetype(getApplication(), selectedGallaryItem)) {
+                    if (!MimeUtil.checkImageUriMimetype(getApplication(), selectedGalleryItem)) {
                         Toast.makeText(this, R.string.chats_addAttachment_wrong_format_or_error, Toast.LENGTH_LONG).show();
                         break;
                     }
 
                     try {
-                        Uri selectedItemIntern = fileUtil.copyFileToInternalDir(selectedGallaryItem);
+                        Uri selectedItemIntern = fileUtil.copyFileToInternalDir(selectedGalleryItem);
                         if (selectedItemIntern != null) {
                             router.cropImage(selectedItemIntern.toString());
                         }
@@ -279,7 +278,7 @@ public class InitProfileActivity
                     final Bitmap bm = returnIntent.getParcelableExtra(CropImageActivity.RETURN_DATA_AS_BITMAP);
                     if (bm != null) {
                         mProfilePictureImageView.setImageBitmap(bm);
-                        mImageBytes = BitmapUtil.compress(bm, 100);
+                        mImageBytes = ImageUtil.compress(bm, 100);
                     }
                     break;
                 }
@@ -364,39 +363,6 @@ public class InitProfileActivity
         LogUtil.d(TAG, "handleDeleteProfileImageClick: Called from " + this.getLocalClassName());
         // Do nothing
     }
-    /*
-    public void handleDeleteProfileImageClick(View view) {
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-            requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
-                    R.string.permission_rationale_read_external_storage,
-                    new PermissionUtil.PermissionResultCallback() {
-                        @Override
-                        public void permissionResult(int permission,
-                                                     boolean permissionGranted) {
-                            if ((permission == PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE)
-                                    && permissionGranted) {
-                                closeBottomSheet(new OnBottomSheetClosedListener() {
-                                    @Override
-                                    public void onBottomSheetClosed(final boolean bottomSheetWasOpen) {
-                                        ChatImageController cic = new ChatImageController(mApplication);
-                                        cic.deleteImageFile(mAccountController.getAccount().getAccountGuid());
-                                    }
-                                });
-                            }
-                        }
-                    });
-        } else {
-            closeBottomSheet(new OnBottomSheetClosedListener() {
-                @Override
-                public void onBottomSheetClosed(final boolean bottomSheetWasOpen) {
-                    ChatImageController cic = new ChatImageController(mApplication);
-                    cic.deleteImageFile(mAccountController.getAccount().getAccountGuid());
-                }
-            });
-        }
-    }
-
-     */
 
     public void handleNextClick(View view) {
         final String name = mNameEditText.getText().toString().trim();

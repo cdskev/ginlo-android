@@ -2,11 +2,7 @@
 
 package eu.ginlo_apps.ginlo.concurrent.task;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
 import eu.ginlo_apps.ginlo.controller.message.ChannelChatController;
@@ -29,6 +25,7 @@ import eu.ginlo_apps.ginlo.model.chat.ChannelSelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.FileChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.ImageChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.LocationChatItemVO;
+import eu.ginlo_apps.ginlo.model.chat.RichContentChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.SelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.SystemInfoChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.TextChatItemVO;
@@ -37,13 +34,16 @@ import eu.ginlo_apps.ginlo.model.chat.VideoChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VoiceChatItemVO;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.constant.DataContainer;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.AudioUtil;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
+import eu.ginlo_apps.ginlo.util.StorageUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import ezvcard.VCard;
 import ezvcard.property.Photo;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,15 +107,19 @@ public class ConvertToChatItemVOTask
             throws LocalizedException {
 
         BaseChatItemVO returnChatItemVO = null;
+        StorageUtil storageUtil = new StorageUtil(application);
 
         DecryptedMessage decryptedMsg = application.getMessageDecryptionController().decryptMessage(message, false);
         if (decryptedMsg == null) {
+            LogUtil.w(TAG, "getChatItemVO: decryptedMsg = null!");
             return null;
         }
 
         String contentType = decryptedMsg.getContentType();
+        String fileMimetype = decryptedMsg.getFileMimetype();
 
         if (contentType == null) {
+            LogUtil.w(TAG, "getChatItemVO: contentType = null!");
             return null;
         }
 
@@ -130,7 +134,7 @@ public class ConvertToChatItemVOTask
             } else {
                 returnChatItemVO = getChannelChatItem(decryptedMsg, chatController, shortLinkText, channelType);
             }
-        } else if (contentType.equals(MimeType.TEXT_RSS)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_TEXT_RSS)) {
             ChannelChatItemVO chatItemVO = new ChannelChatItemVO();
 
             chatItemVO.name = null;
@@ -143,7 +147,7 @@ public class ConvertToChatItemVOTask
             chatItemVO.shortLinkText = application.getString(R.string.content_rss_link_more);
 
             returnChatItemVO = chatItemVO;
-        } else if (contentType.equals(MimeType.TEXT_PLAIN)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_TEXT_PLAIN)) {
             if ((decryptedMsg.getMessage().getIsSystemInfo() != null)
                     && decryptedMsg.getMessage().getIsSystemInfo()
                     && !StringUtil.isEqual(decryptedMsg.getMessage().getFrom(), AppConstants.GUID_SYSTEM_CHAT)) {
@@ -210,13 +214,13 @@ public class ConvertToChatItemVOTask
             }
 
             // KS: APP_GINLO_CONTROL
-        } else if (contentType.equals(MimeType.APP_GINLO_CONTROL)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_APP_GINLO_CONTROL)) {
             AppGinloControlChatItemVO chatItemVO = new AppGinloControlChatItemVO();
             chatItemVO.loadControlMessageFromString(decryptedMsg.getAppGinloControl(), application);
             returnChatItemVO = chatItemVO;
 
             // KS: AVC
-        } else if (contentType.equals(MimeType.TEXT_V_CALL)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_TEXT_V_CALL)) {
             AVChatItemVO chatItemVO = new AVChatItemVO();
 
             chatItemVO.room = decryptedMsg.getAVCRoom();
@@ -225,7 +229,20 @@ public class ConvertToChatItemVOTask
             chatItemVO.name = chatController.getNameForMessage(decryptedMsg);
             returnChatItemVO = chatItemVO;
 
-        } else if (contentType.equals(MimeType.IMAGE_JPEG)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_APP_GINLO_RICH_CONTENT) ||
+                MimeUtil.isRichContentMimetype(contentType) ||
+                MimeUtil.isRichContentMimetype(fileMimetype)
+        ) {
+            RichContentChatItemVO chatItemVO = new RichContentChatItemVO();
+
+            chatItemVO.attachmentGuid = decryptedMsg.getMessage().getAttachment();
+            chatItemVO.name = chatController.getNameForMessage(decryptedMsg);
+            chatItemVO.fileMimeType = decryptedMsg.getFileMimetype();
+            chatItemVO.fileName = decryptedMsg.getFilename();
+            chatItemVO.fileSize = decryptedMsg.getFileSize();
+
+            returnChatItemVO = chatItemVO;
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_IMAGE_JPEG)) {
             AttachmentChatItemVO chatItemVO;
 
             if (decryptedMsg.getMessageDestructionParams() != null) {
@@ -241,7 +258,7 @@ public class ConvertToChatItemVOTask
             chatItemVO.name = chatController.getNameForMessage(decryptedMsg);
 
             returnChatItemVO = chatItemVO;
-        } else if (contentType.equals(MimeType.MODEL_LOCATION)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_MODEL_LOCATION)) {
             LocationChatItemVO chatItemVO = new LocationChatItemVO();
 
             chatItemVO.image = decryptedMsg.getLocationImage();
@@ -250,7 +267,7 @@ public class ConvertToChatItemVOTask
             chatItemVO.name = chatController.getNameForMessage(decryptedMsg);
 
             returnChatItemVO = chatItemVO;
-        } else if (contentType.equals(MimeType.VIDEO_MPEG)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_VIDEO_MPEG)) {
             AttachmentChatItemVO chatItemVO;
 
             if (decryptedMsg.getMessageDestructionParams() != null) {
@@ -267,7 +284,7 @@ public class ConvertToChatItemVOTask
             chatItemVO.name = chatController.getNameForMessage(decryptedMsg);
 
             returnChatItemVO = chatItemVO;
-        } else if (contentType.equals(MimeType.AUDIO_MPEG)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_AUDIO_MPEG)) {
             AttachmentChatItemVO chatItemVO;
 
             if (decryptedMsg.getMessageDestructionParams() != null) {
@@ -283,7 +300,7 @@ public class ConvertToChatItemVOTask
             chatItemVO.name = chatController.getNameForMessage(decryptedMsg);
 
             returnChatItemVO = chatItemVO;
-        } else if (contentType.equals(MimeType.TEXT_V_CARD)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_TEXT_V_CARD)) {
             VCardChatItemVO chatItemVO = new VCardChatItemVO();
 
             chatItemVO.name = chatController.getNameForMessage(decryptedMsg);
@@ -298,7 +315,7 @@ public class ConvertToChatItemVOTask
             if (vCard.getPhotos().size() > 0) {
                 Photo photo = vCard.getPhotos().get(0);
 
-                chatItemVO.photo = (photo.getData() != null) ? BitmapUtil.decodeByteArray(photo.getData()) : null;
+                chatItemVO.photo = (photo.getData() != null) ? ImageUtil.decodeByteArray(photo.getData()) : null;
                 chatItemVO.photoUrl = photo.getUrl();
             }
 
@@ -322,7 +339,7 @@ public class ConvertToChatItemVOTask
             chatItemVO.accountGuid = JsonUtil.stringFromJO(DataContainer.ACCOUNT_GUID, decryptedMsg.getDecryptedDataContainer());
 
             returnChatItemVO = chatItemVO;
-        } else if (contentType.equals(MimeType.APP_OCTET_STREAM)) {
+        } else if (MimeUtil.hasUnspecificBinaryMimeType(contentType)) {
             FileChatItemVO chatItemVO = new FileChatItemVO();
 
             chatItemVO.attachmentGuid = decryptedMsg.getMessage().getAttachment();
@@ -335,11 +352,14 @@ public class ConvertToChatItemVOTask
         }
 
         if (returnChatItemVO != null) {
+
+            LogUtil.d(TAG, "getChatItemVO: returnChatItemVO has been set to " + returnChatItemVO.getClass().getSimpleName());
+
             returnChatItemVO.setState(state);
             returnChatItemVO.messageId = decryptedMsg.getMessage().getId();
             returnChatItemVO.setFromGuid(message.getFrom());
             returnChatItemVO.setToGuid(decryptedMsg.getMessage().getTo());
-            returnChatItemVO.setMessageGuid(decryptedMsg.getMessage().getGuid());
+            returnChatItemVO.setMessageGuid(message.getGuid());
 
             if (chatController instanceof SingleChatController) {
                 returnChatItemVO.type = BaseChatItemVO.TYPE_SINGLE;
@@ -381,6 +401,8 @@ public class ConvertToChatItemVOTask
             returnChatItemVO.isPriority = message.getIsPriority();
 
             returnChatItemVO.setCitation(decryptedMsg.getCitation());
+        } else {
+            LogUtil.w(TAG, "getChatItemVO: returnChatItemVO = null!");
         }
 
         return returnChatItemVO;
@@ -401,7 +423,7 @@ public class ConvertToChatItemVOTask
             chatItemVO = new ChannelChatItemVO();
         }
 
-        if (StringUtil.isEqual(contentType, MimeType.TEXT_PLAIN)) {
+        if (StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_TEXT_PLAIN)) {
             boolean split = true;
             if (shortLinkText != null) {
                 chatItemVO.shortLinkText = shortLinkText;
@@ -437,7 +459,7 @@ public class ConvertToChatItemVOTask
             if (!StringUtil.isNullOrEmpty(decryptedMsg.getMessage().getAttachment())) {
                 chatItemVO.attachmentGuid = decryptedMsg.getMessage().getAttachment();
             }
-        } else if (StringUtil.isEqual(contentType, MimeType.IMAGE_JPEG)) {
+        } else if (StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_IMAGE_JPEG)) {
             chatItemVO.image = decryptedMsg.getPreviewImage();
             chatItemVO.attachmentGuid = decryptedMsg.getMessage().getAttachment();
         }

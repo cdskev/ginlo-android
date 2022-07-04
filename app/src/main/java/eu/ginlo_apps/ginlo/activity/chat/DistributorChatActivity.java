@@ -21,9 +21,6 @@ import android.widget.Toast;
 import eu.ginlo_apps.ginlo.ContactsActivity;
 import eu.ginlo_apps.ginlo.LocationActivity;
 import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.activity.chat.BaseChatActivity;
-import eu.ginlo_apps.ginlo.activity.chat.PreviewActivity;
-import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity;
 import eu.ginlo_apps.ginlo.adapter.ContactsAdapter;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.LoginController;
@@ -322,6 +319,7 @@ public class DistributorChatActivity
 
     @Override
     protected void onNewIntent(final Intent intent) {
+        LogUtil.d(TAG, "onNewIntent: called with " + intent);
         super.onNewIntent(intent);
         setIntent(intent);
     }
@@ -846,7 +844,6 @@ public class DistributorChatActivity
                     if (mActionContainer.uris != null && mActionContainer.uris.size() > 0) {
                         final Uri fileUri = mActionContainer.uris.get(0);
                         final FileUtil fu = new FileUtil(this);
-                        final MimeUtil mu = new MimeUtil(this);
                         final String filename = fu.getFileName(fileUri);
 
                         final DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
@@ -856,7 +853,7 @@ public class DistributorChatActivity
 
                                 int ctr = mSelectedContacts.size();
 
-                                final String mimeType = mu.getMimeType(fileUri);
+                                final String mimeType = MimeUtil.getMimeTypeForUri(DistributorChatActivity.this, fileUri);
 
                                 final Uri tmpUri;
 
@@ -896,7 +893,7 @@ public class DistributorChatActivity
                             fileSize = 0;
                             LogUtil.e(TAG, "Failed to get file size.", e);
                         }
-                        showSendFileDialog(filename, mu.getExtensionForUri(fileUri), fileSize, positiveListener, null);
+                        showSendFileDialog(filename, MimeUtil.getExtensionForUri(this, fileUri), fileSize, positiveListener, null);
                     }
                     return;
                 }
@@ -964,7 +961,7 @@ public class DistributorChatActivity
 
     @Override
     public void onChatDataChanged(boolean clearImageCache) {
-
+        super.onChatDataChanged(clearImageCache);
     }
 
     @Override

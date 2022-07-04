@@ -37,7 +37,6 @@ import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.adapter.CompanyContactsAdapter;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.ContactController.IndexType;
 import eu.ginlo_apps.ginlo.controller.ContactControllerBusiness;
@@ -45,7 +44,6 @@ import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.CompanyContact;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 
 import static android.app.Activity.RESULT_OK;
@@ -61,37 +59,20 @@ public class CompanyAddressBookFragment
         extends BaseContactsFragment implements SwipeRefreshLayout.OnRefreshListener, AdapterView.OnItemClickListener, AbsListView.OnScrollListener {
 
     private static final int MAX_CONTACTS_COUNT = 100;
-
     private CompanyContactsAdapter mAdapter;
-
     private LinearLayout mRootLayout;
-
     private ViewGroup mListContainer;
-
     private String mQuery;
-
     private ContactControllerBusiness mContactControllerBusiness;
-
     private String mDomain;
-
     private ArrayList<CompanyContact> mGroupCompanyContacts;
-
     private String mGroupChatOwnerGuid;
-
-    private ImageLoader mImageLoader;
-
     private ListView mListView;
-
     private AdapterView.OnItemClickListener mOnItemClickListener;
-
     private View mNoContactsLayout;
-
     private Button mNextButton;
-
     private IndexType mIndexType;
-
     private View mHeaderListView;
-
     private int mContactCount;
 
     public static CompanyAddressBookFragment newInstance(@NonNull final SimsMeApplication application, final int mode, final IndexType indexType) {
@@ -270,8 +251,6 @@ public class CompanyAddressBookFragment
         mAdapter = new CompanyContactsAdapter(getActivity(), R.layout.contact_item_overview_layout,
                 mContactControllerBusiness.getLastUsedCompanyContacts(mIndexType), false);
 
-        mImageLoader = initImageLoader();
-        mAdapter.setImageLoader(mImageLoader);
         mListView.setOnScrollListener(this);
         mListView.setAdapter(mAdapter);
 
@@ -326,8 +305,6 @@ public class CompanyAddressBookFragment
 
             mAdapter = new CompanyContactsAdapter(getActivity(), R.layout.contact_item_overview_layout, contacts, false);
 
-            mImageLoader = initImageLoader();
-            mAdapter.setImageLoader(mImageLoader);
             mListView.setOnScrollListener(this);
             mListView.setAdapter(mAdapter);
 
@@ -612,54 +589,8 @@ public class CompanyAddressBookFragment
         }
     }
 
-    private ImageLoader initImageLoader() {
-        final FragmentActivity activity = getActivity();
-        if (activity != null) {
-            final ChatImageController chatImageController = getApplication().getChatImageController();
-
-            final int size = (int) getResources().getDimension(R.dimen.contact_item_single_select_icon_diameter);
-
-            ImageLoader imageLoader = new ImageLoader(activity, size, false) {
-                @Override
-                protected Bitmap processBitmap(Object data) {
-                    try {
-                        if (data instanceof CompanyContact) {
-                            CompanyContact companyContact = (CompanyContact) data;
-                            return chatImageController.getImageByGuidWithoutCacheing(companyContact.getAccountGuid(), getImageSize(), getImageSize());
-                        }
-                        return null;
-
-                    } catch (LocalizedException e) {
-                        LogUtil.w(CompanyAddressBookFragment.this.getClass().getSimpleName(), e.getMessage(), e);
-                        return null;
-                    }
-                }
-
-                @Override
-                protected void processBitmapFinished(Object data, ImageView imageView) {
-
-                }
-            };
-            imageLoader.addImageCache(activity.getSupportFragmentManager(), 0.1f);
-            imageLoader.setImageFadeIn(false);
-            imageLoader.setLoadingImage(R.drawable.gfx_profil_placeholder);
-            return imageLoader;
-        } else {
-            return null;
-        }
-    }
-
     @Override
     public void onScrollStateChanged(AbsListView view, int scrollState) {
-        if (mImageLoader == null) {
-            return;
-        }
-
-        if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
-            mImageLoader.setPauseWork(true);
-        } else {
-            mImageLoader.setPauseWork(false);
-        }
     }
 
     @Override

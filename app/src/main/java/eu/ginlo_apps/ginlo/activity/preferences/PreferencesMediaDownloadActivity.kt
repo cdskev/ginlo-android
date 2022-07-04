@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
+import android.widget.CompoundButton
 import android.widget.NumberPicker
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -14,20 +15,41 @@ import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.greendao.Preference
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
-import kotlinx.android.synthetic.main.activity_preferences_media_download.preferences_media_download_textview_files
-import kotlinx.android.synthetic.main.activity_preferences_media_download.preferences_media_download_textview_fotos
-import kotlinx.android.synthetic.main.activity_preferences_media_download.preferences_media_download_textview_videos
-import kotlinx.android.synthetic.main.activity_preferences_media_download.preferences_media_download_textview_voice
+import kotlinx.android.synthetic.main.activity_preferences_chats.*
+import kotlinx.android.synthetic.main.activity_preferences_media_download.*
 
 class PreferencesMediaDownloadActivity : PreferencesBaseActivity() {
 
-    override fun onCreateActivity(savedInstanceState: Bundle?) {}
+    override fun onCreateActivity(savedInstanceState: Bundle?) {
+
+        preferences_switch_always_download_rich_content.setOnCheckedChangeListener(object :
+            CompoundButton.OnCheckedChangeListener {
+            override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
+                if (!settingsSwitch) {
+                    try {
+                        preferencesController.setAlwaysDownloadRichContent(isChecked)
+                    } catch (e: LocalizedException) {
+                        setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)
+                        LogUtil.w(this.javaClass.name, e.message, e)
+                    }
+                }
+            }
+        })
+
+
+    }
 
     override fun getActivityLayout(): Int =
         R.layout.activity_preferences_media_download
 
     override fun onResumeActivity() {
         setAutomaticDownloadView()
+
+        setCompoundButtonWithoutTriggeringListener(
+            preferences_switch_always_download_rich_content,
+            preferencesController.getAlwaysDownloadRichContent()
+        )
+
     }
 
     private fun setAutomaticDownloadView() {

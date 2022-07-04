@@ -13,11 +13,8 @@ public class SelfDestructionChatItemVO
         extends AttachmentChatItemVO {
 
     public static final int TYPE_TEXT = 1;
-
     public static final int TYPE_VIDEO = 2;
-
     public static final int TYPE_IMAGE = 3;
-
     public static final int TYPE_VOICE = 4;
 
     public String text;

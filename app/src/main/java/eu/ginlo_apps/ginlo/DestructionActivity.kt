@@ -23,7 +23,6 @@ import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.greendao.Message
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.chat.SelfDestructionChatItemVO
-import eu.ginlo_apps.ginlo.model.constant.MimeType
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams
 import eu.ginlo_apps.ginlo.util.*
 import kotlinx.android.synthetic.main.activity_destruction.*
@@ -82,7 +81,7 @@ class DestructionActivity : BaseActivity() {
                 if (event.action == MotionEvent.ACTION_DOWN) {
                     startTimer()
                     when (contentType) {
-                        MimeType.IMAGE_JPEG -> {
+                        MimeUtil.MIME_TYPE_IMAGE_JPEG -> {
                             findViewById<View>(R.id.destruction_background).setBackgroundColor(
                                 ContextCompat.getColor(
                                     this@DestructionActivity,
@@ -95,7 +94,7 @@ class DestructionActivity : BaseActivity() {
                                 destruction_attachment_description.text = attachmentDescription
                             }
                         }
-                        MimeType.VIDEO_MPEG -> {
+                        MimeUtil.MIME_TYPE_VIDEO_MPEG -> {
                             findViewById<View>(R.id.destruction_background).setBackgroundColor(
                                 ContextCompat.getColor(
                                     this@DestructionActivity,
@@ -110,7 +109,7 @@ class DestructionActivity : BaseActivity() {
                                 destruction_attachment_description.text = attachmentDescription
                             }
                         }
-                        MimeType.AUDIO_MPEG -> {
+                        MimeUtil.MIME_TYPE_AUDIO_MPEG -> {
                             try {
                                 audioPlayer?.play()
                             } catch (e: LocalizedException) {
@@ -123,16 +122,16 @@ class DestructionActivity : BaseActivity() {
                     please_touch_layout.visibility = View.INVISIBLE
                 } else if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
                     when (contentType) {
-                        MimeType.IMAGE_JPEG -> {
+                        MimeUtil.MIME_TYPE_IMAGE_JPEG -> {
                             destruction_image_view.visibility = View.INVISIBLE
                             destruction_attachment_description.visibility = View.GONE
                         }
-                        MimeType.VIDEO_MPEG -> {
+                        MimeUtil.MIME_TYPE_VIDEO_MPEG -> {
                             destruction_video_view.pause()
                             destruction_video_view.visibility = View.INVISIBLE
                             destruction_attachment_description.visibility = View.GONE
                         }
-                        MimeType.AUDIO_MPEG -> {
+                        MimeUtil.MIME_TYPE_AUDIO_MPEG -> {
                             audioPlayer?.pause()
                             destruction_image_view.visibility = View.INVISIBLE
                         }
@@ -308,14 +307,14 @@ class DestructionActivity : BaseActivity() {
     }
 
     public override fun onPauseActivity() {
-        if (contentType == MimeType.AUDIO_MPEG) {
+        if (contentType == MimeUtil.MIME_TYPE_AUDIO_MPEG) {
             audioPlayer?.pause()
         }
         super.onPauseActivity()
     }
 
     override fun onDestroy() {
-        if (contentType == MimeType.AUDIO_MPEG) {
+        if (contentType == MimeUtil.MIME_TYPE_AUDIO_MPEG) {
             audioPlayer?.release()
         }
         super.onDestroy()
@@ -365,33 +364,31 @@ class DestructionActivity : BaseActivity() {
 
             please_touch_textView.text = resources.getText(R.string.chats_showVideo_pleaseTouch)
             if (imageUriString != null) {
-                contentType = MimeType.IMAGE_JPEG
+                contentType = MimeUtil.MIME_TYPE_IMAGE_JPEG
 
                 val imageUri = Uri.parse(imageUriString)
-                //val bitmap = BitmapUtil.decodeUri(this, imageUri, 0, true)
 
                 val screenSize = Point()
                 windowManager.defaultDisplay.getSize(screenSize)
-                //bitmap = BitmapUtil.decodeUri(this, imageUri, 0, true);
-                val bitmap = BitmapUtil.decodeUri(this, imageUri, screenSize.x, screenSize.y, true)
+                val bitmap = ImageUtil.decodeUri(this, imageUri, screenSize.x, screenSize.y, true)
 
                 setUpImage(bitmap)
             } else if (videoUriString != null) {
-                contentType = MimeType.VIDEO_MPEG
+                contentType = MimeUtil.MIME_TYPE_VIDEO_MPEG
 
                 val fileUri = Uri.parse(videoUriString)
                 val videoUri = Uri.parse(VideoProvider.CONTENT_URI_BASE.toString() + fileUri.path)
 
                 destruction_video_view.setVideoURI(videoUri)
             } else if (voiceUriString != null) {
-                contentType = MimeType.AUDIO_MPEG
+                contentType = MimeUtil.MIME_TYPE_AUDIO_MPEG
 
                 val voiceUri = Uri.parse(voiceUriString)
                 val waveform = AudioUtil.getPlaceholder(this)
 
                 setUpVoice(voiceUri, waveform)
             } else {
-                contentType = MimeType.TEXT_PLAIN
+                contentType = MimeUtil.MIME_TYPE_TEXT_PLAIN
                 if (intent.hasExtra(EXTRA_CHAT_ITEM)) {
                     setUpMessage(
                         SystemUtil.dynamicDownCast(
@@ -407,14 +404,14 @@ class DestructionActivity : BaseActivity() {
                 setTimer(getTimeDifference(destructionParams))
             } else {
                 when (contentType.orEmpty()) {
-                    MimeType.IMAGE_JPEG -> {
+                    MimeUtil.MIME_TYPE_IMAGE_JPEG -> {
                         destruction_image_view.visibility = View.VISIBLE
                         if (attachmentDescription?.isNotBlank() == true) {
                             destruction_attachment_description.visibility = View.VISIBLE
                             destruction_attachment_description.text = attachmentDescription
                         }
                     }
-                    MimeType.VIDEO_MPEG -> {
+                    MimeUtil.MIME_TYPE_VIDEO_MPEG -> {
                         destruction_video_view.start()
                         destruction_video_view.setMediaController(MediaController(this))
                         destruction_video_view.visibility = View.VISIBLE
@@ -423,7 +420,7 @@ class DestructionActivity : BaseActivity() {
                             destruction_attachment_description.text = attachmentDescription
                         }
                     }
-                    MimeType.AUDIO_MPEG -> {
+                    MimeUtil.MIME_TYPE_AUDIO_MPEG -> {
                         try {
                             audioPlayer?.play()
                         } catch (e: LocalizedException) {

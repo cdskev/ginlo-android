@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 import com.github.chrisbanes.photoview.PhotoView;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
@@ -55,11 +56,10 @@ import eu.ginlo_apps.ginlo.fragment.emojipicker.EmojiPickerFragment;
 import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
-import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
@@ -76,17 +76,17 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class PreviewActivity
-        extends ChatInputActivity
+public class PreviewActivity extends ChatInputActivity
         implements EmojiPickerCallback {
 
-    private static final String TAG = PreviewActivity.class.getSimpleName();
+    private static final String TAG = "PreviewActivity";
     private static final String PREVIEW_URI = "mediaUri";
     private static final String ACTION_TYPE = "actionType";
     private static final SerialExecutor COPY_SERIAL_EXECUTOR = new SerialExecutor();
 
     public static final int MAX_MEDIA_ITEMS = 10;
     public static final int SELECT_PHOTOS_ACTION = 100;
+    public static final int SELECT_RICH_CONTENT_ACTION = 150;
     public static final int SELECT_VIDEOS_ACTION = 200;
     public static final int TAKE_VIDEOS_ACTION = 400;
     public static final int TAKE_PHOTOS_ACTION = 500;
@@ -99,7 +99,6 @@ public class PreviewActivity
     public static final String EXTRA_IS_PRIORITY = "PreviewActivity.isPriority";
     public static final String EXTRA_SHOW_ADD_BUTTON = "PreviewActivity.showAddButton";
 
-    private ImageLoader mImageLoader;
     private RecyclerView mThumbnailRecyclerView;
     private ThumbnailAdapter mAdapter;
     private float mDensityMultiplier;
@@ -205,13 +204,8 @@ public class PreviewActivity
             }
 
             mChatInputFragment.setSimpleUi(true);
-
             mChatInputFragment.setAllowSendWithEmptyMessage(true);
-
-            mImageLoader = initImageLoader();
-
             mThumbnailRecyclerView = findViewById(R.id.preview_thumbnail_list);
-
             mThumbnailRecyclerView.setHasFixedSize(true);
 
             final LinearLayout imageListContainer = findViewById(R.id.preview_bottom_bar_inner_images);
@@ -220,7 +214,6 @@ public class PreviewActivity
             final RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, true);
 
             mThumbnailRecyclerView.setLayoutManager(layoutManager);
-
             mDensityMultiplier = this.getResources().getDisplayMetrics().density;
 
             if (intent.hasExtra(EXTRA_PREVIEW_TITLE)) {
@@ -453,6 +446,11 @@ public class PreviewActivity
     }
 
     @Override
+    public void handleSendRichContent(Uri contentUri) {
+
+    }
+
+    @Override
     public void handleSendVoiceClick(final Uri voiceUri) {
         //Do Nothing
     }
@@ -488,47 +486,6 @@ public class PreviewActivity
         } else {
             removeRightActionBarImage();
         }
-    }
-
-    private ImageLoader initImageLoader() {
-        //Image Loader zum Laden der ChatoverviewItems Icons
-        final ImageLoader imageLoader = new ImageLoader(this, 0, false) {
-            @Override
-            protected Bitmap processBitmap(final Object data) {
-                Bitmap thumbnail = null;
-
-                if (data instanceof ThumbnailIdentifier) {
-                    final ThumbnailIdentifier identifier = (ThumbnailIdentifier) data;
-
-                    final Uri uri = Uri.parse(identifier.uriString);
-
-                    if ((mPreviewAction == SELECT_PHOTOS_ACTION) || (mPreviewAction == TAKE_PHOTOS_ACTION)) {
-                        thumbnail = BitmapUtil.decodeUri(PreviewActivity.this, uri,
-                                Math.round(50 * mDensityMultiplier), true);
-                    } else if ((mPreviewAction == SELECT_VIDEOS_ACTION) || (mPreviewAction == TAKE_VIDEOS_ACTION)) {
-                        final int widthHeight = Math.round(50 * mDensityMultiplier);
-
-                        thumbnail = VideoUtil.getThumbnail(PreviewActivity.this, uri, widthHeight,
-                                widthHeight);
-                    }
-                }
-
-                return thumbnail;
-            }
-
-            @Override
-            protected void processBitmapFinished(final Object data, final ImageView imageView) {
-                //Nothing to do
-            }
-        };
-
-        // Add a cache to the image loader
-        imageLoader.addImageCache(getSupportFragmentManager(), 0.1f);
-
-        //
-        imageLoader.setImageFadeIn(false);
-
-        return imageLoader;
     }
 
     public boolean handleSendMessageClick(final String text) {
@@ -957,7 +914,7 @@ public class PreviewActivity
             extends Fragment implements Player.Listener {
         private static final int VIDEO_DELAY = 200;
         private StyledPlayerView mVideoView;
-        private SimpleExoPlayer mVideoPlayer;
+        private ExoPlayer mVideoPlayer;
         private Uri mVideoUri;
         private int mVideoPlayTries;
 
@@ -976,7 +933,7 @@ public class PreviewActivity
 
                 final DisplayMetrics metrics = MetricsUtil.getDisplayMetrics(getActivity());
 
-                final Bitmap previewBitmap = BitmapUtil.decodeUri(getActivity(), Uri.parse(previewUri), metrics.widthPixels,
+                final Bitmap previewBitmap = ImageUtil.decodeUri(getActivity(), Uri.parse(previewUri), metrics.widthPixels,
                         true);
 
                 if (previewBitmap != null) {
@@ -997,7 +954,7 @@ public class PreviewActivity
                 }
 
                 mVideoView = linearLayout.findViewById(R.id.videoView);
-                mVideoPlayer  = new SimpleExoPlayer.Builder(getActivity()).build();
+                mVideoPlayer  = new ExoPlayer.Builder(getActivity()).build();
                 mVideoView.setPlayer(mVideoPlayer);
 
                 MediaItem mediaItem = MediaItem.fromUri(mVideoUri);
@@ -1165,7 +1122,8 @@ public class PreviewActivity
                                 PorterDuff.Mode.SRC_ATOP);
                     }
                 }
-                mImageLoader.loadImage(new ThumbnailIdentifier(mModels.get(position).uri), holder.mThumbnailView);
+                LogUtil.d(TAG, "onBindViewHolder: Show me this ThumbnailIdentifier(mModels.get(position).uri): " + mModels.get(position).uri);
+                imageController.fillViewWithImageFromUri(mModels.get(position).uri, holder.mThumbnailView, true);
             }
         }
 

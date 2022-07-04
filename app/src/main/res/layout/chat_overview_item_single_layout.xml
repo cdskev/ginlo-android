@@ -105,7 +105,7 @@
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/chat_overview_item_send_state"
-                    android:layout_width="wrap_content"
+                    android:layout_width="13dp"
                     android:layout_height="12dp"
                     android:layout_marginEnd="@dimen/half_padding"
                     android:scaleType="centerInside"
@@ -134,7 +134,7 @@
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/chat_overview_item_media_icon"
-                    android:layout_width="wrap_content"
+                    android:layout_width="13dp"
                     android:layout_height="12dp"
                     android:layout_marginEnd="@dimen/half_padding"
                     android:scaleType="centerInside"

@@ -30,7 +30,6 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AVChatController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.ContactController.OnContactVerifiedListener;
@@ -43,11 +42,10 @@ import eu.ginlo_apps.ginlo.greendao.Chat;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.Mandant;
-import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.router.RouterConstants;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
@@ -178,7 +176,6 @@ public class ContactDetailActivity
         }
     };
     private ContactController mContactController;
-    private ChatImageController mChatImageController;
     private AVChatController avChatController;
     private byte[] mImageBytes;
     private Timer mRefreshTimer;
@@ -200,7 +197,7 @@ public class ContactDetailActivity
             case EDIT_CONTACT_RESULT_CODE: {
                 if ((resultCode == RESULT_OK)) {
                     if ((mContact != null) && (mContact.getAccountGuid() != null)) {
-                        mChatImageController.removeFromCache(mContact.getAccountGuid());
+                        imageController.updateProfileImageInCache(mContact.getAccountGuid());
                     }
                 }
 
@@ -217,22 +214,21 @@ public class ContactDetailActivity
                 }
                 break;
             }
-            case RouterConstants.SELECT_GALLARY_RESULT_CODE: {
+            case RouterConstants.SELECT_GALLERY_RESULT_CODE: {
                 if (returnIntent == null) {
                     break;
                 }
 
-                final Uri selectedGallaryItem = returnIntent.getData();
+                final Uri selectedGalleryItem = returnIntent.getData();
                 final FileUtil fileUtil = new FileUtil(this);
-                final MimeUtil mimeUtil = new MimeUtil(this);
 
-                if (!mimeUtil.checkImageUriMimetype(getApplication(), selectedGallaryItem)) {
+                if (!MimeUtil.checkImageUriMimetype(getApplication(), selectedGalleryItem)) {
                     Toast.makeText(this, R.string.chats_addAttachment_wrong_format_or_error, Toast.LENGTH_LONG).show();
                     break;
                 }
 
                 try {
-                    Uri selectedItemIntern = fileUtil.copyFileToInternalDir(selectedGallaryItem);
+                    Uri selectedItemIntern = fileUtil.copyFileToInternalDir(selectedGalleryItem);
                     if (selectedItemIntern != null) {
                         router.cropImage(selectedItemIntern.toString());
                     }
@@ -260,7 +256,7 @@ public class ContactDetailActivity
                 final Bitmap bm = returnIntent.getParcelableExtra(CropImageActivity.RETURN_DATA_AS_BITMAP);
                 if (bm != null) {
                     mProfileImageView.setImageBitmap(bm);
-                    mImageBytes = BitmapUtil.compress(bm, 100);
+                    mImageBytes = ImageUtil.compress(bm, 100);
                 }
                 break;
             }
@@ -322,7 +318,6 @@ public class ContactDetailActivity
 
             mContactContentContainer = findViewById(R.id.contact_content_container);
 
-            mChatImageController = getSimsMeApplication().getChatImageController();
             mContactController = getSimsMeApplication().getContactController();
             final PreferencesController preferencesController = ((SimsMeApplication) getApplication()).getPreferencesController();
             // KS: May be null if no AVC is available
@@ -933,11 +928,7 @@ public class ContactDetailActivity
     }
 
     public void handleDeleteProfileImageClick(View view) {
-        LogUtil.d(TAG, "handleDeleteProfileImageClick: Called from " + this.getLocalClassName());
-        if(!mContactController.getOwnContact().getAccountGuid().equals(mContact.getAccountGuid())) {
-            LogUtil.w(TAG, "handleDeleteProfileImageClick: Allowed only for own contact, not for " + mContact.getAccountGuid());
-            return;
-        }
+        LogUtil.d(TAG, "handleDeleteProfileImageClick: Called from " + this.getLocalClassName() + " for " + mContact.getAccountGuid());
 
         if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
             requestPermission(PermissionUtil.PERMISSION_FOR_READ_EXTERNAL_STORAGE,
@@ -1185,13 +1176,21 @@ public class ContactDetailActivity
                 }
 
                 if(deleteProfileImage) {
-                    mChatImageController.deleteImage(contactByGuid.getAccountGuid());
+                    imageController.deleteProfileImage(contactByGuid.getAccountGuid());
+                    // This may seem obsolete, but it ensures that loading the contact's original
+                    // profile image is being triggered.
+                    try {
+                        imageController.loadProfileImageRaw(contactByGuid.getAccountGuid());
+                    } catch (LocalizedException ignored) { }
+
                 } else if (mImageBytes.length != 0) {
-                    mChatImageController.saveImage(contactByGuid.getAccountGuid(), mImageBytes);
-                    //TODO CHECKSUM
-                    contactByGuid.setProfileImageChecksum("TODO");
-                    mContactController.insertOrUpdateContact(contactByGuid);
+                    // Override a contact's profile image
+                    imageController.saveProfileImageRaw(contactByGuid.getAccountGuid(), mImageBytes);
                 }
+
+                //TODO CHECKSUM
+                contactByGuid.setProfileImageChecksum("TODO");
+                mContactController.insertOrUpdateContact(contactByGuid);
 
                 mContact = contactByGuid;
 
@@ -1220,21 +1219,9 @@ public class ContactDetailActivity
                     this);
         }
 
-        if (contactImage == null) {
-            if (mContact.getAccountGuid() != null) {
-                contactImage = mChatImageController.getImageByGuidWithoutCacheing(mContact.getAccountGuid(), diameter,
-                        diameter);
-            } else {
-                contactImage = mContactController.getFallbackImageByContact(getSimsMeApplication(), mContact);
-            }
-        }
+        imageController.fillViewWithProfileImageByGuidOrOverride( mContact.getAccountGuid(), contactImage,
+                mProfileImageView, diameter, true);
 
-        if (contactImage == null) {
-            contactImage = mChatImageController.getImageByGuidWithoutCacheing(AppConstants.GUID_PROFILE_USER, diameter,
-                    diameter);
-        }
-
-        mProfileImageView.setImageBitmap(contactImage);
     }
 
     public void onMuteClicked(final View view) {

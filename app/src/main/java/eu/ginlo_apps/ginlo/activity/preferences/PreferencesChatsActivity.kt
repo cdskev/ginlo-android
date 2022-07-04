@@ -79,6 +79,21 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
             }
         })
 
+        preferences_switch_animate_rich_content.setOnCheckedChangeListener(object :
+            CompoundButton.OnCheckedChangeListener {
+            override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
+                if (!settingsSwitch) {
+                    try {
+                        preferencesController.setAnimateRichContent(isChecked)
+                        imageController.clearImageCaches(true, true);
+                    } catch (e: LocalizedException) {
+                        setCompoundButtonWithoutTriggeringListener(buttonView, !isChecked)
+                        LogUtil.w(this.javaClass.name, e.message, e)
+                    }
+                }
+            }
+        })
+
         preferences_privacy_switch_sd_sound.setOnCheckedChangeListener(object :
             CompoundButton.OnCheckedChangeListener {
             override fun onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean) {
@@ -137,6 +152,10 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
                 preferencesController.getUseInternalPdfViewer()
             )
             setCompoundButtonWithoutTriggeringListener(
+                preferences_switch_animate_rich_content,
+                preferencesController.getAnimateRichContent()
+            )
+            setCompoundButtonWithoutTriggeringListener(
                 preferences_privacy_switch_sd_sound,
                 preferencesController.getPlayMessageSdSound()
             )
@@ -167,9 +186,7 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
             val pictureUri = data?.data
 
             if (pictureUri != null) {
-                val mimeUtil = MimeUtil(this)
-
-                if (mimeUtil.allowedImageMimeTypes?.contains(mimeUtil.getMimeType(pictureUri).orEmpty().lowercase()) == false) {
+                if (!MimeUtil.checkImageUriMimetype(this, pictureUri)) {
                     Toast.makeText(
                         this@PreferencesChatsActivity,
                         getString(R.string.chats_addAttachment_wrong_format_or_error),
@@ -289,7 +306,7 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
 
     fun handleChatBackgroundClick(@Suppress("UNUSED_PARAMETER") view: View) {
         if (!mBottomSheetMoving) {
-            val bottomSheetLayoutResourceID: Int = if (chatImageController.isBackgroundSet) {
+            val bottomSheetLayoutResourceID: Int = if (imageController.isAppBackgroundSet) {
                 R.layout.dialog_chat_background_context_menu_layout
             } else {
                 R.layout.dialog_chat_background_context_menu_layout_no_reset
@@ -346,7 +363,7 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
 
     private fun setChatBackgroundPreview() {
         try {
-            val background = simsMeApplication.chatImageController.background
+            val background = imageController.appBackground
 
             if (background != null) {
                 chat_settings_image_view_background_thumbnail.visibility = View.VISIBLE
@@ -374,7 +391,7 @@ class PreferencesChatsActivity : PreferencesBaseActivity() {
     }
 
     fun handleBackgroundResetClick(@Suppress("UNUSED_PARAMETER") view: View) {
-        chatImageController.resetBackground()
+        imageController.resetAppBackground()
         closeBottomSheet(null)
         setChatBackgroundPreview()
     }

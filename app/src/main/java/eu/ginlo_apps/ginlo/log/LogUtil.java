@@ -3,6 +3,7 @@ package eu.ginlo_apps.ginlo.log;
 
 import org.jetbrains.annotations.NotNull;
 
+import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.log.Logger;
 
 public class LogUtil {
@@ -12,44 +13,39 @@ public class LogUtil {
         logger = loggerInstance;
     }
 
-    public static void d(@NotNull final String source,
-                         final String msg) {
-        if (msg != null) {
+    public static void d(final String source, final String msg) {
+        if (BuildConfig.DEBUG && msg != null) {
             logger.debug(source + ": " + msg);
         }
     }
 
-    public static void d(@NotNull final String source,
-                         final String msg,
-                         final Throwable tr) {
-        if (msg != null) {
-            logger.debug(source + ": " + msg);
-        }
+    public static void d(final String source, final String msg, final Throwable tr) {
+        if (BuildConfig.DEBUG) {
+            if (msg != null) {
+                logger.debug(source + ": " + msg);
 
-        if (tr != null) {
-            for (StackTraceElement traceElement : tr.getStackTrace()) {
-                logger.debug(traceElement.toString());
+                if (tr != null) {
+                    for (StackTraceElement traceElement : tr.getStackTrace()) {
+                        logger.debug(traceElement.toString());
+                    }
+                }
             }
         }
     }
 
-    public static void i(@NotNull final String source,
-                         final String msg) {
+    public static void i(final String source, final String msg) {
         if (msg != null) {
             logger.info(source + ": " + msg);
         }
     }
 
-    public static void w(@NotNull final String source,
-                         final String msg) {
+    public static void w(final String source, final String msg) {
         if (msg != null) {
             logger.warn(source + ": " + msg);
         }
     }
 
-    public static void w(@NotNull final String source,
-                         final String msg,
-                         final Throwable tr) {
+    public static void w(final String source, final String msg, final Throwable tr) {
         if (msg != null) {
             logger.warn(source + ": " + msg);
         }
@@ -61,8 +57,7 @@ public class LogUtil {
         }
     }
 
-    public static void e(final String source,
-                         final String msg) {
+    public static void e(final String source, final String msg) {
         if (msg != null) {
             logger.error(source + ": " + msg);
         }
@@ -74,16 +69,14 @@ public class LogUtil {
         }
     }
 
-    public static void e(@NotNull final String source,
-                         final String msg,
-                         final Throwable tr) {
+    public static void e(@NotNull final String source, final String msg, final Throwable tr) {
         if (msg != null) {
-            logger.warn(source + ": " + msg);
+            logger.error(source + ": " + msg);
         }
 
         if (tr != null) {
             for (StackTraceElement traceElement : tr.getStackTrace()) {
-                logger.warn(traceElement.toString());
+                logger.error(traceElement.toString());
             }
         }
     }

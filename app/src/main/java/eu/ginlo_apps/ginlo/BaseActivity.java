@@ -48,9 +48,9 @@ import eu.ginlo_apps.ginlo.billing.GinloBillingImpl;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.AccountController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ClipBoardController;
 import eu.ginlo_apps.ginlo.controller.GinloAppLifecycle;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.controller.LoginController;
 import eu.ginlo_apps.ginlo.controller.MessageDecryptionController;
 import eu.ginlo_apps.ginlo.controller.NotificationController;
@@ -131,7 +131,7 @@ public abstract class BaseActivity
     protected NotificationController notificationController;
     protected MessageDecryptionController messageDecryptionController;
     protected AVChatController avChatController;
-    protected ChatImageController chatImageController;
+    protected ImageController imageController;
     protected ClipBoardController clipBoardController;
     protected GinloBillingImpl ginloBillingImpl = null;
 
@@ -212,7 +212,7 @@ public abstract class BaseActivity
         notificationController = getSimsMeApplication().getNotificationController();
         messageDecryptionController = getSimsMeApplication().getMessageDecryptionController();
         avChatController = getSimsMeApplication().getAVChatController();
-        chatImageController = getSimsMeApplication().getChatImageController();
+        imageController = getSimsMeApplication().getImageController();
         clipBoardController = getSimsMeApplication().getClipBoardController();
 
         if (!RuntimeConfig.isB2c()) {
@@ -1049,6 +1049,7 @@ public abstract class BaseActivity
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
+        //super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (mPermissionUtil != null) {
             mPermissionUtil.onRequestPermissionsResult(requestCode, grantResults);
             mPermissionUtil = null;

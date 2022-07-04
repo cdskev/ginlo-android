@@ -17,6 +17,7 @@ public class SendActionContainer {
     public static final int TYPE_IMAGE = 551;
     public static final int TYPE_FILE = 552;
     public static final int TYPE_VIDEO = 553;
+    public static final int TYPE_RICH_CONTENT = 600;
 
     //oeffnen in action
     public int action = -1;
@@ -32,7 +33,8 @@ public class SendActionContainer {
     //forward message
     public long forwardMessageId;
 
-    public boolean forwardChannelMessageIsImage;
+    public boolean processRichContents = false;
 
+    public boolean forwardChannelMessageIsImage;
     public boolean forwardChannelMessageIsText;
 }

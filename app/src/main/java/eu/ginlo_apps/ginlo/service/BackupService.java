@@ -123,7 +123,7 @@ public class BackupService extends IntentService {
 
         try {
             mStorageUtil = new StorageUtil(mApplication);
-            mBackupDir = mStorageUtil.getCurrentInternalBackupDirectory(true);
+            mBackupDir = mStorageUtil.getInternalBackupDirectory(true);
             final Uri zipDestination = mStorageUtil.getBackupDestinationUri();
             if(zipDestination == null) {
                 LogUtil.e(TAG, "onHandleIntent: No valid backup destination!");
@@ -515,7 +515,7 @@ public class BackupService extends IntentService {
                 jsonWriter.beginArray();
 
                 if (chat.getType() == Chat.TYPE_GROUP_CHAT || chat.getType() == Chat.TYPE_GROUP_CHAT_INVITATION) {
-                    byte[] groupImage = mApplication.getChatImageController().loadImage(guid);
+                    byte[] groupImage = mApplication.getImageController().loadProfileImageRaw(guid);
                     if (groupImage != null) {
                         chat.setGroupChatImage(groupImage);
                     }

@@ -1865,7 +1865,10 @@ public class BackendService
             if(params != null) {
                 LogUtil.i(TAG, "callBackend: using " + (isConnectedViaWLAN() ? "WLAN" : "mobile network"));
                 // Log request details in DEBUG mode only
-                LogUtil.d(TAG, "callBackend: " + params.getNameValuePairs().toString());
+                LogUtil.d(TAG, "callBackend: (lazy = " + useLazyHttpTask +
+                        ", background = " + inBackground +
+                        ", async = " + mUseAsycnConnections + ") with " +
+                        params.getNameValuePairs().toString());
             }
 
             if (mUseAsycnConnections) {

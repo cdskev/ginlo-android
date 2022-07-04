@@ -34,7 +34,6 @@ import eu.ginlo_apps.ginlo.ContactsActivity.MODE_SIMSME_SINGLE
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.adapter.ContactsAdapter
 import eu.ginlo_apps.ginlo.context.SimsMeApplication
-import eu.ginlo_apps.ginlo.controller.ChatImageController
 import eu.ginlo_apps.ginlo.controller.ContactController
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.greendao.Contact
@@ -44,7 +43,6 @@ import eu.ginlo_apps.ginlo.model.constant.JsonConstants
 import eu.ginlo_apps.ginlo.themedInflater
 import eu.ginlo_apps.ginlo.util.ContactUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
-import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.PermissionUtil
 import eu.ginlo_apps.ginlo.util.RuntimeConfig
 import eu.ginlo_apps.ginlo.util.StringUtil
@@ -78,9 +76,7 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
 
     private val TAG = ContactsFragment::class.java.simpleName
     private val contactController: ContactController by lazy { (context as BaseActivity).simsMeApplication.contactController }
-    private val chatImageController: ChatImageController by lazy { (context as BaseActivity).simsMeApplication.chatImageController }
     private var contacts: List<Contact>? = null
-    private var imageLoader: ImageLoader? = null
     private var onItemClickListener: AdapterView.OnItemClickListener? = null
     private var layout: Int = 0
     private var suppressNextError: Boolean = false
@@ -275,69 +271,6 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
         return ContactsFragmentType.TYPE_PRIVATE
     }
 
-    //FIXME This code is copied from the ContactsActivity
-    private fun initImageLoader(imageDiameter: Int): ImageLoader? {
-        if (activity == null) {
-            return null
-        }
-
-        val imageLoader = object : ImageLoader(requireActivity(), imageDiameter, false) {
-            override fun processBitmap(contact: Any?): Bitmap? {
-                if (contact == null || activity == null) {
-                    return null
-                }
-                try {
-                    var returnImage: Bitmap? = null
-
-                    if (contact is Contact) {
-                        if ((contact.isSimsMeContact == null || !contact.isSimsMeContact) && contact.photoUri != null) {
-                            returnImage = ContactUtil.loadContactPhotoThumbnail(
-                                    contact.photoUri, imageSize,
-                                    activity
-                            )
-                        }
-
-                        if (returnImage == null) {
-                            returnImage = if (contact.accountGuid != null) {
-                                chatImageController.getImageByGuidWithoutCacheing(
-                                        contact.accountGuid,
-                                        imageSize, imageSize
-                                )
-                            } else {
-                                contactController.getFallbackImageByContact(
-                                        activity?.applicationContext, contact
-                                )
-                            }
-                        }
-
-                        if (returnImage == null) {
-                            returnImage = chatImageController.getImageByGuidWithoutCacheing(
-                                    AppConstants.GUID_PROFILE_USER,
-                                    imageSize, imageSize
-                            )
-                        }
-                    }
-
-                    return returnImage
-                } catch (e: LocalizedException) {
-                    LogUtil.w(TAG, "initImageLoader: Image can't be loaded.", e)
-                    return null
-                }
-            }
-
-            override fun processBitmapFinished(data: Any, imageView: ImageView) {
-                //Nothing to do
-            }
-        }
-
-        imageLoader.addImageCache(requireActivity().supportFragmentManager, 0.1f)
-        imageLoader.setImageFadeIn(false)
-        imageLoader.setLoadingImage(R.drawable.gfx_profil_placeholder)
-
-        chatImageController.addListener(imageLoader)
-        return imageLoader
-    }
-
     fun startRefresh() {
         val activity = activity
         if (activity is BaseActivity) {
@@ -446,36 +379,18 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
         layout = R.layout.contact_item_overview_layout
         setCheckedAsDefault = false
         contactsAdapter = ContactsAdapter(activity, layout, contacts, setCheckedAsDefault, true)
-
-        val diameter = resources.getDimension(R.dimen.contact_item_single_select_icon_diameter).toInt()
-
-        imageLoader = initImageLoader(diameter)
-
-        contactsAdapter?.setImageLoader(imageLoader)
     }
 
     private fun initForModeSimsmeSingle() {
         layout = R.layout.contact_item_overview_layout
         setCheckedAsDefault = false
         contactsAdapter = ContactsAdapter(activity, layout, contacts, setCheckedAsDefault, true)
-
-        val diameter = resources.getDimension(R.dimen.contact_item_single_select_icon_diameter).toInt()
-
-        imageLoader = initImageLoader(diameter)
-
-        contactsAdapter?.setImageLoader(imageLoader)
     }
 
     private fun initForModeNonSimsme() {
         layout = R.layout.contact_item_overview_layout
         setCheckedAsDefault = false
         contactsAdapter = ContactsAdapter(activity, layout, contacts, setCheckedAsDefault, true)
-
-        val diameter = resources.getDimension(R.dimen.contact_item_single_select_icon_diameter).toInt()
-
-        imageLoader = initImageLoader(diameter)
-
-        contactsAdapter?.setImageLoader(imageLoader)
     }
 
     private fun initForModeSimsmeGroup() {
@@ -502,10 +417,6 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
 
         contactsAdapter = ContactsAdapter(activity, layout, contacts, setCheckedAsDefault, true)
 
-        val diameter = resources.getDimension(R.dimen.contact_item_multi_select_icon_diameter).toInt()
-        imageLoader = initImageLoader(diameter)
-        contactsAdapter?.setImageLoader(imageLoader)
-
         val intent = activity?.intent
         if (intent?.extras?.get(EXTRA_GROUP_CHAT_OWNER_GUID) != null) {
             val ownerGuid = intent.getStringExtra(EXTRA_GROUP_CHAT_OWNER_GUID)
@@ -524,9 +435,6 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
             layout = R.layout.contact_item_overview_layout
             setCheckedAsDefault = false
             contactsAdapter = ContactsAdapter(activity, layout, contacts, setCheckedAsDefault, true)
-            val diameter = resources.getDimension(R.dimen.contact_item_single_select_icon_diameter).toInt()
-            imageLoader = initImageLoader(diameter)
-            contactsAdapter?.setImageLoader(imageLoader)
         } else {
             DialogBuilderUtil.buildErrorDialog(
                     activity as BaseActivity?,
@@ -667,7 +575,6 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
 
             setCheckedAsDefault = false
             contactsAdapter = ContactsAdapter(activity, layout, visibleContacts, setCheckedAsDefault, true).apply {
-                setImageLoader(imageLoader)
             }
 
             rootView.contacts_list_view.apply {
@@ -694,11 +601,6 @@ class ContactsFragment : BaseContactsFragment(), ContactController.OnLoadContact
     }
 
     override fun onScrollStateChanged(view: AbsListView, scrollState: Int) {
-        if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_FLING) {
-            imageLoader?.setPauseWork(true)
-        } else {
-            imageLoader?.setPauseWork(false)
-        }
     }
 
     override fun onScroll(view: AbsListView, firstVisibleItem: Int, visibleItemCount: Int, totalItemCount: Int) {

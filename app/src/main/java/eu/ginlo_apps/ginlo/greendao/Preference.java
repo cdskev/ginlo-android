@@ -259,14 +259,14 @@ public class Preference
         }
     }
 
-    public Boolean getSaveMediaToGallary()
+    public Boolean getSaveMediaToGallery()
             throws LocalizedException {
         synchronized (this) {
             return (Boolean) GreenDAOSecurityLayer.getInstance().get(this, SAVE_MEDIA_TO_GALLERY);
         }
     }
 
-    public void setSaveMediaToGallary(boolean value)
+    public void setSaveMediaToGallery(boolean value)
             throws LocalizedException {
         synchronized (this) {
             GreenDAOSecurityLayer.getInstance().set(this, SAVE_MEDIA_TO_GALLERY, value);

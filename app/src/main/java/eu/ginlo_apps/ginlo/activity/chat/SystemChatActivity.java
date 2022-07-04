@@ -24,8 +24,7 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.chat.BaseChatItemVO;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 
-public class SystemChatActivity
-        extends BaseChatActivity {
+public class SystemChatActivity extends BaseChatActivity {
 
     private final static String TAG = SystemChatActivity.class.getSimpleName();
     private Contact contact;
@@ -38,7 +37,7 @@ public class SystemChatActivity
             LogUtil.d(TAG, "onCreate: " + this + "");
 
             mTargetGuid = getIntent().getStringExtra(EXTRA_TARGET_GUID);
-            notificationController.setCurrentChatGuid(mTargetGuid);
+            //notificationController.setCurrentChatGuid(mTargetGuid);
 
             getChatController().addListener(this);
 

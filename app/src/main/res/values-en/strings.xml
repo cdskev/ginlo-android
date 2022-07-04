@@ -382,7 +382,7 @@
     <string name="chats_selfDestruction_date_title">Time</string>
     <string name="chats_selfdestruction_countdown_second">Second</string>
     <string name="chats_selfdestruction_countdown_seconds">Seconds</string>
-    <string name="chats_selfdestruction_invalid_date">Please select a date in the future. The time travel feature is still on our to-do list. ;-)</string>
+    <string name="chats_selfdestruction_invalid_date">Please select a date in the future.</string>
     <string name="chats_selfdestruction_sddate_before_senddate">The self-destruct time is earlier than the sending time.</string>
     <string name="chats_share">Share</string>
     <string name="chats_showPicture_destroyedIn">Self-destruction in</string>
@@ -1341,4 +1341,7 @@
     <string name="settings_others_use_osm_title">Location service</string>
     <string name="settings_others_use_osm_text">Use OpenStreetMap</string>
     <string name="settings_chat_use_internal_pdf_viewer">Use internal reader for pdf-files</string>
+    <string name="settings_chat_always_download_rich_content">Always download stickers</string>
+    <string name="settings_chat_animate_rich_content">Animate stickers</string>
+    <string name="chat_overview_preview_rich_content">Sticker</string>
 </resources>

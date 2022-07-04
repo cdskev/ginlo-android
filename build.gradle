@@ -1,4 +1,4 @@
-apply plugin: 'android-reporting'
+def localProperties = getLocalProperties()
 
 buildscript {
     ext {
@@ -6,9 +6,9 @@ buildscript {
         b2c_uploadPW = 'PASSWORD'
     }
     ext.versionMajor = 5
-    ext.versionMinor = 3
-    ext.versionPatch = 0
-    ext.buildNumber = 200
+    ext.versionMinor = 4
+    ext.versionPatch = 3
+    ext.buildNumber = 000
     ext.kotlin_version = '1.5.20'
     ext.billing_version = "5.0.0"
 
@@ -21,7 +21,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath 'com.android.tools.build:gradle:7.0.4'
         classpath 'com.google.gms:google-services:4.3.10'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "io.sentry:sentry-android-gradle-plugin:2.1.5"
@@ -34,7 +34,7 @@ allprojects {
         mavenCentral()
         jcenter()
         maven { url "https://jitpack.io" }
-        maven { url "https://github.com/jitsi/jitsi-maven-repository/raw/master/releases" }
+        maven { url localProperties['jitsiMavenRepositoryUrl'] }
     }
 }
 
@@ -45,3 +45,14 @@ private Integer generateVersionCode() {
 private String generateVersionName() {
     return "${ext.versionMajor}.${ext.versionMinor}.${ext.versionPatch}.${ext.buildNumber}"
 }
+
+private Properties getLocalProperties() {
+    def localProperties = new Properties()
+    try {
+        localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+    } catch (Exception e) {
+        logger.warn("No Local Properties File Found!")
+    }
+    return localProperties
+}
+

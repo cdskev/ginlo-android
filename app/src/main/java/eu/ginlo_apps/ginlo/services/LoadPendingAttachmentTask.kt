@@ -15,10 +15,10 @@ import eu.ginlo_apps.ginlo.greendao.Preference
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.constant.AppConstants
 import eu.ginlo_apps.ginlo.model.constant.BackendError
-import eu.ginlo_apps.ginlo.model.constant.MimeType
 import eu.ginlo_apps.ginlo.service.BackendService
 import eu.ginlo_apps.ginlo.service.IBackendService
 import eu.ginlo_apps.ginlo.util.FileUtil
+import eu.ginlo_apps.ginlo.util.MimeUtil
 import java.util.concurrent.CountDownLatch
 
 class LoadPendingAttachmentTask : JobIntentService() {
@@ -124,34 +124,44 @@ class LoadPendingAttachmentTask : JobIntentService() {
     ): Boolean {
         val isConnectedViaWLAN = BackendService.withSyncConnection(application).isConnectedViaWLAN
 
-        if (contentType.equals(MimeType.IMAGE_JPEG, ignoreCase = true)) {
+        if (MimeUtil.isRichContentMimetype(contentType)) {
+            if (application.preferencesController.getAlwaysDownloadRichContent() ||
+                application.preferencesController.automaticDownloadFiles == Preference.AUTOMATIC_DOWNLOAD_ALWAYS ||
+                (application.preferencesController.automaticDownloadFiles == Preference.AUTOMATIC_DOWNLOAD_WLAN
+                        && isConnectedViaWLAN)
+
+            ) {
+                return true
+            }
+        }
+        if (contentType.equals(MimeUtil.MIME_TYPE_IMAGE_JPEG, ignoreCase = true)) {
             if (application.preferencesController.automaticDownloadPicture == Preference.AUTOMATIC_DOWNLOAD_ALWAYS ||
-                    application.preferencesController.automaticDownloadPicture == Preference.AUTOMATIC_DOWNLOAD_WLAN
-                    && isConnectedViaWLAN
+                (application.preferencesController.automaticDownloadPicture == Preference.AUTOMATIC_DOWNLOAD_WLAN
+                    && isConnectedViaWLAN)
             ) {
                 return true
             }
         }
-        if (contentType.equals(MimeType.AUDIO_MPEG, ignoreCase = true)) {
+        if (contentType.equals(MimeUtil.MIME_TYPE_AUDIO_MPEG, ignoreCase = true)) {
             if (application.preferencesController.automaticDownloadVoice == Preference.AUTOMATIC_DOWNLOAD_ALWAYS ||
-                    application.preferencesController.automaticDownloadVoice == Preference.AUTOMATIC_DOWNLOAD_WLAN
-                    && isConnectedViaWLAN
+                (application.preferencesController.automaticDownloadVoice == Preference.AUTOMATIC_DOWNLOAD_WLAN
+                    && isConnectedViaWLAN)
             ) {
                 return true
             }
         }
-        if (contentType.equals(MimeType.VIDEO_MPEG, ignoreCase = true)) {
+        if (contentType.equals(MimeUtil.MIME_TYPE_VIDEO_MPEG, ignoreCase = true)) {
             if (application.preferencesController.automaticDownloadVideo == Preference.AUTOMATIC_DOWNLOAD_ALWAYS ||
-                    application.preferencesController.automaticDownloadVideo == Preference.AUTOMATIC_DOWNLOAD_WLAN
-                    && isConnectedViaWLAN
+                (application.preferencesController.automaticDownloadVideo == Preference.AUTOMATIC_DOWNLOAD_WLAN
+                    && isConnectedViaWLAN)
             ) {
                 return true
             }
         }
-        if (contentType.equals(MimeType.APP_OCTET_STREAM, ignoreCase = true)) {
+        if (MimeUtil.hasUnspecificBinaryMimeType(contentType)) {
             if (application.preferencesController.automaticDownloadFiles == Preference.AUTOMATIC_DOWNLOAD_ALWAYS ||
-                    application.preferencesController.automaticDownloadFiles == Preference.AUTOMATIC_DOWNLOAD_WLAN
-                    && isConnectedViaWLAN
+                (application.preferencesController.automaticDownloadFiles == Preference.AUTOMATIC_DOWNLOAD_WLAN
+                    && isConnectedViaWLAN)
             ) {
                 return true
             }

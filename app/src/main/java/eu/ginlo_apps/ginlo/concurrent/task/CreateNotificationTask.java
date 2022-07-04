@@ -3,12 +3,15 @@
 package eu.ginlo_apps.ginlo.concurrent.task;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.controller.message.GroupChatController;
@@ -22,7 +25,8 @@ import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.DecryptedMessage;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import java.util.ArrayList;
@@ -32,7 +36,8 @@ import java.util.List;
 public class CreateNotificationTask
         extends ConcurrentTask {
 
-    private final static String TAG = CreateNotificationTask.class.getSimpleName();
+    private final static String TAG = "CreateNotificationTask";
+    private final SimsMeApplication mContext;
     private final NotificationController notificationController;
     private final ChatOverviewController chatOverviewController;
     private final ChannelController channelController;
@@ -40,20 +45,21 @@ public class CreateNotificationTask
     private final ContactController contactController;
     private final MessageController messageController;
     private final GroupChatController groupController;
-    private final SimsMeApplication mContext;
+    private final ImageController imageController;
     private final AVChatController mAVChatController;
 
     public CreateNotificationTask(final SimsMeApplication context) {
         super();
 
+        this.mContext = context;
         this.chatOverviewController = context.getChatOverviewController();
         this.notificationController = context.getNotificationController();
         this.prefController = context.getPreferencesController();
         this.messageController = context.getMessageController();
-        this.mContext = context;
         this.channelController = context.getChannelController();
         this.contactController = context.getContactController();
         this.groupController = context.getGroupChatController();
+        this.imageController = context.getImageController();
         this.mAVChatController = context.getAVChatController();
     }
 
@@ -81,7 +87,6 @@ public class CreateNotificationTask
 
         try {
             final HashMap<String, Integer> chatMap = new HashMap<>();
-            final HashMap<String, Bitmap> bitmapCache = new HashMap<>();
 
             final boolean showChannelNotifications = prefController.getNotificationForChannelChatEnabled();
             final boolean showServiceNotifications = prefController.getNotificationForServiceChatEnabled();
@@ -209,9 +214,9 @@ public class CreateNotificationTask
                     if (isChannelMessage) {
                         final String contentType = decryptedMessage.getContentType();
 
-                        if (StringUtil.isEqual(contentType, MimeType.TEXT_PLAIN)) {
+                        if (StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_TEXT_PLAIN)) {
                             preview = decryptedMessage.getText();
-                        } else if (StringUtil.isEqual(contentType, MimeType.IMAGE_JPEG)) {
+                        } else if (StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_IMAGE_JPEG)) {
                             preview = mContext.getResources().getString(R.string.chat_overview_preview_imageReceived);
                         }
 
@@ -229,32 +234,23 @@ public class CreateNotificationTask
 
                     final String contentType = decryptedMessage.getContentType();
 
-                    if (StringUtil.isEqual(contentType, MimeType.TEXT_RSS)) {
+                    if (StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_TEXT_RSS)) {
                         name = null;
                     }
 
                     // Must keep special data if avc message - only if avc is present!
                     if (mAVChatController != null) {
-                        if (StringUtil.isEqual(contentType, MimeType.TEXT_V_CALL)) {
+                        if (StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_TEXT_V_CALL)) {
                             shortLinkText = "AVC!";
                             preview = decryptedMessage.getAVCRoom();
 
                         }
                     }
 
-                    Bitmap bitmap = bitmapCache.get(senderGuid);
-
-                    if (bitmap == null) {
-                        bitmap = chatOverviewController.getProfileImageForMessage(senderGuid);
-
-                        if (bitmap != null) {
-                            bitmapCache.put(senderGuid, bitmap);
-                        }
-                    }
-
+                    byte[] profileImageBytes = imageController.loadProfileImageRaw(senderGuid);
                     final NotificationInfoContainer notificationInfo = new NotificationInfoContainer(
                             senderGuid,
-                            bitmap,
+                            BitmapFactory.decodeByteArray(profileImageBytes, 0, profileImageBytes.length),
                             name,
                             preview,
                             shortLinkText

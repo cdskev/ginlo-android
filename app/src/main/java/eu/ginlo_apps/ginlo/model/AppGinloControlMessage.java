@@ -6,7 +6,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 
 /**
  * @author KS

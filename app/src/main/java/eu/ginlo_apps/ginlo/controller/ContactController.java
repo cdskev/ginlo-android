@@ -102,6 +102,7 @@ import eu.ginlo_apps.ginlo.util.ConfigUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.Listener.GenericUpdateListener;
@@ -389,7 +390,7 @@ public class ContactController
     public void setImage(String guid,
                          byte[] imageBytes)
             throws LocalizedException {
-        mApplication.getChatImageController().saveImage(guid, imageBytes);
+        mApplication.getImageController().saveProfileImageRaw(guid, imageBytes);
     }
 
     public void setProfilInfoAesKey(final String guid, final String aesKey,
@@ -1754,15 +1755,8 @@ public class ContactController
 
             if (loadImage) {
                 String oldChecksum = contact.getProfileImageChecksum();
-
-                /////////////////////
-                //LogUtil.d(TAG, "decryptedAndSetProfilInfosToContact: Retrieve image from server for checksum " + checksum + " (oldChecksum is " + oldChecksum + ").");
-                //loadContactProfileImageFromServer(contact.getAccountGuid(), checksum);
-                if (!StringUtil.isEqual(oldChecksum, checksum)) {
-                    //bild laden
-                    LogUtil.d(TAG, "decryptedAndSetProfilInfosToContact: Retrieve image from server for checksum " + checksum + " (oldChecksum is " + oldChecksum + ").");
-                    loadContactProfileImageFromServer(contact.getAccountGuid(), checksum);
-                }
+                LogUtil.d(TAG, "decryptedAndSetProfilInfosToContact: Retrieve image from server for checksum " + checksum + " (oldChecksum is " + oldChecksum + ").");
+                loadContactProfileImageFromServer(contact.getAccountGuid(), checksum);
             } else {
                 LogUtil.d(TAG, "decryptedAndSetProfilInfosToContact: Just set image for checksum " + checksum);
                 contact.setProfileImageChecksum(checksum);
@@ -1779,6 +1773,7 @@ public class ContactController
      */
     public void registerOnContactProfileInfoChangeNotification(OnContactProfileInfoChangeNotification listener) {
         if (listener != null) {
+            LogUtil.d(TAG, "registerOnContactProfileInfoChangeNotification: -> " + listener.getClass());
             mOnContactProfileInfoChangeNotificationList.add(listener);
         }
     }
@@ -1796,12 +1791,14 @@ public class ContactController
 
     private void notifyOnContactProfileInfoChangeNotificationListener(String guid) {
         for (OnContactProfileInfoChangeNotification listener : mOnContactProfileInfoChangeNotificationList) {
+            LogUtil.d(TAG, "notifyOnContactProfileInfoChangeNotificationListener: -> " + listener.getClass());
             listener.onContactProfilInfoHasChanged(guid);
         }
     }
 
     private void notifyOnContactProfileImageChangeNotificationListener(String guid) {
         for (OnContactProfileInfoChangeNotification listener : mOnContactProfileInfoChangeNotificationList) {
+            LogUtil.d(TAG, "notifyOnContactProfileImageChangeNotificationListener: -> " + listener.getClass());
             listener.onContactProfilImageHasChanged(guid);
         }
     }
@@ -1881,18 +1878,17 @@ public class ContactController
             @Override
             public void asyncLoaderFinished(byte[] result) {
                 try {
-                    ChatImageController chatImageController = mApplication.getChatImageController();
-                        chatImageController.removeFromCache(contactGuid);
+                    ImageController imageController = mApplication.getImageController();
                         Contact contact = getContactByGuid(contactGuid);
 
                         if (result != null && result.length > 0) {
-                            chatImageController.saveImage(contactGuid, result);
+                            imageController.saveProfileImageRaw(contactGuid, result);
                             contact.setProfileImageChecksum(checksum);
                         } else {
                             // If backend has no image information we consider that as "no profile image set".
                             // This is important because users could otherwise never delete their profile image.
                             // We have no "flag" indicating a deletion.
-                            chatImageController.deleteImage(contactGuid);
+                            imageController.deleteProfileImage(contactGuid);
                             contact.setProfileImageChecksum("TODO");
                         }
 
@@ -1940,89 +1936,28 @@ public class ContactController
         return rc;
     }
 
-    public Bitmap getFallbackImageByContact(Context context,
-                                            Contact contact)
+    public Bitmap getFallbackImageByContact(Context context, Contact contact)
             throws LocalizedException {
 
-        if(context == null) {
-            return null;
-        }
+        if(context != null) {
+            String name;
 
-        String text = "";
-        String name;
+            if (contact != null) {
+                name = StringUtil.trim(contact.getName());
 
-        if (contact != null) {
-            name = StringUtil.trim(contact.getName());
-
-            if (StringUtil.isNullOrEmpty(name)) {
-                return null;
-            }
-            //filter emojis and trim (Bug 36416)
-            name = name.replaceAll("\\p{So}+", "").trim();
-            if (name.matches("\\+[0-9 ]+")) {
-                String lastNameNumbers = name.substring(1).replaceAll(" ", "");
-
-                if (lastNameNumbers.length() > 1) {
-                    text = lastNameNumbers.substring(lastNameNumbers.length() - 2);
+                if (!StringUtil.isNullOrEmpty(name)) {
+                    return ImageUtil.createFallbackProfileImage(context, name);
                 }
             }
-
-            String[] nameSplit = name.split(" ");
-
-            if (nameSplit.length > 1) {
-                text = nameSplit[0].substring(0, 1).toUpperCase()
-                        + nameSplit[nameSplit.length - 1].substring(0, 1).toUpperCase();
-            } else if (nameSplit.length == 1 && !nameSplit[0].equals("")) {
-                text = name.substring(0, 1).toUpperCase();
-            } else {
-                text = "";
-            }
-
-            Bitmap bm = BitmapFactory.decodeResource(context.getResources(), R.drawable.gfx_profil_placeholder);
-            Bitmap bitmap = bm.copy(Bitmap.Config.ARGB_8888, true);
-
-            Paint paint1 = new Paint();
-            ColorFilter filter = new PorterDuffColorFilter(ContactUtil.getColorForName(name), PorterDuff.Mode.SRC_ATOP);
-            paint1.setColorFilter(filter);
-            paint1.setAlpha(50);
-            Canvas canvas1 = new Canvas(bitmap);
-            canvas1.drawBitmap(bitmap, 0, 0, paint1);
-
-            final float scale = context.getResources().getDisplayMetrics().density;
-
-            Canvas canvas = new Canvas(bitmap);
-
-            // new antialised Paint
-            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
-            // text color - #3D3D3D
-            paint.setColor(Color.rgb(255, 255, 255));
-
-            // text size in pixels
-            paint.setTextSize(75 * scale);
-
-            // draw text to the Canvas center
-            Rect bounds = new Rect();
-
-            paint.getTextBounds(text, 0, text.length(), bounds);
-
-            int x = (bitmap.getWidth() - bounds.width()) / 2;
-            int y = (bitmap.getHeight() + bounds.height()) / 2;
-
-            canvas.drawText(text, x, y, paint);
-            return bitmap;
         }
 
         return null;
     }
 
-    public Bitmap getFallbackImageByGuid(Context context,
-                                         String contactGuid,
-                                         int scaleSize)
+    public Bitmap getFallbackImageByGuid(Context context, String contactGuid, int scaleSize)
             throws LocalizedException {
-        Contact contact = getContactByGuid(contactGuid);
 
-        return getFallbackImageByContact(context, contact);
+        return getFallbackImageByContact(context, getContactByGuid(contactGuid));
     }
 
     private ArrayList<Contact> filterDuplicates(ArrayList<Contact> contacts)
@@ -2571,7 +2506,7 @@ public class ContactController
 
         if (imageBytes != null && imageBytes.length > 0) {
             hasChanges = true;
-            mApplication.getChatImageController().saveImage(contact.getAccountGuid(), imageBytes);
+            mApplication.getImageController().saveProfileImageRaw(contact.getAccountGuid(), imageBytes);
         }
 
         if (StringUtil.isNullOrEmpty(contact.getClassEntryName())) {
@@ -2639,7 +2574,7 @@ public class ContactController
 
                 JsonObject dataJO = contact.exportPrivateIndexEntryData();
 
-                byte[] imgBytes = application.getChatImageController().loadImage(contact.getAccountGuid());
+                byte[] imgBytes = application.getImageController().loadProfileImageRaw(contact.getAccountGuid());
                 if (imgBytes != null) {
                     if (imgBytes.length > 0) {
                         String imgBase64 = Base64.encodeToString(imgBytes, Base64.DEFAULT);
@@ -3291,19 +3226,19 @@ public class ContactController
                             hasToUploadPrivateIndex = true;
                         }
 
-                        boolean updatePicuture = false;
+                        boolean updatePicture = false;
 
                         String imgData = JsonUtil.stringFromJO(JsonConstants.IMAGE, entryJO);
                         if (imgData != null) {
                             if (imgData.length() > 0) {
                                 byte[] imgBytes = Base64.decode(imgData, Base64.DEFAULT);
                                 if (imgBytes != null) {
-                                    mApplication.getChatImageController().saveImage(accountGuid, imgBytes);
-                                    updatePicuture = true;
+                                    mApplication.getImageController().saveProfileImageRaw(accountGuid, imgBytes);
+                                    updatePicture = true;
                                 }
                             } else {
-                                mApplication.getChatImageController().deleteImage(accountGuid);
-                                updatePicuture = true;
+                                mApplication.getImageController().deleteProfileImage(accountGuid);
+                                updatePicture = true;
                             }
                         }
 
@@ -3316,7 +3251,7 @@ public class ContactController
                                     mApplication.getChatOverviewController().chatChanged(null, chat.getChatGuid(), null, ChatOverviewController.CHAT_CHANGED_REFRESH_CHAT);
                                 }
                             }
-                            if (updatePicuture) {
+                            if (updatePicture) {
                                 mApplication.getChatOverviewController().chatChanged(null, chat.getChatGuid(), null, ChatOverviewController.CHAT_CHANGED_IMAGE);
                             }
                         }

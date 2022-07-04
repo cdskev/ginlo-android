@@ -77,6 +77,7 @@ import eu.ginlo_apps.ginlo.greendao.MessageDao.Properties;
 import eu.ginlo_apps.ginlo.greendao.NewDestructionDate;
 import eu.ginlo_apps.ginlo.greendao.NewDestructionDateDao;
 import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.DecryptedMessage;
 import eu.ginlo_apps.ginlo.model.backend.BackendResponse;
 import eu.ginlo_apps.ginlo.model.backend.BaseMessageModel;
 import eu.ginlo_apps.ginlo.model.backend.ChannelMessageModel;
@@ -112,6 +113,7 @@ import eu.ginlo_apps.ginlo.model.backend.serialization.SignatureModelSerializer;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
+import eu.ginlo_apps.ginlo.service.NotificationIntentService;
 import eu.ginlo_apps.ginlo.services.LoadPendingTimedMessagesTask;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
@@ -642,7 +644,9 @@ public class MessageController
                 .where(Properties.DateSendTimed.isNull())
                 .where(Properties.Id.ge(start))
                 .where(Properties.Id.lt(end))
-                .orderDesc(Properties.Id);
+                // KS: Try sort by date
+                //.orderDesc(Properties.Id);
+                .orderDesc(Properties.DateSend);
 
         messageTaskManager.executeQueryDatabaseTask(queryBuilder, QueryDatabaseTask.MODE_LIST, queryDatabaseListener);
     }
@@ -668,7 +672,9 @@ public class MessageController
         if (loadTimed) {
             queryBuilder.where(Properties.DateSendTimed.isNotNull()).orderAsc(Properties.DateSendTimed).limit(count);
         } else {
-            queryBuilder.where(Properties.DateSendTimed.isNull()).orderDesc(Properties.Id).limit(count);
+            //queryBuilder.where(Properties.DateSendTimed.isNull()).orderDesc(Properties.Id).limit(count);
+            // KS: Try sort by date
+            queryBuilder.where(Properties.DateSendTimed.isNull()).orderDesc(Properties.DateSend).limit(count);
         }
 
         messageTaskManager.executeQueryDatabaseTask(queryBuilder, QueryDatabaseTask.MODE_LIST, queryDatabaseListener);
@@ -681,7 +687,9 @@ public class MessageController
 
             queryBuilder.where(Properties.Type.eq(type)).whereOr(Properties.IsSystemInfo.isNull(), Properties.IsSystemInfo.eq(false))
                     .whereOr(Properties.From.eq(chatGuid), Properties.To.eq(chatGuid))
-                    .orderDesc(Properties.Id).limit(1);
+                    //.orderDesc(Properties.Id).limit(1);
+                    // KS: Try sort by date
+                    .orderDesc(Properties.DateSend).limit(1);
 
             List<Message> msgList = queryBuilder.build().forCurrentThread().list();
 
@@ -1688,7 +1696,7 @@ public class MessageController
 
     public void startMessageTaskSyncFromAppBackground(final ConcurrentTaskListener nextListener, Map<String, String> notificationExtras) {
         //startMessageTaskSync(nextListener, notificationExtras, false, true, false);
-        startMessageTaskSync(nextListener, notificationExtras, false, false, false);
+        startMessageTaskSync(nextListener, notificationExtras, true, false, false);
     }
 
     public void startMessageTaskSync(final ConcurrentTaskListener nextListener, Map<String, String> notificationExtras, boolean useLazyMsgService, boolean useInBackground, boolean onlyPrio1Msg) {
@@ -1741,6 +1749,7 @@ public class MessageController
             resetBadgeInBackground();
 
             // Reset Badgenumber
+            NotificationIntentService.resetNumNewMessages();
             try {
                 ShortcutBadger.removeCountOrThrow(mApplication);
             } catch (ShortcutBadgeException e) {

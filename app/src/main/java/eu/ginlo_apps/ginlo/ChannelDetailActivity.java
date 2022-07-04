@@ -36,7 +36,6 @@ import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
 import eu.ginlo_apps.ginlo.controller.ChannelController.ChannelAsyncLoaderCallback;
 import eu.ginlo_apps.ginlo.controller.ChannelController.ChannelIdentifier;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.message.contracts.OnSendMessageListener;
 import eu.ginlo_apps.ginlo.data.network.AppConnectivity;
@@ -55,6 +54,7 @@ import eu.ginlo_apps.ginlo.util.ChannelColorUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil.OnCloseListener;
 import eu.ginlo_apps.ginlo.util.ImageLoader;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.ToolbarColorizeHelper;
@@ -192,7 +192,7 @@ public class ChannelDetailActivity
     }
 
     private ImageLoader initImageLoader(final ChannelController channelController) {
-        final ImageLoader imageLoader = new ImageLoader(this, ChatImageController.SIZE_CHAT_OVERVIEW, true) {
+        final ImageLoader imageLoader = new ImageLoader(this, ImageUtil.SIZE_CHAT_OVERVIEW, true) {
             @Override
             protected Bitmap processBitmap(final Object data) {
                 try {

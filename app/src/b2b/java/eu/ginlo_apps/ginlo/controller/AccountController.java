@@ -2775,7 +2775,7 @@ public class AccountController extends AccountControllerBase implements Preferen
             mLogoChangeListener.onCompanyLogoChanged(null);
         }
         deleteCompanyLogo();
-        mApplication.getChatImageController().clearChatImageCache();
+        mApplication.getImageController().clearImageCaches(true, true);
     }
 
     public void resetCreateAccountRegisterPhone() {

@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.animation.AlphaAnimation;
@@ -18,7 +19,6 @@ import android.view.animation.Animation;
 import android.widget.*;
 
 import com.github.barteksc.pdfviewer.PDFView;
-import com.github.barteksc.pdfviewer.link.DefaultLinkHandler;
 import com.github.barteksc.pdfviewer.link.LinkHandler;
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener;
 import com.github.barteksc.pdfviewer.listener.OnPageChangeListener;
@@ -26,18 +26,15 @@ import com.github.barteksc.pdfviewer.listener.OnPageErrorListener;
 import com.github.barteksc.pdfviewer.listener.OnRenderListener;
 import com.github.barteksc.pdfviewer.model.LinkTapEvent;
 import com.github.barteksc.pdfviewer.scroll.DefaultScrollHandle;
-import com.github.barteksc.pdfviewer.util.FitPolicy;
 import com.github.chrisbanes.photoview.PhotoView;
 
-import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.StyledPlayerControlView;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
-import com.google.android.exoplayer2.upstream.DataSpec;
-import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.shockwave.pdfium.PdfDocument;
 
 import java.io.File;
@@ -45,10 +42,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import eu.ginlo_apps.ginlo.components.RLottieImageView;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.*;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
 
@@ -66,27 +64,33 @@ public class ViewAttachmentActivity
     public static final String EXTRA_VIDEO_URI = "AttachmentActivity.videoUri";
     public static final String EXTRA_VOICE_URI = "AttachmentActivity.voiceUri";
     public static final String EXTRA_PDF_URI = "AttachmentActivity.pdfUri";
-    public static final String EXTRA_ATTACHMENT_GUID = "AttachmentActivity.atachementGuid";
+    public static final String EXTRA_SVG_URI = "AttachmentActivity.svgUri";
+    public static final String EXTRA_RICH_CONTENT_URI = "AttachmentActivity.richContentUri";
+    public static final String EXTRA_MIMETYPE = "AttachmentActivity.mimeType";
+    public static final String EXTRA_ATTACHMENT_GUID = "AttachmentActivity.attachmentGuid";
     public static final String EXTRA_ATTACHMENT_DESCRIPTION = "AttachmentActivity.AttachmentDescription";
 
     public static final String LOCAL_MEDIA_URI_PREF = "ViewAttachmentActivity.LOCAL_MEDIA_URI";
     public static final int LOCAL_MEDIA_URI_ACTIONCODE = 114;
 
     private PhotoView imageView;
+    private RLottieImageView rLottieView;
     private Uri imageUri;
     private StyledPlayerView videoView;
     private StyledPlayerControlView audioView;
     private Uri videoUri;
     private Uri voiceUri;
     private Uri pdfUri;
+    private Uri rLottieUri;
     private PDFView pdfView;
     private TextView mAttachmentDescriptionView;
     private boolean mHasAttachmentDesc;
-    private SimpleExoPlayer mAudioPlayer;
-    private SimpleExoPlayer mVideoPlayer;
+    private ExoPlayer mAudioPlayer;
+    private ExoPlayer mVideoPlayer;
     private StorageUtil mStorageUtil;
     private Uri mMediaDestinationUri = null;
     private String mAttachmentIdentTag = null;
+    private String mMimeType = null;
 
     @Override
     protected void onCreateActivity(final Bundle savedInstanceState) {
@@ -104,6 +108,7 @@ public class ViewAttachmentActivity
         imageView.setZoomable(true);
         imageView.setMaximumScale(6.0f);
 
+        rLottieView = findViewById(R.id.attachment_rlottie_image_view);
         videoView = findViewById(R.id.attachment_video_view);
         audioView = findViewById(R.id.attachment_audio_view);
         pdfView = findViewById(R.id.attachment_pdf_view);
@@ -112,11 +117,37 @@ public class ViewAttachmentActivity
         final PreferencesController preferencesController = ((SimsMeApplication) getApplication()).getPreferencesController();
 
         mAttachmentDescriptionView = findViewById(R.id.view_attachment_description);
+        mMimeType = intent.getStringExtra(EXTRA_MIMETYPE);
 
-        final String imageUriString = intent.getStringExtra(EXTRA_BITMAP_URI);
         final String videoUriString = intent.getStringExtra(EXTRA_VIDEO_URI);
         final String voiceUriString = intent.getStringExtra(EXTRA_VOICE_URI);
         final String pdfUriString = intent.getStringExtra(EXTRA_PDF_URI);
+        final String svgUriString = intent.getStringExtra(EXTRA_SVG_URI);
+        final String richContentUriString = intent.getStringExtra(EXTRA_RICH_CONTENT_URI);
+        String imageUriString = intent.getStringExtra(EXTRA_BITMAP_URI);
+
+        String rLottieUriString = null;
+        if (richContentUriString != null) {
+            if (StringUtil.isNullOrEmpty(mMimeType)) {
+                mMimeType = MimeUtil.getMimeTypeFromFilename(richContentUriString);
+                if (StringUtil.isNullOrEmpty(mMimeType)) {
+                    LogUtil.w(TAG, "onCreateActivity: No mimetype for rich content uri: " + richContentUriString);
+                    return;
+                }
+            }
+            if (MimeUtil.isLottieFile(mMimeType, new File(Uri.parse(richContentUriString).getEncodedPath()))) {
+                rLottieUriString = richContentUriString;
+            } else if (MimeUtil.isGlideMimetype(mMimeType)) {
+                imageUriString = richContentUriString;
+            } else {
+                LogUtil.w(TAG, "onCreateActivity: No valid rich content uri: " + richContentUriString);
+                return;
+            }
+        } else if (svgUriString != null) {
+            // SVG files need to being handled separately
+            mMimeType = MimeUtil.MIME_TYPE_IMAGE_SVG;
+            imageUriString = svgUriString;
+        }
 
         final String attachmentDescription = intent.getStringExtra(EXTRA_ATTACHMENT_DESCRIPTION);
 
@@ -133,11 +164,14 @@ public class ViewAttachmentActivity
             imageUri = Uri.parse(imageUriString);
             LogUtil.d(TAG, "Preparing for image display: " + imageUri);
 
-            //bitmap = BitmapUtil.decodeUri(this, imageUri, 0, true);
-            Bitmap bitmap = BitmapUtil.decodeUri(this, imageUri, screenSize.x, screenSize.y, true);
-            imageView.setImageBitmap(bitmap);
+            if(MimeUtil.MIME_TYPE_IMAGE_SVG.equals(mMimeType)) {
+                imageController.fillViewWithSVGFromUri(imageUri, imageView, false);
+            } else {
+                imageController.fillViewWithImageFromUri(imageUri, imageView, false, true);
+            }
 
             imageView.setVisibility(View.VISIBLE);
+            rLottieView.setVisibility(View.GONE);
             videoView.setVisibility(View.GONE);
             audioView.setVisibility(View.GONE);
             pdfView.setVisibility(View.GONE);
@@ -150,7 +184,7 @@ public class ViewAttachmentActivity
 
                     @Override
                     public boolean onTouch(final View v, final MotionEvent event) {
-                        switch(event.getAction()) {
+                        switch (event.getAction()) {
                             case KeyEvent.ACTION_DOWN:
                                 yVal = event.getY();
                                 break;
@@ -185,12 +219,73 @@ public class ViewAttachmentActivity
                 };
             }
             scrollView.setOnTouchListener(imageOtl);
+
+        } else if (rLottieUriString != null) {
+            rLottieUri = Uri.parse(rLottieUriString);
+            LogUtil.d(TAG, "Preparing for rlottie playback: " + rLottieUriString);
+
+            // setAutoRepeat() must be done before setAnimation()
+            rLottieView.setAutoRepeat(true);
+            rLottieView.setAnimation(rLottieUri, 512, 512);
+            rLottieView.playAnimation();
+
+            rLottieView.setVisibility(View.VISIBLE);
+            videoView.setVisibility(View.GONE);
+            imageView.setVisibility(View.GONE);
+            audioView.setVisibility(View.GONE);
+            pdfView.setVisibility(View.GONE);
+            scrollView.setVisibility(View.GONE);
+
         } else if (videoUriString != null) {
             videoUri = Uri.parse(videoUriString);
             LogUtil.d(TAG, "Preparing for video playback: " + videoUriString);
 
-            mVideoPlayer  = new SimpleExoPlayer.Builder(this).build();
+            mVideoPlayer  = new ExoPlayer.Builder(this).build();
             videoView.setPlayer(mVideoPlayer);
+            ScaleGestureDetector scaleGestureDetector = new ScaleGestureDetector(this, new CustomOnScaleGestureListener(videoView));
+            final View.OnTouchListener videoOtl;
+            if (mHasAttachmentDesc) {
+                videoOtl = new View.OnTouchListener() {
+                    private final float distThreshold = MetricsUtil.dpToPx(ViewAttachmentActivity.this, 5);
+                    private float yVal;
+
+                    @Override
+                    public boolean onTouch(final View v, final MotionEvent event) {
+                        switch (event.getAction()) {
+                            case KeyEvent.ACTION_DOWN:
+                                yVal = event.getY();
+                                break;
+                            case KeyEvent.ACTION_UP:
+                                final float dist = Math.abs(event.getY() - yVal);
+                                if (dist <= distThreshold) {
+                                    final boolean isVisible = mAttachmentDescriptionView.getVisibility() == View.VISIBLE;
+
+                                    if (isVisible) {
+                                        mAttachmentDescriptionView.startAnimation(mAnimationSlideOut);
+                                    } else {
+                                        mAttachmentDescriptionView.setVisibility(View.VISIBLE);
+                                        mAttachmentDescriptionView.startAnimation(mAnimationSlideIn);
+                                    }
+                                }
+                                break;
+                            default:
+                                LogUtil.w(TAG, "No action defined here for key event. Pass it on.");
+                        }
+                        videoView.dispatchTouchEvent(event);
+                        return false;
+                    }
+                };
+            } else {
+                videoOtl = new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(final View v, final MotionEvent event) {
+                        scaleGestureDetector.onTouchEvent(event);
+                        videoView.dispatchTouchEvent(event);
+                        return false;
+                    }
+                };
+            }
+            scrollView.setOnTouchListener(videoOtl);
 
             //final Uri uri = Uri.parse(VideoProvider.CONTENT_URI_BASE + videoUri.getPath());
             MediaItem mediaItem = MediaItem.fromUri(videoUri);
@@ -203,16 +298,16 @@ public class ViewAttachmentActivity
             mVideoPlayer.addListener(this);
 
             videoView.setVisibility(View.VISIBLE);
+            rLottieView.setVisibility(View.GONE);
             imageView.setVisibility(View.GONE);
             audioView.setVisibility(View.GONE);
             pdfView.setVisibility(View.GONE);
-            scrollView.setVisibility(View.GONE);
 
         } else if (voiceUriString != null) {
             voiceUri = Uri.parse(voiceUriString);
             LogUtil.d(TAG, "Preparing for audio playback: " + voiceUri);
 
-            mAudioPlayer  = new SimpleExoPlayer.Builder(this).build();
+            mAudioPlayer  = new ExoPlayer.Builder(this).build();
             audioView.setPlayer(mAudioPlayer);
 
             MediaItem mediaItem = MediaItem.fromUri(voiceUri);
@@ -223,6 +318,7 @@ public class ViewAttachmentActivity
             mAudioPlayer.addListener(this);
 
             audioView.setVisibility(View.VISIBLE);
+            rLottieView.setVisibility(View.GONE);
             imageView.setVisibility(View.GONE);
             videoView.setVisibility(View.GONE);
             pdfView.setVisibility(View.GONE);
@@ -250,6 +346,7 @@ public class ViewAttachmentActivity
                     .load();
 
             pdfView.setVisibility(View.VISIBLE);
+            rLottieView.setVisibility(View.GONE);
             audioView.setVisibility(View.GONE);
             imageView.setVisibility(View.GONE);
             videoView.setVisibility(View.GONE);
@@ -453,7 +550,7 @@ public class ViewAttachmentActivity
                     // KS2 20211211: Rollback, since we have no filename. If original file is requested
                     // users should send as file not as image.
                     if (imageUri != null) {
-                        final Bitmap bitmap = BitmapUtil.decodeUri(ViewAttachmentActivity.this, imageUri, 0, true);
+                        final Bitmap bitmap = ImageUtil.decodeUri(ViewAttachmentActivity.this, imageUri, 0, true);
                         if (bitmap != null) {
                             final FileUtil fileUtil = new FileUtil(ViewAttachmentActivity.this);
                             OutputStream out = null;
@@ -528,7 +625,7 @@ public class ViewAttachmentActivity
                         if(!mStorageUtil.storeMediaFile(pdfUri,
                                 mMediaDestinationUri,
                                 filename,
-                                MimeType.APP_PDF,
+                                MimeUtil.MIME_TYPE_APP_PDF,
                                 forceOverwrite)) {
                             LogUtil.e(TAG, "saveMedia: Saving " + filename + " failed!");
                             Toast.makeText(ViewAttachmentActivity.this,
@@ -624,7 +721,40 @@ public class ViewAttachmentActivity
 
     @Override
     public void onInitiallyRendered(int nbPages) {
+    }
 
+    private class CustomOnScaleGestureListener
+            extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+
+        private float scaleFactor = 0f;
+        private StyledPlayerView player;
+
+        public CustomOnScaleGestureListener(StyledPlayerView player) {
+            this.player = player;
+        }
+
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            scaleFactor = detector.getScaleFactor();
+            return true;
+            //return super.onScale(detector);
+        }
+
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            return true;
+            //return super.onScaleBegin(detector);
+        }
+
+        @Override
+        public void onScaleEnd(ScaleGestureDetector detector) {
+            if(scaleFactor > 1) {
+                player.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+            } else {
+                player.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+            }
+            super.onScaleEnd(detector);
+        }
     }
 }
 

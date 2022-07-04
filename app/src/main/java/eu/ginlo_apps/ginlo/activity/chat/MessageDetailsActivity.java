@@ -2,11 +2,11 @@
 
 package eu.ginlo_apps.ginlo.activity.chat;
 
+import android.annotation.SuppressLint;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -16,7 +16,6 @@ import android.view.View;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -25,13 +24,10 @@ import org.jetbrains.annotations.NotNull;
 import eu.ginlo_apps.ginlo.ForwardActivityBase;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.TextExtensionsKt;
-import eu.ginlo_apps.ginlo.activity.chat.ChatInputActivity;
-import eu.ginlo_apps.ginlo.activity.chat.PreviewActivity;
 import eu.ginlo_apps.ginlo.adapter.ChatAdapter;
 import eu.ginlo_apps.ginlo.adapter.ContactsAdapter;
 import eu.ginlo_apps.ginlo.concurrent.task.ConvertToChatItemVOTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.controller.message.contracts.OnMessageReceiverChangedListener;
@@ -49,23 +45,20 @@ import eu.ginlo_apps.ginlo.model.chat.BaseChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.FileChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.ImageChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.LocationChatItemVO;
+import eu.ginlo_apps.ginlo.model.chat.RichContentChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.SelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.TextChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VideoChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VoiceChatItemVO;
-import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.router.RouterConstants;
-import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
-import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.SystemUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
@@ -96,7 +89,6 @@ public class MessageDetailsActivity extends ChatInputActivity
     private ListView listViewMessage;
     private ListView listViewContacts;
     private ContactsAdapter mContactsAdapter;
-    private ImageLoader mImageLoader;
     private long mMessageId = 0;
     private String mChatGuid;
     private int mTrustState;
@@ -201,7 +193,7 @@ public class MessageDetailsActivity extends ChatInputActivity
                     toolbarOptionsItemModels.add(createToolbarOptionsCopyModel());
                     toolbarOptionsItemModels.add(createToolbarOptionsDeleteModel());
                 } else if ((mCitatedChatItem instanceof ImageChatItemVO) || (mCitatedChatItem instanceof VideoChatItemVO)
-                        || (mCitatedChatItem instanceof FileChatItemVO)) {
+                        || (mCitatedChatItem instanceof RichContentChatItemVO) || (mCitatedChatItem instanceof FileChatItemVO)) {
                     toolbarOptionsItemModels.add(createToolbarOptionsForwardModel());
                     toolbarOptionsItemModels.add(createToolbarOptionsDeleteModel());
                 } else if (mCitatedChatItem instanceof VoiceChatItemVO || mCitatedChatItem instanceof SelfDestructionChatItemVO || mCitatedChatItem instanceof LocationChatItemVO) {
@@ -435,9 +427,10 @@ public class MessageDetailsActivity extends ChatInputActivity
                                 return null;
                             }
 
+                            @SuppressLint("StaticFieldLeak")
                             @Override
                             protected void onPostExecute(ArrayList<Contact> result) {
-                                try {
+                                //try {
                                     if (MessageDetailsActivity.this.isFinishing() || MessageDetailsActivity.this.mFinished) {
                                         return;
                                     }
@@ -462,22 +455,15 @@ public class MessageDetailsActivity extends ChatInputActivity
                                             }
                                         };
                                         listViewContacts.setOnItemClickListener(onItemClickListener);
-
-                                        int diameter = (int) getResources().getDimension(R.dimen.contact_item_single_select_icon_diameter);
-                                        if (mImageLoader == null) {
-                                            mImageLoader = initImageLoader(((SimsMeApplication) getApplication()).getChatImageController(), diameter);
-                                        }
-
-                                        mContactsAdapter.setImageLoader(mImageLoader);
                                         listViewContacts.setAdapter(mContactsAdapter);
 
                                         setDynamicHeight(listViewContacts, 0);
                                     }
-                                } catch (LocalizedException e) {
-                                    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
-                                } finally {
+                                //} catch (LocalizedException e) {
+                                //    LogUtil.e(this.getClass().getName(), e.getMessage(), e);
+                                //} finally {
                                     mRefreshTask = null;
-                                }
+                                //}
                             }
                         };
 
@@ -571,6 +557,11 @@ public class MessageDetailsActivity extends ChatInputActivity
     }
 
     @Override
+    public void handleSendRichContent(Uri contentUri) {
+
+    }
+
+    @Override
     public void handleSendVoiceClick(Uri voiceUri) {
 
     }
@@ -579,7 +570,7 @@ public class MessageDetailsActivity extends ChatInputActivity
     public boolean handleSendMessageClick(String text) {
 
         Intent intent = new Intent();
-        intent.putExtra(EXTRA_RETURN_TYPE, MimeType.TEXT_PLAIN);
+        intent.putExtra(EXTRA_RETURN_TYPE, MimeUtil.MIME_TYPE_TEXT_PLAIN);
         intent.putExtra(EXTRA_RETURN_TEXT, mChatInputFragment.getChatInputText());
         intent.putExtra(EXTRA_RETURN_IS_PRIORITY, mIsPriority);
 
@@ -671,16 +662,16 @@ public class MessageDetailsActivity extends ChatInputActivity
         }
 
         if (uris.size() > 0) {
-            Intent intent = new Intent(this, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.class);
+            Intent intent = new Intent(this, PreviewActivity.class);
 
             if (handleImageResult) {
-                intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_ACTION, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.SELECT_PHOTOS_ACTION);
-                intent.putStringArrayListExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS, uris);
+                intent.putExtra(PreviewActivity.EXTRA_PREVIEW_ACTION, PreviewActivity.SELECT_PHOTOS_ACTION);
+                intent.putStringArrayListExtra(PreviewActivity.EXTRA_URIS, uris);
                 startActivityForResult(intent, RouterConstants.GET_PHOTO_WITH_DESTRUCTION_RESULT_CODE);
             }
         }
 
-        if (uris.size() > eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.MAX_MEDIA_ITEMS) {
+        if (uris.size() > PreviewActivity.MAX_MEDIA_ITEMS) {
             Toast.makeText(this, getString(R.string.chats_addAttachments_too_many), Toast.LENGTH_LONG).show();
         } else if (resultContainer.getHasImportError()) {
             Toast.makeText(this, getString(R.string.chats_addAttachments_some_imports_fails), Toast.LENGTH_LONG).show();
@@ -735,64 +726,6 @@ public class MessageDetailsActivity extends ChatInputActivity
         }
     }
 
-    private ImageLoader initImageLoader(final ChatImageController chatImageController,
-                                        int imageDiameter)
-            throws LocalizedException {
-        //Image Loader zum Laden der ChatoverviewItems Icons
-        ImageLoader imageLoader = new ImageLoader(this, imageDiameter, false) {
-            @Override
-            protected Bitmap processBitmap(Object data) {
-                try {
-                    Bitmap returnImage = null;
-
-                    if (data instanceof Contact) {
-                        Contact contact = (Contact) data;
-
-                        if (((contact.getIsSimsMeContact() == null) || !contact.getIsSimsMeContact())
-                                && (contact.getPhotoUri() != null)) {
-                            returnImage = ContactUtil.loadContactPhotoThumbnail(contact.getPhotoUri(), getImageSize(),
-                                    MessageDetailsActivity.this);
-                        }
-
-                        if (returnImage == null) {
-                            if (contact.getAccountGuid() != null) {
-                                returnImage = chatImageController.getImageByGuidWithoutCacheing(contact.getAccountGuid(),
-                                        getImageSize(), getImageSize());
-                            } else {
-                                returnImage = mContactController.getFallbackImageByContact(getApplicationContext(), contact
-                                );
-                            }
-                        }
-
-                        if (returnImage == null) {
-                            returnImage = chatImageController.getImageByGuidWithoutCacheing(AppConstants.GUID_PROFILE_USER,
-                                    getImageSize(), getImageSize());
-                        }
-                    }
-
-                    return returnImage;
-                } catch (LocalizedException e) {
-                    LogUtil.w(TAG, "Image can't be loaded.", e);
-                    return null;
-                }
-            }
-
-            @Override
-            protected void processBitmapFinished(Object data, ImageView imageView) {
-                //Nothing to do
-            }
-        };
-
-        // Add a cache to the image loader
-        imageLoader.addImageCache(getSupportFragmentManager(), 0.1f);
-        imageLoader.setImageFadeIn(false);
-        imageLoader.setLoadingImage(R.drawable.gfx_profil_placeholder);
-
-        chatImageController.addListener(imageLoader);
-
-        return imageLoader;
-    }
-
     @Override
     public void onContactProfilInfoHasChanged(String contactGuid) {
 
@@ -844,10 +777,10 @@ public class MessageDetailsActivity extends ChatInputActivity
 
                         uris.add(takenPhoto.toString());
 
-                        Intent photoIntent = new Intent(this, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.class);
+                        Intent photoIntent = new Intent(this, PreviewActivity.class);
 
-                        photoIntent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_ACTION, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.TAKE_PHOTOS_ACTION);
-                        photoIntent.putStringArrayListExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS, uris);
+                        photoIntent.putExtra(PreviewActivity.EXTRA_PREVIEW_ACTION, PreviewActivity.TAKE_PHOTOS_ACTION);
+                        photoIntent.putStringArrayListExtra(PreviewActivity.EXTRA_URIS, uris);
                         if (mCitatedChatItem != null) {
                             photoIntent.putExtra(ChatInputActivity.EXTRA_CITATED_MSG_MODEL_ID, mCitatedChatItem.messageId);
                         }
@@ -856,11 +789,11 @@ public class MessageDetailsActivity extends ChatInputActivity
                         break;
                     }
                     case RouterConstants.GET_PHOTO_WITH_DESTRUCTION_RESULT_CODE: {
-                        ArrayList<String> imageUris = returnIntent.getStringArrayListExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS);
+                        ArrayList<String> imageUris = returnIntent.getStringArrayListExtra(PreviewActivity.EXTRA_URIS);
                         ArrayList<String> imageTexts = returnIntent.getStringArrayListExtra(PreviewActivity.EXTRA_TEXTS);
 
                         Intent intent = new Intent();
-                        intent.putExtra(EXTRA_RETURN_TYPE, MimeType.IMAGE_JPEG);
+                        intent.putExtra(EXTRA_RETURN_TYPE, MimeUtil.MIME_TYPE_IMAGE_JPEG);
                         if (imageUris != null) {
                             intent.putStringArrayListExtra(EXTRA_RETURN_IMAGE_URIS, imageUris);
                         }
@@ -882,7 +815,7 @@ public class MessageDetailsActivity extends ChatInputActivity
                         Uri fileUri = returnIntent.getData();
 
                         Intent intent = new Intent();
-                        intent.putExtra(EXTRA_RETURN_TYPE, MimeType.APP_OCTET_STREAM);
+                        intent.putExtra(EXTRA_RETURN_TYPE, MimeUtil.MIME_TYPE_APP_OCTET_STREAM);
                         intent.setData(fileUri);
                         setResult(RESULT_OK, intent);
                         finish();

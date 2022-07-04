@@ -10,16 +10,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.constant.DataContainer;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.util.AudioUtil;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.PhoneNumberUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -136,19 +135,19 @@ public class DecryptedMessage {
 
     public String getText()
             throws LocalizedException {
-        if (getContentType() != null && !getContentType().equals(MimeType.TEXT_PLAIN) && !getContentType().equals(MimeType.TEXT_RSS)) {
+        if (getContentType() != null && !getContentType().equals(MimeUtil.MIME_TYPE_TEXT_PLAIN) && !getContentType().equals(MimeUtil.MIME_TYPE_TEXT_RSS)) {
             throwMimeTypeException();
         }
 
         synchronized (this) {
             try {
                 if (text == null) {
-                    if (getContentType().equals(MimeType.TEXT_PLAIN)) {
+                    if (getContentType().equals(MimeUtil.MIME_TYPE_TEXT_PLAIN)) {
                         if (JsonUtil.hasKey(DataContainer.CONTENT, getDecryptedDataContainer())) {
                             text = getDecryptedDataContainer().get(DataContainer.CONTENT).getAsString();
                         }
                     }
-                    if (getContentType().equals(MimeType.TEXT_RSS)) {
+                    if (getContentType().equals(MimeUtil.MIME_TYPE_TEXT_RSS)) {
                         text = getRssTitle() + "\n" + getRssText();
                     }
                 }
@@ -165,7 +164,7 @@ public class DecryptedMessage {
     // KS: appControl
     public String getAppGinloControl()
             throws LocalizedException {
-        if (getContentType() != null && !getContentType().equals(MimeType.APP_GINLO_CONTROL)) {
+        if (getContentType() != null && !getContentType().equals(MimeUtil.MIME_TYPE_APP_GINLO_CONTROL)) {
             throwMimeTypeException();
         }
 
@@ -190,7 +189,7 @@ public class DecryptedMessage {
     // KS: AVC
     public String getAVCRoom()
             throws LocalizedException {
-        if (getContentType() != null && !getContentType().equals(MimeType.TEXT_V_CALL)) {
+        if (getContentType() != null && !getContentType().equals(MimeUtil.MIME_TYPE_TEXT_V_CALL)) {
             throwMimeTypeException();
         }
 
@@ -213,7 +212,7 @@ public class DecryptedMessage {
 
     public String getRssTitle()
             throws LocalizedException {
-        if (getContentType() != null && !getContentType().equals(MimeType.TEXT_RSS)) {
+        if (getContentType() != null && !getContentType().equals(MimeUtil.MIME_TYPE_TEXT_RSS)) {
             throwMimeTypeException();
         }
 
@@ -238,7 +237,7 @@ public class DecryptedMessage {
 
     public String getRssText()
             throws LocalizedException {
-        if (getContentType() != null && !getContentType().equals(MimeType.TEXT_RSS)) {
+        if (getContentType() != null && !getContentType().equals(MimeUtil.MIME_TYPE_TEXT_RSS)) {
             throwMimeTypeException();
         }
 
@@ -266,7 +265,7 @@ public class DecryptedMessage {
     }
 
     public String getAttachmentDescription() {
-        if (!StringUtil.isEqual(getContentType(), MimeType.IMAGE_JPEG) && !StringUtil.isEqual(getContentType(), MimeType.VIDEO_MPEG)) {
+        if (!StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_IMAGE_JPEG) && !StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_VIDEO_MPEG)) {
             return null;
         }
 
@@ -330,7 +329,7 @@ public class DecryptedMessage {
                                 .getAsString();
                         final byte[] previewImageBytes = Base64.decode(base64PreviewImageString, Base64.DEFAULT);
 
-                        channelPreviewImage = BitmapUtil.decodeByteArray(previewImageBytes);
+                        channelPreviewImage = ImageUtil.decodeByteArray(previewImageBytes);
                     }
                 }
 
@@ -376,15 +375,17 @@ public class DecryptedMessage {
         if (isNotDecrypted()) {
             return null;
         }
-        if (!StringUtil.isEqual(getContentType(), MimeType.IMAGE_JPEG) && !StringUtil.isEqual(getContentType(), MimeType.VIDEO_MPEG)
-                && !StringUtil.isEqual(getContentType(), MimeType.AUDIO_MPEG)) {
+        /* KS: Why that?
+        if (!StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_IMAGE_JPEG) && !StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_VIDEO_MPEG)
+                && !StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_AUDIO_MPEG)) {
             throwMimeTypeException();
         }
+         */
 
         synchronized (this) {
             try {
                 if ((image == null) && JsonUtil.hasKey(DataContainer.CONTENT, getDecryptedDataContainer())) {
-                    if (getContentType().equals(MimeType.AUDIO_MPEG)) {
+                    if (getContentType().equals(MimeUtil.MIME_TYPE_AUDIO_MPEG)) {
                         image = AudioUtil.getWaveformFromLevels();
                     } else {
                         final String base64PreviewImageString = getDecryptedDataContainer().get(DataContainer.CONTENT).getAsString();
@@ -392,7 +393,7 @@ public class DecryptedMessage {
                             try {
                                 final byte[] previewImageBytes = Base64.decode(base64PreviewImageString, Base64.DEFAULT);
 
-                                image = BitmapUtil.decodeByteArray(previewImageBytes);
+                                image = ImageUtil.decodeByteArray(previewImageBytes);
                             } catch (Exception e) {
                                 LogUtil.w(this.getClass().getSimpleName(), "getPreviewImage()", e);
                             }
@@ -413,7 +414,7 @@ public class DecryptedMessage {
             return null;
         }
 
-        if (!StringUtil.isEqual(getContentType(), MimeType.MODEL_LOCATION)) {
+        if (!StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_MODEL_LOCATION)) {
             throwMimeTypeException();
         }
 
@@ -446,7 +447,7 @@ public class DecryptedMessage {
             return null;
         }
 
-        if (!StringUtil.isEqual(getContentType(), MimeType.MODEL_LOCATION)) {
+        if (!StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_MODEL_LOCATION)) {
             throwMimeTypeException();
         }
 
@@ -459,7 +460,7 @@ public class DecryptedMessage {
 
                     contentContainerString = getDecryptedDataContainer().get(DataContainer.CONTENT).getAsString();
                     contentContainer = parser.parse(contentContainerString).getAsJsonObject();
-                    image = BitmapUtil.decodeByteArray(Base64.decode(contentContainer.get(DataContainer.LOCATION_CONTAINER_PREVIEW)
+                    image = ImageUtil.decodeByteArray(Base64.decode(contentContainer.get(DataContainer.LOCATION_CONTAINER_PREVIEW)
                             .getAsString(), Base64.DEFAULT));
                 }
                 return image;
@@ -581,7 +582,7 @@ public class DecryptedMessage {
             return null;
         }
 
-        if (!StringUtil.isEqual(getContentType(), MimeType.TEXT_V_CARD)) {
+        if (!StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_TEXT_V_CARD)) {
             throwMimeTypeException();
         }
 
@@ -628,9 +629,12 @@ public class DecryptedMessage {
         synchronized (this) {
             try {
                 if (mFilename == null) {
-                    if (!StringUtil.isEqual(getContentType(), MimeType.APP_OCTET_STREAM)) {
+
+                    /* KS: Why this?
+                    if (!StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_APP_OCTET_STREAM)) {
                         throwMimeTypeException();
                     }
+                     */
 
                     mFilename = JsonUtil.stringFromJO(DataContainer.FILE_NAME, getDecryptedDataContainer());
                 }
@@ -652,9 +656,13 @@ public class DecryptedMessage {
         synchronized (this) {
             try {
                 if (mFileMimetype == null) {
-                    if (!StringUtil.isEqual(getContentType(), MimeType.APP_OCTET_STREAM)) {
+
+                    /* KS: Why this?
+                    if (!StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_APP_OCTET_STREAM)) {
                         throwMimeTypeException();
                     }
+                     */
+
                     mFileMimetype = JsonUtil.stringFromJO(DataContainer.FILE_TYPE, getDecryptedDataContainer());
                 }
 
@@ -675,9 +683,13 @@ public class DecryptedMessage {
         synchronized (this) {
             try {
                 if (mFilesize == null) {
-                    if (!StringUtil.isEqual(getContentType(), MimeType.APP_OCTET_STREAM)) {
+
+                    /* KS: Why this?
+                    if (!StringUtil.isEqual(getContentType(), MimeUtil.MIME_TYPE_APP_OCTET_STREAM)) {
                         throwMimeTypeException();
                     }
+                     */
+
                     mFilesize = JsonUtil.stringFromJO(DataContainer.FILE_SIZE, getDecryptedDataContainer());
                 }
 

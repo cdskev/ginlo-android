@@ -2,10 +2,7 @@
 
 package eu.ginlo_apps.ginlo.adapter;
 
-import android.app.Activity;
-import android.app.Application;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,14 +14,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
+import eu.ginlo_apps.ginlo.activity.chatsOverview.ChatsOverviewActivity;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
-import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Account;
-import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.drawer.DrawerListItemVO;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -38,25 +33,17 @@ public class DrawerListAdapter
         extends ArrayAdapter<DrawerListItemVO> {
 
     private final AccountController mAccountController;
-
-    private final ChatImageController mChatImageController;
-
     private final SimsMeApplication mApplication;
 
     /**
      *
-     * @param context     activity for layoutinflater
-     * @param application application for coloring
      */
-    public DrawerListAdapter(Activity context,
-                             SimsMeApplication application,
+    public DrawerListAdapter(ChatsOverviewActivity context,
                              int layoutResourceId,
                              List<DrawerListItemVO> data,
-                             AccountController accountController,
-                             ChatImageController chatImageController) {
+                             AccountController accountController) {
         super(context, layoutResourceId, data);
-        mApplication = application;
-        mChatImageController = chatImageController;
+        mApplication = context.getSimsMeApplication();
         mAccountController = accountController;
     }
 
@@ -101,9 +88,9 @@ public class DrawerListAdapter
         if (hintTextView != null) {
             if (RuntimeConfig.isBAMandant()) {
                 if (drawerListItemVO.getIsAbsent()) {
-                    hintTextView.setTextColor(ScreenDesignUtil.getInstance().getLowColor((Application) getContext().getApplicationContext()));
+                    hintTextView.setTextColor(ScreenDesignUtil.getInstance().getLowColor(mApplication));
                 } else {
-                    hintTextView.setTextColor(ScreenDesignUtil.getInstance().getHighColor((Application) getContext().getApplicationContext()));
+                    hintTextView.setTextColor(ScreenDesignUtil.getInstance().getHighColor(mApplication));
                 }
             }
 
@@ -112,7 +99,7 @@ public class DrawerListAdapter
 
         if (statusView != null) {
             if (RuntimeConfig.isBAMandant()) {
-                Drawable statusDrawable = BitmapUtil.getConfiguredStateDrawable(mApplication, drawerListItemVO.getIsAbsent(), true);
+                Drawable statusDrawable = ImageUtil.getConfiguredStateDrawable(mApplication, drawerListItemVO.getIsAbsent(), true);
                 if (statusDrawable != null) {
                     statusView.setBackground(statusDrawable);
                 }
@@ -122,18 +109,11 @@ public class DrawerListAdapter
         }
 
         if (drawerListItemVO.getImage() == -1) {
-            try {
-                ImageView maskImageView = relativeLayout.findViewById(R.id.drawer_list_item_mask_image_view);
-                Account account = mAccountController.getAccount();
-                Bitmap profileImage = mChatImageController.getImageByGuid(account.getAccountGuid(),
-                        ChatImageController.SIZE_DRAWER);
+            ImageView maskImageView = relativeLayout.findViewById(R.id.drawer_list_item_mask_image_view);
+            Account account = mAccountController.getAccount();
 
-                if (maskImageView != null && profileImage != null) {
-                    maskImageView.setImageBitmap(profileImage);
-                }
-            } catch (LocalizedException e) {
-                LogUtil.w(this.getClass().getName(), e.getMessage(), e);
-            }
+            mApplication.getImageController().fillViewWithProfileImageByGuid(account.getAccountGuid(), maskImageView, ImageUtil.SIZE_DRAWER, true);
+
         } else if (drawerListItemVO.getImage() == -2) {
             // No image for version info
         } else {

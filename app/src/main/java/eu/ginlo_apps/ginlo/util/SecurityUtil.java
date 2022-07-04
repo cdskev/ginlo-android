@@ -9,6 +9,8 @@ import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+
 import android.util.Base64;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -84,10 +86,12 @@ import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 
 public class SecurityUtil {
-    public static final int AES_KEY_LENGTH = 256;
+    private static final String TAG = "SecurityUtil";
 
+    public static final int AES_KEY_LENGTH = 256;
     public static final int IV_LENGTH = 128;
     public static final String DERIVE_ALGORITHM_SHA_256 = "PBKDF2WithHmacSHA256";
+
     private static final int RSA_KEY_LENGTH = 2048;
     private static final int ROUNDS_ADMIN_CONSOLE = 8000;
     private static final String SIGNATURE_INSTANCE = "SHA1WithRSA";
@@ -96,26 +100,16 @@ public class SecurityUtil {
     private static final String CN_LOCALHOST = "CN=localhost";
     private static final String DERIVE_ALGORITHM = "PBKDF2WithHmacSHA1";
     private static final String RANDOM_ALGORITHM = "SHA1PRNG";
-
     private static final String RSA_GEN_ALGORITHM = "RSA";
-
     private static final String RSA_CIPHER_ALGORITHM = "RSA/ECB/OAEPWithSHA1AndMGF1Padding";
-
     private static final String AES_GEN_ALGORITHM = "AES";
-
     private static final String AES_CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
-
     private static final String AES_CIPHER_ALGORITHM_NO_CBC = "AES";
-
     private static final String AES_CIPHER_ALGORITHM_GCM = "AES/GCM/NoPadding";
-    /**
-     * dateiname fuer das recovery-file
-     */
+
     private static final String PW_RECOVERY_FILE_NAME = "key.txt";
-    /**
-     * dateiname fuer das recovery-file
-     */
     private static final String NOTIFICATION_PREVIEW_FILE_NAME = "notification_key.txt";
+
     private static SecureRandom random;
 
     private SecurityUtil() {
@@ -512,6 +506,17 @@ public class SecurityUtil {
         }
 
         return cipher;
+    }
+
+    public static int randomNextInt() {
+        int nextInt = 0;
+
+        try {
+            nextInt = getSecureRandomInstance().nextInt();
+        } catch (LocalizedException e) {
+            LogUtil.e(TAG, "" + e.getMessage());
+        }
+        return nextInt;
     }
 
     public static byte[] generateSalt()
@@ -964,7 +969,7 @@ public class SecurityUtil {
             JsonObject dataObject = new JsonObject();
             dataObject.addProperty("data", base64Key);
             dataObject.addProperty("iv", ivData);
-            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 JsonObject innerKey = encryptWithAndroidKeystore(dataObject.toString().getBytes(StandardCharsets.UTF_8), KeyController.RECOVERY_KEY_ALIAS);
                 dataObject = new JsonObject();
                 dataObject.add("innerKey", innerKey);
@@ -1016,17 +1021,15 @@ public class SecurityUtil {
 
     public static void writeNotificationKeyToDisc(final SecretKey secretKey, final Context context)
             throws LocalizedException {
-        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-            return;
-        }
-
-        try (BufferedWriter outputStreamWriter = new BufferedWriter(new OutputStreamWriter(context.openFileOutput(NOTIFICATION_PREVIEW_FILE_NAME, Context.MODE_PRIVATE)))) {
-            final JsonObject encryptedKey = encryptWithAndroidKeystore(secretKey.getEncoded(), KeyController.NOTIFICATION_KEY_ALIAS);
-            outputStreamWriter.write(encryptedKey.toString());
-        } catch (KeyStoreException | NoSuchPaddingException | NoSuchAlgorithmException | NoSuchProviderException |
-                InvalidAlgorithmParameterException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException |
-                IOException | CertificateException e) {
-            throw new LocalizedException(LocalizedException.GENERATE_AES_KEY_FAILED, e);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try (BufferedWriter outputStreamWriter = new BufferedWriter(new OutputStreamWriter(context.openFileOutput(NOTIFICATION_PREVIEW_FILE_NAME, Context.MODE_PRIVATE)))) {
+                final JsonObject encryptedKey = encryptWithAndroidKeystore(secretKey.getEncoded(), KeyController.NOTIFICATION_KEY_ALIAS);
+                outputStreamWriter.write(encryptedKey.toString());
+            } catch (KeyStoreException | NoSuchPaddingException | NoSuchAlgorithmException | NoSuchProviderException |
+                    InvalidAlgorithmParameterException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException |
+                    IOException | CertificateException e) {
+                throw new LocalizedException(LocalizedException.GENERATE_AES_KEY_FAILED, e);
+            }
         }
     }
 
@@ -1034,6 +1037,7 @@ public class SecurityUtil {
         context.deleteFile(NOTIFICATION_PREVIEW_FILE_NAME);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private static JsonObject encryptWithAndroidKeystore(final byte[] data, final String alias)
             throws KeyStoreException, NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException,
             InvalidAlgorithmParameterException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException,
@@ -1093,6 +1097,7 @@ public class SecurityUtil {
         return cipherDecode.doFinal(Base64.decode(encryptedString, Base64.NO_WRAP));
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private static SecretKey createKeyForBiometricAuthPre28()
             throws LocalizedException {
         try {
@@ -1105,7 +1110,7 @@ public class SecurityUtil {
                     .setUserAuthenticationRequired(true)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE);
 
-            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 builder.setInvalidatedByBiometricEnrollment(true);
             }
 
@@ -1139,6 +1144,7 @@ public class SecurityUtil {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public static Cipher getEncryptCipherForBiometricAuthKey(final boolean createKeyIfNotExist) throws LocalizedException {
         try {
             SecretKey key = getBiometricAuthKey();
@@ -1308,8 +1314,7 @@ public class SecurityUtil {
 
             byte[] keystoreData = outputStream.toByteArray();
 
-            //Ticket SIMSME-5110 - Unter HUAWEI - Android 6 gibt es probleme speichern des KeyStores (Absturz beim registrieren)
-            if (!Build.DEVICE.equals("generic_x86") && (((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) && !Build.MANUFACTURER.equals("HUAWEI")) || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N))) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 saveKeysAndroidKeyStore(keyStoreName, keystoreData, context);
                 deleteKeyFile(context, keyStoreName);
             } else {
@@ -1330,6 +1335,7 @@ public class SecurityUtil {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private static void saveKeysAndroidKeyStore(@NonNull final String keyStoreName,
                                                 @NonNull final byte[] keystoreData,
                                                 @NonNull final Context context)

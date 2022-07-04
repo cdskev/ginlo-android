@@ -5,6 +5,9 @@ package eu.ginlo_apps.ginlo.controller;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import androidx.annotation.NonNull;
+
+import android.system.ErrnoException;
+import android.system.Os;
 import android.util.Base64;
 import android.util.Base64InputStream;
 import android.util.Base64OutputStream;
@@ -20,11 +23,12 @@ import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.AESKeyDataContainer;
 import eu.ginlo_apps.ginlo.model.DecryptedMessage;
 import eu.ginlo_apps.ginlo.model.backend.BackendResponse;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.constant.BackendError;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.*;
@@ -34,6 +38,8 @@ import javax.crypto.spec.IvParameterSpec;
 import java.io.*;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Florian
@@ -46,6 +52,7 @@ public class AttachmentController {
     private final File cacheDir;
     private final File shareDir;
     private final SimsMeApplication mApplication;
+    private final Map<String, AttachmentMapInfo> messageAttachmentMap;
 
     /**
      *
@@ -55,6 +62,7 @@ public class AttachmentController {
         mApplication = application;
         attachmentsDir = new File(mApplication.getFilesDir().getAbsolutePath() + "/attachments");
         cacheDir = application.getCacheDir();
+        this.messageAttachmentMap = new HashMap<>();
 
         if (!attachmentsDir.isDirectory()) {
             attachmentsDir.mkdirs();
@@ -70,6 +78,35 @@ public class AttachmentController {
 
         clearCache();
     }
+
+    public void addToAttachmentMap(String attachmentGuid, final AttachmentMapInfo attachmentMapInfo) {
+        synchronized (messageAttachmentMap) {
+            LogUtil.d(TAG, "addToAttachmentMap: " + attachmentGuid + " -> " + attachmentMapInfo);
+            if(!messageAttachmentMap.containsKey(attachmentGuid)) {
+                messageAttachmentMap.put(attachmentGuid, attachmentMapInfo);
+            }
+        }
+    }
+
+    public AttachmentMapInfo getFromAttachmentMap(@NonNull String attachmentGuid) {
+        synchronized (messageAttachmentMap) {
+            LogUtil.d(TAG, "getFromAttachmentMap: " + attachmentGuid);
+            AttachmentMapInfo attachmentMapInfo = null;
+            if(messageAttachmentMap.containsKey(attachmentGuid)) {
+                attachmentMapInfo = messageAttachmentMap.get(attachmentGuid);
+            }
+            return attachmentMapInfo;
+        }
+    }
+
+    public void clearAttachmentMapEntry(@NonNull String attachmentGuid) {
+        synchronized (messageAttachmentMap) {
+            LogUtil.d(TAG, "clearAttachmentMapEntry: " + attachmentGuid);
+            messageAttachmentMap.remove(attachmentGuid);
+        }
+    }
+
+
 
     /**
      * convertJsonArrayFileToEncryptedAttachmentBase64File
@@ -250,6 +287,39 @@ public class AttachmentController {
         return new File(attachmentsDir, attachmentFileName);
     }
 
+    public static Boolean renameAttachmentFile(String oldFileName, String newFileName) {
+        if(oldFileName == null || newFileName == null) {
+            return false;
+        }
+        if (attachmentsDir == null) {
+            return false;
+        }
+
+        File oldFile = new File(attachmentsDir, oldFileName);
+        File newFile = new File(attachmentsDir, newFileName);
+
+        return oldFile.renameTo(newFile);
+    }
+
+    public static Boolean linkAttachmentFile(String oldFileName, String newFileName) {
+        if(oldFileName == null || newFileName == null) {
+            return false;
+        }
+        if (attachmentsDir == null) {
+            return false;
+        }
+
+        File oldFile = new File(attachmentsDir, oldFileName);
+        File newFile = new File(attachmentsDir, newFileName);
+        try {
+            Os.symlink(oldFile.getPath(), newFile.getPath());
+        } catch (ErrnoException e) {
+            LogUtil.e(TAG, "linkAttachmentFile: Failed with " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
     public static void saveEncryptedAttachmentFileAsBase64File(final String attachmentGuid, final String base64OutputPath)
             throws LocalizedException {
         if (attachmentsDir == null) {
@@ -357,12 +427,14 @@ public class AttachmentController {
             return;
         }
 
+        /* KS: Deprecated!
         // FallBack für alte attachments
         if ((decryptedMsg.getMessage().getIsSentMessage() != null) && decryptedMsg.getMessage().getIsSentMessage()
                 && !attachmentGuid.startsWith("3000:") && !attachmentGuid.startsWith("6:")) {
             // Alte Daten
             saveSendMessageAttachment(decryptedMsg.getMessage());
         }
+         */
 
         final File cacheFile = new File(cacheDir, attachmentGuid);
 
@@ -470,15 +542,23 @@ public class AttachmentController {
                               File file,
                               DecryptedMessage message) {
         String contentType = message.getContentType();
+        String fileMimetype = message.getFileMimetype();
 
         if (contentType != null) {
-            if (contentType.equals(MimeType.IMAGE_JPEG)) {
+            // Rich media check
+            if (MimeUtil.isRichContentMimetype(contentType) ||
+                    MimeUtil.isRichContentMimetype(fileMimetype) ||
+                    MimeUtil.isLottieFile(fileMimetype, file)
+            ) {
+                listener.onRichContentLoaded(file, message);
+
+            } else if (contentType.equals(MimeUtil.MIME_TYPE_IMAGE_JPEG)) {
                 listener.onBitmapLoaded(file, message);
-            } else if (contentType.equals(MimeType.VIDEO_MPEG)) {
+            } else if (contentType.equals(MimeUtil.MIME_TYPE_VIDEO_MPEG)) {
                 listener.onVideoLoaded(file, message);
-            } else if (contentType.equals(MimeType.AUDIO_MPEG)) {
+            } else if (contentType.equals(MimeUtil.MIME_TYPE_AUDIO_MPEG)) {
                 listener.onAudioLoaded(file, message);
-            } else if (contentType.equals(MimeType.TEXT_PLAIN) && (message.getMessage().getType() == Message.TYPE_CHANNEL)) {
+            } else if (contentType.equals(MimeUtil.MIME_TYPE_TEXT_PLAIN) && (message.getMessage().getType() == Message.TYPE_CHANNEL)) {
                 listener.onBitmapLoaded(file, message);
             } else {
                 // KS: A file may be of any other mime type!
@@ -569,7 +649,7 @@ public class AttachmentController {
         return tempFile;
     }
 
-    private String getShareFileName(DecryptedMessage decryptedMessage) {
+    public String getShareFileName(DecryptedMessage decryptedMessage) {
         String filename = decryptedMessage.getFilename();
 
         if (StringUtil.isNullOrEmpty(filename)) {
@@ -591,6 +671,25 @@ public class AttachmentController {
         return filename;
     }
 
+    public static class AttachmentMapInfo {
+        private final AESKeyDataContainer aesKeyDataContainer;
+        private final int chatType;
+
+        public AttachmentMapInfo(AESKeyDataContainer aesKeyDataContainer, int chatType) {
+            this.aesKeyDataContainer = aesKeyDataContainer;
+            this.chatType = chatType;
+        }
+
+        public AESKeyDataContainer getAesKeyDataContainer() {
+            return aesKeyDataContainer;
+        }
+
+        public int getChatType() {
+            return chatType;
+        }
+    }
+
+
     /**
      * [!INTERFACE_DESCRIPTION!]
      *
@@ -607,6 +706,9 @@ public class AttachmentController {
 
         void onAudioLoaded(File audioFile,
                            DecryptedMessage decryptedMsg);
+
+        void onRichContentLoaded(File dataFile,
+                          DecryptedMessage decryptedMsg);
 
         void onFileLoaded(File dataFile,
                           DecryptedMessage decryptedMsg);

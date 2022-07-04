@@ -15,7 +15,7 @@
         android:text="@string/forward_filter_chats_noChatsFound"
         android:visibility="gone" />
 
-    <eu.ginlo_apps.ginlo.view.SimsmeSwipeRefreshLayout
+    <eu.ginlo_apps.ginlo.view.GinloSwipeRefreshLayout
         android:id="@+id/swipe_refresh_contacts"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -29,7 +29,7 @@
             android:visibility="visible" />
 
 
-    </eu.ginlo_apps.ginlo.view.SimsmeSwipeRefreshLayout>
+    </eu.ginlo_apps.ginlo.view.GinloSwipeRefreshLayout>
 
     <include
         android:id="@+id/fragment_no_local_contact_found"

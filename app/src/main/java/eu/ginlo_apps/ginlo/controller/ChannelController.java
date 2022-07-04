@@ -758,7 +758,7 @@ public class ChannelController
         return returnImage;
     }
 
-    Bitmap loadLocalImage(final String channelGuid,
+    public Bitmap loadLocalImage(final String channelGuid,
                           final String type)
             throws LocalizedException {
         Bitmap returnImage = null;
@@ -821,8 +821,10 @@ public class ChannelController
             return "hdpi";
         } else if (densityDpi < DisplayMetrics.DENSITY_XXHIGH) {
             return "xhdpi";
-        } else {
+        } else if (densityDpi < DisplayMetrics.DENSITY_XXXHIGH) {
             return "xxhdpi";
+        } else {
+            return "xxxhdpi";
         }
     }
 

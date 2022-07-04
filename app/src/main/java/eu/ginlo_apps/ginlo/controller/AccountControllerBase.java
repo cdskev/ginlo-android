@@ -2160,13 +2160,13 @@ public class AccountControllerBase
                         }
                     }
 
-                    ChatImageController chatImageController = mApplication.getChatImageController();
+                    ImageController imageController = mApplication.getImageController();
 
                     if (imageBytes != null) {
                         if(imageBytes.length > 0) {
-                            chatImageController.saveImage(mAccount.getAccountGuid(), imageBytes);
+                            imageController.saveProfileImageRaw(mAccount.getAccountGuid(), imageBytes);
                         } else {
-                            chatImageController.deleteImage(mAccount.getAccountGuid());
+                            imageController.deleteProfileImage(mAccount.getAccountGuid());
                         }
 
                         if (oldContacts != null && oldContacts.size() > 0) {
@@ -2175,7 +2175,7 @@ public class AccountControllerBase
                         }
                     }
 
-                    chatImageController.removeFromCache(mAccount.getAccountGuid());
+                    imageController.updateProfileImageInCache(mAccount.getAccountGuid());
 
                     callback.updateAccountInfoFinished();
                 } catch (LocalizedException e) {
@@ -2324,7 +2324,7 @@ public class AccountControllerBase
                                 byte[] decryptedBytes = SecurityUtil.decryptMessageWithAES(encryptedBytes, aesKey);
                                 byte[] imageBytes = Base64.decode(decryptedBytes, Base64.NO_WRAP);
 
-                                mApplication.getChatImageController().saveImage(account.getAccountGuid(), imageBytes);
+                                mApplication.getImageController().saveProfileImageRaw(account.getAccountGuid(), imageBytes);
                                 return;
                             }
                         }
@@ -2332,7 +2332,7 @@ public class AccountControllerBase
                         // If backend has no image information we consider that as "no profile image set".
                         // This is important because users could otherwise never delete their profile image.
                         // We have no "flag" indicating a deletion.
-                        mApplication.getChatImageController().deleteImage(account.getAccountGuid());
+                        mApplication.getImageController().deleteProfileImage(account.getAccountGuid());
 
 
                     } catch (Exception e) {

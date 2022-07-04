@@ -24,6 +24,7 @@ import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview
 import eu.ginlo_apps.ginlo.view.EmojiconMediumTextView
 import eu.ginlo_apps.ginlo.view.MaskImageView
+import eu.ginlo_apps.ginlo.view.RichContentEmojiEditText
 
 class ThemedLayoutInflater(
         private val context: Context?,
@@ -57,7 +58,8 @@ class ThemedLayoutInflater(
         val editTextViewTypes = listOf(
                 "EditText",
                 "androidx.emoji.widget.EmojiAppCompatEditText",
-                "eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview"
+                "eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview",
+                "eu.ginlo_apps.ginlo.view.RichContentEmojiEditText"
         )
 
         val switchViewTypes = listOf(
@@ -135,6 +137,8 @@ class ThemedLayoutInflater(
                 "EditText" -> rc = EditText(context, attributeSet)
                 "eu.ginlo_apps.ginlo.view.ClickableEmojiconEditTextview" -> rc =
                         ClickableEmojiconEditTextview(context, attributeSet)
+                "eu.ginlo_apps.ginlo.view.RichContentEmojiEditText" -> rc =
+                    RichContentEmojiEditText(context, attributeSet)
             }
         }
         Style.setStyledTextSize(rc, styledAttributes)

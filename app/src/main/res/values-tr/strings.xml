@@ -249,7 +249,7 @@
     <string name="chat_open_failed_file">Dosya açılamadı.</string>
     <string name="chat_open_failed_image">Resim açılamadı.</string>
     <string name="chat_open_failed_video">Video açılamadı.</string>
-    <string name="chat_open_file_no_extern_activity">Dosyayı görüntülemek için herhangi bir uygulama bulunamadı!</string>
+    <string name="chat_open_file_no_extern_activity">Dosyayı görüntülemek için herhangi bir %s uygulama bulunamadı!</string>
     <string name="chat_open_file_warning_message">Dosya şifrelenmemiş bir üçüncü taraf uygulamasına aktarılır! Güvenli bölgeden ayrılıyor!</string>
     <string name="chat_open_file_warning_title">Dikkat</string>
 	<string name="chat_forward_message_toast_msg">We\'re sorry, but something went wrong while forwarding your message. Please contact our Customer Care at support@ginlo.net.</string>
@@ -382,7 +382,7 @@
     <string name="chats_selfDestruction_date_title">zaman</string>
     <string name="chats_selfdestruction_countdown_second">ikinci</string>
     <string name="chats_selfdestruction_countdown_seconds">saniye</string>
-    <string name="chats_selfdestruction_invalid_date">Please select a date in the future. The time travel feature is still on our to-do list. ;-)</string>
+    <string name="chats_selfdestruction_invalid_date">Please select a date in the future..</string>
     <string name="chats_selfdestruction_sddate_before_senddate">Kendini imha zamanı, sevk süresinden önce</string>
     <string name="chats_share">hisse</string>
     <string name="chats_showPicture_destroyedIn">Kendini imha etme</string>
@@ -1313,4 +1313,5 @@
     <string name="notification_avc_audio">Audio only</string>
     <string name="notification_avc_video">Video call</string>
     <string name="send_action_file_send_hint">This may take a long time and will be done in background.</string>
+    <string name="chat_overview_preview_rich_content">Sticker</string>
 </resources>

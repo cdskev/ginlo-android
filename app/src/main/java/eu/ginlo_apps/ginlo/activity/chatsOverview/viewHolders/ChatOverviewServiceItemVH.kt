@@ -12,6 +12,7 @@ import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemClick
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemLongClick
 import eu.ginlo_apps.ginlo.controller.message.SingleChatController
+import eu.ginlo_apps.ginlo.controller.ImageController
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.greendao.Message
 import eu.ginlo_apps.ginlo.log.LogUtil
@@ -19,7 +20,7 @@ import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.ChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.ServiceChatOverviewItemVO
 import eu.ginlo_apps.ginlo.util.ChannelColorUtil
-import eu.ginlo_apps.ginlo.util.ImageLoader
+import eu.ginlo_apps.ginlo.util.ImageUtil
 import eu.ginlo_apps.ginlo.util.StringUtil
 import eu.ginlo_apps.ginlo.util.TimeUtil
 import kotlinx.android.synthetic.main.chat_overview_item_single_layout.view.chat_overview_item_important_icon
@@ -34,13 +35,13 @@ import kotlinx.android.synthetic.main.chat_overview_item_single_layout.view.chat
 import kotlinx.android.synthetic.main.chat_overview_item_single_layout.view.trust_state_divider
 
 class ChatOverviewServiceItemVH(
-    imageLoader: ImageLoader,
+    imageController: ImageController,
     timeUtil: TimeUtil,
     itemView: View,
     onChatItemClick: OnChatItemClick?,
     onChatItemLongClick: OnChatItemLongClick?,
     private val singleChatController: SingleChatController
-) : ChatOverviewBaseItemVH(itemView, imageLoader, timeUtil, onChatItemClick, onChatItemLongClick) {
+) : ChatOverviewBaseItemVH(itemView, imageController, timeUtil, onChatItemClick, onChatItemLongClick) {
     override fun setItem(item: BaseChatOverviewItemVO) {
         bindServiceChatView(item as ServiceChatOverviewItemVO)
         itemView.chat_overview_item_mask_image_view_chat_image?.setForceNoMask(false)
@@ -116,7 +117,8 @@ class ChatOverviewServiceItemVH(
 
     private fun configureAvatarLayout(chatOverviewItem: BaseChatOverviewItemVO) {
         itemView.chat_overview_item_mask_image_view_chat_image.setForceNoMask(true)
-        imageLoader.loadImage(chatOverviewItem.chatGuid, itemView.chat_overview_item_mask_image_view_chat_image, null)
+        imageController.fillViewWithProfileImageByGuid(chatOverviewItem.chatGuid,
+            itemView.chat_overview_item_mask_image_view_chat_image, ImageUtil.SIZE_CHAT_OVERVIEW, false)
     }
 
     private fun setCompoundDrawables(
@@ -184,6 +186,9 @@ class ChatOverviewServiceItemVH(
 
                 BaseChatOverviewItemVO.MSG_MEDIA_TYPE_FILE ->
                     ContextCompat.getDrawable(itemView.context, R.drawable.media_data)
+
+                BaseChatOverviewItemVO.MSG_MEDIA_TYPE_RICH_CONTENT ->
+                    ContextCompat.getDrawable(itemView.context, R.drawable.media_camera_roll)
                 else -> null
             }
         }

@@ -21,7 +21,6 @@ import eu.ginlo_apps.ginlo.*
 import eu.ginlo_apps.ginlo.activity.base.NewBaseActivity
 import eu.ginlo_apps.ginlo.activity.reregister.ChangePhoneActivity
 import eu.ginlo_apps.ginlo.controller.AccountController
-import eu.ginlo_apps.ginlo.controller.ChatImageController
 import eu.ginlo_apps.ginlo.controller.KeyController
 import eu.ginlo_apps.ginlo.controller.contracts.UpdateAccountInfoCallback
 import eu.ginlo_apps.ginlo.exception.LocalizedException
@@ -130,12 +129,11 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                     intent.putExtra(DeleteAccountActivity.CHECK_ID, true)
                     startActivity(intent)
                 }
-                RouterConstants.SELECT_GALLARY_RESULT_CODE -> {
+                RouterConstants.SELECT_GALLERY_RESULT_CODE -> {
                     val selectedGalleryItem = returnIntent?.data
                     val fileUtil = FileUtil(this)
-                    val mimeUtil = MimeUtil(this)
 
-                    if (!mimeUtil.checkImageUriMimetype(application, selectedGalleryItem)) {
+                    if (!MimeUtil.checkImageUriMimetype(application, selectedGalleryItem)) {
                         Toast.makeText(
                             this,
                             R.string.chats_addAttachment_wrong_format_or_error, Toast.LENGTH_LONG
@@ -176,7 +174,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
                     val bm = returnIntent?.getParcelableExtra<Bitmap>(CropImageActivity.RETURN_DATA_AS_BITMAP)
                     if (bm != null) {
                         profileImageView.setImageBitmap(bm)
-                        imageBytes = BitmapUtil.compress(bm, 100)
+                        imageBytes = ImageUtil.compress(bm, 100)
                     }
                 }
             }
@@ -306,12 +304,7 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
         nickNameText = ownContact?.nickname.orEmpty()
         setStatusText()
 
-        profileImageView.setImageBitmap(
-            chatImageController.getImageByGuid(
-                account.accountGuid,
-                ChatImageController.SIZE_PROFILE_BIG
-            )
-        )
+        imageController.fillViewWithProfileImageByGuid(account.accountGuid, profileImageView, ImageUtil.SIZE_PROFILE_BIG, true)
 
         if (account.accountID.isNullOrBlank()) {
             simsmeIdContainer.visibility = View.GONE
@@ -553,19 +546,10 @@ abstract class ProfileActivityBase : NewBaseActivity(), EmojiPickerCallback,
     private fun updateProfileImage(delete: Boolean) {
         if (delete) {
             // Deletion of profile image requested
-            chatImageController.deleteImage(account.accountGuid)
+            imageController.deleteProfileImage(account.accountGuid)
         }
 
-        try {
-            profileImageView.setImageBitmap(
-                chatImageController.getImageByGuid(
-                    account.accountGuid,
-                    ChatImageController.SIZE_PROFILE_BIG
-                )
-            )
-        } catch (e: LocalizedException) {
-            LogUtil.e(TAG, "updateProfileImage: Got exception " + e.message, e)
-        }
+        imageController.fillViewWithProfileImageByGuid(account.accountGuid, profileImageView, ImageUtil.SIZE_PROFILE_BIG, true);
     }
 
     private fun updateNickName() {

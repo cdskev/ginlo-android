@@ -11,10 +11,9 @@ import android.view.View.OnClickListener
 import android.widget.AdapterView.OnItemClickListener
 import android.widget.Toast
 import eu.ginlo_apps.ginlo.adapter.BackgroundGalleryAdapter
-import eu.ginlo_apps.ginlo.controller.ChatImageController
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.log.LogUtil
-import eu.ginlo_apps.ginlo.util.BitmapUtil
+import eu.ginlo_apps.ginlo.util.ImageUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
 import eu.ginlo_apps.ginlo.util.MetricsUtil
 import kotlinx.android.synthetic.main.activity_chat_background.chat_background_grid_view
@@ -69,7 +68,7 @@ class ChatBackgroundActivity : BaseActivity() {
     }
 
     private fun setBackgroundPreview(resourceId: Int) {
-        backgroundPreview = BitmapUtil.decodeSampledBitmapFromResource(
+        backgroundPreview = ImageUtil.decodeSampledBitmapFromResource(
             resources, resourceId, displayMetrics.widthPixels,
             displayMetrics.heightPixels
         )
@@ -78,7 +77,7 @@ class ChatBackgroundActivity : BaseActivity() {
     private fun setBackgroundPreview(uri: Uri?) {
         if (uri == null) return
 
-        backgroundPreview = BitmapUtil.decodeUri(
+        backgroundPreview = ImageUtil.decodeUri(
             this, uri, displayMetrics.widthPixels,
             displayMetrics.heightPixels, true
         )
@@ -99,7 +98,7 @@ class ChatBackgroundActivity : BaseActivity() {
             removeRightActionBarImage()
 
             try {
-                chatImageController.background
+                imageController.appBackground
             } catch (e: LocalizedException) {
                 LogUtil.e(this.javaClass.name, e.message, e)
                 null
@@ -112,7 +111,7 @@ class ChatBackgroundActivity : BaseActivity() {
             val rightActionBarClickListener = object : OnClickListener {
                 override fun onClick(v: View) {
                     try {
-                        chatImageController.background = backgroundPreview
+                        imageController.appBackground = backgroundPreview
                         finish()
                     } catch (e: LocalizedException) {
                         LogUtil.e(this.javaClass.name, e.message, e)

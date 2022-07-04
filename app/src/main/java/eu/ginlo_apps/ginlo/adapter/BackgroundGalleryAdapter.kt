@@ -9,7 +9,7 @@ import android.widget.AbsListView
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import eu.ginlo_apps.ginlo.R
-import eu.ginlo_apps.ginlo.util.BitmapUtil
+import eu.ginlo_apps.ginlo.util.ImageUtil
 import eu.ginlo_apps.ginlo.util.MetricsUtil
 import kotlin.math.roundToInt
 
@@ -24,7 +24,7 @@ class BackgroundGalleryAdapter(private val context: Context) : BaseAdapter() {
             contentDescription =
                 context.resources.getString(R.string.content_description_chatbackgrounds_image) + position
             setImageBitmap(
-                BitmapUtil.decodeSampledBitmapFromResource(
+                ImageUtil.decodeSampledBitmapFromResource(
                     context.resources,
                     RESOURCE_IDS[position],
                     imageViewWidth,
@@ -37,7 +37,7 @@ class BackgroundGalleryAdapter(private val context: Context) : BaseAdapter() {
     private var imageViewHeight: Int = 0
     private fun initImageViewHeight(resourceId: Int): Int {
         if (imageViewHeight > 0) return imageViewHeight
-        val options = BitmapUtil.getDimensions(context.resources, resourceId)
+        val options = ImageUtil.getDimensions(context.resources, resourceId)
 
         imageViewHeight =
             (options.outHeight.toFloat() / options.outWidth.toFloat() * imageViewWidth.toFloat()).roundToInt()

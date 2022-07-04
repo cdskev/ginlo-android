@@ -35,8 +35,7 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class GroupChatActivity
-        extends BaseChatActivity
+public class GroupChatActivity extends BaseChatActivity
         implements OnLinkClickListener, ContactController.OnContactProfileInfoChangeNotification {
 
     private final static String TAG = GroupChatActivity.class.getSimpleName();
@@ -360,6 +359,7 @@ public class GroupChatActivity
 
     @Override
     public void onChatDataLoaded(long lastMessageId) {
+        LogUtil.d(TAG, "onChatDataLoaded: Called with lastMessageId = " + lastMessageId);
         super.onChatDataLoaded(lastMessageId);
         if (mChat != null) {
             if (isChatReadOnly()) {
@@ -424,6 +424,15 @@ public class GroupChatActivity
             mChatInputFragment.setInputEnabled(true);
             setActionBarAVCImageVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        LogUtil.d(TAG, "onNewIntent: Processing intent: " + getIntent() + " - " + getIntent().getExtras());
+        onCreateActivity(null);
+        onResumeActivity();
     }
 
     protected boolean isChatReadOnly() {

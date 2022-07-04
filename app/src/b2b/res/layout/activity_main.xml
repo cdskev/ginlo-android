@@ -16,5 +16,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center">
+        <ImageView
+            android:id="@+id/activity_main_animation"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:scaleType="fitCenter" />
+        />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
 

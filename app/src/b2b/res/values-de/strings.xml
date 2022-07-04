@@ -49,7 +49,6 @@
     <string name="chats_overview_absence_alert_title">Abwesenheitsnotiz ist noch aktiv.</string>
     <string name="chats_overview_warning_license">Ihre Lizenz läuft in %1$s Tagen ab.</string>
     <string name="chats_overview_warning_license_button">Lizenzcode eingeben</string>
-    <string name="chats_selfdestruction_invalid_date">Bitte wählen Sie ein Datum aus, das in der Zukunft liegt?</string>
     <string name="chats_showPicture_pleaseTouch">Tippen Sie auf den Bildschirm,\num das Bild anzuzeigen.</string>
     <string name="chats_showText_pleaseTouch">Tippen Sie auf den Bildschirm,\num die Nachricht anzuzeigen</string>
     <string name="chats_showVideo_pleaseTouch">Tippen Sie auf dem Bildschirm,\num das Video anzuzeigen</string>

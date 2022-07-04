@@ -10,10 +10,12 @@ import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemClick
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemLongClick
 import eu.ginlo_apps.ginlo.controller.ChannelController
+import eu.ginlo_apps.ginlo.controller.ImageController
+import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.ChannelChatOverviewItemVO
+import eu.ginlo_apps.ginlo.util.ImageUtil
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
-import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.TimeUtil
 import eu.ginlo_apps.ginlo.util.ViewUtil
 import kotlinx.android.synthetic.main.chat_overview_item_channel.view.chat_overview_item_channel_avatar
@@ -25,12 +27,12 @@ import kotlinx.android.synthetic.main.chat_overview_item_channel.view.chat_overv
 
 class ChatOverviewChannelItemVH(
     private val defaultDisplay: Display,
-    imageLoader: ImageLoader,
+    imageController: ImageController,
     timeUtil: TimeUtil,
     itemView: View,
     onChatItemClick: OnChatItemClick?,
     onChatItemLongClick: OnChatItemLongClick?
-) : ChatOverviewBaseItemVH(itemView, imageLoader, timeUtil, onChatItemClick, onChatItemLongClick) {
+) : ChatOverviewBaseItemVH(itemView, imageController, timeUtil, onChatItemClick, onChatItemLongClick) {
     override fun setItem(item: BaseChatOverviewItemVO) {
         configureAvatarLayout(item as ChannelChatOverviewItemVO)
 
@@ -86,13 +88,9 @@ class ChatOverviewChannelItemVH(
     }
 
     private fun configureAvatarLayout(item: ChannelChatOverviewItemVO) {
+        //LogUtil.d("ChatOverviewChannelItemVH", "configureAvatarLayout: Called for ${item.title} (${item.chatGuid})")
         itemView.chat_overview_item_channel_avatar.contentDescription = item.title
-        imageLoader.loadImage(
-            ChannelController.ChannelIdentifier(
-                item.chatGuid,
-                ChannelController.IMAGE_TYPE_PROVIDER_ICON
-            ), itemView.chat_overview_item_channel_avatar
-        )
+        imageController.fillViewWithProfileImageByGuid(item.chatGuid, itemView.chat_overview_item_channel_avatar, ImageUtil.SIZE_CHAT_OVERVIEW, false)
     }
 
     private fun fillMediaLayout(item: ChannelChatOverviewItemVO): Boolean {
@@ -117,6 +115,8 @@ class ChatOverviewChannelItemVH(
             BaseChatOverviewItemVO.MSG_MEDIA_TYPE_MOVIE -> R.drawable.media_movie
 
             BaseChatOverviewItemVO.MSG_MEDIA_TYPE_FILE -> R.drawable.media_data
+
+            BaseChatOverviewItemVO.MSG_MEDIA_TYPE_RICH_CONTENT -> R.drawable.media_camera_roll
 
             else -> -1
         }

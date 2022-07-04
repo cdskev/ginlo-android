@@ -8,16 +8,10 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 
-import java.nio.charset.StandardCharsets;
-import java.security.PublicKey;
-
-import eu.ginlo_apps.ginlo.exception.LocalizedException;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
 import eu.ginlo_apps.ginlo.util.ChecksumUtil;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.util.SecurityUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
-import eu.ginlo_apps.ginlo.util.XMLUtil;
 
 /**
  * Hold all currently used QR code versions
@@ -410,7 +404,7 @@ public class QRCodeModel {
         Bitmap qrCodeBitmap = null;
         BitMatrix bitMatrix = createQRcodeMatrix(widthPixel);
         if(bitMatrix != null) {
-            qrCodeBitmap = BitmapUtil.decodeBitMatrix(bitMatrix);
+            qrCodeBitmap = ImageUtil.decodeBitMatrix(bitMatrix);
         } else {
             LogUtil.w(TAG, "createQRCodeBitmap: Failed to create QR code for: " + mPayload);
         }

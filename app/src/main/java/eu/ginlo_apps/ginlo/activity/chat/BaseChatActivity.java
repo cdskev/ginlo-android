@@ -27,6 +27,7 @@ import android.view.animation.Animation;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ImageView;
@@ -40,7 +41,6 @@ import androidx.annotation.NonNull;
 
 import org.jetbrains.annotations.NotNull;
 
-import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.CameraActivity;
 import eu.ginlo_apps.ginlo.ContactsActivity;
 import eu.ginlo_apps.ginlo.ForwardActivity;
@@ -81,13 +81,14 @@ import eu.ginlo_apps.ginlo.model.chat.ChannelSelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.FileChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.ImageChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.LocationChatItemVO;
+import eu.ginlo_apps.ginlo.model.chat.RichContentChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.SelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.SystemInfoChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.TextChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VCardChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VideoChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VoiceChatItemVO;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.model.param.SendActionContainer;
 import eu.ginlo_apps.ginlo.router.Router;
@@ -100,13 +101,12 @@ import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.MetricsUtil;
-import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.SystemUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
-import eu.ginlo_apps.ginlo.view.SimsmeSwipeRefreshLayout;
+import eu.ginlo_apps.ginlo.view.GinloSwipeRefreshLayout;
 import ezvcard.VCard;
 import ezvcard.property.FormattedName;
 import ezvcard.property.Nickname;
@@ -123,8 +123,7 @@ import java.util.List;
  * @author Florian
  * @version $Revision$, $Date$, $Author$
  */
-public abstract class BaseChatActivity
-        extends ChatInputActivity
+public abstract class BaseChatActivity extends ChatInputActivity
         implements OnChatDataChangedListener,
         EmojiPickerCallback,
         OnItemLongClickListener,
@@ -136,13 +135,12 @@ public abstract class BaseChatActivity
     public static final String EXTRA_FORWARD_CHANNELMESSAGE_IS_TEXT = "ChatActivity.forwardChannelMessageIsImageText";
 
     private static final String TAG = BaseChatActivity.class.getSimpleName();
-    private static final int LAST_MESSAGE_COUNT = 20;
     private static final int FORWARD_REQUEST_CODE = 111;
 
     private final ChatDataSetObserver mObserver = new ChatDataSetObserver();
     protected ListView mListView;
     protected LinearLayout mLoadMoreView;
-    protected SimsmeSwipeRefreshLayout mSwipeLayout;
+    protected GinloSwipeRefreshLayout mSwipeLayout;
     protected Menu mMenu;
     protected TextView mTimedCounterView;
     protected QueryDatabaseListener mOnTimedMessagesListener;
@@ -161,15 +159,17 @@ public abstract class BaseChatActivity
     private AttachmentController mAttachmentController;
     private BaseChatItemVO mResendItem;
     private int mOldLoadCount;
-    protected final OnClickListener onLoadMoreClickListener = new OnClickListener() {
-        @Override
-        public void onClick(final View v) {
-            showProgressIndicator();
-            mOldLoadCount = mChatAdapter.getCount();
-            getChatController().loadMoreMessages(LAST_MESSAGE_COUNT);
-        }
-    };
+
+    // Change between traditional and new chat scrollback behaviour:
+    // true  - User must click on a banner to load older messages
+    // false - User may just scroll through all messages
+    private final boolean moreMessageClickNecessary = false;
+    // Preload that number of messages into ListView when entering chat
+    private int loadMessageCount = ChatController.LOAD_NEWEST_MESSAGE_COUNT;
     private int mLastChangeCount;
+    private AbsListView.OnScrollListener mOnScrollListener = null;
+    protected final OnClickListener onLoadMoreClickListener = v -> loadMoreMessages();
+
     /**
      * return value for image capture intent, since adding it as an extra
      * doesn't work with EXTRA_OUTPUT
@@ -190,6 +190,14 @@ public abstract class BaseChatActivity
         closeCommentView();
     }
 
+    public void loadMoreMessages() {
+        showProgressIndicator();
+        // The more a user scrolls back, the bigger the package to preload for more convenience.
+        loadMessageCount = loadMessageCount * 2;
+        mOldLoadCount = mChatAdapter.getCount();
+        getChatController().loadMoreMessages(loadMessageCount);
+    }
+
     @Override
     protected void closeCommentView() {
         if (mChatInputFragment != null && mCitatedChatItem != null) {
@@ -200,6 +208,9 @@ public abstract class BaseChatActivity
 
     @Override
     protected void onCreateActivity(final Bundle savedInstanceState) {
+        LogUtil.d(TAG, "onCreateActivity: " + this + " with savedInstanceState = " + savedInstanceState);
+        LogUtil.d(TAG, "onCreateActivity: intent info: " + getIntent() + " - " + getIntent().getExtras());
+
         super.onCreateActivity(savedInstanceState);
 
         mMessageController = mApplication.getMessageController();
@@ -268,26 +279,9 @@ public abstract class BaseChatActivity
 
         mOnChatDataChangedListeners = new ArrayList<>();
 
-        if (savedInstanceState != null) {
-            if (savedInstanceState.getString("mTakePhotoUri") != null) {
-                mTakePhotoUri = Uri.parse(savedInstanceState.getString("mTakePhotoUri"));
-            }
-            mTargetGuid = savedInstanceState.getString("mTargetGuid");
-            mPublicKeyXML = savedInstanceState.getString("mPublicKeyXML");
-        }
-
-        if (mNeedsTargetGuid && mTargetGuid == null) {
-            if (getIntent().getStringExtra(EXTRA_TARGET_GUID) != null) {
-                mTargetGuid = getIntent().getStringExtra(EXTRA_TARGET_GUID);
-                mChat = getChatController().getChatByGuid(mTargetGuid);
-                // Know where we are
-                notificationController.setCurrentChatGuid(mTargetGuid);
-            } else {
-                LogUtil.e(TAG, "targetGuid is null");
-                finish();
-                return;
-            }
-        }
+        initState(savedInstanceState, getIntent());
+        // Know where we are
+        notificationController.setCurrentChatGuid(mTargetGuid);
 
         mOnBottomSheetClosedListener = bottomSheetWasOpen -> {
             if (!mChatInputDisabled && (mChatInputFragment != null)) {
@@ -298,7 +292,28 @@ public abstract class BaseChatActivity
                 mBottomSheetFragment.getView().startAnimation(mAnimationSlideOut);
             }
         };
-        checkIntentForAction(null, false);
+        checkIntentForAction(null);
+    }
+
+    private void initState(Bundle savedInstanceState, Intent intent) {
+        LogUtil.d(TAG, "initState: Called with savedInstanceState = " + savedInstanceState + " for intent = " + getIntent());
+        if (savedInstanceState != null) {
+            if (savedInstanceState.getString("mTakePhotoUri") != null) {
+                mTakePhotoUri = Uri.parse(savedInstanceState.getString("mTakePhotoUri"));
+            }
+            mTargetGuid = savedInstanceState.getString("mTargetGuid");
+            mPublicKeyXML = savedInstanceState.getString("mPublicKeyXML");
+        }
+
+        if (mNeedsTargetGuid && mTargetGuid == null) {
+            if (intent.getStringExtra(EXTRA_TARGET_GUID) != null) {
+                mTargetGuid = intent.getStringExtra(EXTRA_TARGET_GUID);
+                mChat = getChatController().getChatByGuid(mTargetGuid);
+            } else {
+                LogUtil.e(TAG, "initState: targetGuid is null");
+                finish();
+            }
+        }
     }
 
     void createOnChatDataChangedListener() {
@@ -389,8 +404,20 @@ public abstract class BaseChatActivity
         return R.layout.activity_chat;
     }
 
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        mTargetGuid = null;
+        mNeedsTargetGuid = true;
+        initState(null, intent);
+        checkIntentForAction(intent);
+    }
+
     @Override
     protected void onResumeActivity() {
+        LogUtil.d(TAG, "onResumeActivity: Called.");
         super.onResumeActivity();
 
         // Know where we are
@@ -715,6 +742,17 @@ public abstract class BaseChatActivity
                 }
 
                 @Override
+                public void onRichContentLoaded(final File dataFile, final DecryptedMessage decryptedMsg) {
+                    finishDownloading(mMessageGuid);
+                    if (!messageId.equals(decryptedMsg.getMessage().getId())) {
+                        DialogBuilderUtil.buildErrorDialog(BaseChatActivity.this, getResources().getString(R.string.chat_open_failed_file)).show();
+                        dismissIdleDialog();
+                        return;
+                    }
+                    handleForwardMessageAttachmentLoaded(intent);
+                }
+
+                @Override
                 public void onFileLoaded(final File dataFile, final DecryptedMessage decryptedMsg) {
                     finishDownloading(mMessageGuid);
                     if (!messageId.equals(decryptedMsg.getMessage().getId())) {
@@ -973,22 +1011,22 @@ public abstract class BaseChatActivity
             ChannelChatItemVO cci = (ChannelChatItemVO) mCitatedChatItem;
             text = cci.messageHeader + "\n" + cci.messageContent;
             previewImage = null;
-            contentType = MimeType.TEXT_RSS;
+            contentType = MimeUtil.MIME_TYPE_TEXT_RSS;
             contentDesc = null;
         } else if (mCitatedChatItem instanceof TextChatItemVO) {
             text = ((TextChatItemVO) mCitatedChatItem).message;
             previewImage = null;
-            contentType = MimeType.TEXT_PLAIN;
+            contentType = MimeUtil.MIME_TYPE_TEXT_PLAIN;
             contentDesc = null;
         } else if (mCitatedChatItem instanceof VCardChatItemVO) {
             text = null;
             previewImage = null;
-            contentType = MimeType.TEXT_V_CARD;
+            contentType = MimeUtil.MIME_TYPE_TEXT_V_CARD;
             contentDesc = ((VCardChatItemVO) mCitatedChatItem).displayInfo;
         } else if (mCitatedChatItem instanceof LocationChatItemVO) {
             text = null;
             previewImage = ((LocationChatItemVO) mCitatedChatItem).image;
-            contentType = MimeType.MODEL_LOCATION;
+            contentType = MimeUtil.MIME_TYPE_MODEL_LOCATION;
             contentDesc = null;
         } else if (mCitatedChatItem instanceof ImageChatItemVO) {
             final ImageChatItemVO castedItem = (ImageChatItemVO) mCitatedChatItem;
@@ -1001,7 +1039,7 @@ public abstract class BaseChatActivity
                 contentDesc = null;
             }
             previewImage = castedItem.image;
-            contentType = MimeType.IMAGE_JPEG;
+            contentType = MimeUtil.MIME_TYPE_IMAGE_JPEG;
         } else if (mCitatedChatItem instanceof VideoChatItemVO) {
             final VideoChatItemVO castedItem = (VideoChatItemVO) mCitatedChatItem;
 
@@ -1013,33 +1051,38 @@ public abstract class BaseChatActivity
                 contentDesc = null;
             }
             previewImage = castedItem.image;
-            contentType = MimeType.VIDEO_MPEG;
+            contentType = MimeUtil.MIME_TYPE_VIDEO_MPEG;
         } else if (mCitatedChatItem instanceof VoiceChatItemVO) {
             text = null;
             previewImage = null;
-            contentType = MimeType.AUDIO_MPEG;
+            contentType = MimeUtil.MIME_TYPE_AUDIO_MPEG;
             contentDesc = null;
         } else if (mCitatedChatItem instanceof AppGinloControlChatItemVO) {
             // Just for fun ...
             text = ((AppGinloControlChatItemVO) mCitatedChatItem).message;
             previewImage = null;
-            contentType = MimeType.TEXT_PLAIN;
+            contentType = MimeUtil.MIME_TYPE_TEXT_PLAIN;
             contentDesc = null;
         } else if (mCitatedChatItem instanceof AVChatItemVO) {
             // KS: TODO: AVC forwarding (?) - Do it for now.
             text = null;
             previewImage = null;
-            contentType = MimeType.TEXT_V_CALL;
+            contentType = MimeUtil.MIME_TYPE_TEXT_V_CALL;
+            contentDesc = null;
+        } else if (mCitatedChatItem instanceof RichContentChatItemVO) {
+            text = ((RichContentChatItemVO) mCitatedChatItem).fileName;
+            previewImage = null;
+            contentType = MimeUtil.MIME_TYPE_APP_GINLO_RICH_CONTENT;
             contentDesc = null;
         } else if (mCitatedChatItem instanceof FileChatItemVO) {
             text = ((FileChatItemVO) mCitatedChatItem).fileName;
             previewImage = null;
-            contentType = MimeType.APP_OCTET_STREAM;
+            contentType = MimeUtil.MIME_TYPE_APP_OCTET_STREAM;
             contentDesc = null;
         } else {
             text = null;
             previewImage = null;
-            contentType = MimeType.TEXT_PLAIN;
+            contentType = MimeUtil.MIME_TYPE_TEXT_PLAIN;
             contentDesc = null;
         }
 
@@ -1060,6 +1103,19 @@ public abstract class BaseChatActivity
             getChatController().checkForResend(mResendItem.messageId, mOnSendMessageListener);
         }
         closeBottomSheet(mOnBottomSheetClosedListener);
+    }
+
+    @Override
+    public void handleSendRichContent(final Uri contentUri) {
+        LogUtil.d(TAG, "handleRichContentClick: Working on " + contentUri );
+        mActionContainer = null;
+        final String mimeType = MimeUtil.getMimeTypeForUri(this, contentUri);
+        final Intent actionIntent = new Intent(Intent.ACTION_SEND);
+
+        actionIntent.setType(StringUtil.isNullOrEmpty(mimeType) ? MimeUtil.MIME_TYPE_APP_OCTET_STREAM : mimeType);
+        actionIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+        checkIntentForAction(actionIntent, RouterConstants.SELECT_RICH_CONTENT_RESULT_CODE);
+        checkActionContainer();
     }
 
     @Override
@@ -1238,7 +1294,7 @@ public abstract class BaseChatActivity
 
         intent.setType("video/*");
 
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
 
         closeBottomSheet(mOnBottomSheetClosedListener);
         router.startExternalActivityForResult(intent, RouterConstants.SELECT_VIDEO_RESULT_CODE);
@@ -1391,9 +1447,11 @@ public abstract class BaseChatActivity
         super.onActivityPostLoginResult(requestCode, resultCode, returnIntent);
 
         if (resultCode == RESULT_OK) {
+            LogUtil.d(TAG, "onActivityPostLoginResult: Called with RESULT_OK" );
             try {
                 switch (requestCode) {
                     case RouterConstants.TAKE_VIDEO_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on TAKE_VIDEO_RESULT_CODE" );
                         final String path = returnIntent.getStringExtra("data");
                         final Uri recordedVideo = Uri.fromFile(new File(path));
 
@@ -1417,6 +1475,7 @@ public abstract class BaseChatActivity
                         break;
                     }
                     case RouterConstants.TAKE_PHOTO_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on TAKE_PHOTO_RESULT_CODE" );
                         Uri takenPhoto;
 
                         try {
@@ -1445,17 +1504,41 @@ public abstract class BaseChatActivity
 
                         break;
                     }
+                    case RouterConstants.SELECT_RICH_CONTENT_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on SELECT_RICH_CONTENT_RESULT_CODE" );
+                        final Uri contentUri;
+
+                        try {
+                            contentUri = (new FileUtil(this)).copyFileToInternalDir(returnIntent.getData());
+                        } catch (final LocalizedException e) {
+                            LogUtil.w(TAG, "onActivityPostLoginResult: SELECT_RICH_CONTENT_RESULT_CODE returned: " + LocalizedException.UNDEFINED_ARGUMENT);
+                            return;
+                        }
+
+                        mActionContainer = null;
+
+                        final String mimeType = MimeUtil.getMimeTypeForUri(this, contentUri);
+
+                        final Intent actionIntent = new Intent(Intent.ACTION_SEND);
+                        actionIntent.setType(StringUtil.isNullOrEmpty(mimeType) ? MimeUtil.MIME_TYPE_APP_OCTET_STREAM : mimeType);
+                        actionIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
+                        checkIntentForAction(actionIntent, requestCode);
+                        break;
+                    }
                     case RouterConstants.SELECT_PHOTO_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on SELECT_PHOTO_RESULT_CODE" );
                         handleResult(returnIntent, true);
 
                         break;
                     }
                     case RouterConstants.SELECT_VIDEO_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on SELECT_VIDEO_RESULT_CODE" );
                         handleResult(returnIntent, false);
 
                         break;
                     }
                     case RouterConstants.SELECT_CONTACT_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on SELECT_CONTACT_RESULT_CODE" );
                         final Uri contactUri = returnIntent.getData();
                         final String vCard = mContactController.getVCardForContactUri(this, contactUri);
 
@@ -1475,6 +1558,7 @@ public abstract class BaseChatActivity
                         break;
                     }
                     case RouterConstants.SELECT_INTERNAL_CONTACT_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on SELECT_INTERNAL_CONTACT_RESULT_CODE" );
                         final String contactGuid = returnIntent.getStringExtra(ContactsActivity.EXTRA_SELECTED_CONTACTS);
                         final Contact contact = mContactController.getContactByGuid(contactGuid);
 
@@ -1516,22 +1600,23 @@ public abstract class BaseChatActivity
                         break;
                     }
                     case RouterConstants.SELECT_FILE_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on SELECT_FILE_RESULT_CODE" );
                         mActionContainer = null;
 
                         final Uri fileUri = returnIntent.getData();
-                        final MimeUtil mu = new MimeUtil(this);
-                        final String mimeType = mu.getMimeType(fileUri);
+                        final String mimeType = MimeUtil.getMimeTypeForUri(this, fileUri);
 
                         //Simulieren einer SendAction
                         final Intent actionIntent = new Intent(Intent.ACTION_SEND);
-                        actionIntent.setType(StringUtil.isNullOrEmpty(mimeType) ? MimeType.APP_OCTET_STREAM : mimeType);
+                        actionIntent.setType(StringUtil.isNullOrEmpty(mimeType) ? MimeUtil.MIME_TYPE_APP_OCTET_STREAM : mimeType);
                         actionIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
 
                         //Die Action wird dann im onResume mittels checkActionContainer gestartet
-                        checkIntentForAction(actionIntent, true);
+                        checkIntentForAction(actionIntent, requestCode);
                         break;
                     }
                     case RouterConstants.GET_LOCATION_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on GET_LOCATION_RESULT_CODE" );
                         final byte[] screenshot = returnIntent.getByteArrayExtra(LocationActivity.EXTRA_SCREENSHOT);
                         final double longitude = returnIntent.getDoubleExtra(LocationActivity.EXTRA_LONGITUDE, 0.0);
                         final double latitude = returnIntent.getDoubleExtra(LocationActivity.EXTRA_LATITUDE, 0.0);
@@ -1546,6 +1631,7 @@ public abstract class BaseChatActivity
                         break;
                     }
                     case RouterConstants.GET_PHOTO_WITH_DESTRUCTION_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on GET_PHOTO_WITH_DESTRUCTION_RESULT_CODE" );
                         final List<String> imageUris = returnIntent.getStringArrayListExtra(PreviewActivity.EXTRA_URIS);
                         final List<String> imageTexts = returnIntent.getStringArrayListExtra(PreviewActivity.EXTRA_TEXTS);
                         final boolean isPriority = returnIntent.getBooleanExtra(PreviewActivity.EXTRA_IS_PRIORITY, false);
@@ -1583,6 +1669,7 @@ public abstract class BaseChatActivity
                         break;
                     }
                     case RouterConstants.GET_VIDEO_WITH_DESTRUCTION_RESULT_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on GET_VIDEO_WITH_DESTRUCTION_RESULT_CODE" );
                         final List<String> videoUris = returnIntent.getStringArrayListExtra(PreviewActivity.EXTRA_URIS);
                         final List<String> videoTexts = returnIntent.getStringArrayListExtra(PreviewActivity.EXTRA_TEXTS);
                         final boolean isPriority = returnIntent.getBooleanExtra(PreviewActivity.EXTRA_IS_PRIORITY, false);
@@ -1617,7 +1704,7 @@ public abstract class BaseChatActivity
                         break;
                     }
                     case RouterConstants.CITATE_MESSAGE_RESULT_CODE: {
-
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on CITATE_MESSAGE_RESULT_CODE" );
                         final String returnAction = returnIntent.getStringExtra(MessageDetailsActivity.EXTRA_RETURN_ACTION);
 
                         if (!StringUtil.isNullOrEmpty(returnAction)) {
@@ -1643,7 +1730,7 @@ public abstract class BaseChatActivity
                         } else {
                             final String returnType = returnIntent.getStringExtra(MessageDetailsActivity.EXTRA_RETURN_TYPE);
                             final boolean isPriority = returnIntent.getBooleanExtra(MessageDetailsActivity.EXTRA_RETURN_IS_PRIORITY, false);
-                            if (StringUtil.isEqual(returnType, MimeType.TEXT_PLAIN)) {
+                            if (StringUtil.isEqual(returnType, MimeUtil.MIME_TYPE_TEXT_PLAIN)) {
                                 final String text = returnIntent.getStringExtra(MessageDetailsActivity.EXTRA_RETURN_TEXT);
 
                                 if (mChatAdapter != null && mChatAdapter.getCount() == 0) {
@@ -1653,7 +1740,7 @@ public abstract class BaseChatActivity
                                         null, isPriority, buildCitationFromSelectedChatItem());
 
                                 mCitatedChatItem = null;
-                            } else if (StringUtil.isEqual(returnType, MimeType.IMAGE_JPEG)) {
+                            } else if (StringUtil.isEqual(returnType, MimeUtil.MIME_TYPE_IMAGE_JPEG)) {
                                 final List<String> imageUris = returnIntent.getStringArrayListExtra(MessageDetailsActivity.EXTRA_RETURN_IMAGE_URIS);
                                 final List<String> imageTexts = returnIntent.getStringArrayListExtra(MessageDetailsActivity.EXTRA_RETURN_IMAGE_TEXTS);
 
@@ -1670,29 +1757,30 @@ public abstract class BaseChatActivity
                                     mPlayTimdMessagesAnimation = true;
                                 }
                                 mCitatedChatItem = null;
-                            } else if (StringUtil.isEqual(returnType, MimeType.APP_OCTET_STREAM)) {
+                            } else if (MimeUtil.hasUnspecificBinaryMimeType(returnType)) {
                                 final Uri fileUri = returnIntent.getData();
 
-                                final MimeUtil mu = new MimeUtil(this);
-                                final String mimeType = mu.getMimeType(fileUri);
+                                final String mimeType = MimeUtil.getMimeTypeForUri(this, fileUri);
 
                                 //Simulieren einer SendAction
                                 final Intent actionIntent = new Intent(Intent.ACTION_SEND);
-                                actionIntent.setType(StringUtil.isNullOrEmpty(mimeType) ? MimeType.APP_OCTET_STREAM : mimeType);
+                                actionIntent.setType(StringUtil.isNullOrEmpty(mimeType) ? MimeUtil.MIME_TYPE_APP_OCTET_STREAM : mimeType);
                                 actionIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
 
                                 //Die Action wird dann im onResume mittels checkActionContainer gestartet
-                                checkIntentForAction(actionIntent, true);
+                                checkIntentForAction(actionIntent, requestCode);
                             }
                         }
                         break;
                     }
                     case FORWARD_REQUEST_CODE: {
+                        LogUtil.d(TAG, "onActivityPostLoginResult: Working on FORWARD_REQUEST_CODE" );
                         if (mOnlyShowTimed && getChatController() != null && mChat != null) {
                             getChatController().clearAdapter(mChat.getChatGuid());
                         }
 
-                        finish();
+                        // KS: WTF!
+                        //finish();
                         break;
                     }
                     default:
@@ -1705,6 +1793,7 @@ public abstract class BaseChatActivity
                 return;
             }
         } else {
+            LogUtil.d(TAG, "onActivityPostLoginResult: Called with *not* RESULT_OK" );
             if (requestCode == RouterConstants.CITATE_MESSAGE_RESULT_CODE) {
                 mCitatedChatItem = null;
             }
@@ -1851,6 +1940,7 @@ public abstract class BaseChatActivity
 
                                 @Override
                                 public void onChatDataChanged(final boolean clearImageCache) {
+                                    LogUtil.d(TAG, "scrollToMessageViaGuid: onChatDataChanged: Called with clearImageCache = " + clearImageCache);
 
                                 }
 
@@ -1908,13 +1998,6 @@ public abstract class BaseChatActivity
         if (isActivityInForeground()) {
             if ((mListView != null) && (mChatAdapter != null)) {
                 mListView.smoothScrollToPosition(mChatAdapter.getCount());
-
-                /* Bug 44226 - Chatverlauf springt beim senden längerer Nachrichten
-                 * urspuenglich gebaut fuer:
-                 * Bug 35425 - Navigation von Detail-Bildansicht zu Chatansicht führt zum Verlust der Scrollposition
-                 * da das Scrollingmitlerweile anders funktioniert, soltle der Handle rnicht mehr benoetigt werden
-                 * erstmal nur auskommentiert
-                 */
             }
         }
     }
@@ -1984,6 +2067,42 @@ public abstract class BaseChatActivity
 
         for (final OnChatDataChangedListener onChatDataChangedListener : mOnChatDataChangedListeners) {
             onChatDataChangedListener.onChatDataLoaded(lastMessageId);
+        }
+    }
+
+    protected void prepareScrollListener() {
+        // Set listener to activate swipeLayout for loading of older messages
+        if(mListView != null && !moreMessageClickNecessary) {
+            mOnScrollListener = new AbsListView.OnScrollListener() {
+
+                @Override
+                public void onScrollStateChanged(AbsListView view, int scrollState) {
+                }
+
+                @Override
+                public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                    synchronized (mListView) {
+                        if(mOldLoadCount == 0) {
+                            if (firstVisibleItem == 0 && listIsAtTop()) {
+                                final long msgCount = getChatController().getChatMessagesCount(mTargetGuid, false);
+                                if (msgCount > mChatAdapter.getCount()) {
+                                    loadMoreMessages();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                private boolean listIsAtTop()   {
+                    if(mListView.getChildCount() == 0) {
+                        // Empty list should never count
+                        return false;
+                    }
+                    return mListView.getChildAt(0).getTop() == 0;
+                }
+            };
+
+            mListView.setOnScrollListener(mOnScrollListener);
         }
     }
 
@@ -2083,7 +2202,7 @@ public abstract class BaseChatActivity
                     toolbarOptionsItemModels.add(createToolbarOptionsInfoModel());
                 }
             } else if ((mMarkedChatItem instanceof ImageChatItemVO) || (mMarkedChatItem instanceof VideoChatItemVO)
-                    || (mMarkedChatItem instanceof FileChatItemVO)) {
+                    || (mMarkedChatItem instanceof RichContentChatItemVO) || (mMarkedChatItem instanceof FileChatItemVO)) {
                 if (canSendMedia()) {
                     toolbarOptionsItemModels.add(createToolbarOptionsForwardModel());
                 }
@@ -2135,7 +2254,6 @@ public abstract class BaseChatActivity
                 toolbarOptionsItemModels.add(createToolbarOptionsCommentModel());
             }
         } catch (final LocalizedException e) {
-            // wenn hier eine LE auftritt
             LogUtil.w(TAG, "onItemLongClick: Caught " + e.getMessage());
         }
         showToolbarOptions(toolbarOptionsItemModels);
@@ -2233,7 +2351,7 @@ public abstract class BaseChatActivity
      */
     void setBackground()
             throws LocalizedException {
-        final Bitmap background = chatImageController.getBackground();
+        final Bitmap background = imageController.getAppBackground();
 
         if (background != null) {
             mBackground.setImageBitmap(background);
@@ -2389,6 +2507,9 @@ public abstract class BaseChatActivity
     @Override
     public void onBackPressed() {
         // Achtung, Reihenfolge beachten!
+        mListView.setOnScrollListener(null);
+        mOnScrollListener = null;
+        //mOldLoadCount = 0;
 
         //FAB-Menue offen
         if (mSpeedDialView != null && mSpeedDialView.isOpen()) {
@@ -2472,12 +2593,27 @@ public abstract class BaseChatActivity
         }
     }
 
-    private void checkIntentForAction(final Intent returnIntent, boolean forceFileHandling) {
+    protected void checkIntentForAction(final Intent returnIntent) {
+        checkIntentForAction(returnIntent, -1);
+    }
+
+    protected void checkIntentForAction(final Intent returnIntent, int requestCode) {
         final Intent intent = returnIntent != null ? returnIntent : getIntent();
         final String action = intent.getAction();
+
         if (!StringUtil.isNullOrEmpty(action) && (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action))) {
+            LogUtil.d(TAG, "checkIntentForAction: Processing action " + action);
             try {
-                mActionContainer = new FileUtil(this).checkFileSendActionIntent(intent, forceFileHandling);
+                switch (requestCode) {
+                    case RouterConstants.SELECT_FILE_RESULT_CODE:
+                        mActionContainer = new FileUtil(this).checkFileSendActionIntent(intent, true, true);
+                        break;
+                    case RouterConstants.SELECT_RICH_CONTENT_RESULT_CODE:
+                        mActionContainer = new FileUtil(this).checkFileSendActionIntent(intent, false, true);
+                        break;
+                    default:
+                        mActionContainer = new FileUtil(this).checkFileSendActionIntent(intent, false, false);
+                }
 
                 if (!StringUtil.isNullOrEmpty(mActionContainer.displayMessage)) {
                     Toast.makeText(this, mActionContainer.displayMessage, Toast.LENGTH_LONG).show();
@@ -2495,17 +2631,17 @@ public abstract class BaseChatActivity
             }
         } else {
             final long forwardMessageId = getIntent().getLongExtra(EXTRA_FORWARD_MESSAGE_ID, -1);
+            LogUtil.d(TAG, "checkIntentForAction: Processing messageId " + forwardMessageId);
 
-            if (forwardMessageId == -1) {
-                return;
+            if (forwardMessageId != -1) {
+                mActionContainer = new SendActionContainer();
+                mActionContainer.action = SendActionContainer.ACTION_FORWARD;
+                mActionContainer.forwardMessageId = forwardMessageId;
+                mActionContainer.forwardChannelMessageIsImage = getIntent().getBooleanExtra(EXTRA_FORWARD_CHANNELMESSAGE_IS_IMAGE,
+                        false);
+                mActionContainer.forwardChannelMessageIsText = getIntent().getBooleanExtra(EXTRA_FORWARD_CHANNELMESSAGE_IS_TEXT,
+                        false);
             }
-            mActionContainer = new SendActionContainer();
-            mActionContainer.action = SendActionContainer.ACTION_FORWARD;
-            mActionContainer.forwardMessageId = forwardMessageId;
-            mActionContainer.forwardChannelMessageIsImage = getIntent().getBooleanExtra(EXTRA_FORWARD_CHANNELMESSAGE_IS_IMAGE,
-                    false);
-            mActionContainer.forwardChannelMessageIsText = getIntent().getBooleanExtra(EXTRA_FORWARD_CHANNELMESSAGE_IS_TEXT,
-                    false);
         }
     }
 
@@ -2546,6 +2682,31 @@ public abstract class BaseChatActivity
                             mActionContainer = null;
                             break;
                         }
+                        case SendActionContainer.TYPE_RICH_CONTENT: {
+                            LogUtil.d(TAG, "checkActionContainer: Processing SendActionContainer.TYPE_RICH_CONTENT.");
+
+                            if (mActionContainer.uris != null && mActionContainer.uris.size() > 0) {
+                                final Uri fileUri = mActionContainer.uris.get(0);
+
+                                closeCommentView();
+
+                                try {
+                                    checkChat();
+                                    if (mChatAdapter != null && mChatAdapter.getCount() == 0) {
+                                        mPreferencesController.incNumberOfStartedChats();
+                                    }
+                                    getChatController().sendRichContent(BaseChatActivity.this, mTargetGuid, mPublicKeyXML,
+                                            fileUri, true, null, null, mOnSendMessageListener, buildCitationFromSelectedChatItem());
+                                    mActionContainer = null;
+                                    setResult(RESULT_OK);
+                                } catch (final LocalizedException e) {
+                                    LogUtil.w(TAG, "checkActionContainer: SendActionContainer.TYPE_FILE caught " + e.getMessage());
+                                }
+                            }
+
+                            mActionContainer = null;
+                            break;
+                        }
                         case SendActionContainer.TYPE_FILE: {
                             LogUtil.d(TAG, "checkActionContainer: Processing SendActionContainer.TYPE_FILE.");
                             if (mActionContainer.uris != null && mActionContainer.uris.size() > 0) {
@@ -2576,7 +2737,6 @@ public abstract class BaseChatActivity
                                 };
 
                                 final FileUtil fu = new FileUtil(this);
-                                final MimeUtil mu = new MimeUtil(this);
                                 final String filename = fu.getFileName(fileUri);
                                 long fileSize;
                                 try {
@@ -2586,7 +2746,7 @@ public abstract class BaseChatActivity
                                     LogUtil.w(TAG, "Failed to get file size." + e.getMessage());
                                 }
 
-                                showSendFileDialog(filename, mu.getExtensionForUri(fileUri), fileSize, positiveListener, negativeListener);
+                                showSendFileDialog(filename, MimeUtil.getExtensionForUri(this, fileUri), fileSize, positiveListener, negativeListener);
                             }
                             break;
                         }
@@ -2602,14 +2762,19 @@ public abstract class BaseChatActivity
                     final Message message = getChatController().findMessageById(mActionContainer.forwardMessageId);
 
                     if (message != null) {
-                        if (!mActionContainer.forwardChannelMessageIsText
-                                && (mActionContainer.forwardChannelMessageIsImage || !StringUtil.isNullOrEmpty(message.getAttachment()))
+                        if (!mActionContainer.forwardChannelMessageIsText &&
+                                (mActionContainer.forwardChannelMessageIsImage || !StringUtil.isNullOrEmpty(message.getAttachment()))
                         ) {
+                            LogUtil.d(TAG, "checkActionContainer: getAttachment for " + message.getId());
                             getChatController().getAttachment(message.getId(), this, false, null);
+
                         } else {
+                            LogUtil.d(TAG, "checkActionContainer: setChatInputText for " + message.getId());
                             final DecryptedMessage decMessage = messageDecryptionController.decryptMessage(message, false);
                             try {
-                                if (decMessage != null && (StringUtil.isEqual(decMessage.getContentType(), MimeType.TEXT_PLAIN) || StringUtil.isEqual(decMessage.getContentType(), MimeType.TEXT_RSS)) && mChatInputFragment != null) {
+                                if (decMessage != null &&
+                                        (StringUtil.isEqual(decMessage.getContentType(), MimeUtil.MIME_TYPE_TEXT_PLAIN) || StringUtil.isEqual(decMessage.getContentType(), MimeUtil.MIME_TYPE_TEXT_RSS)) &&
+                                        mChatInputFragment != null) {
                                     mChatInputFragment.setChatInputText(decMessage.getText(), false);
                                 } else {
                                     Toast.makeText(this, getString(R.string.chats_forward_message_error), Toast.LENGTH_SHORT).show();
@@ -2764,6 +2929,7 @@ public abstract class BaseChatActivity
         final OnChatDataChangedListener onChatDataChangedListener = new OnChatDataChangedListener() {
             @Override
             public void onChatDataChanged(final boolean clearImageCache) {
+                LogUtil.d(TAG, "showNonTimedMessages: onChatDataChanged: Called with clearImageCache = " + clearImageCache);
             }
 
             @Override
@@ -2790,8 +2956,15 @@ public abstract class BaseChatActivity
                     }
                     mListView.setAdapter(mChatAdapter);
                 }
+                // KS: Set listener for scroll back here
+                if(mOnScrollListener == null) {
+                    prepareScrollListener();
+                }
+
             } else if (hasHeaderView() && (msgCount <= mChatAdapter.getCount())) {
                 mListView.removeHeaderView(mLoadMoreView);
+                mListView.setOnScrollListener(null);
+                mOnScrollListener = null;
             }
         }
     }
@@ -2873,15 +3046,17 @@ public abstract class BaseChatActivity
 
     @Override
     public void onChatDataChanged(final boolean clearImageCache) {
+        LogUtil.d(TAG, "onChatDataChanged: Called with clearImageCache = " + clearImageCache);
+        if(clearImageCache) {
+            imageController.clearImageCaches(true, true);
+        }
     }
 
-    static class InvalidDateException
-            extends Exception {
+    static class InvalidDateException extends Exception {
         private static final long serialVersionUID = -8517774871137413532L;
     }
 
-    private class ChatDataSetObserver
-            extends DataSetObserver {
+    private class ChatDataSetObserver extends DataSetObserver {
 
         private boolean mIsRegistered = false;
 
