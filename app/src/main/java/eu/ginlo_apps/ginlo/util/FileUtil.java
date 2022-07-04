@@ -9,7 +9,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import androidx.annotation.NonNull;
@@ -21,7 +20,6 @@ import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.param.SendActionContainer;
 
 import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -30,13 +28,11 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
+import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
-
-import static eu.ginlo_apps.ginlo.model.constant.NumberConstants.INT_1024;
 
 public class FileUtil {
     private final static String TAG = FileUtil.class.getSimpleName();
@@ -107,6 +103,32 @@ public class FileUtil {
         deleteFile(new File(filepathToDelete));
     }
 
+    public boolean deleteAllFilesInDir(File dir) {
+        if (dir == null || !dir.isDirectory()) {
+            return false;
+        }
+
+        File[] files = dir.listFiles();
+
+        if (files == null || files.length < 1) {
+            return true;
+        }
+
+        for (File file : files) {
+            if (file.isDirectory()) {
+                if (!this.deleteAllFilesInDir(file)) {
+                    return false;
+                }
+            }
+
+            if (!file.delete()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Gzip a file's contents and write to same directory as "file.gzip".
      * Silently overwrite existing "file.gzip".
@@ -161,14 +183,39 @@ public class FileUtil {
         }
     }
 
-    public File getExternalTempFile()
-            throws IOException {
-        File f = context.getExternalCacheDir();
-
-        if (f == null) {
-            f = context.getCacheDir();
+    /**
+     * Check whether a file starts with given "magic bytes"
+     * @param fileToCheck
+     * @param magicBytes
+     * @return
+     */
+    public static Boolean haveFileMagic(File fileToCheck, byte[] magicBytes) {
+        final int magicByteCount = magicBytes.length;
+        if (fileToCheck == null || magicByteCount == 0) {
+            return false;
         }
-        return File.createTempFile("tmp", null, f);
+
+        LogUtil.d(TAG, "haveFileMagic: Check file " + fileToCheck.getPath() + " for " + Arrays.toString(magicBytes));
+
+        final int fileSize = new BigDecimal(fileToCheck.length()).intValueExact();
+        if (fileSize < magicByteCount) {
+            LogUtil.d(TAG, "haveFileMagic: File has size " + fileSize);
+            return false;
+        }
+
+        byte[] firstBytes = new byte[magicByteCount];
+        FileInputStream fileInputStream = null;
+        try {
+            fileInputStream = new FileInputStream(fileToCheck);
+            StreamUtil.safeRead(fileInputStream, firstBytes, magicByteCount);
+        } catch (IOException e) {
+            LogUtil.e(TAG, "haveFileMagic: Caught " + e.getMessage());
+            return false;
+        } finally {
+            StreamUtil.closeStream(fileInputStream);
+        }
+        LogUtil.d(TAG, "haveFileMagic: Checked file starts with " + Arrays.toString(firstBytes));
+        return Arrays.equals(magicBytes, firstBytes);
     }
 
     public File getInternalMediaFile(final String fileName) {
@@ -181,11 +228,6 @@ public class FileUtil {
 
     public File getInternalMediaDir() {
         return mInternalMediaDir;
-    }
-
-    public File getTempFile()
-            throws IOException {
-        return File.createTempFile("tmp", null, context.getCacheDir());
     }
 
     private Uri getFileProviderUriFromFile(File file) {
@@ -236,6 +278,11 @@ public class FileUtil {
         return File.createTempFile(fileName, fileSuffix, tmpDirectory);
     }
 
+    public File getTempFile()
+            throws IOException {
+        return File.createTempFile("tmp", null, context.getCacheDir());
+    }
+
     @NonNull
     public File createTmpImageFileAddInIntent(@NonNull Intent intent)
             throws LocalizedException {
@@ -247,8 +294,14 @@ public class FileUtil {
         return photoCaptureFile;
     }
 
+    public Uri copyFileToInternalDir(Uri from)
+            throws LocalizedException {
+        return copyFileToInternalDir(from, null);
+    }
+
     public Uri copyFileToInternalDir(Uri from, File internalDirectory)
             throws LocalizedException {
+        LogUtil.d(TAG, "copyFileToInternalDir: " + from + " -> " + (internalDirectory != null ? internalDirectory.getPath() : "create new TempFile"));
         if (from == null) {
             return null;
         }
@@ -287,11 +340,6 @@ public class FileUtil {
         }
     }
 
-    public Uri copyFileToInternalDir(Uri from)
-            throws LocalizedException {
-        return copyFileToInternalDir(from, null);
-    }
-
     private boolean isInternalUri(@NonNull final Uri uri) {
         String path = uri.getPath();
 
@@ -317,91 +365,6 @@ public class FileUtil {
         }
     }
 
-    public void savePhoto(Uri source,
-                          String ident) {
-        String tag = (ident != null) ? ident : getTimestamp();
-        String filename = "img_" + tag + ".jpg";
-        Uri dest = save(source, filename);
-
-        if (dest != null) {
-            scanMedia(dest);
-        }
-    }
-
-    public void saveVideo(Uri source,
-                          String ident) {
-        String tag = (ident != null) ? ident : getTimestamp();
-        String filename = "vid_" + tag + ".mp4";
-        Uri dest = save(source, filename);
-
-        if (dest != null) {
-            scanMedia(dest);
-        }
-    }
-
-    public void saveVoice(Uri source,
-                          String ident) {
-        String tag = (ident != null) ? ident : getTimestamp();
-        String filename = "voice_" + tag + ".m4a";
-        Uri dest = save(source, filename);
-
-        if (dest != null) {
-            scanMedia(dest);
-        }
-    }
-
-    private Uri save(Uri sourceUri,
-                     String filename) {
-        File source = new File(sourceUri.getPath());
-        File dest = new File(mediaDir, filename);
-
-        if (dest.exists()) {
-            LogUtil.w(TAG, "save: Destination exists: " + dest.getPath());
-            return null;
-        }
-
-        if (copy(source, dest)) {
-            return Uri.fromFile(dest);
-        } else {
-            LogUtil.w(TAG, "save: File " + source.getPath() + " save failed to " + dest.getPath());
-            return null;
-        }
-    }
-
-    private String getTimestamp() {
-        SimpleDateFormat s = new SimpleDateFormat("ddMMyyyyhhmmss");
-
-        return s.format(new Date());
-    }
-
-    private boolean copy(File src,
-                         File dst) {
-
-        LogUtil.d(TAG, "copy: Copy " + src.getPath() + " to " + dst.getPath());
-
-        InputStream in = null;
-        OutputStream out = null;
-
-        try {
-            in = new FileInputStream(src);
-            out = new FileOutputStream(dst);
-            StreamUtil.copyStreams(in, out);
-            return true;
-        } catch (IOException e) {
-            LogUtil.e(TAG, "copy: failed with: " + e.getMessage());
-        } finally {
-            StreamUtil.closeStream(in);
-            StreamUtil.closeStream(out);
-        }
-        return false;
-    }
-
-    private void scanMedia(Uri uri) {
-        Intent scanFileIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
-
-        context.sendBroadcast(scanFileIntent);
-    }
-
     public UrisResultContainer getUrisFromVideoActionIntent(Intent intent) {
         UrisResultContainer result = new UrisResultContainer();
         ArrayList<String> uris = new ArrayList<>();
@@ -410,7 +373,9 @@ public class FileUtil {
 
         if ((intentUris != null) && (intentUris.size() > 0)) {
             for (Uri uri : intentUris) {
-                if (!mMimeUtil.checkUriMimeType(context, uri, mMimeUtil.getAllowedVideoMimeTypes())) {
+                //if (!mMimeUtil.checkUriMimeType(context, uri, mMimeUtil.getAllowedVideoMimeTypes())) {
+                // KS: Test
+                if (!mMimeUtil.checkVideoUriMimetype(context, uri)) {
                     result.mHasImportError = true;
                     continue;
                 }
@@ -429,7 +394,7 @@ public class FileUtil {
                 }
 
                 uris.add(uri.toString());
-                LogUtil.d(TAG, "getUrisFromVideoActionIntent(): Add " + uri.toString());
+                LogUtil.d(TAG, "getUrisFromVideoActionIntent: Add " + uri.toString());
             }
         }
 
@@ -451,7 +416,7 @@ public class FileUtil {
                     continue;
                 }
                 imgUris.add(uri.toString());
-                LogUtil.d(TAG, "getUrisFromImageActionIntent(): Add " + uri.toString());
+                LogUtil.d(TAG, "getUrisFromImageActionIntent: Add " + uri.toString());
             }
         }
 
@@ -490,63 +455,6 @@ public class FileUtil {
         return fileSize;
     }
 
-    byte[] getByteArrayFromUri(final Uri uri) {
-        InputStream in = null;
-        ByteArrayOutputStream bos = null;
-
-        try {
-            in = context.getContentResolver().openInputStream(uri);
-            byte[] bytes;
-
-            bos = new ByteArrayOutputStream();
-
-            byte[] data = new byte[INT_1024];
-            int count;
-
-            while ((count = in.read(data)) != -1) {
-                bos.write(data, 0, count);
-            }
-
-            bos.flush();
-
-            bytes = bos.toByteArray();
-
-            return bytes;
-        } catch (IOException e) {
-            LogUtil.e(TAG, e.getMessage(), e);
-        } finally {
-            StreamUtil.closeStream(in);
-            StreamUtil.closeStream(bos);
-        }
-        return null;
-    }
-
-    public boolean deleteAllFilesInDir(File dir) {
-        if (dir == null || !dir.isDirectory()) {
-            return false;
-        }
-
-        File[] files = dir.listFiles();
-
-        if (files == null || files.length < 1) {
-            return true;
-        }
-
-        for (File file : files) {
-            if (file.isDirectory()) {
-                if (!this.deleteAllFilesInDir(file)) {
-                    return false;
-                }
-            }
-
-            if (!file.delete()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     /**
      * Prueft einen Intent nach ACTION_SEND.
      * Prueft ob er alle benoetigten Attribute beinhaltet.
@@ -564,19 +472,23 @@ public class FileUtil {
      */
     public SendActionContainer checkFileSendActionIntent(Intent intent)
             throws LocalizedException {
-        return checkFileSendActionIntent(intent, false);
+        return checkFileSendActionIntent(intent, false, false);
     }
 
     /**
      * New overloaded version of checkFileSendActionIntent that allows a file handling override
      * independent of the given mime type.
      * @param intent
-     * @param forceFileHandling
+     * @param rawFileHandling
      * @return
      * @throws LocalizedException
      */
-    public SendActionContainer checkFileSendActionIntent(Intent intent, boolean forceFileHandling)
+    public SendActionContainer checkFileSendActionIntent(Intent intent, boolean rawFileHandling, boolean processRichContents)
             throws LocalizedException {
+        LogUtil.d(TAG, "checkFileSendActionIntent: intent = " + intent +
+                ", rawFileHandling = " + rawFileHandling +
+                ", processRichContents = " + processRichContents);
+
         if (intent == null) {
             throw new LocalizedException(LocalizedException.NO_DATA_FOUND, "Intent is null.");
         }
@@ -595,19 +507,45 @@ public class FileUtil {
         if (Intent.ACTION_SEND.equals(action)) {
             actionContainer.action = SendActionContainer.ACTION_SEND;
 
-            if(forceFileHandling) {
-                checkSendFile(intent, actionContainer);
-            } else if (type.startsWith("text/")) {
-                checkSendText(intent, actionContainer);
-            } else if (type.startsWith("image/")) {
-                checkSendImages(intent, actionContainer);
-            } else if (type.startsWith("video/")) {
-                checkSendVideo(intent, actionContainer);
+            if (rawFileHandling) {
+                // Process rich contents is prioritized
+                if (processRichContents) {
+                    if (!processRichContent(intent, actionContainer)) {
+                        checkSendFile(intent, actionContainer);
+                    } else {
+                        // Always process as files
+                        checkSendFile(intent, actionContainer);
+                    }
+                }
             } else {
-                checkSendFile(intent, actionContainer);
+                // Look what we have for individual handling
+                if (type.startsWith("text/")) {
+                    checkSendText(intent, actionContainer);
+                } else if (processRichContents) {
+                    // Fast processing of rich contents instead of individual image handling
+                    if (!processRichContent(intent, actionContainer)) {
+                        if (MimeUtil.isImageMimetype(type, false)) {
+                            checkSendImages(intent, actionContainer);
+                        } else if (MimeUtil.isVideoMimetype(type, false)) {
+                            checkSendVideo(intent, actionContainer);
+                        } else {
+                            checkSendFile(intent, actionContainer);
+                        }
+                    }
+
+                } else  {
+                    // Traditional image/video handling
+                    if (MimeUtil.isImageMimetype(type, true)) {
+                        checkSendImages(intent, actionContainer);
+                    } else if (MimeUtil.isVideoMimetype(type, true)) {
+                        checkSendVideo(intent, actionContainer);
+                    } else {
+                        checkSendFile(intent, actionContainer);
+                    }
+                }
             }
         } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-            if (type.startsWith("image/")) {
+            if (MimeUtil.isImageMimetype(type, true)) {
                 actionContainer.action = SendActionContainer.ACTION_SEND;
                 checkSendImages(intent, actionContainer);
             }
@@ -650,7 +588,7 @@ public class FileUtil {
                 Uri imageUri = uris.get(0);
                 if (imageUri != null) {
                     //pruefen ob es ein MIME type ist, denn wir als Bild nicht unterstuetzen
-                    if (!mMimeUtil.checkImageUriMimetype(context, imageUri)) {
+                    if (!MimeUtil.checkImageUriMimetype(context, imageUri)) {
                         //dann als normales File verwenden
                         checkSendFile(intent, actionContainer);
                         return;
@@ -697,9 +635,13 @@ public class FileUtil {
         }
 
         if (videoUri != null) {
+            /*
             //pruefen ob es ein MIME type ist, denn wir als Video nicht unterstuetzen
             if (!mMimeUtil.checkUriMimeType(context, videoUri, mMimeUtil.getAllowedVideoMimeTypes())) {
                 //dann als normales File verwenden
+
+             */
+                if (!MimeUtil.checkVideoUriMimetype(context, videoUri)) {
                 checkSendFile(intent, actionContainer);
                 return;
             }
@@ -723,6 +665,52 @@ public class FileUtil {
             String errorMsg = context.getString(R.string.chats_addAttachments_some_imports_fails);
             throw new LocalizedException(LocalizedException.CHECK_ACTION_SEND_INTENT_FAILED, errorMsg);
         }
+    }
+
+    /**
+     * These are media types (image/video) like mostly used with animated gifs and stickers
+     * They are for fast processing, so we don't start a preview and have only one uri.
+     * @param intent
+     * @param actionContainer
+     * @throws LocalizedException
+     */
+    private boolean processRichContent(Intent intent,
+                                       SendActionContainer actionContainer)
+            throws LocalizedException {
+        ArrayList<Uri> uris = getUrisFromIntent(intent);
+        Uri fileUri = null;
+
+        if (uris != null && uris.size() > 0) {
+            fileUri = uris.get(0);
+        }
+
+        if (fileUri != null) {
+            if (!MimeUtil.checkRichContentUriMimetype(context, fileUri) &&
+                !MimeUtil.isLottieFile(null, new File(fileUri.getEncodedPath()))) {
+                return false;
+            }
+
+            long fileSize;
+            try {
+                fileSize = getFileSize(fileUri);
+            } catch (LocalizedException e) {
+                fileSize = 0;
+                LogUtil.e(TAG, e.getMessage(), e);
+            }
+
+            if (fileSize > context.getResources().getInteger(R.integer.attachment_file_max_size)) {
+                String errorMsg = context.getString(R.string.chats_addAttachment_too_big);
+                throw new LocalizedException(LocalizedException.CHECK_ACTION_SEND_INTENT_FAILED, errorMsg);
+            }
+
+        } else {
+            String errorMsg = context.getString(R.string.chats_addAttachments_some_imports_fails);
+            throw new LocalizedException(LocalizedException.CHECK_ACTION_SEND_INTENT_FAILED, errorMsg);
+        }
+
+        actionContainer.type = SendActionContainer.TYPE_RICH_CONTENT;
+        actionContainer.uris = uris;
+        return true;
     }
 
     private void checkSendFile(Intent intent, SendActionContainer actionContainer)
@@ -774,17 +762,7 @@ public class FileUtil {
         }
 
         if (returnValue == null || returnValue.size() < 1) {
-            LogUtil.d(TAG, "getUrisFromIntent: No ClipData, try getParcelableArrayListExtra ...");
-            
-            try {
-                returnValue = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-            } catch (Exception e) {
-                LogUtil.w(TAG, "getUrisFromIntent: Got exception in getParcelableArrayListExtra " + e.getMessage());
-            }
-        }
-
-        if (returnValue == null || returnValue.size() < 1) {
-            LogUtil.d(TAG, "getUrisFromIntent: No ParcelableArrayListExtra, try getParcelableExtra ...");
+            LogUtil.d(TAG, "getUrisFromIntent: No ClipData, try getParcelableExtra ...");
 
             Uri uri = null;
 
@@ -795,12 +773,23 @@ public class FileUtil {
             }
 
             if (uri == null) {
+                LogUtil.d(TAG, "getUrisFromIntent: No getParcelableExtra, try intent.getData ...");
                 uri = intent.getData();
             }
 
             if (uri != null) {
                 returnValue = new ArrayList<>(1);
                 returnValue.add(uri);
+            }
+        }
+
+        if (returnValue == null || returnValue.size() < 1) {
+            LogUtil.d(TAG, "getUrisFromIntent: No intent.getData, try getParcelableArrayListExtra ...");
+
+            try {
+                returnValue = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+            } catch (Exception e) {
+                LogUtil.w(TAG, "getUrisFromIntent: Got exception in getParcelableArrayListExtra " + e.getMessage());
             }
         }
 

@@ -9,14 +9,12 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity
 import eu.ginlo_apps.ginlo.controller.AVChatController
-import eu.ginlo_apps.ginlo.controller.ChatImageController
 import eu.ginlo_apps.ginlo.controller.ContactController
 import eu.ginlo_apps.ginlo.controller.ContactControllerBusiness
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.greendao.CompanyContact
 import eu.ginlo_apps.ginlo.greendao.Contact
 import eu.ginlo_apps.ginlo.log.LogUtil
-import eu.ginlo_apps.ginlo.model.constant.AppConstants
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
 import eu.ginlo_apps.ginlo.util.CompanyContactUtil
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
@@ -163,23 +161,8 @@ class CompanyContactDetailActivity : BaseActivity() {
     private fun setContactImage(contact: CompanyContact) {
         val diameter = resources.getDimension(R.dimen.contact_details_icon_diameter).toInt()
 
-        var contactImage: Bitmap? = if (contact.accountGuid != null) {
-            chatImageController.getImageByGuidWithoutCacheing(
-                contact.accountGuid, diameter,
-                diameter
-            )
-        } else {
-            contactControllerBusiness.getFallbackImageByGuid(simsMeApplication, contact.accountGuid, diameter)
-        }
-
-        if (contactImage == null) {
-            contactImage = chatImageController.getImageByGuidWithoutCacheing(
-                AppConstants.GUID_PROFILE_USER, diameter,
-                diameter
-            )
-        }
-
-        company_contacts_details_mask_image_view_profile_image.setImageBitmap(contactImage)
+        imageController.fillViewWithProfileImageByGuid(contact.accountGuid,
+        company_contacts_details_mask_image_view_profile_image, diameter, true)
     }
 
     override fun getActivityLayout(): Int =

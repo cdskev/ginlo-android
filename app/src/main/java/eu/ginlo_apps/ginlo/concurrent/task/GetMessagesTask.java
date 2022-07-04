@@ -46,7 +46,7 @@ import eu.ginlo_apps.ginlo.model.backend.BackendResponse;
 import eu.ginlo_apps.ginlo.model.backend.ConfirmReadReceipt;
 import eu.ginlo_apps.ginlo.model.backend.MsgExceptionModel;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.NotificationIntentService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
@@ -261,7 +261,7 @@ public class GetMessagesTask
                         LogUtil.i(TAG, "filterResponse: Message with messageMimeType " + messageMimeType + " received.");
 
                         switch (messageMimeType) {
-                            case MimeType.APP_GINLO_CONTROL:
+                            case MimeUtil.MIME_TYPE_APP_GINLO_CONTROL:
                                 // KS: if SHOW_AGC_MESSAGES is set we process APP_GINLO_CONTROL (AGC) messages
                                 // and allow for saving them to the database for further processing, even if
                                 // they are some sort of control messages.
@@ -277,7 +277,7 @@ public class GetMessagesTask
                                     message = null;
                                 }
                                 break;
-                            case MimeType.TEXT_V_CALL:
+                            case MimeUtil.MIME_TYPE_TEXT_V_CALL:
                                 // Don't push old AVC messages
                                 final long now = new Date().getTime();
                                 LogUtil.d(TAG, "AVC message from " + message.getDateSend() + ". Now: " + now);
@@ -415,14 +415,22 @@ public class GetMessagesTask
     private void triggerMessageNotification(@NonNull Message message, String targetGuid) {
 
         final String messageGuid = message.getGuid();
+
+        if(message.getPushInfo() == null || message.getPushInfo().contains("nopush")) {
+            LogUtil.i(TAG, "triggerMessageNotification: NoPush flag set for " + messageGuid);
+            return;
+        }
+
         final String action = NotificationIntentService.ACTION_NEW_MESSAGES;
+        final int numberOfMessages = mNewMessages.size();
+        int newBadgeValue = 0;
         String senderGuid;
         String locArgs = "[\"-\"]";
         String sound = "default";
         String body = null;
-        String badge = String.valueOf(mNewMessages.size());
-        String pushInfo = message.getPushInfo();
+        String badge = null;
         String accountGuid = targetGuid;
+        String locKey = "";
 
         // Do we have (FCM) pre-fetched information about the current message? Use it!
         if(!mNotificationExtras.isEmpty() && mNotificationExtras.containsValue(messageGuid)) {
@@ -430,13 +438,35 @@ public class GetMessagesTask
             senderGuid = mNotificationExtras.get("senderGuid");
             locArgs = mNotificationExtras.get("loc-args");
             sound = mNotificationExtras.get("sound");
-            badge = mNotificationExtras.get("badge");
             body = mNotificationExtras.get("body");
-            pushInfo = mNotificationExtras.get("loc-key");
+            locKey = mNotificationExtras.get("loc-key");
             accountGuid = mNotificationExtras.get("accountGuid");
 
+            final String tmpBadge = mNotificationExtras.get("badge");
+            if(tmpBadge != null) {
+                newBadgeValue = Integer.parseInt(tmpBadge);
+            }
         } else {
             senderGuid = targetGuid;
+
+            // Try to set correct loc-key
+            switch (message.getType()) {
+                case Message.TYPE_GROUP_INVITATION:
+                    locKey = NotificationIntentService.LOC_KEY_GROUP_INV;
+                    break;
+                case Message.TYPE_CHANNEL:
+                    locKey = NotificationIntentService.LOC_KEY_CHANNEL_MSG;
+                    break;
+                case Message.TYPE_PRIVATE:
+                case Message.TYPE_GROUP:
+                    locKey = NotificationIntentService.LOC_KEY_PRIVATE_MSG;
+                    break;
+                case Message.TYPE_PRIVATE_INTERNAL:
+                default:
+                    // No defined loc-key
+                    break;
+            }
+
             LogUtil.d(TAG, "triggerMessageNotification: No FCM infos, use targetGuid " + senderGuid);
             if(!StringUtil.isNullOrEmpty(senderGuid)) {
                 try {
@@ -451,10 +481,8 @@ public class GetMessagesTask
             }
         }
 
-        if(StringUtil.isEqual("nopush", pushInfo)) {
-            LogUtil.i(TAG, "triggerMessageNotification: NoPush flag set for " + messageGuid);
-            return;
-        }
+        // Get new message count
+        badge = String.valueOf(Math.max(newBadgeValue, numberOfMessages));
 
         // Don't push old messages
         final long now = new Date().getTime();
@@ -469,45 +497,49 @@ public class GetMessagesTask
             return;
         }
 
-        // Trying to decrypt message - if not possible, it's not for us!
-        // TODO: Decryption is done twice, if we have notification preview enabled!
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-            try {
-                // Prepare key for message decryption
-                final KeyController keyController = mApplication.getKeyController();
-                if (!keyController.getInternalKeyReady()) {
-                    keyController.loadInternalEncryptionKeyForNotificationPreview();
-                    GreenDAOSecurityLayer.init(keyController);
-                    keyController.reloadUserKeypairFromAccount();
+        // Only prepare key and decrypt message if notification preview is enabled.
+        if(mApplication.getPreferencesController() != null && mApplication.getPreferencesController().getNotificationPreviewEnabled()) {
+            // Trying to decrypt message - if not possible, it's not for us!
+            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+                try {
+                    // Prepare key for message decryption
+                    final KeyController keyController = mApplication.getKeyController();
+                    if (!keyController.getInternalKeyReady()) {
+                        keyController.loadInternalEncryptionKeyForNotificationPreview();
+                        GreenDAOSecurityLayer.init(keyController);
+                        keyController.reloadUserKeypairFromAccount();
+                    }
+                } catch (final LocalizedException | IOException e) {
+                    LogUtil.e(TAG, "triggerMessageNotification: Failed to prepare decryption key for message preview: " + e.getMessage());
+                    return;
                 }
-            } catch (final LocalizedException | IOException e) {
-                LogUtil.e(TAG, "triggerMessageNotification: Failed to prepare decryption key for message preview: " + e.getMessage());
+            }
+
+            // Persist decrypted message infos in NotificationController to avoid multiple decryption in further notification processing.
+            final DecryptedMessage decryptedMessage = mApplication.getMessageDecryptionController().decryptMessage(message, false);
+            if (decryptedMessage == null) {
+                LogUtil.w(TAG, "triggerMessageNotification: Message " + messageGuid + " cannot be decrypted! Don't notify user.");
                 return;
             }
+            mNotificationController.addDecryptedMessageInfo(decryptedMessage);
+        } else {
+            LogUtil.i(TAG, "triggerMessageNotification: Notification preview is disabled by the user.");
         }
-
-        // Persist decrypted message infos in NotificationController to avoid multiple decryption in further notification processing.
-        final DecryptedMessage decryptedMessage = mApplication.getMessageDecryptionController().decryptMessage(message, false);
-        if(decryptedMessage == null) {
-            LogUtil.w(TAG, "triggerMessageNotification: Message " + messageGuid + " cannot be decrypted! Don't notify user.");
-            return;
-        }
-        mNotificationController.addDecryptedMessageInfo(decryptedMessage);
 
         // Suppress notification when in same chat - except AVC
         if(StringUtil.isEqual(targetGuid, mNotificationController.getCurrentChatGuid())
-                && !StringUtil.isEqual(message.getServerMimeType(), MimeType.TEXT_V_CALL)) {
+                && !StringUtil.isEqual(message.getServerMimeType(), MimeUtil.MIME_TYPE_TEXT_V_CALL)) {
             LogUtil.d(TAG, "triggerMessageNotification: Suppress message notification for current chat " + targetGuid);
             return;
         }
 
-        LogUtil.i(TAG, "triggerMessageNotification: Trigger message notification for " + messageGuid);
+        LogUtil.i(TAG, "triggerMessageNotification: Trigger message notification for " + messageGuid + " with locKey = " + locKey);
 
         Intent intent = new Intent(mApplication, NotificationIntentService.class);
         intent.putExtra("accountGuid", accountGuid);
         intent.putExtra("messageGuid", messageGuid);
         intent.putExtra("action", action);
-        intent.putExtra("loc-key", pushInfo);
+        intent.putExtra("loc-key", locKey);
         intent.putExtra("senderGuid", senderGuid);
         intent.putExtra("badge", badge);
         intent.putExtra("loc-args", locArgs);

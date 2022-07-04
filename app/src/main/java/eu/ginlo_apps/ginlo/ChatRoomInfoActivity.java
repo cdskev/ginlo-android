@@ -38,7 +38,6 @@ import eu.ginlo_apps.ginlo.activity.profile.ProfileActivity;
 import eu.ginlo_apps.ginlo.adapter.ContactsAdapter;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
@@ -57,7 +56,7 @@ import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.router.RouterConstants;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
@@ -111,7 +110,6 @@ public class ChatRoomInfoActivity
     private GroupChatController groupChatController;
     private ContactController contactController;
     private PreferencesController preferenceController;
-    private ChatImageController chatImageController;
     private AccountController accountController;
 
     private LinearLayout selectedContactsListContainer;
@@ -130,7 +128,6 @@ public class ChatRoomInfoActivity
     private RoundedImageView mGroupImageView;
     private View groupImageOverlayView;
     private EmojiAppCompatEditText mChatRoomNameEditText;
-    private Bitmap groupImageBeforeEdit;
     private Bitmap groupImageAfterEdit;
     private byte[] imageBytes;
     private int mode;
@@ -439,9 +436,7 @@ public class ChatRoomInfoActivity
         switch (mode) {
             case MODE_RESTRICTED:
             case MODE_INFO:
-                mGroupImageView.setImageBitmap(chatImageController.getImageByGuid(mChatGuid,
-                        ChatImageController.SIZE_GROUP_INFO_BIG));
-
+                imageController.fillViewWithProfileImageByGuid(mChatGuid, mGroupImageView, ImageUtil.SIZE_GROUP_INFO_BIG, true);
                 groupImageOverlayView.setVisibility(View.GONE);
                 break;
             case MODE_CREATE: {
@@ -450,9 +445,7 @@ public class ChatRoomInfoActivity
             }
             case MODE_ADMIN:
             case MODE_EDIT:
-                groupImageBeforeEdit = chatImageController.getImageByGuid(mChatGuid,
-                        ChatImageController.SIZE_GROUP_INFO_BIG);
-                mGroupImageView.setImageBitmap(groupImageBeforeEdit);
+                imageController.fillViewWithProfileImageByGuid(mChatGuid, mGroupImageView, ImageUtil.SIZE_GROUP_INFO_BIG, true);
                 groupImageOverlayView.setVisibility(View.VISIBLE);
                 break;
             default:
@@ -466,7 +459,6 @@ public class ChatRoomInfoActivity
             groupChatController = ((SimsMeApplication) getApplication()).getGroupChatController();
             contactController = ((SimsMeApplication) getApplication()).getContactController();
             preferenceController = ((SimsMeApplication) getApplication()).getPreferencesController();
-            chatImageController = ((SimsMeApplication) getApplication()).getChatImageController();
             accountController = ((SimsMeApplication) getApplication()).getAccountController();
 
             mode = getIntent().getIntExtra(EXTRA_MODE, MODE_INFO);
@@ -605,8 +597,8 @@ public class ChatRoomInfoActivity
                             mChatRoomNameEditText.setText(mChat.getTitle());
                         }
 
-                        mGroupImageView.setImageBitmap(chatImageController.getImageByGuid(mChatGuid,
-                                ChatImageController.SIZE_GROUP_INFO_BIG));
+                        imageController.fillViewWithProfileImageByGuid(mChatGuid, mGroupImageView, ImageUtil.SIZE_GROUP_INFO_BIG, false);
+
                     } catch (LocalizedException e) {
                         LogUtil.e(TAG, e.toString());
                     }
@@ -1023,18 +1015,17 @@ public class ChatRoomInfoActivity
 
                     break;
                 }
-                case RouterConstants.SELECT_GALLARY_RESULT_CODE: {
-                    Uri selectedGallaryItem = returnIntent.getData();
+                case RouterConstants.SELECT_GALLERY_RESULT_CODE: {
+                    Uri selectedGalleryItem = returnIntent.getData();
                     FileUtil fileUtil = new FileUtil(this);
-                    MimeUtil mimeUtil = new MimeUtil(this);
 
-                    if (!mimeUtil.checkImageUriMimetype(getApplication(), selectedGallaryItem)) {
+                    if (!MimeUtil.checkImageUriMimetype(getApplication(), selectedGalleryItem)) {
                         Toast.makeText(this, R.string.chats_addAttachment_wrong_format_or_error, Toast.LENGTH_LONG).show();
                         break;
                     }
 
                     try {
-                        Uri selectedItemIntern = fileUtil.copyFileToInternalDir(selectedGallaryItem);
+                        Uri selectedItemIntern = fileUtil.copyFileToInternalDir(selectedGalleryItem);
                         if (selectedItemIntern != null) {
                             router.cropImage(selectedItemIntern.toString());
                         }
@@ -1058,9 +1049,9 @@ public class ChatRoomInfoActivity
                 case RouterConstants.ADJUST_PICTURE_RESULT_CODE: {
                     final Bitmap bm = returnIntent.getParcelableExtra(CropImageActivity.RETURN_DATA_AS_BITMAP);
                     if (bm != null) {
-                        mGroupImageView.setImageBitmap(bm);
-                        imageBytes = BitmapUtil.compress(bm, 100);
                         groupImageAfterEdit = bm;
+                        mGroupImageView.setImageBitmap(groupImageAfterEdit);
+                        imageBytes = ImageUtil.compress(groupImageAfterEdit, 100);
                     }
 
                     break;
@@ -1097,9 +1088,8 @@ public class ChatRoomInfoActivity
         final List<String> removedAdmins = getRemovedMembers(chatAdmins, mAdmins);
 
         byte[] newImg = null;
-
-        if ((groupImageBeforeEdit != null) && (groupImageAfterEdit != null)
-                && (!groupImageBeforeEdit.sameAs(groupImageAfterEdit))) {
+        // A new group image has been chosen
+        if(groupImageAfterEdit != null) {
             newImg = imageBytes;
         }
 

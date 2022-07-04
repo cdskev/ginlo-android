@@ -1340,4 +1340,7 @@
     <string name="settings_others_use_osm_title">Servicio de localización</string>
     <string name="settings_others_use_osm_text">Utilizar OpenStreetMap</string>
     <string name="settings_chat_use_internal_pdf_viewer">Utilizar el lector interno para los archivos pdf</string>
+    <string name="settings_chat_always_download_rich_content">Descargue siempre los stickers</string>
+    <string name="settings_chat_animate_rich_content">Stickers animados</string>
+    <string name="chat_overview_preview_rich_content">Sticker</string>
 </resources>

@@ -24,6 +24,7 @@ class LicensesActivity : PreferencesBaseActivity() {
 
     private fun getLicenses(): List<LicenseItem> {
         return mutableListOf(
+            LicenseItem(getString(R.string.android_logback), getString(R.string.apache_license_2_0)),
             LicenseItem(getString(R.string.androidpdfviewer), getString(R.string.license_androidpdfviewer)),
             LicenseItem(getString(R.string.cropimage), getString(R.string.license_cropimage)),
             LicenseItem(getString(R.string.dagger), getString(R.string.apache_license_2_0)),
@@ -31,15 +32,17 @@ class LicensesActivity : PreferencesBaseActivity() {
             LicenseItem(getString(R.string.exoplayer), getString(R.string.apache_license_2_0)),
             LicenseItem(getString(R.string.ezvcard), getString(R.string.license_ezvcard)),
             LicenseItem(getString(R.string.fab_speed_dial), getString(R.string.apache_license_2_0)),
+            LicenseItem(getString(R.string.glide), getString(R.string.license_glide)),
             LicenseItem(getString(R.string.greendao), getString(R.string.license_greendao)),
             LicenseItem(getString(R.string.gson), getString(R.string.license_gson)),
             LicenseItem(getString(R.string.jbrycpt), getString(R.string.license_jbrycpt)),
             LicenseItem(getString(R.string.jitsimeet), getString(R.string.license_jitsimeet)),
             LicenseItem(getString(R.string.kotlinx_coroutines), getString(R.string.license_kotlinx_coroutines)),
-            LicenseItem(getString(R.string.android_logback), getString(R.string.apache_license_2_0)),
             LicenseItem(getString(R.string.material_icons), getString(R.string.apache_license_2_0)),
             LicenseItem(getString(R.string.osmdroid), getString(R.string.apache_license_2_0)),
             LicenseItem(getString(R.string.photoview), getString(R.string.apache_license_2_0)),
+            LicenseItem(getString(R.string.rlottie), getString(R.string.license_rlottie)),
+            LicenseItem(getString(R.string.roboto), getString(R.string.apache_license_2_0)),
             LicenseItem(getString(R.string.shortcut_badge), getString(R.string.license_shortcut_badge)),
             LicenseItem(getString(R.string.slf4j), getString(R.string.license_slf4j)),
             LicenseItem(getString(R.string.sqlcipher), getString(R.string.license_sqlcipher)),

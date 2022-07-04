@@ -1,6 +1,8 @@
 // Copyright (c) 2020-2022 ginlo.net GmbH
 package eu.ginlo_apps.ginlo.activity.chatsOverview;
 
+import static android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT;
+
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -64,7 +66,6 @@ import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
 import eu.ginlo_apps.ginlo.controller.ChannelController.ChannelAsyncLoaderCallback;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.ContactController.OnLoadContactsListener;
@@ -100,15 +101,14 @@ import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ConfigUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.GinloNowUtil;
-import eu.ginlo_apps.ginlo.util.ImageCache;
-import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.SystemUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
-import eu.ginlo_apps.ginlo.view.SimsmeSwipeRefreshLayout;
+import eu.ginlo_apps.ginlo.view.GinloSwipeRefreshLayout;
+
 import org.jetbrains.annotations.NotNull;
 import javax.inject.Inject;
 import java.io.File;
@@ -117,8 +117,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class ChatsOverviewActivity
-        extends NewBaseActivity
+public class ChatsOverviewActivity extends NewBaseActivity
         implements OnChatDataChangedListener,
         ContactController.OnContactProfileInfoChangeNotification,
         OnSendMessageListener,
@@ -137,7 +136,6 @@ public class ChatsOverviewActivity
     protected AccountController mAccountController;
 
     private ChatsAdapter chatsAdapter;
-    private ImageLoader mImageLoader;
     private DrawerListAdapter mDrawerListAdapter;
     private RecyclerView chatsRecycleView;
     private DividerItemDecoration dividerItemDecoration;
@@ -183,7 +181,6 @@ public class ChatsOverviewActivity
         }
     };
 
-    private ChatImageController mChatImageController;
     private MessageController mMessageController;
     private NotificationController notificationController;
     private PreferencesController mPreferencesController;
@@ -192,7 +189,7 @@ public class ChatsOverviewActivity
     private RelativeLayout mDrawerView;
     private androidx.appcompat.app.ActionBarDrawerToggle mDrawerToggle;
     private Chat mMarkedChat;
-    private SimsmeSwipeRefreshLayout mSwipeLayout;
+    private GinloSwipeRefreshLayout mSwipeLayout;
     private AlertDialogWrapper mInviteFriendsDialog;
     private ListRefreshedListener mListRefreshedListener;
     private OnLoadContactsListener initialContactsListener;
@@ -299,7 +296,7 @@ public class ChatsOverviewActivity
     }
 
     void initChatList() {
-        chatsAdapter = new ChatsAdapter(this, mImageLoader, getSimsMeApplication().getSingleChatController(), getWindowManager().getDefaultDisplay(), new ArrayList<BaseChatOverviewItemVO>(), this, this);
+        chatsAdapter = new ChatsAdapter(this, imageController, getSimsMeApplication().getSingleChatController(), getWindowManager().getDefaultDisplay(), new ArrayList<BaseChatOverviewItemVO>(), this, this);
         dividerItemDecoration = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
         dividerItemDecoration.setDrawable(Objects.requireNonNull(ContextCompat.getDrawable(this, R.drawable.line_divider)));
 
@@ -524,7 +521,6 @@ public class ChatsOverviewActivity
             chatOverviewController = ((SimsMeApplication) getApplication()).getChatOverviewController();
             contactController = ((SimsMeApplication) getApplication()).getContactController();
             notificationController = ((SimsMeApplication) getApplication()).getNotificationController();
-            mChatImageController = ((SimsMeApplication) getApplication()).getChatImageController();
             mPreferencesController = ((SimsMeApplication) getApplication()).getPreferencesController();
 
             initFabMenu();
@@ -576,9 +572,6 @@ public class ChatsOverviewActivity
 
             // BUG 39526
             //mDontCreateMessageReceivedListener = true;
-
-            //initialisiert mImageLoader
-            mImageLoader = initImageLoader(mChatImageController, channelController);
 
             //initialisiert chatList
             initChatList();
@@ -674,44 +667,6 @@ public class ChatsOverviewActivity
         }
     }
 
-    private ImageLoader initImageLoader(final ChatImageController chatImageController,
-                                        final ChannelController channelController) {
-        //Image Loader zum Laden der ChatoverviewItems Icons
-        ImageLoader imageLoader = new ImageLoader(this, ChatImageController.SIZE_CHAT_OVERVIEW, false) {
-            @Override
-            protected Bitmap processBitmap(Object data) {
-                try {
-                    if (data instanceof ChannelController.ChannelIdentifier) {
-                        ChannelController.ChannelIdentifier values = (ChannelController.ChannelIdentifier) data;
-
-                        if ((values.getGuid() != null) && (values.getType() != null)) {
-                            return channelController.loadImage(values.getGuid(), values.getType());
-                        }
-                    } else {
-                        // This gets called in a background thread
-                        return chatImageController.getImageByGuidWithoutCacheing((String) data, getImageSize());
-                    }
-
-                    return null;
-                } catch (LocalizedException e) {
-                    LogUtil.w(TAG, "Image can't be loaded.", e);
-                    return null;
-                }
-            }
-
-            @Override
-            protected void processBitmapFinished(Object data, ImageView imageView) {
-                //Nothing to do
-            }
-        };
-
-        imageLoader.addImageCache(getSupportFragmentManager(), 0.1f);
-        imageLoader.setImageFadeIn(false);
-        chatImageController.addListener(imageLoader);
-
-        return imageLoader;
-    }
-
     @Override
     protected void onDestroy() {
         if (contactController != null) {
@@ -771,8 +726,8 @@ public class ChatsOverviewActivity
         }
          */
 
-        mDrawerListAdapter = new DrawerListAdapter(this, getSimsMeApplication(), R.layout.drawer_list_item, createListForDrawer(),
-                mAccountController, mChatImageController);
+        mDrawerListAdapter = new DrawerListAdapter(this, R.layout.drawer_list_item, createListForDrawer(),
+                mAccountController);
         mDrawerListView.setAdapter(mDrawerListAdapter);
         mDrawerListAdapter.notifyDataSetChanged();
 
@@ -1155,9 +1110,12 @@ public class ChatsOverviewActivity
     private void registerFcm() {
         GCMController gcmController = getSimsMeApplication().getGcmController();
 
+        /*
         if ((mApplication.havePlayServices(this))
                 && loginController.getState().equals(LoginController.STATE_LOGGED_IN)) {
 
+         */
+        if (mApplication.havePlayServices(this)) {
             gcmController.registerForGCM(new GenericActionListener<Void>() {
                 @Override
                 public void onSuccess(Void object) {
@@ -1179,7 +1137,7 @@ public class ChatsOverviewActivity
                 }
             });
         } else {
-            LogUtil.i(TAG, "registerFcm: Do not register with FCM.");
+            LogUtil.i(TAG, "registerFcm: Do not register with FCM due to configuration.");
         }
     }
 
@@ -1717,18 +1675,15 @@ public class ChatsOverviewActivity
 
     @Override
     public void onChatDataChanged(final boolean clearImageCache) {
+        LogUtil.d(TAG, "onChatDataChanged: Called with clearImageCache = " + clearImageCache);
 
-        LogUtil.i(TAG, "onChatDataChanged");
+        if (clearImageCache) {
+            imageController.clearImageCaches(true, true);
+        }
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (chatsAdapter != null) {
-                    if (clearImageCache) {
-                        clearImageLoader();
-                    }
-                    chatsAdapter.notifyDataSetChanged();
-                }
+        runOnUiThread(() -> {
+            if (chatsAdapter != null) {
+                chatsAdapter.notifyDataSetChanged();
             }
         });
     }
@@ -1843,13 +1798,14 @@ public class ChatsOverviewActivity
 
                 if (contact.getAccountGuid().equals(AppConstants.GUID_SYSTEM_CHAT)) {
                     Intent intent = new Intent(this, SystemChatActivity.class);
-
+                    intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     intent.putExtra(BaseChatActivity.EXTRA_TARGET_GUID, contact.getAccountGuid());
                     startActivity(intent);
                 } else {
                     Intent intent = new Intent(this, SingleChatActivity.class);
-
+                    intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     intent.putExtra(BaseChatActivity.EXTRA_TARGET_GUID, contact.getAccountGuid());
+                    LogUtil.d(TAG, "openChat: SingleChatActivity with FLAG_ACTIVITY_REORDER_TO_FRONT");
                     startActivity(intent);
                 }
             } catch (LocalizedException e) {
@@ -1860,7 +1816,7 @@ public class ChatsOverviewActivity
             mFirstTouch = false;
 
             Intent intent = new Intent(this, GroupChatActivity.class);
-
+            intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             intent.putExtra(BaseChatActivity.EXTRA_TARGET_GUID, chat.getChatGuid());
             startActivity(intent);
         } else if (chat.getType() == Chat.TYPE_CHANNEL) {
@@ -1868,7 +1824,7 @@ public class ChatsOverviewActivity
             mFirstTouch = false;
 
             Intent intent = new Intent(this, ChannelChatActivity.class);
-
+            intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             intent.putExtra(BaseChatActivity.EXTRA_TARGET_GUID, chat.getChatGuid());
             startActivity(intent);
         }
@@ -1876,6 +1832,7 @@ public class ChatsOverviewActivity
 
     @Override
     protected void onNewIntent(Intent intent) {
+        LogUtil.d(TAG, "onNewIntent: called with " + intent);
         super.onNewIntent(intent);
         setIntent(intent);
 
@@ -1884,17 +1841,6 @@ public class ChatsOverviewActivity
         }
     }
 
-    private void clearImageLoader() {
-        try {
-            if (mImageLoader != null) {
-                FragmentManager fm = getSupportFragmentManager();
-                ImageCache.deleteImageCache(fm);
-                mImageLoader.addImageCache(fm, 0.1f);
-            }
-        } catch (IllegalStateException e) {
-            LogUtil.e(TAG, "clearImageLoader()", e);
-        }
-    }
 
     @Override
     public void onContactProfilInfoHasChanged(String contactGuid) {

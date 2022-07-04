@@ -76,12 +76,13 @@ import eu.ginlo_apps.ginlo.model.chat.AttachmentChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.BaseChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.FileChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.LocationChatItemVO;
+import eu.ginlo_apps.ginlo.model.chat.RichContentChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.SelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.TextChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VCardChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VoiceChatItemVO;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.model.param.SendActionContainer;
 import eu.ginlo_apps.ginlo.router.Router;
@@ -94,7 +95,6 @@ import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.KeyboardUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.MetricsUtil;
-import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
@@ -117,11 +117,10 @@ import static eu.ginlo_apps.ginlo.controller.ContactController.ONLINE_STATE_INVA
 import static eu.ginlo_apps.ginlo.controller.ContactController.ONLINE_STATE_ONLINE;
 import static eu.ginlo_apps.ginlo.controller.ContactController.ONLINE_STATE_WRITING;
 
-public abstract class ChatInputActivity
-        extends BaseActivity
+public abstract class ChatInputActivity extends BaseActivity
         implements AdapterView.OnItemClickListener, AttachmentController.OnAttachmentLoadedListener {
 
-    private final static String TAG = ChatInputActivity.class.getSimpleName();
+    private final static String TAG = "ChatInputActivity";
     private static final int SMALL_DEVICE_DPI_LIMIT = 250;
     private static final int POSITION_FAB_TIME = 0;
     private static final int POSITION_FAB_BOMB = 1;
@@ -563,6 +562,12 @@ public abstract class ChatInputActivity
                 }
 
                 @Override
+                public void onRichContentLoaded(File dataFile, DecryptedMessage decryptedMsg) {
+                    finishDownloading(mMessageGuid);
+                    ChatInputActivity.this.onRichContentLoaded(dataFile, decryptedMsg);
+                }
+
+                @Override
                 public void onFileLoaded(File dataFile, DecryptedMessage decryptedMsg) {
                     finishDownloading(mMessageGuid);
                     ChatInputActivity.this.onFileLoaded(dataFile, decryptedMsg);
@@ -806,6 +811,23 @@ public abstract class ChatInputActivity
                         DialogBuilderUtil.buildErrorDialog(this, getResources().getString(R.string.error_mdm_media_access_not_allowed)).show();
                     }
                 }
+            } else if (baseChatItemVO instanceof RichContentChatItemVO) {
+                // Rich content - KS: TODO: Small files - should download and open without user interaction
+                LogUtil.d(TAG, "onItemClick: RichContentChatItemVO");
+                RichContentChatItemVO richContentChatItemVO = (RichContentChatItemVO) baseChatItemVO;
+
+                if (!isDownloading(messageGuid)) {
+                    final ProgressBar progressBar = view.findViewById(R.id.progressBar_download);
+                    if (progressBar != null) {
+                        HttpBaseTask.OnConnectionDataUpdatedListener onConnectionDataUpdatedListener = createOnConnectionDataUpdatedListener(adapterPosition, richContentChatItemVO.isPriority);
+
+                        getChatController().getAttachment(richContentChatItemVO, onAttachmentLoadWrapper, true, onConnectionDataUpdatedListener);
+                        view.setTag("downloading");
+                    } else {
+                        getChatController().getAttachment(richContentChatItemVO, onAttachmentLoadWrapper, true, null);
+                    }
+                }
+
             } else if (baseChatItemVO instanceof AttachmentChatItemVO) {
                 // Image, Video
                 LogUtil.d(TAG, "onItemClick: AttachmentChatItemVO");
@@ -936,29 +958,28 @@ public abstract class ChatInputActivity
     }
 
     @Override
-    public void onBitmapLoaded(File bitmapFile,
-                               DecryptedMessage decryptedMsg) {
+    public void onBitmapLoaded(File bitmapFile, DecryptedMessage decryptedMsg) {
         Intent intent;
         MessageDestructionParams params = decryptedMsg.getMessageDestructionParams();
 
         if (mActionContainer != null) {
-            intent = new Intent(this, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.class);
+            intent = new Intent(this, PreviewActivity.class);
 
             ArrayList<String> uris = new ArrayList<>();
 
             uris.add("file://" + bitmapFile.getAbsolutePath());
 
-            intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS, uris);
+            intent.putExtra(PreviewActivity.EXTRA_URIS, uris);
 
             final String attDesc = decryptedMsg.getAttachmentDescription();
             if (!StringUtil.isNullOrEmpty(attDesc)) {
                 ArrayList<String> texts = new ArrayList<>();
                 texts.add(attDesc);
-                intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_TEXTS, texts);
+                intent.putExtra(PreviewActivity.EXTRA_TEXTS, texts);
             }
 
-            intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_ACTION, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.SELECT_PHOTOS_ACTION);
-            intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_TITLE, getChatTitle());
+            intent.putExtra(PreviewActivity.EXTRA_PREVIEW_ACTION, PreviewActivity.SELECT_PHOTOS_ACTION);
+            intent.putExtra(PreviewActivity.EXTRA_PREVIEW_TITLE, getChatTitle());
             dismissIdleDialog();
             startActivityForResult(intent, RouterConstants.GET_PHOTO_WITH_DESTRUCTION_RESULT_CODE);
 
@@ -1002,20 +1023,20 @@ public abstract class ChatInputActivity
         MessageDestructionParams params = decryptedMsg.getMessageDestructionParams();
 
         if (mActionContainer != null) {
-            intent = new Intent(this, eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.class);
+            intent = new Intent(this, PreviewActivity.class);
 
             ArrayList<String> uris = new ArrayList<>();
             uris.add("file://" + videoFile.getAbsolutePath());
-            intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_URIS, uris);
+            intent.putExtra(PreviewActivity.EXTRA_URIS, uris);
 
             final String attDesc = decryptedMsg.getAttachmentDescription();
             if (!StringUtil.isNullOrEmpty(attDesc)) {
                 ArrayList<String> texts = new ArrayList<>();
                 texts.add(attDesc);
-                intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_TEXTS, texts);
+                intent.putExtra(PreviewActivity.EXTRA_TEXTS, texts);
             }
 
-            intent.putExtra(eu.ginlo_apps.ginlo.activity.chat.PreviewActivity.EXTRA_PREVIEW_ACTION, PreviewActivity.SELECT_VIDEOS_ACTION);
+            intent.putExtra(PreviewActivity.EXTRA_PREVIEW_ACTION, PreviewActivity.SELECT_VIDEOS_ACTION);
 
             dismissIdleDialog();
             startActivityForResult(intent, RouterConstants.GET_VIDEO_WITH_DESTRUCTION_RESULT_CODE);
@@ -1084,25 +1105,56 @@ public abstract class ChatInputActivity
     }
 
     @Override
-    public void onFileLoaded(File dataFile, DecryptedMessage decryptedMsg) {
-        dismissIdleDialog();
+    public void onRichContentLoaded(File richContentFile,
+                              DecryptedMessage decryptedMsg) {
 
-        if(dataFile == null || decryptedMsg == null) {
-            LogUtil.e(TAG, "onFileLoaded: Got datafile = " + dataFile + " and decryptedMsg = " + decryptedMsg);
+        LogUtil.d(TAG, "onRichContentLoaded: Processing richContentFile = " + richContentFile + " and decryptedMsg = " + decryptedMsg);
+        if(richContentFile == null || decryptedMsg == null) {
+            LogUtil.e(TAG, "onRichContentLoaded: Error: richContentFile or decryptedMsg = null!");
             return;
         }
 
-        // KS: Ensure that we have a mime type!
-        // This is not nice but effective.
-        String tmpMimeType = decryptedMsg.getFileMimetype();
-        if(StringUtil.isNullOrEmpty(tmpMimeType)) {
-            tmpMimeType = MimeUtil.getMimeTypeFromPath(dataFile.getPath());
-            if(StringUtil.isNullOrEmpty(tmpMimeType)) {
-                //tmpMimeType = "application/octet-stream";
-                tmpMimeType = "text/plain";
+        if (mActionContainer != null) {
+            // Use normal file forward action
+            onFileLoaded(richContentFile, decryptedMsg);
+        } else {
+            // Use internal rich content viewer
+            LogUtil.d(TAG, "onRichContentLoaded: Use internal rich content viewer for " + richContentFile);
+
+            Intent intent;
+            final String extraAttachmentGuid = decryptedMsg.getMessage().getAttachment();
+            final String extraRichContentUri = richContentFile.toURI().toASCIIString();
+
+            final String mimeType = MimeUtil.grabMimeType(richContentFile.getPath(), decryptedMsg, null);
+
+            if (ChatInputActivity.this.isActivityInForeground()) {
+                intent = new Intent(this, ViewAttachmentActivity.class);
+                intent.putExtra(ViewAttachmentActivity.EXTRA_RICH_CONTENT_URI, extraRichContentUri);
+                intent.putExtra(ViewAttachmentActivity.EXTRA_MIMETYPE, mimeType);
+                intent.putExtra(ViewAttachmentActivity.EXTRA_ATTACHMENT_GUID, extraAttachmentGuid);
+
+                final String attDesc = decryptedMsg.getAttachmentDescription();
+                if (!StringUtil.isNullOrEmpty(attDesc)) {
+                    intent.putExtra(ViewAttachmentActivity.EXTRA_ATTACHMENT_DESCRIPTION, attDesc);
+                }
+                startActivity(intent);
             }
+            dismissIdleDialog();
         }
-        final String mimeType = tmpMimeType;
+    }
+
+
+    @Override
+    public void onFileLoaded(File dataFile, DecryptedMessage decryptedMsg) {
+        dismissIdleDialog();
+
+        LogUtil.d(TAG, "onFileLoaded: Processing datafile = " + dataFile + " and decryptedMsg = " + decryptedMsg);
+        if(dataFile == null || decryptedMsg == null) {
+            LogUtil.e(TAG, "onFileLoaded: Error: datafile or decryptedMsg = null!");
+            return;
+        }
+
+        final String mimeType = MimeUtil.grabMimeType(dataFile.getPath(), decryptedMsg, MimeUtil.MIME_TYPE_APP_OCTET_STREAM);
 
         if (mActionContainer != null) {
             //Weiterleiten UseCase
@@ -1110,40 +1162,33 @@ public abstract class ChatInputActivity
             final Uri fileUri = Uri.parse("file://" + dataFile.getAbsolutePath());
             final String filename = decryptedMsg.getFilename();
             String fileSizeString = decryptedMsg.getFileSize();
-            long filesize = 0;
+            long filesize = 0L;
 
             try {
                 if (fileSizeString != null) {
                     filesize = Long.parseLong(fileSizeString);
                 }
             } catch (final NumberFormatException e) {
-                LogUtil.w(TAG, e.getMessage(), e);
+                LogUtil.w(TAG, "onFileLoaded: Caught: " + e.getMessage());
             }
 
-            DialogInterface.OnClickListener positiveListener = new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    try {
-                        checkChat();
-                        getChatController().sendFile(ChatInputActivity.this, mTargetGuid, mPublicKeyXML,
-                                fileUri, false, filename, mimeType, mOnSendMessageListener, buildCitationFromSelectedChatItem());
-                        closeCommentView();
-                        setResult(RESULT_OK);
-                    } catch (LocalizedException e) {
-                        LogUtil.e(TAG, e.getMessage(), e);
-                    }
-                }
-            };
-
-            DialogInterface.OnClickListener negativeListener = new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
+            DialogInterface.OnClickListener positiveListener = (dialog, which) -> {
+                try {
+                    checkChat();
+                    getChatController().sendFile(ChatInputActivity.this, mTargetGuid, mPublicKeyXML,
+                            fileUri, false, filename, mimeType, mOnSendMessageListener, buildCitationFromSelectedChatItem());
                     closeCommentView();
-                    setResult(RESULT_CANCELED);
+                    setResult(RESULT_OK);
+                } catch (LocalizedException e) {
+                    LogUtil.e(TAG, "onFileLoaded: Caught: " + e.getMessage());
                 }
             };
 
-            // KS: This is just doing nothing?
+            DialogInterface.OnClickListener negativeListener = (dialog, which) -> {
+                closeCommentView();
+                setResult(RESULT_CANCELED);
+            };
+
             showSendFileDialog(filename, null, filesize, positiveListener, negativeListener);
             mActionContainer = null;
 
@@ -1168,14 +1213,38 @@ public abstract class ChatInputActivity
                     shareIntent.putExtra(Intent.EXTRA_STREAM, mShareFileUri);
                     shareIntent.setType(mimeType);
                 } else {
-
-                    if(MimeType.APP_PDF.equals(mimeType) && preferencesController.getUseInternalPdfViewer()) {
+                    if(MimeUtil.MIME_TYPE_APP_PDF.equals(mimeType) && preferencesController.getUseInternalPdfViewer()) {
                         // Use internal pdf-viewer
                         LogUtil.d(TAG, "onFileLoaded: Use internal pdf-viewer for " + dataFile);
                         Intent intent;
                         if (ChatInputActivity.this.isActivityInForeground()) {
                             intent = new Intent(this, ViewAttachmentActivity.class);
                             intent.putExtra(ViewAttachmentActivity.EXTRA_PDF_URI, dataFile.toURI().toASCIIString());
+                            intent.putExtra(ViewAttachmentActivity.EXTRA_MIMETYPE, mimeType);
+                            intent.putExtra(ViewAttachmentActivity.EXTRA_ATTACHMENT_GUID, decryptedMsg.getMessage().getAttachment());
+                            startActivity(intent);
+                        }
+                        return;
+                    } else if(MimeUtil.MIME_TYPE_IMAGE_SVG.equals(mimeType)) {
+                        // Use internal svg-viewer
+                        LogUtil.d(TAG, "onFileLoaded: Use internal svg-viewer for " + dataFile);
+                        Intent intent;
+                        if (ChatInputActivity.this.isActivityInForeground()) {
+                            intent = new Intent(this, ViewAttachmentActivity.class);
+                            intent.putExtra(ViewAttachmentActivity.EXTRA_SVG_URI, dataFile.toURI().toASCIIString());
+                            intent.putExtra(ViewAttachmentActivity.EXTRA_MIMETYPE, mimeType);
+                            intent.putExtra(ViewAttachmentActivity.EXTRA_ATTACHMENT_GUID, decryptedMsg.getMessage().getAttachment());
+                            startActivity(intent);
+                        }
+                        return;
+                    } else if(MimeUtil.isLottieFile(mimeType, dataFile)) {
+                        // Use internal Lottie-viewer
+                        LogUtil.d(TAG, "onFileLoaded: Use internal Lottie-viewer for " + dataFile);
+                        Intent intent;
+                        if (ChatInputActivity.this.isActivityInForeground()) {
+                            intent = new Intent(this, ViewAttachmentActivity.class);
+                            intent.putExtra(ViewAttachmentActivity.EXTRA_RICH_CONTENT_URI, dataFile.toURI().toASCIIString());
+                            intent.putExtra(ViewAttachmentActivity.EXTRA_MIMETYPE, mimeType);
                             intent.putExtra(ViewAttachmentActivity.EXTRA_ATTACHMENT_GUID, decryptedMsg.getMessage().getAttachment());
                             startActivity(intent);
                         }
@@ -1822,6 +1891,8 @@ public abstract class ChatInputActivity
     public abstract void handleAddAttachmentClick();
 
     public abstract void scrollIfLastChatItemIsNotShown();
+
+    public abstract void handleSendRichContent(Uri contentUri);
 
     /**
      * @param voiceUri voiceUri

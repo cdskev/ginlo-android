@@ -15,6 +15,7 @@ import eu.ginlo_apps.ginlo.activity.chatsOverview.viewHolders.ChatOverviewChanne
 import eu.ginlo_apps.ginlo.activity.chatsOverview.viewHolders.ChatOverviewInviteItemVH
 import eu.ginlo_apps.ginlo.activity.chatsOverview.viewHolders.ChatOverviewItemVH
 import eu.ginlo_apps.ginlo.activity.chatsOverview.viewHolders.ChatOverviewServiceItemVH
+import eu.ginlo_apps.ginlo.controller.ImageController
 import eu.ginlo_apps.ginlo.controller.message.SingleChatController
 import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.ChannelChatOverviewItemVO
@@ -22,12 +23,11 @@ import eu.ginlo_apps.ginlo.model.chat.overview.GroupChatOverviewItemInvitationVO
 import eu.ginlo_apps.ginlo.model.chat.overview.ServiceChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.SingleChatOverviewItemInvitationVO
 import eu.ginlo_apps.ginlo.themedInflater
-import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.TimeUtil
 
 class ChatsAdapter(
     private val context: Context,
-    private val imageLoader: ImageLoader,
+    private val imageController: ImageController,
     private val singleChatController: SingleChatController,
     private val display: Display,
     private val source: MutableList<BaseChatOverviewItemVO>,
@@ -50,7 +50,7 @@ class ChatsAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatOverviewBaseItemVH {
         return when (viewType) {
             ITEM_TYPE_SERVICE -> ChatOverviewServiceItemVH(
-                imageLoader,
+                imageController,
                 timeUtil,
                 layoutInflater.inflate(R.layout.chat_overview_item_single_layout, parent, false),
                 onChatItemClick,
@@ -59,14 +59,14 @@ class ChatsAdapter(
             )
             ITEM_TYPE_CHANNEL -> ChatOverviewChannelItemVH(
                 display,
-                imageLoader,
+                imageController,
                 timeUtil,
                 layoutInflater.inflate(R.layout.chat_overview_item_channel, parent, false),
                 onChatItemClick,
                 onChatItemLongClick
             )
             ITEM_TYPE_INVITE -> ChatOverviewInviteItemVH(
-                imageLoader,
+                imageController,
                 timeUtil,
                 layoutInflater.inflate(R.layout.chat_overview_invite_item_layout, parent, false),
                 null,
@@ -75,7 +75,7 @@ class ChatsAdapter(
             ITEM_TYPE_NORMAL -> ChatOverviewItemVH(
                 singleChatController,
                 display,
-                imageLoader,
+                imageController,
                 timeUtil,
                 layoutInflater.inflate(R.layout.chat_overview_item_single_layout, parent, false),
                 onChatItemClick,

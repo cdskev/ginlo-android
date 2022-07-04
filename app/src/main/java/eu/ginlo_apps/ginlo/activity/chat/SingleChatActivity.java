@@ -38,8 +38,8 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class SingleChatActivity
-        extends BaseChatActivity implements ContactController.OnContactProfileInfoChangeNotification {
+public class SingleChatActivity extends BaseChatActivity
+        implements ContactController.OnContactProfileInfoChangeNotification {
 
     private final static String TAG = SingleChatActivity.class.getSimpleName();
     private Contact mContact;
@@ -58,9 +58,11 @@ public class SingleChatActivity
 
     @Override
     protected void onCreateActivity(final Bundle savedInstanceState) {
+        LogUtil.d(TAG, "onCreateActivity: " + this + " with savedInstanceState = " + savedInstanceState);
+        LogUtil.d(TAG, "onCreateActivity: intent info: " + getIntent() + " - " + getIntent().getExtras());
+
         try {
             super.onCreateActivity(savedInstanceState);
-            LogUtil.d(TAG, "onCreate: " + this + "");
 
             if (getSimsMeApplication().getPreferencesController().getPublicOnlineState()) {
                 mSecondaryTitle = findViewById(R.id.toolbar_secondary_title);
@@ -71,7 +73,7 @@ public class SingleChatActivity
 
             mContact = mContactController.getContactByGuid(mTargetGuid);
             if (mContact == null) {
-                LogUtil.w(TAG, "Load Contact failed for " + mTargetGuid);
+                LogUtil.w(TAG, "onCreateActivity: Load Contact failed for " + mTargetGuid);
                 finish();
                 return;
             }
@@ -170,6 +172,8 @@ public class SingleChatActivity
 
     @Override
     protected void onResumeActivity() {
+        LogUtil.d(TAG, "onResumeActivity: " + this + " for " + mTargetGuid);
+
         try {
             super.onResumeActivity();
 
@@ -192,18 +196,13 @@ public class SingleChatActivity
             };
             mRefreshTimer.scheduleAtFixedRate(refreshTask, 0, 5000);
 
-            LogUtil.d(TAG, "onResume: " + this + "");
-
             if (loginController.getState().equals(LoginController.STATE_LOGGED_OUT)) {
                 return;
             }
             init();
 
             if (mTargetGuid != null) {
-                // BUG 36403 contact wird nicht refreshed
-                mContact = mContactController.getContactByGuid(mTargetGuid);
-
-                LogUtil.i(TAG, "Open ChatStream " + mTargetGuid);
+                LogUtil.i(TAG, "onResumeActivity: Open ChatStream " + mTargetGuid);
                 notificationController.ignoreGuid(mTargetGuid);
                 notificationController.dismissNotification(NotificationController.MESSAGE_NOTIFICATION_ID);
 
@@ -283,6 +282,7 @@ public class SingleChatActivity
                 }
             }
 
+            LogUtil.d(TAG, "onResumeActivity: checkActionContainer for possible action.");
             checkActionContainer();
             setActionbarColorFromTrustState();
             if (!mOnlyShowTimed) {
@@ -292,6 +292,15 @@ public class SingleChatActivity
             LogUtil.e(TAG, e.getMessage(), e);
             finish();
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        LogUtil.d(TAG, "onNewIntent: Processing intent: " + getIntent() + " - " + getIntent().getExtras());
+        onCreateActivity(null);
+        onResumeActivity();
     }
 
     private void setMuteIcon() throws LocalizedException {
@@ -400,6 +409,7 @@ public class SingleChatActivity
 
     @Override
     protected void onDestroy() {
+        LogUtil.d(TAG, "onDestroy: called.");
         if (mContactController != null) {
             mContactController.unregisterOnContactProfileInfoChangeNotification(this);
         }
@@ -411,6 +421,9 @@ public class SingleChatActivity
         mTitle = "";
 
         setBackground();
+        if(mTargetGuid != null) {
+            mContact = mContactController.getContactByGuid(mTargetGuid);
+        }
 
         if (mContact != null) {
             mTitle = mContact.getName();
@@ -425,6 +438,7 @@ public class SingleChatActivity
                 final OnLoadPublicKeyListener onLoadPublicKeyListener = new OnLoadPublicKeyListener() {
                     @Override
                     public void onLoadPublicKeyComplete(final Contact contact) {
+                        LogUtil.d(TAG, "onLoadPublicKeyComplete: Contact public key retrieved.");
                         SingleChatActivity.this.mContact = contact;
                         mPublicKeyXML = SingleChatActivity.this.mContact.getPublicKey();
                         if (mChatInputFragment != null) {
@@ -439,6 +453,7 @@ public class SingleChatActivity
 
                     @Override
                     public void onLoadPublicKeyError(final String message) {
+                        LogUtil.d(TAG, "onLoadPublicKeyError: " + message);
                     }
                 };
 
@@ -458,7 +473,7 @@ public class SingleChatActivity
                     final OnLoadPublicKeyListener onLoadPublicKeyListener = new OnLoadPublicKeyListener() {
                         @Override
                         public void onLoadPublicKeyComplete(final Contact contact) {
-                            LogUtil.d(TAG, "Contact exists!");
+                            LogUtil.d(TAG, "onLoadPublicKeyComplete: Contact account exists.");
                             if (contact.getTempReadonly()) {
                                 LogUtil.w(TAG, "Contact.getTempReadonly() is true:" + mContact.getAccountGuid());
                                 disableChatinput();
@@ -472,6 +487,7 @@ public class SingleChatActivity
 
                         @Override
                         public void onLoadPublicKeyError(final String message) {
+                            LogUtil.d(TAG, "onLoadPublicKeyError: " + message);
                             if (LocalizedException.ACCOUNT_UNKNOWN.equals(message)) {
                                 mContactController.hideDeletedContactLocally(mContact);
                                 mContactController.updatePrivateIndexEntriesAsync();
@@ -481,7 +497,7 @@ public class SingleChatActivity
                                     final AlertDialogWrapper alert = DialogBuilderUtil.buildErrorDialog(SingleChatActivity.this,
                                             getString(R.string.chat_contact_is_deleted));
                                     alert.show();
-                                    LogUtil.w(TAG, "onLoadPublicError-> contact deleted: " + mContact.getAccountGuid());
+                                    LogUtil.w(TAG, "onLoadPublicKeyError: Contact deleted: " + mContact.getAccountGuid());
                                     disableChatinput();
                                 }
                             }
@@ -681,5 +697,11 @@ public class SingleChatActivity
         if (mContact != null) {
             getSimsMeApplication().getContactController().addLastUsedCompanyContact(mContact);
         }
+    }
+
+    @Override
+    public void onChatDataLoaded(long lastMessageId) {
+        LogUtil.d(TAG, "onChatDataLoaded: Called with lastMessageId = " + lastMessageId);
+        super.onChatDataLoaded(lastMessageId);
     }
 }

@@ -2,7 +2,6 @@
 
 package eu.ginlo_apps.ginlo.util;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
@@ -13,7 +12,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import eu.ginlo_apps.ginlo.concurrent.task.SyncAllContactsTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -24,10 +22,6 @@ import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.model.backend.BackendResponse;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
-import eu.ginlo_apps.ginlo.util.CompanyContactUtil;
-import eu.ginlo_apps.ginlo.util.ImageLoader;
-import eu.ginlo_apps.ginlo.util.StringUtil;
 
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
@@ -235,16 +229,16 @@ public class ContactUtil {
             // If the file pointed to by the thumbnail URI doesn't exist, or the file can't be
             // opened in "read" mMode, ContentResolver.openAssetFileDescriptor throws a
             // FileNotFoundException.
-            LogUtil.e(Contact.class.getName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
         } catch (SecurityException e) {
-            LogUtil.w(BitmapUtil.class.getSimpleName(), "SecurityException uri:" + photoData, e);
+            LogUtil.w(TAG, "SecurityException uri:" + photoData, e);
         } finally {
             // If an AssetFileDescriptor was returned, try to close it
             if (afd != null) {
                 try {
                     afd.close();
                 } catch (IOException e) {
-                    LogUtil.e(ContactUtil.class.getName(), e.getMessage(), e);
+                    LogUtil.e(TAG, e.getMessage(), e);
                     // NO_PMD
                     // Closing a file descriptor might cause an IOException if the file is
                     // already closed. Nothing extra is needed to handle this.
@@ -378,7 +372,7 @@ public class ContactUtil {
             }
             return retVal;
         } catch (LocalizedException e) {
-            LogUtil.e(ContactUtil.class.getSimpleName(), e.getMessage(), e);
+            LogUtil.e(TAG, e.getMessage(), e);
             return contacts;
         }
     }

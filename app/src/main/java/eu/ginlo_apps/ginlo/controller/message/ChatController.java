@@ -25,15 +25,12 @@ import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
 import eu.ginlo_apps.ginlo.controller.AttachmentController.OnAttachmentLoadedListener;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.controller.KeyController;
 import eu.ginlo_apps.ginlo.controller.MessageDecryptionController;
 import eu.ginlo_apps.ginlo.controller.TaskManagerController;
-import eu.ginlo_apps.ginlo.controller.message.MessageController;
-import eu.ginlo_apps.ginlo.controller.message.MessageDataResolver;
-import eu.ginlo_apps.ginlo.controller.message.PrivateInternalMessageController;
 import eu.ginlo_apps.ginlo.controller.message.contracts.BuildMessageCallback;
 import eu.ginlo_apps.ginlo.controller.message.contracts.MessageControllerListener;
 import eu.ginlo_apps.ginlo.controller.message.contracts.OnAcceptInvitationListener;
@@ -59,15 +56,13 @@ import eu.ginlo_apps.ginlo.model.backend.BaseMessageModel;
 import eu.ginlo_apps.ginlo.model.chat.AttachmentChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.BaseChatItemVO;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener;
 import eu.ginlo_apps.ginlo.util.MessageModelBuilder;
-import eu.ginlo_apps.ginlo.util.MimeUtil;
-import eu.ginlo_apps.ginlo.util.OnImageDataChangedListener;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Date;
@@ -75,16 +70,15 @@ import java.util.HashMap;
 import java.util.List;
 import org.greenrobot.greendao.query.QueryBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONObject;
 
 public abstract class ChatController
         extends MessageDataResolver
         implements MessageControllerListener,
-        OnImageDataChangedListener {
+        ImageController.OnImageDataChangedListener {
 
     private static final String TAG = ChatController.class.getSimpleName();
     public static final long NO_MESSAGE_ID_FOUND = -1;
-    private static final int LOAD_NEWEST_MESSAGE_COUNT = 20;
+    public static final int LOAD_NEWEST_MESSAGE_COUNT = 20;
     protected final ChatDao chatDao;
 
     final MessageController messageController;
@@ -94,7 +88,7 @@ public abstract class ChatController
     final ChannelController mChannelController;
     final AttachmentController attachmentController;
     final PrivateInternalMessageController privateInternalMessageController;
-    private final ChatImageController mChatImageController;
+    private final ImageController mImageController;
     private final TaskManagerController taskManagerController;
     private final ArrayList<OnChatDataChangedListener> listeners;
     ChatAdapter mCurrentChatAdapter;
@@ -118,8 +112,8 @@ public abstract class ChatController
         this.attachmentController = application.getAttachmentController();
         this.taskManagerController = application.getTaskManagerController();
         this.privateInternalMessageController = application.getPrivateInternalMessageController();
-        mChatImageController = application.getChatImageController();
-        mChatImageController.addListener(this);
+        mImageController = application.getImageController();
+        mImageController.addListener(this);
     }
 
     private static int rank(final long value,
@@ -772,7 +766,6 @@ public abstract class ChatController
                          final CitationModel citation
     ) {
         final FileUtil fileUtil = new FileUtil(this.mApplication);
-        final MimeUtil mu = new MimeUtil(this.mApplication);
 
         try {
             final String fileNameNext;
@@ -787,7 +780,7 @@ public abstract class ChatController
             }
 
             if (StringUtil.isNullOrEmpty(mimeType)) {
-                mimeTypeNext = mu.getMimeType(fileUri);
+                mimeTypeNext = MimeUtil.getMimeTypeForUri(this.mApplication, fileUri);
             } else {
                 mimeTypeNext = mimeType;
             }
@@ -841,6 +834,88 @@ public abstract class ChatController
             messageController.sendMessage(onSendMessageListener, buildMessageCallback);
         } catch (LocalizedException e) {
             LogUtil.e(TAG, "buildFileMessage", e);
+        }
+    }
+
+    public void sendRichContent(final Activity activity,
+                         final String toGuid,
+                         final String toPublicKeyXML,
+                         final Uri fileUri,
+                         final boolean copyFileToInternal,
+                         final String fileName,
+                         final String mimeType,
+                         final OnSendMessageListener onSendMessageListener,
+                         final CitationModel citation
+    ) {
+        final FileUtil fileUtil = new FileUtil(this.mApplication);
+
+        try {
+            final String fileNameNext;
+            final String mimeTypeNext;
+
+            FileUtil fu = new FileUtil(activity);
+
+            if (StringUtil.isNullOrEmpty(fileName)) {
+                fileNameNext = fu.getFileName(fileUri);
+            } else {
+                fileNameNext = fileName;
+            }
+
+            if (StringUtil.isNullOrEmpty(mimeType)) {
+                mimeTypeNext = MimeUtil.getMimeTypeForUri(this.mApplication, fileUri);
+            } else {
+                mimeTypeNext = mimeType;
+            }
+
+            final Uri tempUri;
+            if (copyFileToInternal) {
+                tempUri = fileUtil.copyFileToInternalDir(fileUri);
+            } else {
+                tempUri = fileUri;
+            }
+
+            if (tempUri == null) {
+                return;
+            }
+
+            BuildMessageCallback buildMessageCallback = new BuildMessageCallback() {
+                @Override
+                public BaseMessageModel buildMessage() {
+                    BaseMessageModel baseMessage = null;
+
+                    try {
+                        final AESKeyDataContainer encryptionData = getEncryptionData(toGuid);
+
+                        ContactController contactController = mApplication.getContactController();
+                        AccountController accountController = mApplication.getAccountController();
+                        KeyController keyController = mApplication.getKeyController();
+
+                        baseMessage = MessageModelBuilder.getInstance(contactController).buildRichContentMessage(getMainTypeResponsibility(), activity,
+                                tempUri,
+                                fileNameNext,
+                                null,
+                                mimeTypeNext,
+                                accountController.getAccount(),
+                                toGuid,
+                                toPublicKeyXML,
+                                keyController.getUserKeyPair(), encryptionData.getAesKey(), encryptionData.getIv(), citation);
+
+                        contactController.upgradeTrustLevel(toGuid, Contact.STATE_MIDDLE_TRUST);
+                    } catch (LocalizedException e) {
+                        LogUtil.e(TAG, "sendRichContent: buildRichContentMessage", e);
+                    } finally {
+                        if (copyFileToInternal) {
+                            fileUtil.deleteFileByUriAndRevokePermission(tempUri);
+                        }
+                    }
+
+                    return baseMessage;
+                }
+            };
+
+            messageController.sendMessage(onSendMessageListener, buildMessageCallback);
+        } catch (LocalizedException e) {
+            LogUtil.e(TAG, "sendRichContent:", e);
         }
     }
 
@@ -1126,7 +1201,7 @@ public abstract class ChatController
                                             lastMsgId = itemObject.messageId;
                                         }
 
-                                        addToRegistry(targetGuid, itemObject, i == (itemList.size() - 1), true);
+                                        addToChatAdapter(targetGuid, itemObject, i == (itemList.size() - 1), true);
 
                                         if (onSendMessageListener != null) {
                                             onSendMessageListener.onSaveMessageSuccess(oneMessage);
@@ -1519,12 +1594,12 @@ public abstract class ChatController
 
     protected abstract int getMainTypeResponsibility();
 
-    synchronized void addToRegistry(final String accountGuid,
-                                    final BaseChatItemVO chatItemVO,
-                                    final boolean notifyObserver,
-                                    final boolean sort) {
+    synchronized void addToChatAdapter(final String accountGuid,
+                                       final BaseChatItemVO chatItemVO,
+                                       final boolean notifyObserver,
+                                       final boolean sort) {
 
-        LogUtil.d(TAG, "addToRegistry: " + chatItemVO.getFromGuid() + " --> " + chatItemVO.messageId);
+        LogUtil.d(TAG, "addToChatAdapter: " + chatItemVO.getMessageGuid() + " / " + chatItemVO.messageId);
 
         if (mCurrentChatAdapter != null && StringUtil.isEqual(mCurrentChatAdapter.getChatGuid(), accountGuid)) {
             mCurrentChatAdapter.setNotifyOnChange(notifyObserver);
@@ -1793,7 +1868,7 @@ public abstract class ChatController
                                             lastMsgId = itemObject.messageId;
                                         }
 
-                                        addToRegistry(mCurrentChatAdapter.getChatGuid(), itemObject, i == (itemList.size() - 1), !onlyShowTimedMessages);
+                                        addToChatAdapter(mCurrentChatAdapter.getChatGuid(), itemObject, i == (itemList.size() - 1), !onlyShowTimedMessages);
                                     }
                                 }
                             }

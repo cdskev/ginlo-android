@@ -3,6 +3,7 @@ package eu.ginlo_apps.ginlo.controller.message.tasks
 
 import android.content.res.Resources
 import android.os.AsyncTask
+import com.google.gson.JsonArray
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.controller.AttachmentController
 import eu.ginlo_apps.ginlo.controller.message.MessageController
@@ -17,6 +18,7 @@ import eu.ginlo_apps.ginlo.model.backend.BaseMessageModel
 import eu.ginlo_apps.ginlo.model.backend.ConfirmMessageSendModel
 import eu.ginlo_apps.ginlo.model.constant.AppConstants
 import eu.ginlo_apps.ginlo.service.IBackendService
+import eu.ginlo_apps.ginlo.util.JsonUtil
 import java.util.concurrent.CountDownLatch
 
 class SendMessageToBackendTask internal constructor(
@@ -26,6 +28,7 @@ class SendMessageToBackendTask internal constructor(
     private val messageModel: BaseMessageModel
 ) : AsyncTask<Unit, Unit, Unit>() {
     private var confirmMsgSendModel: ConfirmMessageSendModel? = null
+    private var newAttachmentGuid: String? = null
     private var message: Message? = null
     private var result: AsyncTaskResult<Unit>? = null
     private val latch = CountDownLatch(1)
@@ -52,6 +55,15 @@ class SendMessageToBackendTask internal constructor(
                         LogUtil.d("SendMessageToBackendTask", "Going to delete temp attachment files for: " + message?.attachment)
                         AttachmentController.deleteTempBase64AttachmentFile(message?.attachment)
                         AttachmentController.deleteTempJsonAttachmentFile(message?.attachment)
+
+                        // Check for a new attachmant guid given to us by the backend
+                        val jo = JsonUtil.searchJsonObjectRecursive(jsonArray,"ConfirmMessageSend")
+                        if (jo != null) {
+                            val ja: JsonArray = jo.getAsJsonArray("attachments")
+                            newAttachmentGuid = ja.get(0).asString
+                            LogUtil.d("SendMessageToBackendTask",
+                                "Got new attachment guid from the backend $newAttachmentGuid")
+                        }
                     }
 
                 } else {
@@ -71,6 +83,7 @@ class SendMessageToBackendTask internal constructor(
 
     override fun doInBackground(vararg params: Unit) {
         if (messageModel.requestGuid?.isNotBlank() == true) {
+
             val couldSend = messageController.sendMessageToBackend(messageModel, onBackendResponseListener)
 
             if (!couldSend) {
@@ -97,6 +110,21 @@ class SendMessageToBackendTask internal constructor(
 
                 message?.let {
                     it.guid = confirmMsgSendModel!!.guid
+
+                    // Attachment must be renamed to match guid given by the backend.
+                    if(newAttachmentGuid != null) {
+                        // KS: Big problems, if the file vanishes - create a link!
+                        //if(AttachmentController.renameAttachmentFile(it.attachment, newAttachmentGuid)) {
+                        if(AttachmentController.linkAttachmentFile(it.attachment, newAttachmentGuid)) {
+                            LogUtil.d("SendMessageToBackendTask",
+                                "Renamed attachment ${it.attachment} to $newAttachmentGuid")
+                            it.attachment = newAttachmentGuid
+
+                        } else {
+                            LogUtil.e("SendMessageToBackendTask",
+                                "Renaming attachment ${it.attachment} to $newAttachmentGuid failed!")
+                        }
+                    }
 
                     if (confirmMsgSendModel!!.receiver != null) {
                         it.setElementToAttributes(

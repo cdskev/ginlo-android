@@ -11,8 +11,7 @@ import eu.ginlo_apps.ginlo.concurrent.task.HttpBaseTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AttachmentController.OnAttachmentLoadedListener;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
-import eu.ginlo_apps.ginlo.controller.message.ChatController;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.controller.message.contracts.OnAcceptInvitationListener;
 import eu.ginlo_apps.ginlo.controller.message.contracts.OnDeclineInvitationListener;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -32,8 +31,8 @@ import javax.crypto.spec.IvParameterSpec;
 
 public class ChannelChatController extends ChatController {
 
+    private final static String TAG = "ChannelChatController";
     private final HashMap<String, IvParameterSpec> mChannelIvMap = new HashMap<>();
-
     private final Map<String, AsyncIconLoaderTask> mIconLoaderTaskMap;
 
     public ChannelChatController(final SimsMeApplication application) {
@@ -88,7 +87,7 @@ public class ChannelChatController extends ChatController {
                                             lastMsgId = itemObject.messageId;
                                         }
 
-                                        addToRegistry(mCurrentChatAdapter.getChatGuid(), itemObject, notifyObserver, true);
+                                        addToChatAdapter(mCurrentChatAdapter.getChatGuid(), itemObject, notifyObserver, true);
                                     }
                                 }
                                 if (lastMsgId != null) {
@@ -168,9 +167,10 @@ public class ChannelChatController extends ChatController {
         @Override
         protected void onPostExecute(final Boolean result) {
             if (result != null && result) {
-                ChatImageController imageController = mApplication.getChatImageController();
+                ImageController imageController = mApplication.getImageController();
                 if (imageController != null) {
-                    imageController.clearChatImageCache();
+                    //LogUtil.d(TAG, "AsyncIconLoaderTask onPostExecute: clearChannelImageCaches requested.");
+                    imageController.clearChannelImageCaches();
                 }
 
                 ChannelChatController.this.refreshAdapter();

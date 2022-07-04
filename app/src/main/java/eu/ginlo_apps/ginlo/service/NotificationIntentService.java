@@ -27,7 +27,7 @@ import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.DecryptedMessage;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 
 import java.io.IOException;
@@ -64,6 +64,7 @@ public class NotificationIntentService
     public static final String LOC_KEY_CHANNEL_MSG = "push_newCN";
 
     private static final String SENDER_GUID = "senderGuid";
+    private static int numNewMessages;
 
     public NotificationIntentService() {
         super("NotificationIntentService");
@@ -121,16 +122,16 @@ public class NotificationIntentService
         final String accountGuid = notificationExtras.get("accountGuid");
         final MessageController messageController = application.getMessageController();
 
-        LogUtil.i(TAG, "postProcessFcmNotification: FCM message " + messageGuid + " received for " + accountGuid);
+        LogUtil.i(TAG, "postProcessFcmNotification: FCM received " + messageGuid + " for " + accountGuid);
 
         if(messageController == null) {
-            LogUtil.e(TAG, "postProcessFcmNotification: No MessageController!");
+            LogUtil.e(TAG, "postProcessFcmNotification: Fatal! No MessageController!");
             return;
         }
 
         if (application.getAccountController().getAccount() == null
                 || application.getAccountController().getAccount().getState() != Account.ACCOUNT_STATE_FULL) {
-            LogUtil.e(TAG, "postProcessFcmNotification: No valid local account!");
+            LogUtil.e(TAG, "postProcessFcmNotification: Fatal! No valid local account!");
             return;
         }
 
@@ -145,22 +146,47 @@ public class NotificationIntentService
             final Message messageByGuid = messageController.getMessageByGuid(messageGuid);
             if (messageByGuid == null) {
                 // Message not yet in database - initiate downloading.
-                LogUtil.i(TAG, "postProcessFcmNotification: Message not in the database - retrieving ...");
+                LogUtil.i(TAG, "postProcessFcmNotification: Message unknown - calling backend ...");
+
+                // Only prepare key if notification preview is enabled.
+                if(application.getPreferencesController() != null && application.getPreferencesController().getNotificationPreviewEnabled()) {
+                    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
+                        try {
+                            // Prepare key for message decryption
+                            final KeyController keyController = application.getKeyController();
+                            if(keyController == null) {
+                                LogUtil.e(TAG, "postProcessFcmNotification: Fatal! No KeyController!");
+                                return;
+                            }
+
+                            if (!keyController.getInternalKeyReady()) {
+                                keyController.loadInternalEncryptionKeyForNotificationPreview();
+                                GreenDAOSecurityLayer.init(keyController);
+                                keyController.reloadUserKeypairFromAccount();
+                            }
+                        } catch (final LocalizedException | IOException e) {
+                            LogUtil.e(TAG, "postProcessFcmNotification: Notification preview enabled, but failed to initialize keys: " + e.getMessage());
+                            return;
+                        }
+                    }
+                }
+
                 final ConcurrentTaskListener concurrentTaskListener = new ConcurrentTaskListener() {
                     @Override
                     public void onStateChanged(ConcurrentTask task, int state) {
                         if (state == ConcurrentTask.STATE_COMPLETE) {
-                            LogUtil.i(TAG, "postProcessFcmNotification: Message " + messageGuid + " saved.");
+                            LogUtil.i(TAG, "postProcessFcmNotification: Processing for " + messageGuid + " done.");
 
                         } else if (state == ConcurrentTask.STATE_ERROR) {
                             LogUtil.w(TAG, "postProcessFcmNotification: Could not retrieve message " + messageGuid + "! ConcurrentTask.STATE_ERROR.");
                         }
                     }
                 };
-                // Retrieve message and keep notification infos.
+                // Retrieve message and keep notification info.
                 messageController.startMessageTaskSyncFromAppBackground(concurrentTaskListener, notificationExtras);
             } else {
-                // Do nothing. Since message is in the database, notification should has been triggered by GetMessageTask.
+                // Do nothing. Since message is in the database, notification should have been triggered by GetMessageTask.
+                LogUtil.i(TAG, "postProcessFcmNotification: Message has been/is being processed - nothing to do here.");
             }
         }
     }
@@ -210,10 +236,9 @@ public class NotificationIntentService
         final PreferencesController preferenceController = application.getPreferencesController();
         final NotificationController notificationController = application.getNotificationController();
 
-        int numNewMessages = 0;
         if (badge != null) {
             try {
-                numNewMessages = Integer.parseInt(badge);
+                numNewMessages += Integer.parseInt(badge);
             } catch (Exception ignored) {
             }
         }
@@ -281,7 +306,7 @@ public class NotificationIntentService
             playSound = false;
         }
 
-        // Reset Badgenumber
+        // Set badge number
         if (numNewMessages > 0) {
             try {
                 ShortcutBadger.applyCountOrThrow(application, numNewMessages);
@@ -318,7 +343,7 @@ public class NotificationIntentService
         final Message messageByGuid = messageController.getMessageByGuid(messageGuid);
         if (messageByGuid != null) {
             final String serverMimeType = messageByGuid.getServerMimeType();
-            if(!StringUtil.isNullOrEmpty(serverMimeType) && serverMimeType.equals(MimeType.TEXT_V_CALL)) {
+            if(!StringUtil.isNullOrEmpty(serverMimeType) && serverMimeUtil.MIME_TYPE_equals(MimeUtil.MIME_TYPE_TEXT_V_CALL)) {
                 final long now = new Date().getTime();
                 if (messageByGuid.getDateSend() + NotificationController.AVC_NOTIFICATION_TIMEOUT < now) {
                     LogUtil.d(TAG, "showNotificationFromExtras: Expired AVC message - no notification!");
@@ -371,23 +396,23 @@ public class NotificationIntentService
                 text = null;  // dann standard-text
             } else {
                 switch (contentType) {
-                    case MimeType.TEXT_PLAIN:
+                    case MimeUtil.MIME_TYPE_TEXT_PLAIN:
                         text = decryptedMessage.getText();
                         break;
-                    case MimeType.TEXT_RSS:
+                    case MimeUtil.MIME_TYPE_TEXT_RSS:
                         text = decryptedMessage.getRssTitle();
                         break;
-                    case MimeType.AUDIO_MPEG:
+                    case MimeUtil.MIME_TYPE_AUDIO_MPEG:
                         text = application.getResources().getString(R.string.export_chat_type_audio);
                         break;
-                    case MimeType.IMAGE_JPEG:
+                    case MimeUtil.MIME_TYPE_IMAGE_JPEG:
                         text = application.getResources().getString(R.string.export_chat_type_image);
                         break;
-                    case MimeType.VIDEO_MPEG:
+                    case MimeUtil.MIME_TYPE_VIDEO_MPEG:
                         text = application.getResources().getString(R.string.export_chat_type_video);
                         break;
                     // KS: AVC
-                    case MimeType.TEXT_V_CALL:
+                    case MimeUtil.MIME_TYPE_TEXT_V_CALL:
                         // Do special notification for AVC
                         // - transmit room info
                         // - give sender name
@@ -399,19 +424,23 @@ public class NotificationIntentService
                                 altTitle, text, application, highPrio);
                         return;
                     //break;
-                    case MimeType.APP_GINLO_CONTROL:
+                    case MimeUtil.MIME_TYPE_APP_GINLO_CONTROL:
                         // KS: Control message - should never reach this because message pushInfo has been set to "nopush in GetMessagesTask"
                         text = decryptedMessage.getAppGinloControl();
                         LogUtil.w(TAG, "AppGinloControl message (" + text + ") from " + senderGuid + " set for external push? This should not happen!");
                         return;
                     //break;
-                    case MimeType.TEXT_V_CARD:
+                    case MimeUtil.MIME_TYPE_TEXT_V_CARD:
                         text = application.getResources().getString(R.string.export_chat_type_contact);
                         break;
-                    case MimeType.MODEL_LOCATION:
+                    case MimeUtil.MIME_TYPE_MODEL_LOCATION:
                         text = application.getResources().getString(R.string.export_chat_type_location);
                         break;
-                    case MimeType.APP_OCTET_STREAM:
+                    case MimeUtil.MIME_TYPE_APP_GINLO_RICH_CONTENT:
+                        text = application.getResources().getString(R.string.export_chat_type_file);
+                        break;
+                    case MimeUtil.MIME_TYPE_APP_OCTETSTREAM:
+                    case MimeUtil.MIME_TYPE_APP_OCTET_STREAM:
                         text = application.getResources().getString(R.string.export_chat_type_file);
                         break;
                     default:
@@ -456,4 +485,7 @@ public class NotificationIntentService
         }
     }
 
+    public static void resetNumNewMessages() {
+        numNewMessages = 0;
+    }
 }

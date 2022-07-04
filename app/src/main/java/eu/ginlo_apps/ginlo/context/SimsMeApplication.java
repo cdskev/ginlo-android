@@ -6,6 +6,7 @@ import android.content.Context;
 import android.database.SQLException;
 import android.media.MediaPlayer;
 import android.os.Build;
+import android.os.Handler;
 
 import androidx.annotation.NonNull;
 import androidx.emoji.bundled.BundledEmojiCompatConfig;
@@ -35,13 +36,13 @@ import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
 import eu.ginlo_apps.ginlo.controller.BackupController;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ClipBoardController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.DeviceController;
 import eu.ginlo_apps.ginlo.controller.GCMController;
 import eu.ginlo_apps.ginlo.controller.GinloAppLifecycle;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.controller.InternalMessageController;
 import eu.ginlo_apps.ginlo.controller.KeyController;
 import eu.ginlo_apps.ginlo.controller.LoginController;
@@ -99,7 +100,7 @@ public class SimsMeApplication
     private MessageController messageController;
     private AVChatController avChatController;
     private MessageDecryptionController messageDecryptionController;
-    private ChatImageController chatImageController;
+    private ImageController imageController;
     private PrivateInternalMessageController privateInternalMessageController;
     private InternalMessageController internalMessageController;
     private StatusTextController statusTextController;
@@ -121,6 +122,8 @@ public class SimsMeApplication
     private android.media.AudioManager mMediaAudioManager;
 
     protected final GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
+
+    public static volatile Handler applicationHandler;
 
     public SimsMeApplication() {
         instance = this;
@@ -175,17 +178,17 @@ public class SimsMeApplication
 
         initSentry();
 
+        Thread.setDefaultUncaughtExceptionHandler(ginloUncaughtExceptionHandler);
+        ProcessLifecycleOwner.get().getLifecycle().addObserver(ginloLifecycleObserver);
+        applicationHandler = new Handler(getApplicationContext().getMainLooper());
+        NativeLoader.initNativeLibs(getApplicationContext());
+
         initControllers();
 
         mReceivedSoundPlayer = AudioUtil.createMediaPlayer(this, R.raw.read_sound);
         mSendSoundPlayer = AudioUtil.createMediaPlayer(this, R.raw.send_sound);
         mSdSoundPlayer = AudioUtil.createMediaPlayer(this, R.raw.sd_sound);
         mMediaAudioManager = (android.media.AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-        Thread.setDefaultUncaughtExceptionHandler(ginloUncaughtExceptionHandler);
-
-        ProcessLifecycleOwner.get().getLifecycle().addObserver(ginloLifecycleObserver);
-
         EmojiCompat.init(new BundledEmojiCompatConfig(this));
 
         LogUtil.i(TAG, "onCreate: " + BuildConfig.VERSION_NAME + " started.");
@@ -275,7 +278,7 @@ public class SimsMeApplication
         getContactController();
         getSingleChatController();
         getGroupChatController();
-        getChatImageController();
+        getImageController();
         getChannelController();
         getChatOverviewController();
         getPrivateInternalMessageController();
@@ -340,10 +343,8 @@ public class SimsMeApplication
         getKeyController().purgeKeys();
         deleteDatabase(DB_NAME);
         getGcmController().clearGCMValues();
-        getChatImageController().resetChatImages();
-        getChatImageController().resetBackground();
-        getChatImageController().resetChatImages();
-        getChatImageController().resetBackground();
+        getImageController().resetProfileImages();
+        getImageController().resetAppBackground();
         getAttachmentController().clearCache();
         getAttachmentController().deleteAllAttachments();
         getNotificationController().dismissAll();
@@ -361,10 +362,8 @@ public class SimsMeApplication
         getKeyController().purgeKeys();
         deleteDatabase(DB_NAME);
         getGcmController().clearGCMValues();
-        getChatImageController().resetChatImages();
-        getChatImageController().resetBackground();
-        getChatImageController().resetChatImages();
-        getChatImageController().resetBackground();
+        getImageController().resetProfileImages();
+        getImageController().resetAppBackground();
         getAttachmentController().clearCache();
         getAttachmentController().deleteAllAttachments();
         getNotificationController().dismissAll();
@@ -384,7 +383,7 @@ public class SimsMeApplication
         messageController = null;
         avChatController = null;
         messageDecryptionController = null;
-        chatImageController = null;
+        imageController = null;
         privateInternalMessageController = null;
         chatOverviewController = null;
         preferencesController = null;
@@ -416,7 +415,7 @@ public class SimsMeApplication
         messageController = null;
         avChatController = null;
         messageDecryptionController = null;
-        chatImageController = null;
+        imageController = null;
         privateInternalMessageController = null;
         chatOverviewController = null;
         preferencesController = null;
@@ -534,11 +533,11 @@ public class SimsMeApplication
         return messageDecryptionController;
     }
 
-    public ChatImageController getChatImageController() {
-        if (chatImageController == null) {
-            chatImageController = new ChatImageController(this);
+    public ImageController getImageController() {
+        if (imageController == null) {
+            imageController = new ImageController(this);
         }
-        return chatImageController;
+        return imageController;
     }
 
     public ChatOverviewController getChatOverviewController() {

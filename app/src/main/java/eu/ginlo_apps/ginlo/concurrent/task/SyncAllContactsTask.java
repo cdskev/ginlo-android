@@ -34,8 +34,8 @@ import javax.crypto.SecretKey;
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.CompanyContact;
 import eu.ginlo_apps.ginlo.greendao.Contact;
@@ -49,11 +49,11 @@ import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
 import eu.ginlo_apps.ginlo.util.CompanyContactUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.PhoneNumberUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
@@ -107,7 +107,7 @@ public class SyncAllContactsTask extends ConcurrentTask {
 
     private final ContactController mContactController;
 
-    private final ChatImageController mChatImageController;
+    private final ImageController mImageController;
     private final ArrayMap<String, String> mServerSalts;
     private final String mCountryCode;
     private final String mOwnAccountGuid;
@@ -130,7 +130,7 @@ public class SyncAllContactsTask extends ConcurrentTask {
 
         mContext = context;
         mContactController = mContext.getContactController();
-        mChatImageController = mContext.getChatImageController();
+        mImageController = mContext.getImageController();
 
         mMergeOldContacts = mergeOldContacts;
         mTenantsOnly = syncTenantsOnly;
@@ -906,11 +906,11 @@ public class SyncAllContactsTask extends ConcurrentTask {
                                             byte[] decodeBytes = Base64.decode(decryptedBytes, Base64.NO_WRAP);
 
                                             if (decodeBytes != null && decodeBytes.length > 0) {
-                                                mChatImageController.saveImage(accountGuid, decodeBytes);
+                                                mImageController.saveProfileImageRaw(accountGuid, decodeBytes);
                                                 contact.setProfileImageChecksum(checksum);
                                             }
                                         } else {
-                                            mChatImageController.deleteImage(accountGuid);
+                                            mImageController.deleteProfileImage(accountGuid);
                                             contact.setProfileImageChecksum("TODO");
                                         }
                                     } catch (LocalizedException e) {
@@ -1094,9 +1094,9 @@ public class SyncAllContactsTask extends ConcurrentTask {
                     int profileImageSize = mContext.getResources().getInteger(R.integer.profile_image_size);
                     Bitmap bm = ContactUtil.loadContactPhotoThumbnail(photoUri, profileImageSize, mContext);
                     if (bm != null) {
-                        byte[] imgBytes = BitmapUtil.compress(bm, 100);
+                        byte[] imgBytes = ImageUtil.compress(bm, 100);
                         if (imgBytes != null) {
-                            mChatImageController.saveImage(contact.getAccountGuid(), imgBytes);
+                            mImageController.saveProfileImageRaw(contact.getAccountGuid(), imgBytes);
                         }
                     }
                 }

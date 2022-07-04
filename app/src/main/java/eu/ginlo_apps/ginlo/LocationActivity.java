@@ -32,7 +32,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
@@ -183,7 +183,7 @@ public class LocationActivity
                 final Bitmap placeHolder = ((BitmapDrawable) getDrawable(R.drawable.chat_location_placeholder)).getBitmap();
 
                 // Convert placeHolder to jpeg ...
-                intent.putExtra(EXTRA_SCREENSHOT, BitmapUtil.compress(placeHolder, SCREENSHOT_QUALITY));
+                intent.putExtra(EXTRA_SCREENSHOT, ImageUtil.compress(placeHolder, SCREENSHOT_QUALITY));
                 setResult(Activity.RESULT_OK, intent);
 
                 finish();

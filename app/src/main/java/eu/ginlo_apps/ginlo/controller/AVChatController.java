@@ -20,6 +20,7 @@ import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.AppGinloControlMessage;
+import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 
 public class AVChatController {
@@ -36,6 +37,9 @@ public class AVChatController {
     public static final int AVC_CALL_ANSWER_TIME = 60; // 60 seconds
     public static final int AVC_CALL_TIMEOUT = 14400; // 4 hours in seconds
 
+    public static final int JITSI_RESOLUTION_B2B = 480;
+    public static final int JITSI_RESOLUTION_B2C = 240;
+
     public static final int CALL_TYPE_MUTED = 0;
     public static final int CALL_TYPE_AUDIO_ONLY = 1;
     public static final int CALL_TYPE_AUDIO_VIDEO = 2;
@@ -43,21 +47,250 @@ public class AVChatController {
     private static final String ACTION_JITSI_MEET_CONFERENCE = "org.jitsi.meet.CONFERENCE";
     private static final String JITSI_MEET_CONFERENCE_OPTIONS = "JitsiMeetConferenceOptions";
 
-    // Jitsi "FeatureFlags"
+    // Jitsi FeatureFlags (6/30/2022)
+    /**
+     * Flag indicating if add-people functionality should be enabled.
+     * Default: enabled (true).
+     */
     public static final String ADD_PEOPLE_ENABLED = "add-people.enabled";
+
+    /**
+     * Flag indicating if the SDK should not require the audio focus.
+     * Used by apps that do not use Jitsi audio.
+     * Default: disabled (false).
+     */
+    public static final String AUDIO_FOCUS_DISABLED = "audio-focus.disabled";
+
+    /**
+     * Flag indicating if the audio mute button should be displayed.
+     * Default: enabled (true).
+     */
+    public static final String AUDIO_MUTE_BUTTON_ENABLED = "audio-mute.enabled";
+
+    /**
+     * Flag indicating that the Audio only button in the overflow menu is enabled.
+     * Default: enabled (true).
+     */
+    public static final String AUDIO_ONLY_BUTTON_ENABLED = "audio-only.enabled";
+
+    /**
+     * Flag indicating if calendar integration should be enabled.
+     * Default: enabled (true) on Android, auto-detected on iOS.
+     */
     public static final String CALENDAR_ENABLED = "calendar.enabled";
+
+    /**
+     * Flag indicating if call integration (CallKit on iOS, ConnectionService on Android)
+     * should be enabled.
+     * Default: enabled (true).
+     */
     public static final String CALL_INTEGRATION_ENABLED = "call-integration.enabled";
+
+    /**
+     * Flag indicating if car mode should be enabled.
+     * Default: enabled (true).
+     */
+    public static final String CAR_MODE_ENABLED = "car-mode.enabled";
+
+    /**
+     * Flag indicating if close captions should be enabled.
+     * Default: enabled (true).
+     */
     public static final String CLOSE_CAPTIONS_ENABLED = "close-captions.enabled";
+
+    /**
+     * Flag indicating if conference timer should be enabled.
+     * Default: enabled (true).
+     */
+    public static final String CONFERENCE_TIMER_ENABLED = "conference-timer.enabled";
+
+    /**
+     * Flag indicating if chat should be enabled.
+     * Default: enabled (true).
+     */
     public static final String CHAT_ENABLED = "chat.enabled";
+
+    /**
+     * Flag indicating if the filmstrip should be enabled.
+     * Default: enabled (true).
+     */
+    public static final String FILMSTRIP_ENABLED = "filmstrip.enabled";
+
+    /**
+     * Flag indicating if fullscreen (immersive) mode should be enabled.
+     * Default: enabled (true).
+     */
+    public static final String FULLSCREEN_ENABLED = "fullscreen.enabled";
+
+    /**
+     * Flag indicating if the Help button should be enabled.
+     * Default: enabled (true).
+     */
+    public static final String HELP_BUTTON_ENABLED = "help.enabled";
+
+    /**
+     * Flag indicating if invite functionality should be enabled.
+     * Default: enabled (true).
+     */
     public static final String INVITE_ENABLED = "invite.enabled";
+
+    /**
+     * Flag indicating if recording should be enabled in iOS.
+     * Default: disabled (false).
+     */
     public static final String IOS_RECORDING_ENABLED = "ios.recording.enabled";
+
+    /**
+     * Flag indicating if screen sharing should be enabled in iOS.
+     * Default: disabled (false).
+     */
+    public static final String IOS_SCREENSHARING_ENABLED = "ios.screensharing.enabled";
+
+    /**
+     * Flag indicating if screen sharing should be enabled in android.
+     * Default: enabled (true).
+     */
+    public static final String ANDROID_SCREENSHARING_ENABLED = "android.screensharing.enabled";
+
+    /**
+     * Flag indicating if speaker statistics should be enabled.
+     * Default: enabled (true).
+     */
+    public static final String SPEAKERSTATS_ENABLED = "speakerstats.enabled";
+
+    /**
+     * Flag indicating if kickout is enabled.
+     * Default: enabled (true).
+     */
+    public static final String KICK_OUT_ENABLED = "kick-out.enabled";
+
+    /**
+     * Flag indicating if live-streaming should be enabled.
+     * Default: auto-detected.
+     */
     public static final String LIVE_STREAMING_ENABLED = "live-streaming.enabled";
+
+    /**
+     * Flag indicating if lobby mode button should be enabled.
+     * Default: enabled.
+     */
+    public static final String LOBBY_MODE_ENABLED = "lobby-mode.enabled";
+
+    /**
+     * Flag indicating if displaying the meeting name should be enabled.
+     * Default: enabled (true).
+     */
     public static final String MEETING_NAME_ENABLED = "meeting-name.enabled";
+
+    /**
+     * Flag indicating if the meeting password button should be enabled.
+     * Note that this flag just decides on the button, if a meeting has a password
+     * set, the password dialog will still show up.
+     * Default: enabled (true).
+     */
     public static final String MEETING_PASSWORD_ENABLED = "meeting-password.enabled";
+
+    /**
+     * Flag indicating if the notifications should be enabled.
+     * Default: enabled (true).
+     */
+    public static final String NOTIFICATIONS_ENABLED = "notifications.enabled";
+
+    /**
+     * Flag indicating if the audio overflow menu button should be displayed.
+     * Default: enabled (true).
+     */
+    public static final String OVERFLOW_MENU_ENABLED = "overflow-menu.enabled";
+
+    /**
+     * Flag indicating if Picture-in-Picture should be enabled.
+     * Default: auto-detected.
+     */
     public static final String PIP_ENABLED = "pip.enabled";
+
+    /**
+     * Flag indicating if the prejoin page should be enabled.
+     * Default: enabled (true).
+     */
+    public static final String PREJOIN_PAGE_ENABLED = "prejoinpage.enabled";
+
+    /**
+     * Flag indicating if raise hand feature should be enabled.
+     * Default: enabled.
+     */
     public static final String RAISE_HAND_ENABLED = "raise-hand.enabled";
+
+    /**
+     * Flag indicating if the reactions feature should be enabled.
+     * Default: enabled (true).
+     */
+    public static final String REACTIONS_ENABLED = "reactions.enabled";
+
+    /**
+     * Flag indicating if recording should be enabled.
+     * Default: auto-detected.
+     */
     public static final String RECORDING_ENABLED = "recording.enabled";
+
+    /**
+     * Flag indicating if the user should join the conference with the replaceParticipant functionality.
+     * Default: (false).
+     */
+    public static final String REPLACE_PARTICIPANT = "replace.participant";
+
+    /**
+     * Flag indicating the local and (maximum) remote video resolution. Overrides
+     * the server configuration.
+     * Default: (unset).
+     */
+    public static final String RESOLUTION = "resolution";
+
+    /**
+     * Flag indicating if the security options button should be enabled.
+     * Default: enabled (true).
+     */
+    public static final String SECURITY_OPTIONS_ENABLED = "security-options.enabled";
+
+    /**
+     * Flag indicating if server URL change is enabled.
+     * Default: enabled (true).
+     */
+    public static final String SERVER_URL_CHANGE_ENABLED = "server-url-change.enabled";
+
+    /**
+     * Flag indicating if tile view feature should be enabled.
+     * Default: enabled.
+     */
     public static final String TILE_VIEW_ENABLED = "tile-view.enabled";
+
+    /**
+     * Flag indicating if the toolbox should be always be visible
+     * Default: disabled (false).
+     */
+    public static final String TOOLBOX_ALWAYS_VISIBLE = "toolbox.alwaysVisible";
+
+    /**
+     * Flag indicating if the toolbox should be enabled
+     * Default: enabled.
+     */
+    public static final String TOOLBOX_ENABLED = "toolbox.enabled";
+
+    /**
+     * Flag indicating if the video mute button should be displayed.
+     * Default: enabled (true).
+     */
+    public static final String VIDEO_MUTE_BUTTON_ENABLED = "video-mute.enabled";
+
+    /**
+     * Flag indicating if the video share button should be enabled
+     * Default: enabled (true).
+     */
+    public static final String VIDEO_SHARE_BUTTON_ENABLED = "video-share.enabled";
+
+    /**
+     * Flag indicating if the welcome page should be enabled.
+     * Default: disabled (false).
+     */
     public static final String WELCOME_PAGE_ENABLED = "welcomepage.enabled";
 
     private static AVChatController instance;
@@ -321,31 +554,50 @@ public class AVChatController {
         userInfo.setDisplayName(mMyName);
 
         try {
-            mJitopts = new JitsiMeetConferenceOptions.Builder()
-                    .setServerURL(mServerURL)
-                    .setWelcomePageEnabled(false)
-                    .setRoom(mRoom)
-                    .setUserInfo(userInfo)
-                    .setAudioMuted(mMuteAudio)
-                    .setVideoMuted(mMuteVideo)
-                    .setAudioOnly(mAudioOnly)
-                    .setSubject(mConferenceTopic)
-                    .setFeatureFlag(ADD_PEOPLE_ENABLED, false)
-                    .setFeatureFlag(CALENDAR_ENABLED, false)
-                    .setFeatureFlag(CALL_INTEGRATION_ENABLED, true)
-                    .setFeatureFlag(CLOSE_CAPTIONS_ENABLED, true)
-                    .setFeatureFlag(CHAT_ENABLED, false)
-                    .setFeatureFlag(INVITE_ENABLED, false)
-                    .setFeatureFlag(IOS_RECORDING_ENABLED, false)
-                    .setFeatureFlag(LIVE_STREAMING_ENABLED, false)
-                    .setFeatureFlag(MEETING_NAME_ENABLED, true)
-                    .setFeatureFlag(MEETING_PASSWORD_ENABLED, false)
-                    .setFeatureFlag(PIP_ENABLED, true)
-                    .setFeatureFlag(RAISE_HAND_ENABLED, true)
-                    .setFeatureFlag(RECORDING_ENABLED, false)
-                    .setFeatureFlag(TILE_VIEW_ENABLED, true)
-                    .setFeatureFlag(WELCOME_PAGE_ENABLED, false)
-                    .build();
+            if(RuntimeConfig.isB2c()) {
+                mJitopts = new JitsiMeetConferenceOptions.Builder()
+                        .setServerURL(mServerURL)
+                        .setRoom(mRoom)
+                        .setUserInfo(userInfo)
+                        .setAudioMuted(mMuteAudio)
+                        .setVideoMuted(mMuteVideo)
+                        .setAudioOnly(mAudioOnly)
+                        .setSubject(mConferenceTopic)
+                        .setFeatureFlag(RESOLUTION, JITSI_RESOLUTION_B2C)
+                        .setFeatureFlag(WELCOME_PAGE_ENABLED, false)
+                        .setFeatureFlag(CHAT_ENABLED, false)
+                        .setFeatureFlag(CALENDAR_ENABLED, false)
+
+                        // Disabled for b2c
+                        .setFeatureFlag(ADD_PEOPLE_ENABLED, false)
+                        .setFeatureFlag(INVITE_ENABLED, false)
+                        .setFeatureFlag(LIVE_STREAMING_ENABLED, false)
+                        .setFeatureFlag(MEETING_PASSWORD_ENABLED, false)
+                        .setFeatureFlag(PREJOIN_PAGE_ENABLED, false)
+                        .setFeatureFlag(RECORDING_ENABLED, false)
+                        .setFeatureFlag(SECURITY_OPTIONS_ENABLED, false)
+                        .setFeatureFlag(SPEAKERSTATS_ENABLED, false)
+                        .setFeatureFlag(VIDEO_SHARE_BUTTON_ENABLED, false)
+
+                        .build();
+            } else {
+                mJitopts = new JitsiMeetConferenceOptions.Builder()
+                        .setServerURL(mServerURL)
+                        .setRoom(mRoom)
+                        .setUserInfo(userInfo)
+                        .setAudioMuted(mMuteAudio)
+                        .setVideoMuted(mMuteVideo)
+                        .setAudioOnly(mAudioOnly)
+                        .setSubject(mConferenceTopic)
+                        .setFeatureFlag(RESOLUTION, JITSI_RESOLUTION_B2B)
+                        .setFeatureFlag(WELCOME_PAGE_ENABLED, false)
+                        .setFeatureFlag(CHAT_ENABLED, false)
+                        .setFeatureFlag(CALENDAR_ENABLED, false)
+
+                        .setFeatureFlag(RECORDING_ENABLED, false)
+
+                        .build();
+            }
         } catch (RuntimeException e) {
             LogUtil.e(TAG, "Cannot set options for AVC!", e);
             return false;

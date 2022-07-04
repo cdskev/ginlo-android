@@ -1111,9 +1111,7 @@ public class ContactControllerBusiness
     }
 
     @Override
-    public Bitmap getFallbackImageByGuid(Context context,
-                                         String contactGuid,
-                                         int scaleSize)
+    public Bitmap getFallbackImageByGuid(Context context, String contactGuid, int scaleSize)
             throws LocalizedException {
         Contact contact = getContactByGuid(contactGuid);
         if (contact == null) {

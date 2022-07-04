@@ -16,7 +16,6 @@ import eu.ginlo_apps.ginlo.concurrent.manager.ChatOverviewTaskManager;
 import eu.ginlo_apps.ginlo.concurrent.task.AsyncHttpTask;
 import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
 import eu.ginlo_apps.ginlo.controller.message.MessageController;
 import eu.ginlo_apps.ginlo.controller.message.MessageDataResolver;
@@ -40,12 +39,11 @@ import eu.ginlo_apps.ginlo.model.chat.overview.SingleChatOverviewItemInvitationV
 import eu.ginlo_apps.ginlo.model.chat.overview.SingleChatOverviewItemVO;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
-import eu.ginlo_apps.ginlo.util.OnImageDataChangedListener;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.io.BufferedOutputStream;
@@ -64,10 +62,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import static eu.ginlo_apps.ginlo.greendao.Contact.CLASS_PRIVATE_ENTRY;
 
-public class ChatOverviewController
-        extends MessageDataResolver
+public class ChatOverviewController  extends MessageDataResolver
         implements MessageControllerListener,
-        OnImageDataChangedListener {
+        ImageController.OnImageDataChangedListener {
 
     private static final String TAG = ChatOverviewController.class.getSimpleName();
 
@@ -108,7 +105,7 @@ public class ChatOverviewController
         this.notificationController = application.getNotificationController();
         this.chatOverviewTaskManager = new ChatOverviewTaskManager();
         this.listeners = new CopyOnWriteArrayList<>();
-        application.getChatImageController().addListener(this);
+        application.getImageController().addListener(this);
     }
 
     public void setAdapter(final ChatsAdapter adapter) {
@@ -131,6 +128,7 @@ public class ChatOverviewController
             @Override
             public void run() {
                 for (final OnChatDataChangedListener listener : listeners) {
+                    // KS: ImageLoader is now obsolete.
                     LogUtil.d(TAG, "notifyListener clear: " + clearImageLoader + ";  Listener: " + listener.toString());
                     listener.onChatDataChanged(clearImageLoader);
                 }
@@ -439,24 +437,28 @@ public class ChatOverviewController
 
         if (chatGuids != null && chatGuids.size() > 0
                 && ((changes & CHAT_CHANGED_NEW_SEND_MSG) == CHAT_CHANGED_NEW_SEND_MSG || (changes & CHAT_CHANGED_REFRESH_CHAT) == CHAT_CHANGED_REFRESH_CHAT)) {
+            LogUtil.d(TAG, "chatChanged: CHAT_CHANGED_NEW_SEND_MSG || CHAT_CHANGED_REFRESH_CHAT");
             // KS: Cancel notifications, if chats changed
             notificationController.dismissAll();
             startChatOverviewTask(true, chatGuids);
 
         } else if (!StringUtil.isNullOrEmpty(chatGuid) && (changes & CHAT_CHANGED_NEW_CHAT) == CHAT_CHANGED_NEW_CHAT) {
+            LogUtil.d(TAG, "chatChanged: CHAT_CHANGED_NEW_CHAT");
             List<String> newChatGuids = new ArrayList<>();
             newChatGuids.add(chatGuid);
             startChatOverviewTask(true, newChatGuids);
 
         } else if ((changes & CHAT_CHANGED_IMAGE) == CHAT_CHANGED_IMAGE) {
+            LogUtil.d(TAG, "chatChanged: CHAT_CHANGED_IMAGE");
             notifyListener(true);
 
         } else if (chatChangedInternally(chatGuid, message, changes)) {
-            LogUtil.d(TAG, "chatChanged: chatChangedInternally returned true.");
+            LogUtil.d(TAG, "chatChanged: chatChangedInternally");
             notifyListener(false);
 
         } else if ((chatGuid != null)
                 && ((changes & CHAT_CHANGED_NEW_SEND_MSG) == CHAT_CHANGED_NEW_SEND_MSG || (changes & CHAT_CHANGED_REFRESH_CHAT) == CHAT_CHANGED_REFRESH_CHAT)) {
+            LogUtil.d(TAG, "chatChanged: CHAT_CHANGED_NEW_SEND_MSG || CHAT_CHANGED_REFRESH_CHAT");
             // KS: Cancel notifications, if chats changed
             notificationController.dismissAll();
             startChatOverviewTask(true, Collections.singletonList(chatGuid));
@@ -866,25 +868,27 @@ public class ChatOverviewController
                                         }
                                         final String text;
 
-                                        if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeType.TEXT_PLAIN)) {
+                                        if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeUtil.MIME_TYPE_TEXT_PLAIN)) {
                                             text = decryptedMessage.getText();
-                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeType.TEXT_RSS)) {
+                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeUtil.MIME_TYPE_TEXT_RSS)) {
                                             text = decryptedMessage.getText();
                                             nickname = null;
-                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeType.AUDIO_MPEG)) {
+                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeUtil.MIME_TYPE_AUDIO_MPEG)) {
                                             text = context.getResources().getString(R.string.export_chat_type_audio);
-                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeType.IMAGE_JPEG)) {
+                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeUtil.MIME_TYPE_IMAGE_JPEG)) {
                                             text = context.getResources().getString(R.string.export_chat_type_image);
-                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeType.VIDEO_MPEG)) {
+                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeUtil.MIME_TYPE_VIDEO_MPEG)) {
                                             text = context.getResources().getString(R.string.export_chat_type_video);
                                             // KS: AVC
-                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeType.TEXT_V_CALL)) {
+                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeUtil.MIME_TYPE_TEXT_V_CALL)) {
                                             text = decryptedMessage.getContentType();
-                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeType.TEXT_V_CARD)) {
+                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeUtil.MIME_TYPE_TEXT_V_CARD)) {
                                             text = context.getResources().getString(R.string.export_chat_type_contact);
-                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeType.MODEL_LOCATION)) {
+                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeUtil.MIME_TYPE_MODEL_LOCATION)) {
                                             text = context.getResources().getString(R.string.export_chat_type_location);
-                                        } else if (StringUtil.isEqual(decryptedMessage.getContentType(), MimeType.APP_OCTET_STREAM)) {
+                                        } else if (MimeUtil.isRichContentMimetype(decryptedMessage.getContentType())) {
+                                            text = context.getResources().getString(R.string.export_chat_type_file);
+                                        } else if (MimeUtil.hasUnspecificBinaryMimeType(decryptedMessage.getContentType())) {
                                             text = context.getResources().getString(R.string.export_chat_type_file);
                                         } else {
                                             text = "";
@@ -996,7 +1000,7 @@ public class ChatOverviewController
 
     @Override
     public void onImageDataChanged(final String guid) {
-        // Das Bild hat sich geändert
+        LogUtil.d(TAG, "onImageDataChanged: Called for guid = " + guid);
         synchronized (this) {
             if (chatsAdapter != null) {
                 chatsAdapter.notifyDataSetChanged();

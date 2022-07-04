@@ -5,13 +5,13 @@ import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemClick
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemLongClick
+import eu.ginlo_apps.ginlo.controller.ImageController
 import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
-import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.TimeUtil
 
 abstract class ChatOverviewBaseItemVH(
     itemView: View,
-    protected val imageLoader: ImageLoader,
+    protected val imageController: ImageController,
     protected val timeUtil: TimeUtil,
     protected val onChatItemClick: OnChatItemClick?,
     protected val onChatItemLongClick: OnChatItemLongClick?

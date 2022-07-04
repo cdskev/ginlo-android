@@ -1,0 +1,6 @@
+[submodule "jitsi-meet"]
+	path = jitsi-meet
+	url = git@github.com:cdskev/jitsi-meet.git
+[submodule "AndroidPdfViewer"]
+	path = AndroidPdfViewer
+	url = git@github.com:cdskev/AndroidPdfViewer.git

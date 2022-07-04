@@ -5,19 +5,14 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'io.sentry.android.gradle'
 
-def localProperties = new Properties()
-    try {
-    localProperties.load(new FileInputStream(rootProject.file("local.properties")))
-    } catch (Exception e) {
-        logger.warn("No Local Properties File Found!")
-}
+def localProperties = getLocalProperties()
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.appcompat:appcompat:1.4.2'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.cardview:cardview:1.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
-    implementation 'com.google.android.material:material:1.6.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.exifinterface:exifinterface:1.3.3'
 
     implementation 'com.google.android.gms:play-services-maps:18.0.2'
@@ -59,8 +54,13 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-core:2.17.1'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.17.1'
 
+    // Glide
+    implementation 'com.github.bumptech.glide:glide:4.13.2'
+    kapt 'com.github.bumptech.glide:compiler:4.13.2'
+    implementation 'com.caverock:androidsvg:1.2.1'
+
     // Jitsi Meet
-    implementation('org.jitsi.react:jitsi-meet-sdk:2.9.0') { transitive = true }
+    implementation('org.jitsi.react:jitsi-meet-sdk:5.1.0-ginlo') { transitive = true }
 
     // Open StreetMap
     implementation 'org.osmdroid:osmdroid-android:6.1.11'
@@ -68,7 +68,8 @@ dependencies {
 
     // AndroidPdfViewer
     //implementation 'com.github.barteksc:android-pdf-viewer:3.2.0-beta.1'
-    implementation files('../libs/AndroidPdfViewer/android-pdf-viewer/build/outputs/aar/android-pdf-viewer-release.aar')
+    implementation files('../AndroidPdfViewer/android-pdf-viewer/build/outputs/aar/android-pdf-viewer-release.aar')
+    api 'com.github.barteksc:pdfium-android:1.9.0'
 
     // Dagger
     implementation 'com.google.dagger:dagger:2.35.1'
@@ -102,7 +103,36 @@ dependencies {
 android {
     flavorDimensions "default"
 
+    compileSdkVersion 31
+    buildToolsVersion '30.0.2'
+    ndkVersion "21.4.7075529"
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    sourceSets.main.jniLibs.srcDirs = ['./jni/']
+
+    externalNativeBuild {
+        cmake {
+            path 'jni/CMakeLists.txt'
+        }
+    }
+
     def lintAbortOnError
+    lintOptions {
+        disable 'MissingTranslation'
+        disable 'ExtraTranslation'
+        disable 'BlockedPrivateApi'
+    }
+
+    packagingOptions {
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+    }
 
     signingConfigs {
         debugConfig {
@@ -118,21 +148,6 @@ android {
             keyPassword localProperties['b2c_uploadPW']
         }
     }
-    compileSdkVersion 31
-    buildToolsVersion '30.0.2'
-
-    packagingOptions {
-        pickFirst 'lib/x86/libc++_shared.so'
-        pickFirst 'lib/x86_64/libc++_shared.so'
-        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
-        pickFirst 'lib/arm64-v8a/libc++_shared.so'
-    }
-
-    // For JitsiMeet
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
 
     defaultConfig {
         minSdkVersion 21
@@ -140,6 +155,15 @@ android {
         setVersionCode(generateVersionCode())
         setVersionName(generateVersionName())
         lintAbortOnError = true
+
+        vectorDrawables.generatedDensities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']
+
+        externalNativeBuild {
+            cmake {
+                version '3.10.2'
+                arguments '-DANDROID_STL=c++_static', '-DANDROID_PLATFORM=android-16', "-j=16"
+            }
+        }
 
         // App constants
         buildConfigField("String", "GINLO_APP_NAME", '"ginlo"')
@@ -176,6 +200,8 @@ android {
     productFlavors {
         // ginlo Private
         b2c {
+            // App constants
+            applicationId "eu.ginlo_apps.ginlo"
             signingConfig signingConfigs.b2creleaseConfig
 
             // TODO: Remove oldScheme in the future. It is for backward compatibility only - see also AndroidManifest.xml
@@ -213,8 +239,11 @@ android {
             // More app configs
             buildConfigField("Boolean", "ACCOUNT_NEEDS_LICENCE", 'false')
             buildConfigField("Boolean", "NEED_PHONENUMBER_VALIDATION", 'false')
-        }
 
+            ndk {
+                abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+            }
+        }
     }
 
     buildTypes {
@@ -232,10 +261,14 @@ android {
             manifestPlaceholders = [appLabel: "@string/app_label_debug",
                                     appGPermission: "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"]
             debuggable true
+            jniDebuggable true
             applicationIdSuffix ".debug"
             versionNameSuffix ".Debug"
             signingConfig signingConfigs.debugConfig
-            println("Revision: " + generateVersionName() + versionNameSuffix)
+            minifyEnabled false
+            shrinkResources false
+            multiDexEnabled true
+            ndk.debugSymbolLevel = 'FULL'
         }
 
         release {
@@ -252,10 +285,12 @@ android {
                                     appGPermission: "android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"]
 
             debuggable false
+            jniDebuggable false
             applicationIdSuffix ""
             versionNameSuffix ""
             minifyEnabled true
-            shrinkResources true
+            shrinkResources false
+            multiDexEnabled true
             proguardFiles getDefaultProguardFile(
                     'proguard-android-optimize.txt'),
                     'proguard-rules.pro'
@@ -266,7 +301,7 @@ android {
                 abortOnError lintAbortOnError
             }
 
-            println("Revision: " + generateVersionName() + versionNameSuffix)
+            ndk.debugSymbolLevel = 'FULL'
         }
    }
 

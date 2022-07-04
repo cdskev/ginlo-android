@@ -4,9 +4,10 @@ package eu.ginlo_apps.ginlo.router
 
 object RouterConstants {
     const val ADJUST_PICTURE_RESULT_CODE = 156
-    const val SELECT_GALLARY_RESULT_CODE = 57
+    const val SELECT_GALLERY_RESULT_CODE = 57
     const val TAKE_PHOTO_RESULT_CODE = 500
     const val SELECT_PHOTO_RESULT_CODE = 100
+    const val SELECT_RICH_CONTENT_RESULT_CODE = 150
     const val SELECT_VIDEO_RESULT_CODE = 200
     const val SELECT_CONTACT_RESULT_CODE = 300
     const val SELECT_INTERNAL_CONTACT_RESULT_CODE = 301

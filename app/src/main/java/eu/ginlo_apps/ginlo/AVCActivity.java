@@ -8,6 +8,7 @@ import android.os.Bundle;
 import org.jitsi.meet.sdk.JitsiMeetActivity;
 import org.jitsi.meet.sdk.JitsiMeetConferenceOptions;
 
+import java.util.HashMap;
 import java.util.Map;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AVChatController;
@@ -52,7 +53,7 @@ public class AVCActivity extends JitsiMeetActivity  {
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         LogUtil.d(TAG, "==============> AVCActivity onResume() on CC instance " + avChatController + " called with CALL_STATUS: " + avChatController.getCallStatus());
         if (avChatController.getCallStatus() != AVChatController.CALL_STATUS_RUNNING
@@ -87,23 +88,23 @@ public class AVCActivity extends JitsiMeetActivity  {
         super.onBackPressed();
     }
     @Override
-    public void onConferenceJoined(Map<String, Object> data) {
-        LogUtil.d(TAG, "==============> AVCActivity onConferenceJoined() called on CC instance " + avChatController + "  with: " + data);
+    protected void onConferenceJoined(HashMap<String, Object> extraData) {
+        LogUtil.d(TAG, "==============> AVCActivity onConferenceJoined() called on CC instance " + avChatController + "  with: " + extraData);
         avChatController.setCallStatus(AVChatController.CALL_STATUS_RUNNING);
-        super.onConferenceJoined(data);
+        super.onConferenceJoined(extraData);
     }
 
     @Override
-    public void onConferenceTerminated(Map<String, Object> data) {
-        LogUtil.d(TAG, "==============> AVCActivity onConferenceTerminated() called on CC instance " + avChatController + "  with: " + data);
+    protected void onConferenceTerminated(HashMap<String, Object> extraData) {
+        LogUtil.d(TAG, "==============> AVCActivity onConferenceTerminated() called on CC instance " + avChatController + "  with: " + extraData);
         avChatController.setCallStatus(AVChatController.CALL_STATUS_TERMINATED);
-        super.onConferenceTerminated(data);
+        super.onConferenceTerminated(extraData);
     }
 
     @Override
-    public void onConferenceWillJoin(Map<String, Object> data) {
-        LogUtil.d(TAG, "==============> AVCActivity onConferenceWillJoin() called on CC instance " + avChatController + "  with: " + data);
+    protected void onConferenceWillJoin(HashMap<String, Object> extraData) {
+        LogUtil.d(TAG, "==============> AVCActivity onConferenceWillJoin() called on CC instance " + avChatController + "  with: " + extraData);
         avChatController.setCallStatus(AVChatController.CALL_STATUS_RUNNING);
-        super.onConferenceWillJoin(data);
+        super.onConferenceWillJoin(extraData);
     }
 }

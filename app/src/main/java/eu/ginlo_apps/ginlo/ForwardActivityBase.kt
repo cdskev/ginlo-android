@@ -16,14 +16,12 @@ import eu.ginlo_apps.ginlo.activity.chat.BaseChatActivity
 import eu.ginlo_apps.ginlo.activity.chat.GroupChatActivity
 import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity
 import eu.ginlo_apps.ginlo.activity.chatsOverview.ChatsAdapter
+import eu.ginlo_apps.ginlo.activity.chatsOverview.ChatsOverviewActivity
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemClick
 import eu.ginlo_apps.ginlo.adapter.PageAdapterItemInfo
 import eu.ginlo_apps.ginlo.adapter.SimsmeFragmentPagerAdapter
 import eu.ginlo_apps.ginlo.context.SimsMeApplication
-import eu.ginlo_apps.ginlo.controller.ChannelController
-import eu.ginlo_apps.ginlo.controller.ChatImageController
-import eu.ginlo_apps.ginlo.controller.ChatOverviewController
-import eu.ginlo_apps.ginlo.controller.ContactController
+import eu.ginlo_apps.ginlo.controller.*
 import eu.ginlo_apps.ginlo.controller.message.SingleChatController
 import eu.ginlo_apps.ginlo.controller.message.contracts.OnChatDataChangedListener
 import eu.ginlo_apps.ginlo.exception.LocalizedException
@@ -35,18 +33,16 @@ import eu.ginlo_apps.ginlo.greendao.Chat
 import eu.ginlo_apps.ginlo.greendao.Contact
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
+import eu.ginlo_apps.ginlo.model.constant.AppConstants
 import eu.ginlo_apps.ginlo.model.param.SendActionContainer
-import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
-import eu.ginlo_apps.ginlo.util.FileUtil
-import eu.ginlo_apps.ginlo.util.ImageLoader
-import eu.ginlo_apps.ginlo.util.StringUtil
-import java.util.ArrayList
+import eu.ginlo_apps.ginlo.util.*
 
 abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
     AdapterView.OnItemClickListener,
     OnChatItemClick {
 
     companion object {
+        const val TAG = "ForwardActivityBase"
         const val EXTRA_MESSAGE_ID = "message_id"
         const val EXTRA_STARTED_INTERNALLY = "ForwardActivity.startedInternally"
         const val EXTRA_FORWARD_CHANNELMESSAGE_IS_IMAGE = "forwardChannelMessageIsImageExtra"
@@ -62,7 +58,7 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
 
     internal lateinit var mChatController: SingleChatController
     internal lateinit var mViewPager: ViewPager
-    protected lateinit var mImageLoader: ImageLoader
+    protected lateinit var mImageController: ImageController
     private var mMessageId: Long = -1
     private lateinit var mChatOverviewController: ChatOverviewController
     private lateinit var mContactController: ContactController
@@ -83,16 +79,12 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
         mChatOverviewController = simsMeApplication.chatOverviewController
         mChatController = simsMeApplication.singleChatController
         mContactController = simsMeApplication.contactController
-
-        val channelController = simsMeApplication.channelController
-        val chatImageController = simsMeApplication.chatImageController
-
-        mImageLoader = initImageLoader(chatImageController, channelController)
+        mImageController = simsMeApplication.imageController
 
         val chatsAdapterSingle =
             ChatsAdapter(
                 this,
-                mImageLoader,
+                mImageController,
                 mChatController,
                 windowManager.defaultDisplay,
                 ArrayList(),
@@ -103,7 +95,7 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
         val chatsAdapterGroup =
             ChatsAdapter(
                 this,
-                mImageLoader,
+                mImageController,
                 mChatController,
                 windowManager.defaultDisplay,
                 ArrayList(),
@@ -177,58 +169,13 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
         }
     }
 
-    private fun initImageLoader(
-        chatImageController: ChatImageController,
-        channelController: ChannelController
-    ): ImageLoader {
-        //Image Loader zum Laden der ChatoverviewItems Icons
-        val imageLoader =
-            object : ImageLoader(this, ChatImageController.SIZE_CHAT_OVERVIEW, false) {
-                override fun processBitmap(data: Any): Bitmap? {
-                    try {
-                        if (data is ChannelController.ChannelIdentifier) {
-
-                            if (data.guid != null && data.type != null) {
-                                return channelController.loadImage(data.guid, data.type)
-                            }
-                        } else {
-                            // This gets called in a background thread
-                            return chatImageController.getImageByGuidWithoutCacheing(
-                                data as String,
-                                imageSize
-                            )
-                        }
-
-                        return null
-                    } catch (e: LocalizedException) {
-                        LogUtil.w(
-                            this@ForwardActivityBase.javaClass.name,
-                            "Image can't be loaded.",
-                            e
-                        )
-                        return null
-                    }
-                }
-
-                override fun processBitmapFinished(data: Any, imageView: ImageView) {
-                    //Nothing to do
-                }
-            }
-
-        imageLoader.addImageCache(supportFragmentManager, 0.1f)
-        imageLoader.setImageFadeIn(false)
-        chatImageController.addListener(imageLoader)
-
-        return imageLoader
-    }
-
     private fun handleIntent(intent: Intent) {
+        LogUtil.d(TAG, "handleIntent: $intent - ${intent.extras}")
+        LogUtil.d(TAG, "handleIntent: Coming from ${notificationController.currentChatGuid}")
 
-        mForwardChannelMessageIsImage =
-            getIntent().getBooleanExtra(EXTRA_FORWARD_CHANNELMESSAGE_IS_IMAGE, false)
-        mForwardChannelMessageIsText =
-            getIntent().getBooleanExtra(EXTRA_FORWARD_CHANNELMESSAGE_IS_TEXT, false)
-        mStartedInternally = getIntent().getBooleanExtra(EXTRA_STARTED_INTERNALLY, false)
+        mForwardChannelMessageIsImage = intent.getBooleanExtra(EXTRA_FORWARD_CHANNELMESSAGE_IS_IMAGE, false)
+        mForwardChannelMessageIsText = intent.getBooleanExtra(EXTRA_FORWARD_CHANNELMESSAGE_IS_TEXT, false)
+        mStartedInternally = intent.getBooleanExtra(EXTRA_STARTED_INTERNALLY, false)
 
         try {
             checkForFinishOnUrlHandlerStart()
@@ -275,7 +222,7 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
                 }
             } else {
                 mIsSendAction = false
-                mMessageId = getIntent().getLongExtra(EXTRA_MESSAGE_ID, -1)
+                mMessageId = intent.getLongExtra(EXTRA_MESSAGE_ID, -1)
             }//<----------- Oeffnen In -----------
 
             if (!mIsSendAction && mMessageId == -1L) {
@@ -290,6 +237,10 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
             LogUtil.w(this.javaClass.name, e.message, e)
             finish()
         }
+
+        if(notificationController.currentChatGuid != null && mMessageId == -1L) {
+            startChatFromGuid(notificationController.currentChatGuid)
+        }
     }
 
     override fun getActivityLayout(): Int {
@@ -297,6 +248,8 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
     }
 
     override fun onResumeActivity() {
+        LogUtil.d(TAG, "onResumeActivity: Called.")
+
         val screenDesignUtil = ScreenDesignUtil.getInstance()
         val pagerAdapter = mViewPager.adapter as? SimsmeFragmentPagerAdapter ?: return
 
@@ -423,6 +376,14 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
         startChat(chat)
     }
 
+    private fun startChatFromGuid(guid : String) {
+        LogUtil.d(TAG, "startChatFromGuid: -> $guid")
+        if (guid != AppConstants.GUID_SYSTEM_CHAT) {
+            val chat = mChatController.getChatByGuid(guid)
+            startChat(chat)
+        }
+    }
+
     private fun startChat(chat: Chat?) {
         if (chat == null) {
             return
@@ -460,6 +421,9 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
     private fun navigateTo(target: Class<*>, targetGuid: String) {
         val intent: Intent
 
+        LogUtil.d(TAG, "navigateTo: ${target.simpleName} for $targetGuid with mMessageId = $mMessageId and mIsSendAction = $mIsSendAction ")
+        LogUtil.d(TAG, "navigateTo: mStartedInternally = $mStartedInternally ")
+
         if (mIsSendAction) {
             intent = getIntentFromCallerIntent(target)
         } else if (mMessageId != -1L) {
@@ -475,13 +439,17 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
         }
 
         intent.putExtra(BaseChatActivity.EXTRA_TARGET_GUID, targetGuid)
-
-        startActivityForResult(intent, REQUEST_CODE)
         mMessageId = -1
 
         if (mStartedInternally) {
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent);
             setResult(Activity.RESULT_OK)
             finish()
+        } else {
+            // Must keep this activity to prevent from breaking URI request permission!
+            intent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            startActivityForResult(intent, REQUEST_CODE)
         }
     }
 
@@ -490,6 +458,8 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
         resultCode: Int,
         data: Intent?
     ) {
+        LogUtil.d(TAG, "onActivityResult: Returned with $requestCode - $resultCode - $data")
+
         if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             setResult(Activity.RESULT_OK)
             finish()
@@ -499,6 +469,7 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
     }
 
     override fun onNewIntent(intent: Intent) {
+        LogUtil.d(TAG, "onNewIntent: called with $intent")
         super.onNewIntent(intent)
         callerIntent = intent
         setIntent(intent)
@@ -516,18 +487,21 @@ abstract class ForwardActivityBase : BaseActivity(), OnChatDataChangedListener,
         //Finish nur wenn die App eingeloggt ist oder die Activity nicht gerade kreiert wurde oder keine Account vorhanden ist
         //Die Activity darf nicht gefinshed werden, da bei einem "Öffnen in" die Permission auf die Datei entfallen
         //von FPL
-        if (!mExceptionWasThrownInOnCreate || !mAfterCreate
-            || simsMeApplication.accountController.accountState == Account.ACCOUNT_STATE_NO_ACCOUNT
+        if (!mExceptionWasThrownInOnCreate ||
+            !mAfterCreate ||
+            simsMeApplication.accountController.accountState == Account.ACCOUNT_STATE_NO_ACCOUNT
         ) {
-            LogUtil.d("FORWARD_ACT", "FINSISH!")
+            LogUtil.d(TAG, "finish: called.")
             super.finish()
         }
     }
 
     override fun onChatDataChanged(clearImageCache: Boolean) {
+        LogUtil.d(TAG, "onChatDataChanged: called with $clearImageCache")
     }
 
     override fun onChatDataLoaded(lastMessageId: Long) {
+        LogUtil.d(TAG, "onChatDataLoaded: called with $lastMessageId")
         //remove listener sonst endlosschleife
         mChatOverviewController.removeListener(this@ForwardActivityBase)
         mForwardChatListSingleFragment.refresh()

@@ -33,7 +33,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.454" />
 
-    <androidx.emoji.widget.EmojiAppCompatEditText
+    <eu.ginlo_apps.ginlo.view.RichContentEmojiEditText
         android:id="@+id/chat_edit_text_input"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -55,6 +55,7 @@
         android:paddingEnd="12dp"
         android:scrollbars="vertical"
         android:text=""
+        android:textSize="@dimen/messageEditTextSize"
         android:textIsSelectable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -63,7 +64,6 @@
         app:layout_constraintVertical_bias="1.0"
         app:styledBackground="overlay"
         app:styledEditTextNoLineBG="true"
-        app:styledTextSize="messageEditTextSize"
         app:styledTextColor="mainContrast"
         app:styledTextColorHint="mainContrast50" />
 

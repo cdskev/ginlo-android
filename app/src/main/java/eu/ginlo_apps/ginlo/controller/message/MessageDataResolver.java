@@ -3,14 +3,12 @@
 package eu.ginlo_apps.ginlo.controller.message;
 
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.util.Base64;
 import com.google.gson.*;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.ContactController.OnLoadPublicKeyListener;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
@@ -21,16 +19,13 @@ import eu.ginlo_apps.ginlo.model.DecryptedMessage;
 import eu.ginlo_apps.ginlo.model.backend.SignatureModel;
 import eu.ginlo_apps.ginlo.model.backend.serialization.SignatureModelDeserializer;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.model.constant.Encoding;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
-import eu.ginlo_apps.ginlo.util.DateUtil;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.SecurityUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.XMLUtil;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.util.HashMap;
@@ -183,41 +178,51 @@ public abstract class MessageDataResolver {
             previewText = mApplication.getResources().getString(R.string.chat_selfdestruction_preview);
         } else if (!StringUtil.isNullOrEmpty(contentType)) {
             switch (contentType) {
-                case MimeType.TEXT_PLAIN:
+                case MimeUtil.MIME_TYPE_TEXT_PLAIN:
                     previewText = decryptedMsg.getText();
                     break;
-                case MimeType.TEXT_RSS:
+                case MimeUtil.MIME_TYPE_TEXT_RSS:
                     previewText = decryptedMsg.getText();
                     nickname = null;
                     break;
-                case MimeType.IMAGE_JPEG:
+                case MimeUtil.MIME_TYPE_IMAGE_JPEG:
                     previewText = isSentMessage ? resources.getString(R.string.chat_overview_preview_imageSent)
                             : resources.getString(R.string.chat_overview_preview_imageReceived);
                     break;
-                case MimeType.VIDEO_MPEG:
+                case MimeUtil.MIME_TYPE_VIDEO_MPEG:
                     previewText = isSentMessage ? resources.getString(R.string.chat_overview_preview_videoSent)
                             : resources.getString(R.string.chat_overview_preview_videoReceived);
                     break;
-                case MimeType.AUDIO_MPEG:
+                case MimeUtil.MIME_TYPE_AUDIO_MPEG:
                     previewText = isSentMessage ? resources.getString(R.string.chat_overview_preview_VoiceSent)
                             : resources.getString(R.string.chat_overview_preview_VoiceReceived);
                     break;
-                case MimeType.MODEL_LOCATION:
+                case MimeUtil.MIME_TYPE_MODEL_LOCATION:
                     previewText = isSentMessage ? resources.getString(R.string.chat_overview_preview_locationSent)
                             : resources.getString(R.string.chat_overview_preview_locationReceived);
                     break;
-                case MimeType.TEXT_V_CARD:
+                case MimeUtil.MIME_TYPE_TEXT_V_CARD:
                     previewText = isSentMessage ? resources.getString(R.string.chat_overview_preview_contactSent)
                             : resources.getString(R.string.chat_overview_preview_contactReceived);
                     break;
-                case MimeType.APP_OCTET_STREAM:
-                    previewText = isSentMessage ? resources.getString(R.string.chat_overview_preview_file_sent)
-                            : resources.getString(R.string.chat_overview_preview_file_received);
+                case MimeUtil.MIME_TYPE_APP_GINLO_RICH_CONTENT:
+                    previewText = resources.getString(R.string.chat_overview_preview_rich_content);
+                    break;
+                case MimeUtil.MIME_TYPE_APP_OCTETSTREAM:
+                case MimeUtil.MIME_TYPE_APP_OCTET_STREAM:
+                        previewText = isSentMessage ? resources.getString(R.string.chat_overview_preview_file_sent)
+                                : resources.getString(R.string.chat_overview_preview_file_received);
                     break;
                 default:
                     break;
             }
         }
+
+        // Do a rich content override since mimetypes are masked for historical reasons
+        if(MimeUtil.isRichContentMimetype(decryptedMsg.getFileMimetype())) {
+            previewText = resources.getString(R.string.chat_overview_preview_rich_content);
+        }
+
         if (!StringUtil.isNullOrEmpty(nickname) && prependNickname && !StringUtil.isNullOrEmpty(previewText)) {
             return nickname + ": " + previewText;
         }
@@ -413,23 +418,6 @@ public abstract class MessageDataResolver {
     }
 
     /**
-     * @throws LocalizedException [!EXC_DESCRIPTION!]
-     */
-    public Bitmap getProfileImageForMessage(Message message)
-            throws LocalizedException {
-        return getProfileImageForMessage(message.getFrom());
-    }
-
-    /**
-     * @throws LocalizedException [!EXC_DESCRIPTION!]
-     */
-    public Bitmap getProfileImageForMessage(final String guid)
-            throws LocalizedException {
-        ChatImageController chatImageController = mApplication.getChatImageController();
-        return chatImageController.getImageByGuid(guid, ChatImageController.SIZE_CHAT);
-    }
-
-    /**
      * Check signature und added das Ergebnis an der Message
      *
      * @param message
@@ -445,7 +433,7 @@ public abstract class MessageDataResolver {
             return true;
         }
 
-        if (StringUtil.isEqual(message.getServerMimeType(), MimeType.TEXT_RSS)) {
+        if (StringUtil.isEqual(message.getServerMimeType(), MimeUtil.MIME_TYPE_TEXT_RSS)) {
             final JsonObject decryptedDataContainer = message.getDecryptedDataContainer();
             if (decryptedDataContainer != null) {
                 final JsonElement contentType = decryptedDataContainer.get("Content-Type");

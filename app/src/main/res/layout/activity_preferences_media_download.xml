@@ -148,6 +148,18 @@
 
                 </RelativeLayout>
 
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/preferences_switch_always_download_rich_content"
+                        style="@style/FontSettingsElement"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/preferences_item_height"
+                        android:background="?attr/selectableItemBackground"
+                        android:paddingStart="@dimen/preferences_text_margin_start"
+                        android:paddingEnd="@dimen/preferences_text_margin_start"
+                        android:text="@string/settings_chat_always_download_rich_content"
+                        android:theme="@style/SwitchStyle"
+                        app:styledTextColor="mainContrast" />
+
             </LinearLayout>
         </ScrollView>
     </LinearLayout>

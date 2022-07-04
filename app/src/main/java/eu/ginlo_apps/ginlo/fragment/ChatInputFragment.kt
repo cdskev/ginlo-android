@@ -4,6 +4,7 @@ package eu.ginlo_apps.ginlo.fragment
 import android.annotation.SuppressLint
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.media.MediaRecorder
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,6 +12,7 @@ import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import androidx.core.content.ContextCompat
+import androidx.core.view.inputmethod.InputContentInfoCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import eu.ginlo_apps.ginlo.R
@@ -18,11 +20,13 @@ import eu.ginlo_apps.ginlo.activity.chat.ChatInputActivity
 import eu.ginlo_apps.ginlo.appendText
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.insertText
+import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.chat.*
 import eu.ginlo_apps.ginlo.themedInflater
 import eu.ginlo_apps.ginlo.util.*
 import eu.ginlo_apps.ginlo.util.MimeUtil.MIMETYPE_NOT_FOUND
 import eu.ginlo_apps.ginlo.util.TimeDisplayUtil.OnClockStoppedHandler
+import eu.ginlo_apps.ginlo.view.RichContentEmojiEditText
 import kotlinx.android.synthetic.main.chat_item_comment_layout_chatinput.*
 import kotlinx.android.synthetic.main.fragment_chat_input.*
 import kotlinx.android.synthetic.main.fragment_chat_input_default.*
@@ -30,7 +34,7 @@ import kotlinx.android.synthetic.main.fragment_chat_input_preview.*
 import kotlinx.android.synthetic.main.fragment_chat_input_recording.*
 import java.io.FileNotFoundException
 
-class ChatInputFragment : Fragment(), OnClockStoppedHandler {
+class ChatInputFragment : Fragment(), OnClockStoppedHandler, RichContentEmojiEditText.RichContentListener {
 
     private lateinit var activity: ChatInputActivity
 
@@ -78,6 +82,7 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
         super.onViewCreated(view, savedInstanceState)
         resetUI()
         initSimpleUI()
+        initRichContentListener()
         initClickListeners()
         initChatBoxListener()
         paintDestructionPicker(SelfdestructionFragment.PICKER_MODE_DESTRUCTION)
@@ -93,6 +98,11 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
         super.onStart()
         hasAudioPermission = PermissionUtil.hasPermission(activity, android.Manifest.permission.RECORD_AUDIO)
     }
+
+    private fun initRichContentListener() {
+        chat_edit_text_input.registerListener(this)
+    }
+
 
     private fun initSimpleUI() {
         if (simpleUi) {
@@ -372,6 +382,22 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
         resetUI()
     }
 
+    private fun sendRichContent(contentUri: Uri) {
+        try {
+            chat_input_destruction_info_container.visibility = View.GONE
+            activity.handleSendRichContent(contentUri)
+            activity.resetChatInputFabButton()
+            activity.hideChatInputFabButton()
+            resetDestructionInfoContainer()
+            closeDestructionPicker(true)
+        } catch (e: FileNotFoundException) {
+            DialogBuilderUtil.buildErrorDialog(
+                activity,
+                getString(R.string.chats_addAttachment_wrong_format_or_error)
+            ).show()
+        }
+    }
+
     fun setTypingState() {
         activity.setOnlineStateToTyping()
     }
@@ -572,6 +598,17 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
                 comment_image.setImageResource(R.drawable.sound_placeholder)
                 comment_image.visibility = View.VISIBLE
             }
+            is RichContentChatItemVO -> {
+                comment_text.text = item.fileName
+
+                comment_image.setBackgroundResource(R.drawable.data_placeholder)
+                val resID = MimeUtil.getIconForMimeType(item.fileMimeType)
+
+                if (resID != MIMETYPE_NOT_FOUND) comment_image.setImageResource(resID)
+                else comment_image.setImageResource(R.drawable.data_placeholder)
+
+                comment_image.visibility = View.VISIBLE
+            }
             is FileChatItemVO -> {
                 comment_text.text = item.fileName
 
@@ -686,5 +723,11 @@ class ChatInputFragment : Fragment(), OnClockStoppedHandler {
         val pos = chat_edit_text_input.selectionStart
         chat_edit_text_input.insertText(str, pos)
         chat_edit_text_input.setSelection(pos + str.length)
+    }
+
+    override fun onRichInputReceived(inputContentInfo: InputContentInfoCompat?) {
+        LogUtil.d("ChatInputFragment",
+            "onRichInputReceived: -> " + inputContentInfo!!.contentUri)
+        sendRichContent(inputContentInfo.contentUri)
     }
 }

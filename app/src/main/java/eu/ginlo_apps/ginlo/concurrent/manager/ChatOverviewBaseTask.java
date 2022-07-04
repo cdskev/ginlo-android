@@ -8,9 +8,9 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.ChannelController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.controller.MessageDecryptionController;
 import eu.ginlo_apps.ginlo.controller.NotificationController;
 import eu.ginlo_apps.ginlo.controller.message.ChatController;
@@ -35,7 +35,7 @@ import eu.ginlo_apps.ginlo.model.chat.overview.ServiceChatOverviewItemVO;
 import eu.ginlo_apps.ginlo.model.chat.overview.SingleChatOverviewItemInvitationVO;
 import eu.ginlo_apps.ginlo.model.chat.overview.SingleChatOverviewItemVO;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import java.util.ArrayList;
@@ -53,7 +53,7 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
     protected final ChatController mChatController;
     protected final GroupChatController mGroupChatController;
     protected final MessageDecryptionController msgDecryptionController;
-    private final ChatImageController chatImageController;
+    private final ImageController imageController;
     private final ContactController contactController;
     private final NotificationController mNotificationController;
     private final SimsMeApplication mApplication;
@@ -66,7 +66,7 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
         this.mApplication = application;
         this.chatOverviewController = application.getChatOverviewController();
         this.messageController = application.getMessageController();
-        this.chatImageController = application.getChatImageController();
+        this.imageController = application.getImageController();
         this.contactController = application.getContactController();
         this.mChatController = application.getSingleChatController();
         this.msgDecryptionController = application.getMessageDecryptionController();
@@ -599,7 +599,7 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
             chat.setIsRemoved(false);
 
             if (decryptedMessage.getGroupImage() != null) {
-                chatImageController.saveImage(guid, decryptedMessage.getGroupImage());
+                imageController.saveProfileImageRaw(guid, decryptedMessage.getGroupImage());
             }
 
             //Falls kein Kontakt fuer den Owner vorhanden ist, wird ein Neuer angelegt
@@ -655,7 +655,8 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
             return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_FAILED;
         }
 
-        String contentType = message.getContentType();
+        final String contentType = message.getContentType();
+        final String fileMimetype = message.getFileMimetype();
 
         if (contentType == null) {
             return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_FAILED;
@@ -663,24 +664,31 @@ public class ChatOverviewBaseTask extends ConcurrentTask {
 
         if (message.getMessageDestructionParams() != null) {
             return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_DESTROY;
-        } else if (contentType.equals(MimeType.TEXT_PLAIN)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_TEXT_PLAIN)) {
             return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_TEXT;
-        } else if (contentType.equals(MimeType.IMAGE_JPEG)) {
+
+        // Rich media check
+        } else if (MimeUtil.isRichContentMimetype(contentType) ||
+                MimeUtil.isRichContentMimetype(fileMimetype)
+        ) {
+            return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_RICH_CONTENT;
+
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_IMAGE_JPEG)) {
             return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_IMAGE;
-        } else if (contentType.equals(MimeType.VIDEO_MPEG)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_VIDEO_MPEG)) {
             return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_MOVIE;
-        } else if (contentType.equals(MimeType.AUDIO_MPEG)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_AUDIO_MPEG)) {
             return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_AUDIO;
-        } else if (contentType.equals(MimeType.MODEL_LOCATION)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_MODEL_LOCATION)) {
             return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_LOCATION;
-        } else if (contentType.equals(MimeType.TEXT_V_CARD)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_TEXT_V_CARD)) {
             return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_VCARD;
-        } else if (contentType.equals(MimeType.APP_OCTET_STREAM)) {
-            return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_FILE;
-        } else if (contentType.equals(MimeType.TEXT_V_CALL)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_TEXT_V_CALL)) {
             return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_AVC;
-        } else if (contentType.equals(MimeType.APP_GINLO_CONTROL)) {
+        } else if (contentType.equals(MimeUtil.MIME_TYPE_APP_GINLO_CONTROL)) {
         return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_GINLOCONTROL;
+        } else if (MimeUtil.hasUnspecificBinaryMimeType(contentType)) {
+            return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_FILE;
     }
         return BaseChatOverviewItemVO.MSG_MEDIA_TYPE_FAILED;
     }

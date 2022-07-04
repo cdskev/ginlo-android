@@ -31,6 +31,14 @@ public class GuidUtil {
         return StringUtil.isEqual(value, AppConstants.GUID_SYSTEM_CHAT);
     }
 
+    public static boolean isProfileUser(String value) {
+        return StringUtil.isEqual(value, AppConstants.GUID_PROFILE_USER);
+    }
+
+    public static boolean isProfileGroup(String value) {
+        return StringUtil.isEqual(value, AppConstants.GUID_PROFILE_GROUP);
+    }
+
     public static boolean isRequestGuid(String value) {
         if (value == null) {
             return false;

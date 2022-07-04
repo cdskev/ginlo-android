@@ -5,7 +5,6 @@ package eu.ginlo_apps.ginlo.adapter;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,13 +19,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.graphics.ColorUtils;
-import androidx.core.graphics.drawable.RoundedBitmapDrawable;
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.controller.PreferencesController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Account;
@@ -34,9 +31,9 @@ import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.ContactMessageInfo;
 import eu.ginlo_apps.ginlo.model.Mandant;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
-import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import java.util.ArrayList;
@@ -47,22 +44,21 @@ import java.util.List;
  * @author Florian
  * @version $Revision$, $Date$, $Author$
  */
-public class ContactsAdapter
-        extends ArrayAdapter<Contact>
+public class ContactsAdapter extends ArrayAdapter<Contact>
         implements SectionIndexer {
 
+    private final static String TAG = "ContactsAdapter";
     private final Context mContext;
     private final List<Contact> mContacts;
     private final ContactController mContactController;
     private final PreferencesController mPreferencesController;
-    private final ChatImageController mChatImageController;
+    private final ImageController mImageController;
     private final int mResource;
 
     private final boolean mSetCheckedAsDefault;
     // Liste der Anfangsbuchstaben
     private ArrayList<ContactSection> mSections;
     private Account mAccount;
-    private ImageLoader mImageLoader;
     private String mGroupChatOwnerGuid;
 
     private final int mHighLevelColor;
@@ -98,7 +94,7 @@ public class ContactsAdapter
 
         this.mContactController = ((SimsMeApplication) ((Activity) context).getApplication()).getContactController();
         this.mPreferencesController = ((SimsMeApplication) ((Activity) context).getApplication()).getPreferencesController();
-        this.mChatImageController = ((SimsMeApplication) ((Activity) context).getApplication()).getChatImageController();
+        this.mImageController = ((SimsMeApplication) ((Activity) context).getApplication()).getImageController();
         this.mSetCheckedAsDefault = setCheckedAsDefault;
 
         final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
@@ -262,23 +258,8 @@ public class ContactsAdapter
             if (profileImageView != null) {
                 if (isSelectedItem) {
                     profileImageView.setImageDrawable(mCheckDrawable);
-                } else if (mImageLoader != null) {
-                    mImageLoader.loadImage(contact, profileImageView);
                 } else {
-                    int size = getSizeForLayout();
-
-                    Bitmap image = mChatImageController.getImageByGuid(contact.getAccountGuid(),
-                            ChatImageController.SIZE_ORIGINAL);
-
-                    int px = size * (mContext.getResources().getDisplayMetrics().densityDpi / 160);
-                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(image, px, px, false);
-
-                    RoundedBitmapDrawable dr = RoundedBitmapDrawableFactory.create(mContext.getResources(),
-                            scaledBitmap);
-
-                    dr.setCornerRadius(px / 2.0f);
-
-                    profileImageView.setImageDrawable(dr);
+                    mImageController.fillViewWithProfileImageByGuid(contact.getAccountGuid(), profileImageView, -1, true);
                 }
             }
 
@@ -414,9 +395,9 @@ public class ContactsAdapter
                 || (mResource == R.layout.contact_item_multi_select_distributor_layout)
                 || (mResource == R.layout.contact_item_single_select_layout)
                 || (mResource == R.layout.contact_item_overview_layout)) {
-            return ChatImageController.SIZE_CONTACT;
+            return ImageUtil.SIZE_CONTACT;
         } else if (mResource == R.layout.contact_item_group_info_layout) {
-            return ChatImageController.SIZE_CONTACT_GROUP_INFO;
+            return ImageUtil.SIZE_CONTACT_GROUP_INFO;
         }
         return 1;
     }
@@ -486,10 +467,6 @@ public class ContactsAdapter
 
     public void setAccount(Account account) {
         mAccount = account;
-    }
-
-    public void setImageLoader(final ImageLoader imageLoader) {
-        mImageLoader = imageLoader;
     }
 
     public void setGroupChatOwner(final String guid) {

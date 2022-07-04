@@ -182,13 +182,12 @@ public class BackupController {
                         final byte[] image = Base64.decode(groupImageAsBase64, Base64.NO_WRAP);
 
                         if (image != null) {
-                            final ChatImageController chatImageController = mApplication.getChatImageController();
-                            chatImageController.saveImage(chatGuidTS, image);
+                            mApplication.getImageController().saveProfileImageRaw(chatGuidTS, image);
                         }
                     }
                 }
             } else if (chat.getGroupChatImage() != null) {
-                mApplication.getChatImageController().saveImage(chatGuidTS, chat.getGroupChatImage());
+                mApplication.getImageController().saveProfileImageRaw(chatGuidTS, chat.getGroupChatImage());
             }
 
             if (model.confirmed && chat.getType() == Chat.TYPE_GROUP_CHAT_INVITATION) {
@@ -212,7 +211,7 @@ public class BackupController {
         } else {
             chat.setIsRemoved(true);
             if (chat.getGroupChatImage() != null) {
-                mApplication.getChatImageController().saveImage(chatGuidTS, chat.getGroupChatImage());
+                mApplication.getImageController().saveProfileImageRaw(chatGuidTS, chat.getGroupChatImage());
             }
         }
         chatRoomModelMap.remove(chatGuidTS);
@@ -501,7 +500,7 @@ public class BackupController {
 
     public void copyAttachmentToAttachmentsDirAsBase64(String attachmentGuid)
             throws LocalizedException {
-        File backupDir =  mStorageUtil.getCurrentInternalBackupAttachmentDirectory(false);
+        File backupDir =  mStorageUtil.getInternalBackupAttachmentDirectory(false);
 
         String fileName = attachmentGuid.replace(':', '_');
         File attachmentBuFile = new File(backupDir, fileName);
@@ -511,7 +510,7 @@ public class BackupController {
 
     public void copyBase64AttachmentToAttachmentsDir(String attachmentGuid)
             throws LocalizedException {
-        File backupAttachmentDir = mStorageUtil.getCurrentInternalBackupAttachmentDirectory(false);
+        File backupAttachmentDir = mStorageUtil.getInternalBackupAttachmentDirectory(false);
 
         String fileName = attachmentGuid.replace(':', '_');
         File attachmentBuFile = new File(backupAttachmentDir, fileName);
@@ -619,7 +618,7 @@ public class BackupController {
         for (Contact contact : allContacts) {
             JsonObject dataJO = contact.exportPrivateIndexEntryData();
 
-            byte[] imgBytes = mApplication.getChatImageController().loadImage(contact.getAccountGuid());
+            byte[] imgBytes = mApplication.getImageController().loadProfileImageRaw(contact.getAccountGuid());
             if (imgBytes != null && imgBytes.length > 0) {
                 String imgBase64 = Base64.encodeToString(imgBytes, Base64.DEFAULT);
                 dataJO.addProperty(JsonConstants.IMAGE, imgBase64);
@@ -761,7 +760,7 @@ public class BackupController {
                     }
                 }
 
-                byte[] imgBytes = mApplication.getChatImageController().loadImage(chat.getChatGuid());
+                byte[] imgBytes = mApplication.getImageController().loadProfileImageRaw(chat.getChatGuid());
                 if (imgBytes != null && imgBytes.length > 0) {
                     String imgBase64 = Base64.encodeToString(imgBytes, Base64.DEFAULT);
                     innerData.addProperty("groupImage", imgBase64);

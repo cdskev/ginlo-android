@@ -15,7 +15,6 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.activity.chatsOverview.ChatsAdapter;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
-import eu.ginlo_apps.ginlo.util.ImageLoader;
 
 public class ForwardChatListFragment
         extends Fragment {

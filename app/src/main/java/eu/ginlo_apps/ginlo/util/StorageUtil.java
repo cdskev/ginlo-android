@@ -1,6 +1,5 @@
 package eu.ginlo_apps.ginlo.util;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -12,13 +11,8 @@ import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import eu.ginlo_apps.ginlo.ConfigureBackupActivity;
 import eu.ginlo_apps.ginlo.ViewAttachmentActivity;
@@ -28,12 +22,13 @@ import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 
 /**
- * Class with new storage handling methods addressing requirements in newer
- * Android releases.
- *
+ * Class for folder and external data storage handling
  */
 public class StorageUtil {
     private final static String TAG = StorageUtil.class.getSimpleName();
+    private static final String BACKGROUND_IMAGE = "background.jpg";
+    private static final String INTERNAL_PROFILE_IMAGES_DIR = "profileImg";
+    private static final String INTERNAL_ATTACHMENT_DIR = "attachments";
     private static final String INTERNAL_BACKUP_ROOT_DIR = "backup";
     private static final String INTERNAL_BACKUP_SUBDIR = "backup-" + DateUtil.getDateStringInBackupFormat();
     private static final String INTERNAL_BACKUP_UNZIP_SUBDIR = "unzipped";
@@ -43,15 +38,56 @@ public class StorageUtil {
     private final Context context;
     private final SimsMeApplication mApplication;
     private final PreferencesController mPreferencesController;
+
     private final FileUtil mFileUtil;
 
-    private File mCurrentBackupDir = null;
+    private final File mInternalFilesDir;
+    private final File mProfileImagesDir;
+    private final File mAttachmentDir;
 
     public StorageUtil(Context context) {
         this.context = context;
-        mFileUtil = new FileUtil(context);
-        mApplication = (SimsMeApplication) context;
-        mPreferencesController = mApplication.getPreferencesController();
+        this.mFileUtil = new FileUtil(context);
+        this.mApplication = (SimsMeApplication) context;
+        this.mPreferencesController = mApplication.getPreferencesController();
+
+        this.mInternalFilesDir = mApplication.getFilesDir();
+
+        this.mProfileImagesDir = new File(mInternalFilesDir, INTERNAL_PROFILE_IMAGES_DIR);
+        if (!mProfileImagesDir.isDirectory()) {
+            if(!mProfileImagesDir.mkdirs()) {
+                LogUtil.w(TAG, "Failed to create profileImagesDir.");
+            }
+        }
+
+        this.mAttachmentDir = new File(mInternalFilesDir, INTERNAL_ATTACHMENT_DIR);
+        if (!mAttachmentDir.isDirectory()) {
+            if(!mAttachmentDir.mkdirs()) {
+                LogUtil.w(TAG, "Failed to create mAttachmentDir.");
+            }
+        }
+    }
+
+    public File getInternalFilesDir() {
+        return mInternalFilesDir;
+    }
+
+    public File getProfileImageDir() {
+        return mProfileImagesDir;
+    }
+
+    public File getAttachmentDir() {
+        return mAttachmentDir;
+    }
+
+    public void clearProfileImageDir() {
+        synchronized (this) {
+            mFileUtil.deleteAllFilesInDir(mProfileImagesDir);
+        }
+    }
+
+    public File getBackgroundImageFile() {
+        return new File(mInternalFilesDir, BACKGROUND_IMAGE);
     }
 
     /**
@@ -258,22 +294,16 @@ public class StorageUtil {
         return internalBackupSubDir;
     }
 
-    public File getCurrentInternalBackupDirectory(boolean clear) throws LocalizedException {
-        if(mCurrentBackupDir == null) {
-            mCurrentBackupDir = getInternalBackupSubDirectory(INTERNAL_BACKUP_SUBDIR, clear);
-        }
-        return mCurrentBackupDir;
+    public File getInternalBackupDirectory(boolean clear) throws LocalizedException {
+        return getInternalBackupSubDirectory(INTERNAL_BACKUP_SUBDIR, clear);
     }
 
     public File getInternalBackupUnzipDirectory(boolean clear) throws LocalizedException {
         return getInternalBackupSubDirectory(INTERNAL_BACKUP_UNZIP_SUBDIR, clear);
     }
 
-    public File getCurrentInternalBackupAttachmentDirectory(boolean clear) throws LocalizedException {
-        String backupAttachmentPath = getCurrentInternalBackupDirectory(clear).getName()
-                + "/"
-                + INTERNAL_BACKUP_ATTACHMENT_SUBDIR;
-        return getInternalBackupSubDirectory(backupAttachmentPath, clear);
+    public File getInternalBackupAttachmentDirectory(boolean clear) throws LocalizedException {
+        return getInternalBackupSubDirectory(INTERNAL_BACKUP_ATTACHMENT_SUBDIR, clear);
     }
 
 }

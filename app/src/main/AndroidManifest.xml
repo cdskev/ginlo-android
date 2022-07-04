@@ -29,6 +29,15 @@
     <!-- If we have no Google services we need to use long poll to ensure receiving messages -->
     <uses-permission android:name="${appGPermission}"/>
 
+    <!-- SIGH! -->
+    <uses-sdk tools:overrideLibrary=
+        "org.jitsi.meet.sdk, co.apptailor.googlesignin, com.calendarevents, com.reactnativecommunity.asyncstorage, com.reactnativecommunity.netinfo,
+        com.kevinresol.react_native_default_preference, com.rnimmersive, com.corbt.keepawake, com.BV.LinearGradient, com.horcrux.svg, com.oney.WebRTCModule,
+        com.swmansion.rnscreens, com.amplitude.reactnative, com.learnium.RNDeviceInfo, com.reactnativegooglesignin, com.ocetnik.timer, com.reactnativecommunity.clipboard,
+        com.swmansion.gesturehandler.react, org.linusu, org.reactnative.maskedview, com.reactnativepagerview, com.oblador.performance, com.swmansion.reanimated,
+        com.th3rdwave.safeareacontext, com.reactnativecommunity.slider, org.devio.rn.splashscreen, com.brentvatne.react, com.reactnativecommunity.webview"
+    />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -221,7 +230,6 @@
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
@@ -320,7 +328,6 @@
             android:windowSoftInputMode="stateAlwaysHidden">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
@@ -342,7 +349,7 @@
         <activity
             android:name=".activity.chat.SingleChatActivity"
             android:configChanges="orientation|screenSize"
-            android:exported="false"
+            android:exported="true"
             android:launchMode="singleTop"
             android:label=""
             android:windowSoftInputMode="stateUnchanged|adjustResize" />
@@ -478,9 +485,7 @@
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <data android:mimeType="audio/*" />
                 <data android:mimeType="video/*" />
                 <data android:mimeType="image/*" />
@@ -489,9 +494,7 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND_MULTIPLE" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <data android:mimeType="image/*" />
             </intent-filter>
         </activity>

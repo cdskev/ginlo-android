@@ -11,6 +11,7 @@ import android.view.View
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemClick
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemLongClick
+import eu.ginlo_apps.ginlo.controller.ImageController
 import eu.ginlo_apps.ginlo.controller.message.SingleChatController
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.greendao.Contact
@@ -20,8 +21,8 @@ import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.ChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.GroupChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.SingleChatOverviewItemVO
+import eu.ginlo_apps.ginlo.util.ImageUtil
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
-import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.TimeUtil
 import eu.ginlo_apps.ginlo.util.ViewUtil
 import kotlinx.android.synthetic.main.chat_overview_item_single_layout.view.chat_overview_item_important_icon
@@ -39,21 +40,18 @@ import kotlinx.android.synthetic.main.chat_overview_item_single_layout.view.trus
 class ChatOverviewItemVH(
     private val singleChatController: SingleChatController,
     private val defaultDisplay: Display,
-    imageLoader: ImageLoader,
+    imageController: ImageController,
     timeUtil: TimeUtil,
     itemView: View,
     onChatItemClick: OnChatItemClick?,
     onChatItemLongClick: OnChatItemLongClick?
-) : ChatOverviewBaseItemVH(itemView, imageLoader, timeUtil, onChatItemClick, onChatItemLongClick) {
+) : ChatOverviewBaseItemVH(itemView, imageController, timeUtil, onChatItemClick, onChatItemLongClick) {
+
     override fun setItem(item: BaseChatOverviewItemVO) {
         configureTrustedState(item)
-
         configureAvatarLayout(item)
-
         configureDateTextView(item)
-
         configureTitleLayout(item)
-
         configurePreviewLayout(item)
 
         itemView.setOnClickListener { onChatItemClick?.onClick(item) }
@@ -100,23 +98,9 @@ class ChatOverviewItemVH(
     }
 
     private fun configureAvatarLayout(item: BaseChatOverviewItemVO) {
+        //LogUtil.d("ChatOverviewItemVH", "configureAvatarLayout: Called for ${item.title} (${item.chatGuid})")
         val maskedAvatarView = itemView.chat_overview_item_mask_image_view_chat_image
-
-        val resourceId = when (item) {
-            is SingleChatOverviewItemVO -> {
-                if (item.isSystemChat) {
-                    R.drawable.ginlo_avatar
-                } else {
-                    R.drawable.gfx_profil_placeholder
-                }
-            }
-            is GroupChatOverviewItemVO -> R.drawable.gfx_group_placeholder
-            else -> -1
-
-        }
-
-        if (resourceId > -1)
-            imageLoader.loadImage(item.chatGuid, maskedAvatarView, getBitmap(resourceId))
+        imageController.fillViewWithProfileImageByGuid(item.chatGuid, maskedAvatarView, ImageUtil.SIZE_CHAT_OVERVIEW, false)
     }
 
     private fun getBitmap(resourceId: Int): Bitmap =
@@ -260,6 +244,8 @@ class ChatOverviewItemVH(
                 BaseChatOverviewItemVO.MSG_MEDIA_TYPE_DESTROY -> R.drawable.media_destroy
 
                 BaseChatOverviewItemVO.MSG_MEDIA_TYPE_FILE -> R.drawable.media_data
+
+                BaseChatOverviewItemVO.MSG_MEDIA_TYPE_RICH_CONTENT -> R.drawable.media_camera_roll
 
                 else -> -1
             }

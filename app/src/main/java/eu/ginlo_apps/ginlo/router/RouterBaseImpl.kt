@@ -9,7 +9,7 @@ import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.controller.GinloAppLifecycle
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.router.RouterConstants.ADJUST_PICTURE_RESULT_CODE
-import eu.ginlo_apps.ginlo.router.RouterConstants.SELECT_GALLARY_RESULT_CODE
+import eu.ginlo_apps.ginlo.router.RouterConstants.SELECT_GALLERY_RESULT_CODE
 import eu.ginlo_apps.ginlo.view.cropimage.CropImageActivity
 import java.io.File
 
@@ -66,7 +66,7 @@ abstract class RouterBaseImpl(protected val appLifecycle: GinloAppLifecycle) : R
         Intent(Intent.ACTION_GET_CONTENT).apply {
             type = "image/*"
         }.let {
-            startExternalActivityForResult(it, SELECT_GALLARY_RESULT_CODE)
+            startExternalActivityForResult(it, SELECT_GALLERY_RESULT_CODE)
         }
     }
 

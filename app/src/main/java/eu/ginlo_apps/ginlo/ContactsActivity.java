@@ -4,7 +4,6 @@ package eu.ginlo_apps.ginlo;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -16,7 +15,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -38,18 +36,14 @@ import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.fragment.BaseContactsFragment;
 import eu.ginlo_apps.ginlo.fragment.ContactsFragment;
-import eu.ginlo_apps.ginlo.greendao.CompanyContact;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.model.param.SendActionContainer;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
-import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;
 import eu.ginlo_apps.ginlo.util.FileUtil;
-import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.view.AlertDialogWrapper;
 import eu.ginlo_apps.ginlo.view.FloatingActionButton;
@@ -456,7 +450,7 @@ public class ContactsActivity
                 dialog.show();
             } else if (!StringUtil.isNullOrEmpty(contact.getEmail())) {
                 final Intent intent = new Intent(Intent.ACTION_SENDTO);
-                intent.setDataAndType(Uri.parse("mailto:" + contact.getEmail()), MimeType.TEXT_PLAIN);
+                intent.setDataAndType(Uri.parse("mailto:" + contact.getEmail()), MimeUtil.MIME_TYPE_TEXT_PLAIN);
                 intent.putExtra(Intent.EXTRA_EMAIL, new String[]{contact.getEmail()});
                 intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.contacts_eMailMessageSubject));
                 intent.putExtra(Intent.EXTRA_TEXT, getString(R.string.contacts_eMailMessageBody));
@@ -496,6 +490,7 @@ public class ContactsActivity
 
     @Override
     protected void onNewIntent(Intent intent) {
+        LogUtil.d(TAG, "onNewIntent: called with " + intent);
         super.onNewIntent(intent);
 
         if (mExceptionWasThrownInOnCreate) {
@@ -512,7 +507,7 @@ public class ContactsActivity
         //Die Activity darf nicht gefinshed werden, da bei einem "Öffnen in" die Permission auf die Datei entfallen
         //von FPL
         if (!mExceptionWasThrownInOnCreate || !mAfterCreate) {
-            LogUtil.d("FORWARD_ACT", "FINSISH!");
+            LogUtil.d(TAG, "finish: called.");
             super.finish();
         }
     }
@@ -629,71 +624,4 @@ public class ContactsActivity
             LogUtil.w("ContactsActivity", "ShowFabButton", e);
         }
     }
-
-    protected ImageLoader initImageLoader() {
-        ImageLoader imageLoader = new ImageLoader(this, (int) getResources().getDimension(R.dimen.contact_item_multi_select_icon_diameter), false) {
-            @Override
-            protected Bitmap processBitmap(Object data) {
-                if (data == null) {
-                    return null;
-                }
-
-                try {
-                    String accountGuid = null;
-                    if (data instanceof String) {
-                        accountGuid = (String) data;
-                    } else if (data instanceof CompanyContact) {
-                        accountGuid = ((CompanyContact) data).getAccountGuid();
-                    } else if (data instanceof Contact) {
-                        accountGuid = ((Contact) data).getAccountGuid();
-                    }
-
-                    if (!StringUtil.isNullOrEmpty(accountGuid)) {
-                        return getSimsMeApplication().getChatImageController().getImageByGuidWithoutCacheing(accountGuid,
-                                getImageSize(), getImageSize());
-                    }
-
-                    Bitmap returnImage = null;
-
-                    if (data instanceof Contact) {
-                        Contact contact = (Contact) data;
-
-                        if (((contact.getIsSimsMeContact() == null) || !contact.getIsSimsMeContact())
-                                && (contact.getPhotoUri() != null)) {
-                            returnImage = ContactUtil.loadContactPhotoThumbnail(contact.getPhotoUri(), getImageSize(), ContactsActivity.this);
-                        }
-
-                        if (returnImage == null) {
-                            returnImage = mContactController.getFallbackImageByContact(getSimsMeApplication(), contact);
-                        }
-
-                        if (returnImage == null) {
-                            returnImage = getSimsMeApplication().getChatImageController().getImageByGuidWithoutCacheing(AppConstants.GUID_PROFILE_USER,
-                                    getImageSize(), getImageSize());
-                        }
-                    }
-
-                    return returnImage;
-                } catch (LocalizedException e) {
-                    LogUtil.w("Image Loader Contacts Activity", "Image can't be loaded.", e);
-                    return null;
-                }
-            }
-
-            @Override
-            protected void processBitmapFinished(Object data, ImageView imageView) {
-                //Nothing to do
-            }
-        };
-
-        // Add a cache to the image loader
-        imageLoader.addImageCache(getSupportFragmentManager(), 0.1f);
-        imageLoader.setImageFadeIn(false);
-        imageLoader.setLoadingImage(R.drawable.gfx_profil_placeholder);
-
-        getSimsMeApplication().getChatImageController().addListener(imageLoader);
-
-        return imageLoader;
-    }
-
 }

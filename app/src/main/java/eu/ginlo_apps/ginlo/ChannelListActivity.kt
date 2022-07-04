@@ -19,34 +19,25 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import dagger.android.AndroidInjection
 import eu.ginlo_apps.ginlo.activity.chat.BaseChatActivity
 import eu.ginlo_apps.ginlo.activity.chat.ChannelChatActivity
+import eu.ginlo_apps.ginlo.activity.chat.SingleChatActivity
 import eu.ginlo_apps.ginlo.adapter.ChannelRecycleViewAdapter
 import eu.ginlo_apps.ginlo.adapter.ChannelRecycleViewAdapter.OnChannelItemClickListener
 import eu.ginlo_apps.ginlo.adapter.FilterChannelsAdapter
 import eu.ginlo_apps.ginlo.controller.ChannelController
 import eu.ginlo_apps.ginlo.controller.ChannelController.ChannelAsyncLoaderCallback
 import eu.ginlo_apps.ginlo.controller.ChannelController.ChannelIdentifier
-import eu.ginlo_apps.ginlo.controller.ChatImageController
 import eu.ginlo_apps.ginlo.data.network.AppConnectivity
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.log.LogUtil
 import eu.ginlo_apps.ginlo.model.backend.ChannelCategoryModel
 import eu.ginlo_apps.ginlo.model.backend.ChannelListModel
-import eu.ginlo_apps.ginlo.util.DialogBuilderUtil
+import eu.ginlo_apps.ginlo.util.*
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil.OnCloseListener
-import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
-import eu.ginlo_apps.ginlo.util.ImageLoader
-import eu.ginlo_apps.ginlo.util.UrlHandlerUtil
 import eu.ginlo_apps.ginlo.view.ThemedSearchView
-import kotlinx.android.synthetic.main.activity_channel_list.activity_channel_progress
-import kotlinx.android.synthetic.main.activity_channel_list.channel_empty_list_message
-import kotlinx.android.synthetic.main.activity_channel_list.channel_list_filter_listview
-import kotlinx.android.synthetic.main.activity_channel_list.channel_list_filter_menu
-import kotlinx.android.synthetic.main.activity_channel_list.channel_recycler_view
+import kotlinx.android.synthetic.main.activity_channel_list.*
 import java.io.IOException
 import java.lang.ref.WeakReference
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.Comparator
+import java.util.*
 import javax.inject.Inject
 
 class ChannelListActivity : BaseActivity(), OnChannelItemClickListener,
@@ -451,7 +442,7 @@ class ChannelListActivity : BaseActivity(), OnChannelItemClickListener,
     }
 
     private fun initImageLoader(): ImageLoader {
-        val imageLoader = object : ImageLoader(this, ChatImageController.SIZE_CHAT_OVERVIEW, true) {
+        val imageLoader = object : ImageLoader(this, ImageUtil.SIZE_CHAT_OVERVIEW, true) {
             override fun processBitmap(data: Any): Bitmap? {
                 return try {
                     val ci = data as ChannelIdentifier
@@ -531,6 +522,7 @@ class ChannelListActivity : BaseActivity(), OnChannelItemClickListener,
     }
 
     override fun onNewIntent(intent: Intent) {
+        LogUtil.d("ChannelListActivity", "onNewIntent: called with $intent")
         super.onNewIntent(intent)
         setIntent(intent)
     }

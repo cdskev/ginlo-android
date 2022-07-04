@@ -382,7 +382,7 @@
     <string name="chats_selfDestruction_date_title">Zeitpunkt</string>
     <string name="chats_selfdestruction_countdown_second">Sekunde</string>
     <string name="chats_selfdestruction_countdown_seconds">Sekunden</string>
-    <string name="chats_selfdestruction_invalid_date">Bitte wählen Sie ein Datum in der Zukunft. Die Zeitreise-Funktion ist leider noch nicht fertig. ;-)</string>
+    <string name="chats_selfdestruction_invalid_date">Bitte wählen Sie ein Datum in der Zukunft.</string>
     <string name="chats_selfdestruction_sddate_before_senddate">Der Selbstzerstörungszeitpunkt liegt vor dem Versandzeitpunkt</string>
     <string name="chats_share">Teilen</string>
     <string name="chats_showPicture_destroyedIn">Selbstzerstörung in</string>
@@ -1350,4 +1350,7 @@ Wunderbar, dann nur noch bestätigen.</string>
     <string name="settings_others_use_osm_text">OpenStreetMap verwenden</string>
     <string name="settings_others_use_polling_text">Nachrichten pollen (kann den Akkuverbrauch erhöhen!)</string>
     <string name="settings_chat_use_internal_pdf_viewer">Internen Reader für pdf-Dateien verwenden</string>
+    <string name="settings_chat_always_download_rich_content">Sticker sofort herunterladen</string>
+    <string name="settings_chat_animate_rich_content">Sticker-Animationen zeigen</string>
+    <string name="chat_overview_preview_rich_content">Sticker</string>
 </resources>

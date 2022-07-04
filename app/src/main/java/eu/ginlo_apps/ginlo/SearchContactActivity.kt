@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -15,7 +14,6 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil
 import com.google.i18n.phonenumbers.Phonenumber
 import com.google.zxing.integration.android.IntentIntegrator
 import dagger.android.AndroidInjection
-import eu.ginlo_apps.ginlo.activity.register.IntroBaseActivity
 import eu.ginlo_apps.ginlo.data.network.AppConnectivity
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.fragment.CountryCodeUtil
@@ -29,7 +27,6 @@ import eu.ginlo_apps.ginlo.util.Listener.GenericActionListener
 import kotlinx.android.synthetic.main.activity_search_contact.*
 import java.util.*
 import javax.inject.Inject
-import kotlin.collections.ArrayList
 import kotlin.collections.set
 
 class SearchContactActivity : BaseActivity() {
@@ -89,7 +86,7 @@ class SearchContactActivity : BaseActivity() {
     }
 
     override fun onNewIntent(intent: Intent?) {
-        LogUtil.d(TAG, "onNewIntent: Called!");
+        LogUtil.d(TAG, "onNewIntent: called with $intent")
         super.onNewIntent(intent)
     }
 

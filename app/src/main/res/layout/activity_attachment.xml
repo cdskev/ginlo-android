@@ -37,6 +37,13 @@
                     android:adjustViewBounds="true"
                     android:scaleType="fitCenter" />
 
+                <eu.ginlo_apps.ginlo.components.RLottieImageView
+                    android:id="@+id/attachment_rlottie_image_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
+
                 <com.google.android.exoplayer2.ui.StyledPlayerView
                     android:id="@+id/attachment_video_view"
                     android:layout_width="match_parent"

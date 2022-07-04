@@ -175,7 +175,7 @@ public class ContactsActivityBusiness
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         mContactSearchRecyclerView.setLayoutManager(layoutManager);
 
-        mContactSearchAdapter = new SearchContactsCursorAdapter(this, null, initImageLoader());
+        mContactSearchAdapter = new SearchContactsCursorAdapter(this, null, imageController);
         mContactSearchAdapter.setItemClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

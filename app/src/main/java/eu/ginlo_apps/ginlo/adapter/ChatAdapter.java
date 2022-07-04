@@ -4,11 +4,13 @@ package eu.ginlo_apps.ginlo.adapter;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.AnimationDrawable;
+import android.net.Uri;
 import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -36,20 +38,24 @@ import androidx.emoji.widget.EmojiAppCompatTextView;
 import com.google.zxing.Dimension;
 
 import eu.ginlo_apps.ginlo.BuildConfig;
+import eu.ginlo_apps.ginlo.ContactDetailActivity;
 import eu.ginlo_apps.ginlo.OnLinkClickListener;
 import eu.ginlo_apps.ginlo.R;
+import eu.ginlo_apps.ginlo.components.RLottieImageView;
 import eu.ginlo_apps.ginlo.concurrent.listener.ConcurrentTaskListener;
 import eu.ginlo_apps.ginlo.concurrent.task.ConcurrentTask;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AVChatController;
 import eu.ginlo_apps.ginlo.controller.AttachmentController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.controller.TaskManagerController;
+import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Channel;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.greendao.Message;
 import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.model.DecryptedMessage;
 import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.model.backend.ChannelModel;
 import eu.ginlo_apps.ginlo.model.chat.AppGinloControlChatItemVO;
@@ -59,6 +65,7 @@ import eu.ginlo_apps.ginlo.model.chat.ChannelSelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.FileChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.ImageChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.LocationChatItemVO;
+import eu.ginlo_apps.ginlo.model.chat.RichContentChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.SelfDestructionChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.SystemInfoChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.TextChatItemVO;
@@ -66,18 +73,19 @@ import eu.ginlo_apps.ginlo.model.chat.VCardChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.AVChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VideoChatItemVO;
 import eu.ginlo_apps.ginlo.model.chat.VoiceChatItemVO;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.ChannelColorUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
 import eu.ginlo_apps.ginlo.util.MetricsUtil;
-import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.view.MaskImageView;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -85,11 +93,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ChatAdapter
-        extends ArrayAdapter<BaseChatItemVO> {
+public class ChatAdapter extends ArrayAdapter<BaseChatItemVO> {
 
     private static final int LOCATION_WIDTH_OFFSET = 15;
     private static final String TAG = ChatAdapter.class.getSimpleName();
+
+    // Set this to true if a click on a quote in a message should lead to the
+    // original quoted message.
+    // Set to false if ca click on the citate has no effect.
+    private static final boolean CITATE_IS_CLICKABLE = false;
 
     private final TaskManagerController taskManagerController;
     private final String[] directionMapping;
@@ -99,7 +111,7 @@ public class ChatAdapter
     private final AttachmentController mAttachmentController;
     private final AVChatController avChatController;
     private final ContactController mContactController;
-    private final ChatImageController mChatImageController;
+    private final ImageController mImageController;
     private final SparseArrayCompat<ProgressBar> mProgressBarsMap;
     private final SparseArrayCompat<View> mPositionToViewMapping;
     private boolean mShowTimedMessages;
@@ -107,6 +119,7 @@ public class ChatAdapter
     private CustomLinkMovementMethod mMovementMethod;
     private OnLinkClickListener mLinkClickListener;
     private ChannelColorUtil mCcu;
+    private final Activity mActivity;
     private final Context mContext;
 
     public ChatAdapter(final Activity activity,
@@ -118,6 +131,7 @@ public class ChatAdapter
                         final Context context) {
         super(activity, layoutResourceId, data);
 
+        mActivity = activity;
         mContext = context;
         this.taskManagerController = taskManagerController;
         mChatGuid = chatGuid;
@@ -125,7 +139,7 @@ public class ChatAdapter
         mAttachmentController = mApplication.getAttachmentController();
         avChatController = mApplication.getAVChatController();
         mContactController = mApplication.getContactController();
-        mChatImageController = mApplication.getChatImageController();
+        mImageController = mApplication.getImageController();
 
         directionMapping = new String[2];
         directionMapping[BaseChatItemVO.DIRECTION_LEFT] = "left";
@@ -145,6 +159,7 @@ public class ChatAdapter
         itemToTagMapping.put(SelfDestructionChatItemVO.class.getName(), "self_destruction");
         itemToTagMapping.put(SystemInfoChatItemVO.class.getName(), "system_info");
         itemToTagMapping.put(ChannelSelfDestructionChatItemVO.class.getName(), "self_destruction_channel");
+        itemToTagMapping.put(RichContentChatItemVO.class.getName(), "richcontent");
         itemToTagMapping.put(FileChatItemVO.class.getName(), "file");
 
         mProgressBarsMap = new SparseArrayCompat<>();
@@ -266,9 +281,11 @@ public class ChatAdapter
             fillSelfDestructionChatItem(linearLayout, (SelfDestructionChatItemVO) chatItemVO);
         } else if (chatItemVO instanceof SystemInfoChatItemVO) {
             fillSystemInfoChatItem(linearLayout, (SystemInfoChatItemVO) chatItemVO);
+        } else if (chatItemVO instanceof RichContentChatItemVO) {
+            fillRichContentChatItem(linearLayout, (RichContentChatItemVO) chatItemVO);
         } else if (chatItemVO instanceof FileChatItemVO) {
             fillFileChatItem(linearLayout, (FileChatItemVO) chatItemVO);
-        }
+    }
 
         // Aktuell verwenden wir die gecachten Items sowieso nicht
         // Wenn wir diese Zeile auskommentieren, braucht das anlegen einen viewItem statt > 30 ms eher < 10 ms
@@ -309,6 +326,12 @@ public class ChatAdapter
 
         if (commentRoot == null) return;
 
+        if(!CITATE_IS_CLICKABLE) {
+            commentRoot.setFocusable(false);
+            commentRoot.setClickable(false);
+            commentRoot.setOnClickListener(null);
+        }
+
         if (chatItemVO.citation != null) {
             commentRoot.setTag(chatItemVO.citation.msgGuid);
             commentRoot.setVisibility(View.VISIBLE);
@@ -328,7 +351,7 @@ public class ChatAdapter
                 return;
             }
 
-            if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeType.IMAGE_JPEG)) {
+            if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeUtil.MIME_TYPE_IMAGE_JPEG)) {
                 final ImageView contentImageView = commentRoot.findViewById(R.id.comment_image);
                 contentImageView.setImageBitmap(chatItemVO.citation.previewImage);
                 contentImageView.setVisibility(View.VISIBLE);
@@ -337,7 +360,7 @@ public class ChatAdapter
                 } else {
                     contentTextView.setText(getContext().getResources().getString(R.string.export_chat_type_image));
                 }
-            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeType.VIDEO_MPEG)) {
+            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeUtil.MIME_TYPE_VIDEO_MPEG)) {
                 final ImageView contentImageView = commentRoot.findViewById(R.id.comment_image);
                 contentImageView.setImageBitmap(chatItemVO.citation.previewImage);
                 contentImageView.setVisibility(View.VISIBLE);
@@ -346,7 +369,7 @@ public class ChatAdapter
                 } else {
                     contentTextView.setText(getContext().getResources().getString(R.string.export_chat_type_video));
                 }
-            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeType.MODEL_LOCATION)) {
+            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeUtil.MIME_TYPE_MODEL_LOCATION)) {
                 final ImageView contentImageView = commentRoot.findViewById(R.id.comment_image);
                 contentImageView.setImageBitmap(chatItemVO.citation.previewImage);
                 contentImageView.setVisibility(View.VISIBLE);
@@ -355,23 +378,24 @@ public class ChatAdapter
                 } else {
                     contentTextView.setText(getContext().getResources().getString(R.string.export_chat_type_location));
                 }
-            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeType.TEXT_PLAIN)
-                    || StringUtil.isEqual(chatItemVO.citation.contentType, MimeType.APP_OCTET_STREAM)) {
+            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeUtil.MIME_TYPE_TEXT_PLAIN)
+                    || MimeUtil.hasUnspecificBinaryMimeType(chatItemVO.citation.contentType)
+                    || MimeUtil.isRichContentMimetype(chatItemVO.citation.contentType)) {
                 contentTextView.setText(chatItemVO.citation.text);
-            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeType.TEXT_RSS) && nameTextView != null) {
+            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeUtil.MIME_TYPE_TEXT_RSS) && nameTextView != null) {
                 nameTextView.setText("");
                 contentTextView.setText(chatItemVO.citation.text);
-            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeType.TEXT_V_CARD)) {
+            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeUtil.MIME_TYPE_TEXT_V_CARD)) {
                 if (chatItemVO.citation.contentDesc != null) {
                     String vCardContactName = String.format(" \"%s\"", chatItemVO.citation.contentDesc);
                     contentTextView.setText(getContext().getResources().getString(R.string.chat_input_reply_contact) + vCardContactName);
                 } else {
                     contentTextView.setText(getContext().getResources().getString(R.string.chat_input_reply_contact));
                 }
-            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeType.AUDIO_MPEG)) {
+            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeUtil.MIME_TYPE_AUDIO_MPEG)) {
                 contentTextView.setText(getContext().getResources().getString(R.string.export_chat_type_audio));
                 // KS: AVC. Silly, it makes no sense to answer with citing an avc message.
-            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeType.TEXT_V_CALL)) {
+            } else if (StringUtil.isEqual(chatItemVO.citation.contentType, MimeUtil.MIME_TYPE_TEXT_V_CALL)) {
                 contentTextView.setText(getContext().getResources().getString(R.string.export_chat_type_avc));
             }
             contentTextView.setVisibility(View.VISIBLE);
@@ -473,111 +497,104 @@ public class ChatAdapter
         // Get sender image and set their avatar
         if (chatItemVO.type != BaseChatItemVO.TYPE_CHANNEL) {
             final MaskImageView maskedAvatarView = linearLayout.findViewById(R.id.chat_item_mask_image_view_chat_image);
-            Bitmap avatarBmp = null;
 
-            if (GuidUtil.isSystemChat(chatItemVO.getFromGuid())) {
-                avatarBmp = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.ginlo_avatar);
-            } else {
-                try {
-                    avatarBmp = mChatImageController.getImageByGuid(chatItemVO.getFromGuid(), -1);
+            try {
+                // Set up trust level information
+                if (chatItemVO.direction == BaseChatItemVO.DIRECTION_LEFT) {
+                    final TextView contactTypeTextView = linearLayout.findViewById(R.id.chat_item_contact_type);
 
-                    // Set up trust level information
-                    if (chatItemVO.direction == BaseChatItemVO.DIRECTION_LEFT) {
-                        final TextView contactTypeTextView = linearLayout.findViewById(R.id.chat_item_contact_type);
+                    // Default fillings
+                    int indicatorColor = ScreenDesignUtil.getInstance().getLowColor(mApplication);
+                    int indicatorContrastColor = ScreenDesignUtil.getInstance().getLowContrastColor(mApplication);
+                    String tmpTextViewText = "     ";
 
-                        // Default fillings
-                        int indicatorColor = ScreenDesignUtil.getInstance().getLowColor(mApplication);
-                        int indicatorContrastColor = ScreenDesignUtil.getInstance().getLowContrastColor(mApplication);
-                        String tmpTextViewText = "     ";
+                    final Contact contact = mContactController.getContactByGuid(chatItemVO.getFromGuid());
+                    if(contact != null) {
+                        switch(contact.getState()) {
+                            case Contact.STATE_HIGH_TRUST:
+                                indicatorColor = ScreenDesignUtil.getInstance().getHighColor(mApplication);
+                                indicatorContrastColor = ScreenDesignUtil.getInstance().getHighContrastColor(mApplication);
+                                break;
+                            case Contact.STATE_MIDDLE_TRUST:
+                                indicatorColor = ScreenDesignUtil.getInstance().getMediumColor(mApplication);
+                                indicatorContrastColor = ScreenDesignUtil.getInstance().getMediumContrastColor(mApplication);
+                                break;
+                            case Contact.STATE_LOW_TRUST:
+                            default:
+                                // Special filling for red green blindness
+                                tmpTextViewText = " !!! ";
+                        }
 
-                        final Contact contact = mContactController.getContactByGuid(chatItemVO.getFromGuid());
-                        if(contact != null) {
-                            switch(contact.getState()) {
-                                case Contact.STATE_HIGH_TRUST:
-                                    indicatorColor = ScreenDesignUtil.getInstance().getHighColor(mApplication);
-                                    indicatorContrastColor = ScreenDesignUtil.getInstance().getHighContrastColor(mApplication);
-                                    break;
-                                case Contact.STATE_MIDDLE_TRUST:
-                                    indicatorColor = ScreenDesignUtil.getInstance().getMediumColor(mApplication);
-                                    indicatorContrastColor = ScreenDesignUtil.getInstance().getMediumContrastColor(mApplication);
-                                    break;
-                                case Contact.STATE_LOW_TRUST:
-                                default:
-                                    // Special filling for red green blindness
-                                    tmpTextViewText = " !!! ";
-                            }
+                        // KS: These may be user settings in the future
+                        final boolean showAccountLabel = true;
+                        final boolean onlyShowForeignAccountTypes = true;
 
-                            // KS: These may be user settings in the future
-                            final boolean showAccountLabel = true;
-                            final boolean onlyShowForeignAccountTypes = true;
+                        String contactTypeIdent;
+                        if(showAccountLabel && (contactTypeIdent = contact.getMandant()) != null) {
+                            final Mandant contactType = mApplication.getPreferencesController().getMandantFromIdent(contactTypeIdent);
 
-                            String contactTypeIdent;
-                            if(showAccountLabel && (contactTypeIdent = contact.getMandant()) != null) {
-                                final Mandant contactType = mApplication.getPreferencesController().getMandantFromIdent(contactTypeIdent);
-
-                                if (contactTypeTextView != null && contactType != null) {
-                                    // Show some user information including account type (business/private)
-                                    if (StringUtil.isNullOrEmpty(contactType.ident) || StringUtil.isEqual(BuildConfig.SIMSME_MANDANT_DEFAULT, contactType.ident)) {
-                                        if (onlyShowForeignAccountTypes) {
-                                            // Only show "private" label if we are a business account type
-                                            if (RuntimeConfig.isBAMandant()) {
-                                                tmpTextViewText = (String) mApplication.getResources().getText(R.string.private_contact_label_text);
-                                            }
-                                        } else {
-                                            // Always show account label
+                            if (contactTypeTextView != null && contactType != null) {
+                                // Show some user information including account type (business/private)
+                                if (StringUtil.isNullOrEmpty(contactType.ident) || StringUtil.isEqual(BuildConfig.SIMSME_MANDANT_DEFAULT, contactType.ident)) {
+                                    if (onlyShowForeignAccountTypes) {
+                                        // Only show "private" label if we are a business account type
+                                        if (RuntimeConfig.isBAMandant()) {
                                             tmpTextViewText = (String) mApplication.getResources().getText(R.string.private_contact_label_text);
                                         }
-                                    } else if (!StringUtil.isNullOrEmpty(contactType.label)) {
-                                        if (onlyShowForeignAccountTypes) {
-                                            // Only show label if contact account type differs from ours
-                                            if (!BuildConfig.SIMSME_MANDANT.equals(contactType.ident)) {
-                                                tmpTextViewText = contactType.label;
-                                            }
-                                        } else {
-                                            // Always show account label
+                                    } else {
+                                        // Always show account label
+                                        tmpTextViewText = (String) mApplication.getResources().getText(R.string.private_contact_label_text);
+                                    }
+                                } else if (!StringUtil.isNullOrEmpty(contactType.label)) {
+                                    if (onlyShowForeignAccountTypes) {
+                                        // Only show label if contact account type differs from ours
+                                        if (!BuildConfig.SIMSME_MANDANT.equals(contactType.ident)) {
                                             tmpTextViewText = contactType.label;
                                         }
+                                    } else {
+                                        // Always show account label
+                                        tmpTextViewText = contactType.label;
                                     }
                                 }
                             }
                         }
-
-                        if (contactTypeTextView != null) {
-                            contactTypeTextView.setText(tmpTextViewText);
-                            contactTypeTextView.setTextColor(indicatorContrastColor);
-                            contactTypeTextView.getBackground().setColorFilter(indicatorColor, PorterDuff.Mode.SRC_ATOP);
-                            contactTypeTextView.setVisibility(View.VISIBLE);
-                        }
                     }
-                } catch (Exception e) {
-                    LogUtil.w(TAG, "setMessageDetails: Could not set avatar/info for Guid " + chatItemVO.getFromGuid() + ": " + e.getMessage());
-                }
-            }
 
-            if(avatarBmp == null) {
-                avatarBmp = BitmapFactory.decodeResource(getContext().getResources(), R.drawable.gfx_profil_placeholder);
+                    if (contactTypeTextView != null) {
+                        contactTypeTextView.setText(tmpTextViewText);
+                        contactTypeTextView.setTextColor(indicatorContrastColor);
+                        contactTypeTextView.getBackground().setColorFilter(indicatorColor, PorterDuff.Mode.SRC_ATOP);
+                        contactTypeTextView.setVisibility(View.VISIBLE);
+                    }
+                }
+            } catch (Exception e) {
+                LogUtil.w(TAG, "setMessageDetails: Could not set avatar/info for Guid " + chatItemVO.getFromGuid() + ": " + e.getMessage());
             }
 
             if(maskedAvatarView != null) {
                 maskedAvatarView.setMaskRatio(1.0f);
-                maskedAvatarView.setImageBitmap(avatarBmp);
-            }
+                mImageController.fillViewWithProfileImageByGuid(chatItemVO.getFromGuid(), maskedAvatarView, ImageUtil.SIZE_ORIGINAL, false);
 
-            /*
-            mProfileClickListener = new OnClickListener() {
-                @Override
-                public void onClick(final View v) {
-                    final Intent intent = new Intent(SingleChatActivity.this, ContactDetailActivity.class);
+                // Allow for click on profile image
+                View.OnClickListener profileOnClickListener = v -> {
+                    final Intent intent = new Intent(mActivity, ContactDetailActivity.class);
 
-                    intent.putExtra(ContactDetailActivity.EXTRA_CONTACT, mContact);
-                    intent.putExtra(ContactDetailActivity.EXTRA_MODE, ContactDetailActivity.MODE_NO_SEND_BUTTON);
-                    startActivity(intent);
+                    try {
+                        Contact contact = mContactController.getContactByGuid(chatItemVO.getFromGuid());
+                        intent.putExtra(ContactDetailActivity.EXTRA_CONTACT, contact);
+                        intent.putExtra(ContactDetailActivity.EXTRA_MODE, ContactDetailActivity.MODE_NO_SEND_BUTTON);
+                        //intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        mActivity.startActivity(intent);
+                    } catch (LocalizedException e) {
+                        LogUtil.e(TAG, "setMessageDetails: Could not find contact " + chatItemVO.getFromGuid() + ": " + e.getMessage());
+                    }
+                };
+
+                // Only for chat partners not for us.
+                if (!GuidUtil.isSystemChat(chatItemVO.getFromGuid()) && chatItemVO.direction == BaseChatItemVO.DIRECTION_LEFT) {
+                    maskedAvatarView.setOnClickListener(profileOnClickListener);
                 }
-            };
-            final View titleContainer = getToolbar().findViewById(R.id.toolbar_title_container);
-                titleContainer.setOnClickListener(mProfileClickListener);
-
-             */
+            }
         }
     }
 
@@ -592,17 +609,17 @@ public class ChatAdapter
                                   final TextChatItemVO textChatItemVO) {
         final TextView textView = linearLayout.findViewById(R.id.chat_item_text_view_message);
         if (textView != null) {
-            //Pattern pattern = Pattern.compile(RuntimeConfig.getScheme() + ":\\/\\/\\S*");
-            //KS: Linkify *all* URLs
-            Pattern pattern = Pattern.compile("[A-Za-z0-9_.\\-~]+" + ":\\/\\/\\S*");
+            Pattern pattern = Pattern.compile("ginlo[A-Za-z0-9_.\\\\-~]*:\\/\\/\\S*");
             String text = textChatItemVO.message;
             Matcher m = pattern.matcher(text);
             if (m.find()) {
                 String replaceBy = text.substring(m.start(), m.end());
                 textView.setText(StringUtil.replaceUrlNew(text, replaceBy, pattern, false));
+                //LogUtil.d(TAG, "fillTextChatItem: replaceUrlNew result = " + textView.getText());
             } else {
                 textView.setText(textChatItemVO.message);
                 Linkify.addLinks(textView, Linkify.WEB_URLS);
+                //LogUtil.d(TAG, "fillTextChatItem: Linkify.addLinks result = " + textView.getText());
             }
             textView.setMovementMethod(getLinkMovementMethod());
             if(textChatItemVO.direction == BaseChatItemVO.DIRECTION_RIGHT)
@@ -777,7 +794,7 @@ public class ChatAdapter
                 if (StringUtil.isNullOrEmpty(filename)) {
                     mimeType = "";
                 } else {
-                    mimeType = MimeUtil.getMimeTypeFromPath(filename);
+                    mimeType = MimeUtil.getMimeTypeFromFilename(filename);
                 }
                 if (mimeType == null) {
                     mimeType = "";
@@ -789,6 +806,11 @@ public class ChatAdapter
                     placeholder = BitmapFactory.decodeResource(getContext().getResources(), resID);
                 }
                 foreground.setImageBitmap(placeholder);
+
+
+                LogUtil.d(TAG, "fillFileChatItem: fillFileChatItem.attachment = " + fileChatItemVO.attachmentGuid);
+                LogUtil.d(TAG, "fillFileChatItem: fillFileChatItem.fileMimeType = " + mimeType);
+
 
                 final ProgressBar progressBar = linearLayout.findViewById(R.id.progressBar_download);
                 final ImageView progressBarImage = linearLayout.findViewById(R.id.progressBar_download_image);
@@ -811,8 +833,120 @@ public class ChatAdapter
                 background.setImageBitmapFormColor(ScreenDesignUtil.getInstance().getChatItemColor((Application) getContext().getApplicationContext()));
             }
         }
-        filenameTextView.setText(filename);
-        filesizeTextView.setText(filesize);
+
+        if(filenameTextView != null) {
+            filenameTextView.setText(filename);
+        }
+
+        if(filenameTextView != null) {
+            filesizeTextView.setText(filesize);
+        }
+    }
+
+    private void fillRichContentChatItem(final LinearLayout linearLayout,
+                                  final RichContentChatItemVO richContentChatItemVO) {
+
+        if (!StringUtil.isNullOrEmpty(richContentChatItemVO.attachmentGuid)) {
+            final ImageView placeholder = linearLayout.findViewById(R.id.chat_item_glide_data_placeholder);
+            final ImageView glideForeground = linearLayout.findViewById(R.id.chat_item_glide_data);
+            final RLottieImageView lottieForeground = linearLayout.findViewById(R.id.chat_item_lottie_data);
+            if (glideForeground != null && lottieForeground != null) {
+
+                // Show a placeholder
+                placeholder.setVisibility(View.VISIBLE);
+                glideForeground.setVisibility(View.GONE);
+                lottieForeground.setVisibility(View.GONE);
+
+                AttachmentController.OnAttachmentLoadedListener richContentLoadedListener = new AttachmentController.OnAttachmentLoadedListener() {
+                    @Override
+                    public void onBitmapLoaded(File file, DecryptedMessage decryptedMsg) {}
+
+                    @Override
+                    public void onVideoLoaded(File videoFile, DecryptedMessage decryptedMsg) {}
+
+                    @Override
+                    public void onAudioLoaded(File audioFile, DecryptedMessage decryptedMsg) {}
+
+                    @Override
+                    public void onRichContentLoaded(File dataFile, DecryptedMessage decryptedMsg) {
+                        LogUtil.d(TAG, "onRichContentLoaded: Attachment file now available: " + dataFile);
+                        final String mimeType = MimeUtil.grabMimeType(dataFile.getPath(), decryptedMsg, null);
+
+                        if  (MimeUtil.isGlideMimetype(mimeType)) {
+                            // Glide
+                            mImageController.fillViewWithImageFromUri(
+                                    Uri.fromFile(dataFile),
+                                    glideForeground, false,
+                                    mApplication.getPreferencesController().getAnimateRichContent());
+                            glideForeground.setVisibility(View.VISIBLE);
+                            lottieForeground.setVisibility(View.GONE);
+                            placeholder.setVisibility(View.GONE);
+                        } else if (MimeUtil.isLottieFile(mimeType, dataFile)) {
+                            // Lottie!
+                            // setAutoRepeat() must be done before setAnimation()
+                            if(mApplication.getPreferencesController().getAnimateRichContent()) {
+                                lottieForeground.setAutoRepeat(true);
+                                lottieForeground.setAnimation(Uri.fromFile(dataFile), 512, 512);
+                                lottieForeground.playAnimation();
+                            } else {
+                                lottieForeground.setAutoRepeat(false);
+                                lottieForeground.setAnimation(Uri.fromFile(dataFile), 512, 512);
+                                lottieForeground.stopAnimation();
+                            }
+
+                            lottieForeground.setVisibility(View.VISIBLE);
+                            glideForeground.setVisibility(View.GONE);
+                            placeholder.setVisibility(View.GONE);
+                        }
+                    }
+
+                    @Override
+                    public void onFileLoaded(File dataFile, DecryptedMessage decryptedMsg) {}
+
+                    @Override
+                    public void onLoadedFailed(String message) {}
+
+                    @Override
+                    public void onHasNoAttachment(String message) {}
+
+                    @Override
+                    public void onHasAttachment(boolean finishedWork) {}
+
+                };
+
+                DecryptedMessage decMsg = null;
+                final Message msg = mApplication.getMessageController().getMessageById(richContentChatItemVO.messageId);
+                if(msg != null) {
+                    decMsg = mApplication.getMessageDecryptionController().decryptMessage(msg, false);
+                    if(decMsg != null) {
+                        if(mAttachmentController.isAttachmentLocallyAvailable(msg.getAttachment())) {
+                            try {
+                                mAttachmentController.loadAttachment(decMsg, richContentLoadedListener, false, null);
+                            } catch (LocalizedException e) {
+                                LogUtil.e(TAG, "fillRichContentChatItem: locally richContentLoadedListener caused: " + e.getMessage());
+                            }
+
+                        } else if(mApplication.getPreferencesController().getAlwaysDownloadRichContent()) {
+                            mImageController.fillViewWithImageFromResource(
+                                    R.raw.crypto2a,
+                                    placeholder, false);
+
+                            try {
+                                mAttachmentController.loadAttachment(decMsg, richContentLoadedListener, false, null);
+                            } catch (LocalizedException e) {
+                                LogUtil.e(TAG, "fillRichContentChatItem: richContentLoadedListener caused: " + e.getMessage());
+                            }
+                        }
+                    }
+                }
+
+                // Don't show the bubble tail on rich content messages
+                View bubbleTail = linearLayout.findViewById(R.id.bubble_tail);
+                if (bubbleTail != null) {
+                    bubbleTail.setVisibility(View.INVISIBLE);
+                }
+            }
+        }
     }
 
     private void fillImageChatItem(final LinearLayout linearLayout,
@@ -858,7 +992,7 @@ public class ChatAdapter
                                    final VideoChatItemVO videoChatItemVO) {
         final ImageView imageView = linearLayout.findViewById(R.id.chat_item_data_placeholder_bg);
 
-        final Bitmap bitmapCopy = BitmapUtil.scale(MetricsUtil.dpToPx(getContext(),
+        final Bitmap bitmapCopy = ImageUtil.scale(MetricsUtil.dpToPx(getContext(),
                 videoChatItemVO.image.getWidth()),
                 MetricsUtil.dpToPx(getContext(),
                         videoChatItemVO.image.getHeight()), videoChatItemVO.image);
@@ -1019,8 +1153,8 @@ public class ChatAdapter
                                       final LocationChatItemVO locationChatItemVO) {
         final ImageView maskImageBubble = linearLayout.findViewById(R.id.chat_item_data_placeholder_bg);
 
-        final Dimension profileImageDimension = ChatImageController.getDimensionForSize(getContext().getResources(),
-                ChatImageController.SIZE_CHAT);
+        final Dimension profileImageDimension = ImageUtil.getDimensionForSize(getContext().getResources(),
+                ImageUtil.SIZE_CHAT);
         final DisplayMetrics displayMetrics = MetricsUtil.getDisplayMetrics(getContext());
 
         final Bitmap locationBitmap;
@@ -1029,7 +1163,7 @@ public class ChatAdapter
             final int width = displayMetrics.widthPixels - profileImageDimension.getWidth() - LOCATION_WIDTH_OFFSET;
             final int height = Math.round((width / (float) locationChatItemVO.image.getWidth()) * locationChatItemVO.image.getHeight());
 
-            locationBitmap = BitmapUtil.scale(width, height, locationChatItemVO.image);
+            locationBitmap = ImageUtil.scale(width, height, locationChatItemVO.image);
         } else {
             locationBitmap = locationChatItemVO.image;
         }

@@ -217,6 +217,8 @@ public abstract class HttpBaseTask
                     throw new ProtocolException();
                 }
 
+                LogUtil.d(TAG, "run: urlString = " + urlString);
+
                 URL url = new URL(urlString);
                 HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
 

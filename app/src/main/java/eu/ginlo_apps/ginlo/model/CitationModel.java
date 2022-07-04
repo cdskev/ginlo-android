@@ -8,7 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.util.*;
 
 /**
@@ -34,7 +34,7 @@ public class CitationModel {
         contentDesc = obj.has("Content-Desc") && obj.get("Content-Desc").isJsonPrimitive() ? obj.get("Content-Desc").getAsString() : null;
         toGuid = obj.has("toGuid") && obj.get("toGuid").isJsonPrimitive() ? obj.get("toGuid").getAsString() : null;
 
-        if (StringUtil.isEqual(contentType, MimeType.MODEL_LOCATION)) {
+        if (StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_MODEL_LOCATION)) {
             try {
                 if (obj.has("Content") && !obj.get("Content").isJsonNull()) {
                     final String wrappedObj = obj.get("Content").getAsString();
@@ -42,7 +42,7 @@ public class CitationModel {
                         final JsonObject parsedContent = new JsonParser().parse(wrappedObj).getAsJsonObject();
                         if (JsonUtil.hasKey("preview", parsedContent)) {
                             final String preview = parsedContent.get("preview").getAsString();
-                            previewImage = BitmapUtil.decodeByteArray(Base64.decode(preview, Base64.DEFAULT));
+                            previewImage = ImageUtil.decodeByteArray(Base64.decode(preview, Base64.DEFAULT));
                         }
                     }
                 }
@@ -58,13 +58,13 @@ public class CitationModel {
             }
 
             if (content != null) {
-                if (StringUtil.isEqual(contentType, MimeType.TEXT_PLAIN)
-                        || StringUtil.isEqual(contentType, MimeType.TEXT_RSS)) {
+                if (StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_TEXT_PLAIN)
+                        || StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_TEXT_RSS)) {
                     text = content;
-                } else if (StringUtil.isEqual(contentType, MimeType.IMAGE_JPEG)
-                        || StringUtil.isEqual(contentType, MimeType.VIDEO_MPEG)
+                } else if (StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_IMAGE_JPEG)
+                        || StringUtil.isEqual(contentType, MimeUtil.MIME_TYPE_VIDEO_MPEG)
                 ) {
-                    previewImage = BitmapUtil.decodeByteArray(Base64.decode(content, Base64.DEFAULT));
+                    previewImage = ImageUtil.decodeByteArray(Base64.decode(content, Base64.DEFAULT));
                 }
             }
         }

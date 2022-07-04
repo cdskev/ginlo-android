@@ -3,7 +3,7 @@
 package eu.ginlo_apps.ginlo.model.backend.action;
 
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 
 /**
  * @author Florian
@@ -39,7 +39,7 @@ public class Action {
 
     public static final String ACTION_CHANGE_GROUP_NAME = AppConstants.MODEL_GROUP_NAME;
 
-    public static final String ACTION_CHANGE_PROFILE_IMAGE = MimeType.IMAGE_JPEG;
+    public static final String ACTION_CHANGE_PROFILE_IMAGE = MimeUtil.MIME_TYPE_IMAGE_JPEG;
 
     public static final String ACTION_CHANGE_PROFILE_NAME = AppConstants.TEXT_NICKNAME;
 

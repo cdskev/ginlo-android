@@ -3,7 +3,6 @@ package eu.ginlo_apps.ginlo.adapter;
 
 import android.app.Application;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,49 +14,33 @@ import android.widget.ListView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.graphics.ColorUtils;
-import androidx.core.graphics.drawable.RoundedBitmapDrawable;
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 import eu.ginlo_apps.ginlo.BuildConfig;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.CompanyContact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
 import eu.ginlo_apps.ginlo.util.CompanyContactUtil;
-import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import java.util.List;
 
 public class CompanyContactsAdapter extends ArrayAdapter<CompanyContact> {
 
     private final int mResource;
-
     private final SimsMeApplication mApplication;
-
+    private final ImageController mImageController;
     private final boolean mSetCheckedAsDefault;
-
-    private final ChatImageController mChatImageController;
-
     private String mGroupChatOwnerGuid;
-
-    private ImageLoader mImageLoader;
-
     private Mandant tenant;
-
     private final Context mContext;
-
     private LayoutInflater mInflater;
-
     private ContactsAdapter.ISelectedContacts mSelectedContacts;
-
     private int mHighLevelColor;
-
     private int mMainColor;
-
     private Drawable mCheckDrawable;
 
     public CompanyContactsAdapter(final Context context,
@@ -67,6 +50,7 @@ public class CompanyContactsAdapter extends ArrayAdapter<CompanyContact> {
         super(context, resource, contacts);
 
         mApplication = (SimsMeApplication) context.getApplicationContext();
+        mImageController =mApplication.getImageController();
         mContext = context;
         mResource = resource;
 
@@ -74,7 +58,6 @@ public class CompanyContactsAdapter extends ArrayAdapter<CompanyContact> {
             this.mSelectedContacts = (ContactsAdapter.ISelectedContacts) context;
         }
 
-        mChatImageController = mApplication.getChatImageController();
         mSetCheckedAsDefault = setCheckedAsDefault;
         try {
             tenant = mApplication.getPreferencesController().getMandantFromIdent(BuildConfig.SIMSME_MANDANT_BA);
@@ -200,23 +183,8 @@ public class CompanyContactsAdapter extends ArrayAdapter<CompanyContact> {
             if (profileImageView != null) {
                 if (isSelectedItem) {
                     profileImageView.setImageDrawable(mCheckDrawable);
-                } else if (mImageLoader != null) {
-                    mImageLoader.loadImage(companyContact, profileImageView);
                 } else {
-                    int size = (int) getContext().getResources().getDimension(R.dimen.contact_item_single_select_icon_diameter);
-
-                    Bitmap image = mChatImageController.getImageByGuid(companyContact.getAccountGuid(),
-                            ChatImageController.SIZE_ORIGINAL);
-
-                    int px = size * mApplication.getResources().getDisplayMetrics().densityDpi / 160;
-                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(image, px, px, false);
-
-                    RoundedBitmapDrawable dr = RoundedBitmapDrawableFactory.create(mApplication.getResources(),
-                            scaledBitmap);
-
-                    dr.setCornerRadius(px / 2.0f);
-
-                    profileImageView.setImageDrawable(dr);
+                    mImageController.fillViewWithProfileImageByGuid(companyContact.getAccountGuid(), profileImageView, -1, false);
                 }
             }
 
@@ -271,7 +239,4 @@ public class CompanyContactsAdapter extends ArrayAdapter<CompanyContact> {
         mGroupChatOwnerGuid = guid;
     }
 
-    public void setImageLoader(final ImageLoader imageLoader) {
-        mImageLoader = imageLoader;
-    }
 }

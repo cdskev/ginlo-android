@@ -13,7 +13,7 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.UseCases.InviteFriendUseCase;
 import eu.ginlo_apps.ginlo.activity.register.IdentConfirmActivity;
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
+import eu.ginlo_apps.ginlo.util.MimeUtil;
 import eu.ginlo_apps.ginlo.router.Router;
 import eu.ginlo_apps.ginlo.util.ContactUtil;
 import eu.ginlo_apps.ginlo.util.DialogBuilderUtil;

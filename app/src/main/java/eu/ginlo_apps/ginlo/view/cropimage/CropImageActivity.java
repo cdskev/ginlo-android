@@ -14,8 +14,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
 import eu.ginlo_apps.ginlo.R;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
 import eu.ginlo_apps.ginlo.log.LogUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -290,7 +290,7 @@ public class CropImageActivity
         if (path == null) {
             return null;
         } else {
-            return BitmapUtil.decodeUri(this, Uri.parse(path), IMAGE_MAX_SIZE, IMAGE_MAX_SIZE, true);
+            return ImageUtil.decodeUri(this, Uri.parse(path), IMAGE_MAX_SIZE, IMAGE_MAX_SIZE, true);
         }
     }
 

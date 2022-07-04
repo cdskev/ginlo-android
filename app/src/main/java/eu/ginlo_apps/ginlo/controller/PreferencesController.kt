@@ -87,6 +87,8 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
     private val FIRST_BACKUP_AFTER_CREATE_ACCOUNT =
         "PreferencesController.fistBackupAfterCreateAccount"
     private val USE_INTERNAL_PDF_VIEWER = "PreferencesController.useInternalPdfViewer"
+    private val ANIMATE_RICH_CONTENT = "PreferencesController.animateRichContent"
+    private val ALWAYS_DOWNLOAD_RICH_CONTENT = "PreferencesController.alwaysDownloadRichContent"
     private val PLAY_MESSAGE_RECEIVED_SOUND = "PreferencesController.playMessageReceivedSound"
     private val PLAY_MESSAGE_SEND_SOUND = "PreferencesController.playMessageSendSound"
     private val PLAY_MESSAGE_SD_SOUND = "PreferencesController.playMessageSdSound"
@@ -272,7 +274,7 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
         notificationForSingleChatEnabled = NOTIFICATION_SINGLE_CHAT_ENABLED_DEFAULT
         numberOfPasswordTries = NUMBER_PASSWORD_TRIES_DEFAULT
         passwordType = TYPE_PASSWORD_DEFAULT
-        saveMediaToGallary = SAVE_MEDIA_TO_GALLERY_DEFAULT
+        saveMediaToGallery = SAVE_MEDIA_TO_GALLERY_DEFAULT
         setStreamRefreshRate(STREAM_REFRESH_RATE_DEFAULT)
         lazyMsgServiceTimeout = LAZY_MSG_SERVICE_TIMEOUT_DEFAULT
         useLazyMsgService = USE_LAZY_MSG_SERVICE_DEFAULT
@@ -657,9 +659,9 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
             if (isSaveMediaToGalleryManaged()) {
                 return isSaveMediaToGalleryManagedValue()
             }
-            return if (preferences.saveMediaToGallary == null) {
+            return if (preferences.saveMediaToGallery == null) {
                 SAVE_MEDIA_TO_GALLERY_DEFAULT
-            } else preferences.saveMediaToGallary
+            } else preferences.saveMediaToGallery
         } catch (e: LocalizedException) {
             LogUtil.e(TAG, e.message, e)
             return SAVE_MEDIA_TO_GALLERY_DEFAULT
@@ -668,7 +670,7 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
 
     @Throws(LocalizedException::class)
     fun setSaveMediaToGallery(value: Boolean) {
-        preferences.saveMediaToGallary = value
+        preferences.saveMediaToGallery = value
         synchronized(preferenceDao) {
             preferenceDao.update(preferences)
         }
@@ -1411,6 +1413,22 @@ open class PreferencesController(val mApplication: SimsMeApplication) :
 
     fun setUseInternalPdfViewer(value: Boolean) {
         sharedPreferences.edit().putBoolean(USE_INTERNAL_PDF_VIEWER, value).apply()
+    }
+
+    fun getAnimateRichContent(): Boolean {
+        return sharedPreferences.getBoolean(ANIMATE_RICH_CONTENT, true)
+    }
+
+    fun setAnimateRichContent(value: Boolean) {
+        sharedPreferences.edit().putBoolean(ANIMATE_RICH_CONTENT, value).apply()
+    }
+
+    fun getAlwaysDownloadRichContent(): Boolean {
+        return sharedPreferences.getBoolean(ALWAYS_DOWNLOAD_RICH_CONTENT, true)
+    }
+
+    fun setAlwaysDownloadRichContent(value: Boolean) {
+        sharedPreferences.edit().putBoolean(ALWAYS_DOWNLOAD_RICH_CONTENT, value).apply()
     }
 
     /**
@@ -2429,9 +2447,9 @@ fun setSendProfileName(value: Boolean) {
     }
 
     fun getNotificationPreviewEnabled(): Boolean {
-        return if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-            false
-        } else sharedPreferences.getBoolean(NOTIFICATION_PREVIEW_ENABLED, false)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            sharedPreferences.getBoolean(NOTIFICATION_PREVIEW_ENABLED, true)
+        } else false
     }
 
     fun hasNotificationPreviewSetting(): Boolean {
@@ -2446,26 +2464,21 @@ fun setSendProfileName(value: Boolean) {
 
     @Throws(LocalizedException::class)
     fun setNotificationPreviewEnabled(enabled: Boolean, forceEnable: Boolean) {
-        if (!(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)) {
-            return
-        }
-        val oldValue = sharedPreferences.getBoolean(NOTIFICATION_PREVIEW_ENABLED, true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val oldValue = sharedPreferences.getBoolean(NOTIFICATION_PREVIEW_ENABLED, true)
 
-        //hat sich der Wert geaendert?
-        if (enabled != oldValue || forceEnable) {
-            // datei schreiben oder loeschen
-            if (enabled || forceEnable) {
-                val keyController = mApplication.keyController
-                SecurityUtil.writeNotificationKeyToDisc(
-                    keyController.internalEncryptionKey,
-                    mApplication
-                )
-                // immer speichern
-                sharedPreferences.edit().putBoolean(NOTIFICATION_PREVIEW_ENABLED, true).apply()
-            } else {
-                SecurityUtil.deleteNotificationKeyFromDisc(mApplication)
-                // immer speichern
-                sharedPreferences.edit().putBoolean(NOTIFICATION_PREVIEW_ENABLED, false).apply()
+            if (enabled != oldValue || forceEnable) {
+                if (enabled || forceEnable) {
+                    val keyController = mApplication.keyController
+                    SecurityUtil.writeNotificationKeyToDisc(
+                        keyController.internalEncryptionKey,
+                        mApplication
+                    )
+                    sharedPreferences.edit().putBoolean(NOTIFICATION_PREVIEW_ENABLED, true).apply()
+                } else {
+                    SecurityUtil.deleteNotificationKeyFromDisc(mApplication)
+                    sharedPreferences.edit().putBoolean(NOTIFICATION_PREVIEW_ENABLED, false).apply()
+                }
             }
         }
     }

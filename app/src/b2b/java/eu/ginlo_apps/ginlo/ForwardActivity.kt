@@ -33,13 +33,9 @@ import net.sqlcipher.Cursor
 class ForwardActivity : ForwardActivityBase(), SearchView.OnQueryTextListener {
 
     private lateinit var searchView: SearchView
-
     private lateinit var searchItem: MenuItem
-
     private var searchQueryOldText = ""
-
     private lateinit var contactContentContainer: LinearLayout
-
     private lateinit var contactSearchAdapter: SearchContactsCursorAdapter
 
     private val contactControllerBusiness: ContactControllerBusiness by lazy { simsMeApplication.contactController as ContactControllerBusiness }
@@ -93,7 +89,7 @@ class ForwardActivity : ForwardActivityBase(), SearchView.OnQueryTextListener {
             // use a linear layout manager
             contacts_activity_search_recycler_view.layoutManager = LinearLayoutManager(this)
 
-            contactSearchAdapter = SearchContactsCursorAdapter(this, null, mImageLoader)
+            contactSearchAdapter = SearchContactsCursorAdapter(this, null, imageController)
             contactSearchAdapter.setItemClickListener { v ->
                 onSearchItemClick(v)
             }

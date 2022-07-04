@@ -6,6 +6,7 @@ import android.view.View
 import eu.ginlo_apps.ginlo.R
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemClick
 import eu.ginlo_apps.ginlo.activity.chatsOverview.contracts.OnChatItemLongClick
+import eu.ginlo_apps.ginlo.controller.ImageController
 import eu.ginlo_apps.ginlo.exception.LocalizedException
 import eu.ginlo_apps.ginlo.greendao.Contact
 import eu.ginlo_apps.ginlo.log.LogUtil
@@ -13,7 +14,6 @@ import eu.ginlo_apps.ginlo.model.chat.overview.BaseChatOverviewItemVO
 import eu.ginlo_apps.ginlo.model.chat.overview.GroupChatOverviewItemInvitationVO
 import eu.ginlo_apps.ginlo.model.chat.overview.SingleChatOverviewItemInvitationVO
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil
-import eu.ginlo_apps.ginlo.util.ImageLoader
 import eu.ginlo_apps.ginlo.util.TimeUtil
 import kotlinx.android.synthetic.main.chat_overview_invite_item_layout.view.chat_overview_item_invite_description
 import kotlinx.android.synthetic.main.chat_overview_invite_item_layout.view.chat_overview_item_mask_image_view_chat_image
@@ -24,12 +24,12 @@ import kotlinx.android.synthetic.main.chat_overview_invite_item_layout.view.chat
 import kotlinx.android.synthetic.main.chat_overview_invite_item_layout.view.trust_state_divider
 
 class ChatOverviewInviteItemVH(
-    imageLoader: ImageLoader,
+    imageController: ImageController,
     timeUtil: TimeUtil,
     itemView: View,
     onChatItemClick: OnChatItemClick?,
     onChatItemLongClick: OnChatItemLongClick?
-) : ChatOverviewBaseItemVH(itemView, imageLoader, timeUtil, onChatItemClick, onChatItemLongClick) {
+) : ChatOverviewBaseItemVH(itemView, imageController, timeUtil, onChatItemClick, onChatItemLongClick) {
     override fun setItem(item: BaseChatOverviewItemVO) {
         bindTrustedStateView(item)
 

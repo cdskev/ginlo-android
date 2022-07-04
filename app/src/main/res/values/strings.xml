@@ -301,6 +301,7 @@
     <string name="chat_overview_preview_VoiceSent">Voicemail sent</string>
     <string name="chat_overview_preview_contactReceived">Contact received</string>
     <string name="chat_overview_preview_contactSent">Contact sent</string>
+    <string name="chat_overview_preview_rich_content">Sticker</string>
     <string name="chat_overview_preview_file_received">File received</string>
     <string name="chat_overview_preview_file_sent">File sent</string>
     <string name="chat_overview_preview_imageReceived">Image received</string>
@@ -1097,6 +1098,8 @@
     <string name="settings_chat_blockedContacts_empty">No contacts are currently blocked</string>
     <string name="settings_chat_imagesInCameraRoll">Backup media automatically</string>
     <string name="settings_chat_use_internal_pdf_viewer">Use internal reader for pdf-files</string>
+    <string name="settings_chat_always_download_rich_content">Always download stickers</string>
+    <string name="settings_chat_animate_rich_content">Animate stickers</string>
     <string name="settings_chat_persistmessages_detail">%1$d days</string>
     <string name="settings_chat_persistmessages_title">Messages available on server</string>
     <string name="settings_chat_saveMedia_info">If you activate this option, all media that you receive is automatically saved on your phone and can be viewed outside of ginlo.</string>

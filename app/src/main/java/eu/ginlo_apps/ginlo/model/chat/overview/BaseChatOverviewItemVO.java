@@ -16,6 +16,7 @@ public class BaseChatOverviewItemVO {
     public static final int MSG_MEDIA_TYPE_FILE = 8;
     public static final int MSG_MEDIA_TYPE_AVC = 9;
     public static final int MSG_MEDIA_TYPE_GINLOCONTROL = 10;
+    public static final int MSG_MEDIA_TYPE_RICH_CONTENT = 11;
 
     public Chat chat;
     public long datesend;

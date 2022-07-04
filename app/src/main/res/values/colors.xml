@@ -32,7 +32,8 @@
     <color name="mainContrast80">#C0333333</color>
     <color name="mainContrast50">#80333333</color>
     <color name="systemChatBackground">#00C1A7</color>
-    <color name="icon_background">#FFFFFF</color>
+    <color name="b2c_icon_background">#FFFFFF</color>
+    <color name="b2b_icon_background">#00375D</color>
     <color name="sendButtonColor">@color/mainContrast</color>
     <color name="sendButtonIconColor">@color/main</color>
     <color name="fab">@color/mainContrast</color>

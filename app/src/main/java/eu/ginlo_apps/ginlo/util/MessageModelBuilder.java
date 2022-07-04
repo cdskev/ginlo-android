@@ -38,7 +38,6 @@ import eu.ginlo_apps.ginlo.model.backend.serialization.SignatureModelSerializer;
 import eu.ginlo_apps.ginlo.model.constant.AppConstants;
 import eu.ginlo_apps.ginlo.model.constant.DataContainer;
 import eu.ginlo_apps.ginlo.model.constant.FeatureVersion;
-import eu.ginlo_apps.ginlo.model.constant.MimeType;
 import eu.ginlo_apps.ginlo.model.param.MessageDestructionParams;
 
 import java.io.File;
@@ -143,7 +142,7 @@ public class MessageModelBuilder {
                 iv,
                 dateSendTimed,
                 isPriority);
-        messageModel.mimeType = MimeType.TEXT_V_CALL;
+        messageModel.mimeType = MimeUtil.MIME_TYPE_TEXT_V_CALL;
         attachAVCRoomInfo(messageModel, roomInfo);
         attachCitation(messageModel, citation);
 
@@ -204,7 +203,7 @@ public class MessageModelBuilder {
                 iv,
                 null,
                 false);
-        messageModel.mimeType = MimeType.APP_GINLO_CONTROL;
+        messageModel.mimeType = MimeUtil.MIME_TYPE_APP_GINLO_CONTROL;
         attachAppGinloControlMessage(messageModel, controlMessage);
 
         encryptData(messageModel, aesKey, iv);
@@ -229,7 +228,7 @@ public class MessageModelBuilder {
                                              CitationModel citation)
             throws LocalizedException {
         BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
-        messageModel.mimeType = MimeType.TEXT_PLAIN;
+        messageModel.mimeType = MimeUtil.MIME_TYPE_TEXT_PLAIN;
         if (destructionParams != null) {
             attachSelfDestruction(messageModel, destructionParams);
         }
@@ -270,9 +269,9 @@ public class MessageModelBuilder {
                 String contentType = decryptedMessage.getContentType();
 
                 if (!StringUtil.isNullOrEmpty(contentType)) {
-                    if (contentType.equals(MimeType.APP_OCTET_STREAM)) {
+                    if (MimeUtil.hasUnspecificBinaryMimeType(contentType)) {
                         privateMessageModel.features = Integer.toString(FeatureVersion.FILE_MSG);
-                    } else if (contentType.equals(MimeType.AUDIO_MPEG)) {
+                    } else if (contentType.equals(MimeUtil.MIME_TYPE_AUDIO_MPEG)) {
                         privateMessageModel.features = Integer.toString(FeatureVersion.VOICEREC);
                     }
                 }
@@ -320,9 +319,9 @@ public class MessageModelBuilder {
                 String contentType = decryptedMessage.getContentType();
 
                 if (StringUtil.isNullOrEmpty(contentType)) {
-                    if (contentType.equals(MimeType.APP_OCTET_STREAM)) {
+                    if (MimeUtil.hasUnspecificBinaryMimeType(contentType)) {
                         groupMessageModel.features = Integer.toString(FeatureVersion.FILE_MSG);
-                    } else if (contentType.equals(MimeType.AUDIO_MPEG)) {
+                    } else if (contentType.equals(MimeUtil.MIME_TYPE_AUDIO_MPEG)) {
                         groupMessageModel.features = Integer.toString(FeatureVersion.VOICEREC);
                     }
                 }
@@ -355,7 +354,7 @@ public class MessageModelBuilder {
             throws LocalizedException {
         BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, null, false);
 
-        messageModel.mimeType = MimeType.MODEL_LOCATION;
+        messageModel.mimeType = MimeUtil.MIME_TYPE_MODEL_LOCATION;
 
         attachLocation(messageModel, screenshot, longitude, latitude);
 
@@ -389,7 +388,7 @@ public class MessageModelBuilder {
                 null,
                 false);
 
-        messageModel.mimeType = MimeType.TEXT_V_CARD;
+        messageModel.mimeType = MimeUtil.MIME_TYPE_TEXT_V_CARD;
 
         attachVCard(messageModel, vCard);
 
@@ -419,9 +418,38 @@ public class MessageModelBuilder {
             throws LocalizedException {
         BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, null, false);
 
-        messageModel.mimeType = MimeType.APP_OCTET_STREAM;
+        messageModel.mimeType = MimeUtil.MIME_TYPE_APP_OCTET_STREAM;
 
         attachFile(activity, messageModel, fileUri, fileName, description, mimeType, aesKey, iv);
+        attachCitation(messageModel, citation);
+
+        encryptData(messageModel, aesKey, iv);
+        attachSignature(messageModel, userKeyPair.getPrivate());
+        attachSignature(messageModel, userKeyPair.getPrivate(), true);
+
+        return messageModel;
+    }
+
+    public BaseMessageModel buildRichContentMessage(int type,
+                                             Activity activity,
+                                             Uri fileUri,
+                                             String fileName,
+                                             String description,
+                                             String mimeType,
+                                             Account fromAccount,
+                                             String toGuid,
+                                             String toPublicKeyXML,
+                                             KeyPair userKeyPair,
+                                             SecretKey aesKey,
+                                             IvParameterSpec iv,
+                                             CitationModel citation
+    )
+            throws LocalizedException {
+        BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, null, false);
+
+        messageModel.mimeType = MimeUtil.MIME_TYPE_APP_GINLO_RICH_CONTENT;
+
+        attachRichContent(activity, messageModel, fileUri, fileName, description, mimeType, aesKey, iv);
         attachCitation(messageModel, citation);
 
         encryptData(messageModel, aesKey, iv);
@@ -449,7 +477,7 @@ public class MessageModelBuilder {
             throws LocalizedException {
         BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
 
-        messageModel.mimeType = MimeType.IMAGE_JPEG;
+        messageModel.mimeType = MimeUtil.MIME_TYPE_IMAGE_JPEG;
 
         try {
             attachImage(activity, messageModel, imageUri, description, aesKey, iv);
@@ -490,7 +518,7 @@ public class MessageModelBuilder {
             throws LocalizedException {
         BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
 
-        messageModel.mimeType = MimeType.VIDEO_MPEG;
+        messageModel.mimeType = MimeUtil.MIME_TYPE_VIDEO_MPEG;
 
         attachVideo(activity, messageModel, imageUri, description, aesKey, iv);
 
@@ -521,7 +549,7 @@ public class MessageModelBuilder {
             throws LocalizedException {
         BaseMessageModel messageModel = prepareMessage(type, fromAccount, toGuid, toPublicKeyXML, userKeyPair, aesKey, iv, dateSendTimed, isPriority);
 
-        messageModel.mimeType = MimeType.AUDIO_MPEG;
+        messageModel.mimeType = MimeUtil.MIME_TYPE_AUDIO_MPEG;
 
         attachVoice(activity, messageModel, voiceUri, aesKey, iv);
 
@@ -605,7 +633,7 @@ public class MessageModelBuilder {
         JsonObject actionContainer = getDataJsonObject(privateInternalMessageModel);
 
         actionContainer.addProperty(DataContainer.CONTENT, action);
-        actionContainer.addProperty(DataContainer.CONTENT_TYPE, MimeType.TEXT_PLAIN);
+        actionContainer.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_TEXT_PLAIN);
 
         privateInternalMessageModel.data = actionContainer.toString();
     }
@@ -623,7 +651,7 @@ public class MessageModelBuilder {
         contentJson.addProperty(DataContainer.LOCATION_CONTAINER_LONGITUDE, longitude);
         contentJson.addProperty(DataContainer.LOCATION_CONTAINER_LATITUDE, latitude);
         dataJson.addProperty(DataContainer.CONTENT, contentJson.toString());
-        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.MODEL_LOCATION);
+        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_MODEL_LOCATION);
 
         messageModel.data = dataJson.toString();
     }
@@ -699,19 +727,19 @@ public class MessageModelBuilder {
         }
 
         //Fill content
-        if (StringUtil.isEqual(citationModel.contentType, MimeType.TEXT_PLAIN)
-                || StringUtil.isEqual(citationModel.contentType, MimeType.TEXT_RSS)) {
+        if (StringUtil.isEqual(citationModel.contentType, MimeUtil.MIME_TYPE_TEXT_PLAIN)
+                || StringUtil.isEqual(citationModel.contentType, MimeUtil.MIME_TYPE_TEXT_RSS)) {
             citationJsonObject.addProperty(DataContainer.CONTENT, citationModel.text);
-        } else if (StringUtil.isEqual(citationModel.contentType, MimeType.VIDEO_MPEG)
-                || StringUtil.isEqual(citationModel.contentType, MimeType.IMAGE_JPEG)
+        } else if (StringUtil.isEqual(citationModel.contentType, MimeUtil.MIME_TYPE_VIDEO_MPEG)
+                || StringUtil.isEqual(citationModel.contentType, MimeUtil.MIME_TYPE_IMAGE_JPEG)
         ) {
-            final byte[] previewImageBytes = BitmapUtil.compress(citationModel.previewImage, 60);
+            final byte[] previewImageBytes = ImageUtil.compress(citationModel.previewImage, 60);
             final String previewImageBase64 = Base64.encodeToString(previewImageBytes, Base64.DEFAULT);
             citationJsonObject.addProperty(DataContainer.CONTENT, previewImageBase64);
-        } else if (StringUtil.isEqual(citationModel.contentType, MimeType.MODEL_LOCATION)) {
+        } else if (StringUtil.isEqual(citationModel.contentType, MimeUtil.MIME_TYPE_MODEL_LOCATION)) {
             final JsonObject content = new JsonObject();
 
-            final byte[] previewImageBytes = BitmapUtil.compress(citationModel.previewImage, 60);
+            final byte[] previewImageBytes = ImageUtil.compress(citationModel.previewImage, 60);
 
             content.addProperty(DataContainer.LOCATION_CONTAINER_PREVIEW,
                     Base64.encodeToString(previewImageBytes, Base64.DEFAULT));
@@ -753,7 +781,7 @@ public class MessageModelBuilder {
         JsonObject dataJson = getDataJsonObject(messageModel);
 
         dataJson.addProperty(DataContainer.CONTENT, message);
-        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.TEXT_PLAIN);
+        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_TEXT_PLAIN);
 
         messageModel.data = dataJson.toString();
     }
@@ -763,7 +791,7 @@ public class MessageModelBuilder {
         JsonObject dataJson = getDataJsonObject(messageModel);
 
         dataJson.addProperty(DataContainer.CONTENT, controlMessage.toString());
-        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.APP_GINLO_CONTROL);
+        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_APP_GINLO_CONTROL);
 
         messageModel.data = dataJson.toString();
     }
@@ -772,7 +800,7 @@ public class MessageModelBuilder {
         JsonObject dataJson = getDataJsonObject(messageModel);
 
         dataJson.addProperty(DataContainer.CONTENT, roomInfo);
-        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.TEXT_V_CALL);
+        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_TEXT_V_CALL);
 
         messageModel.data = dataJson.toString();
     }
@@ -781,7 +809,7 @@ public class MessageModelBuilder {
         JsonObject dataJson = getDataJsonObject(messageModel);
 
         dataJson.addProperty(DataContainer.CONTENT, vCard);
-        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.TEXT_V_CARD);
+        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_TEXT_V_CARD);
 
         messageModel.data = dataJson.toString();
     }
@@ -798,7 +826,6 @@ public class MessageModelBuilder {
         JsonObject dataJson = getDataJsonObject(messageModel);
 
         final FileUtil fu = new FileUtil(activity);
-        final MimeUtil mu = new MimeUtil(activity);
 
         long fileSize;
         try {
@@ -809,11 +836,11 @@ public class MessageModelBuilder {
         }
         String fileName = aFileName;
 
-        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.APP_OCTET_STREAM);
+        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_APP_OCTET_STREAM);
 
         if (!StringUtil.isNullOrEmpty(fileName)) {
             if (fileName.lastIndexOf(".") < 0) {
-                String ext = mu.getExtensionForUri(fileUri);
+                String ext = MimeUtil.getExtensionForUri(activity, fileUri);
                 if (!StringUtil.isNullOrEmpty(ext)) {
                     fileName = fileName + "." + ext;
                 }
@@ -832,7 +859,7 @@ public class MessageModelBuilder {
         if (!StringUtil.isNullOrEmpty(mimeType)) {
             dataJson.addProperty(DataContainer.FILE_TYPE, mimeType);
         } else {
-            dataJson.addProperty(DataContainer.FILE_TYPE, MimeType.APP_OCTET_STREAM);
+            dataJson.addProperty(DataContainer.FILE_TYPE, MimeUtil.MIME_TYPE_APP_OCTET_STREAM);
         }
 
         dataJson.addProperty(DataContainer.ENCODING_VERSION, DecryptedMessage.ATTACHMENT_ENCODING_VERSION_1);
@@ -841,25 +868,70 @@ public class MessageModelBuilder {
         prepareAttachment(fileUri.getPath(), messageModel, aesKey, iv);
         messageModel.data = dataJson.toString();
         messageModel.features = Integer.toString(FeatureVersion.FILE_MSG);
+    }
 
-        ////////////////////////////////////////
+    private void attachRichContent(final Activity activity,
+                            final BaseMessageModel messageModel,
+                            final Uri fileUri,
+                            final String aFileName,
+                            final String description,
+                            final String mimeType,
+                            final SecretKey aesKey,
+                            final IvParameterSpec iv)
+            throws LocalizedException {
+        JsonObject dataJson = getDataJsonObject(messageModel);
 
-        /*
-        byte[] bytes = fu.getByteArrayFromUri(fileUri);
+        final FileUtil fu = new FileUtil(activity);
 
-        if (bytes == null) {
-            throw new LocalizedException(LocalizedException.NO_DATA_FOUND, "File has no data.");
+        long fileSize;
+        try {
+            fileSize = fu.getFileSize(fileUri);
+        } catch (LocalizedException e) {
+            fileSize = 0;
+            LogUtil.e(TAG, e.getMessage(), e);
+        }
+        String fileName = aFileName;
+
+        // KS: TODO: Ensure compatibility with other clients.
+        // Should be later
+        //dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_APP_GINLO_RICH_CONTENT);
+        // Keep for now
+        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_APP_OCTET_STREAM);
+
+        if (!StringUtil.isNullOrEmpty(fileName)) {
+            if (fileName.lastIndexOf(".") < 0) {
+                String ext = MimeUtil.getExtensionForUri(activity, fileUri);
+                if (!StringUtil.isNullOrEmpty(ext)) {
+                    fileName = fileName + "." + ext;
+                }
+            }
+            dataJson.addProperty(DataContainer.FILE_NAME, fileName);
         }
 
-        if (fileSize <= 0 && bytes.length > 0) {
-            dataJson.addProperty(DataContainer.FILE_SIZE, bytes.length);
+        if (!StringUtil.isNullOrEmpty(description)) {
+            dataJson.addProperty(DataContainer.CONTENT_DESC, description);
         }
 
+        if (fileSize > 0) {
+            dataJson.addProperty(DataContainer.FILE_SIZE, fileSize);
+        }
+
+        if (!StringUtil.isNullOrEmpty(mimeType)) {
+            dataJson.addProperty(DataContainer.FILE_TYPE, mimeType);
+        } else {
+            // KS: TODO: Ensure compatibility with other clients.
+            // Should be later
+            dataJson.addProperty(DataContainer.FILE_TYPE, MimeUtil.MIME_TYPE_APP_GINLO_RICH_CONTENT);
+            // Keep for now
+            //dataJson.addProperty(DataContainer.FILE_TYPE, MimeUtil.MIME_TYPE_APP_OCTET_STREAM);
+        }
+
+        dataJson.addProperty(DataContainer.ENCODING_VERSION, DecryptedMessage.ATTACHMENT_ENCODING_VERSION_1);
+
+        // KS: Don't load attachment into memory
+        prepareAttachment(fileUri.getPath(), messageModel, aesKey, iv);
         messageModel.data = dataJson.toString();
         messageModel.features = Integer.toString(FeatureVersion.FILE_MSG);
-
-        addAttachment(bytes, messageModel, aesKey, iv);
-         */
     }
 
     private void attachImage(final Activity activity,
@@ -905,7 +977,7 @@ public class MessageModelBuilder {
         
         LogUtil.d(TAG, "attachImage: Using maximum image resolution: " + imageWidth + "x" + imageHeight);
 
-        final Bitmap image = BitmapUtil.decodeUri(activity, imageUri, imageWidth, imageHeight, true);
+        final Bitmap image = ImageUtil.decodeUri(activity, imageUri, imageWidth, imageHeight, true);
 
         if (image == null) {
             throw new LocalizedException(LocalizedException.NO_DATA_FOUND, "image is null");
@@ -980,10 +1052,9 @@ public class MessageModelBuilder {
 
         LogUtil.d(TAG, "attachImage: Calculated preview image resolution: " + previewImage.getWidth() + "x" + previewImage.getHeight());
 
-        final byte[] previewImageBytes = BitmapUtil.compress(previewImage, imageCompressionRatio);
+        final byte[] previewImageBytes = ImageUtil.compress(previewImage, imageCompressionRatio);
 
-        //final byte[] imageBytes = BitmapUtil.compress(image, imageCompressionRatio);
-        final File tempImageFile = BitmapUtil.compress(activity, image, imageCompressionRatio);
+        final File tempImageFile = ImageUtil.compress(activity, image, imageCompressionRatio);
 
         // Bug 37967 Bilder sollen erts bei Kompression geprueft werden
         if (tempImageFile.length() > activity.getApplication().getResources().getInteger(R.integer.attachment_file_max_size)) {
@@ -994,7 +1065,7 @@ public class MessageModelBuilder {
 
         final String previewImageBase64 = Base64.encodeToString(previewImageBytes, Base64.DEFAULT);
 
-        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.IMAGE_JPEG);
+        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_IMAGE_JPEG);
         dataJson.addProperty(DataContainer.CONTENT, previewImageBase64);
         dataJson.addProperty(DataContainer.ENCODING_VERSION, DecryptedMessage.ATTACHMENT_ENCODING_VERSION_1);
         if (!StringUtil.isNullOrEmpty(description)) {
@@ -1024,11 +1095,11 @@ public class MessageModelBuilder {
         Bitmap previewImage = VideoUtil.getThumbnail(activity, videoUri);
 
         // byte[] fileBytes = VideoUtil.decodeUri(activity, videoUri);
-        byte[] previewImageBytes = BitmapUtil.compress(previewImage, 100);
+        byte[] previewImageBytes = ImageUtil.compress(previewImage, 100);
 
         String previewImageBase64 = Base64.encodeToString(previewImageBytes, Base64.DEFAULT);
 
-        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.VIDEO_MPEG);
+        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_VIDEO_MPEG);
         dataJson.addProperty(DataContainer.CONTENT, previewImageBase64);
         dataJson.addProperty(DataContainer.ENCODING_VERSION, DecryptedMessage.ATTACHMENT_ENCODING_VERSION_1);
         if (!StringUtil.isNullOrEmpty(description)) {
@@ -1055,7 +1126,7 @@ public class MessageModelBuilder {
                 jsonParser.parse(gson.toJson(AudioUtil.getLevels())));
 
         dataJson.addProperty(DataContainer.CONTENT, contentJson.toString());
-        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeType.AUDIO_MPEG);
+        dataJson.addProperty(DataContainer.CONTENT_TYPE, MimeUtil.MIME_TYPE_AUDIO_MPEG);
         dataJson.addProperty(DataContainer.ENCODING_VERSION, DecryptedMessage.ATTACHMENT_ENCODING_VERSION_1);
 
         byte[] fileBytes = AudioUtil.decodeUri(activity, voiceUri);

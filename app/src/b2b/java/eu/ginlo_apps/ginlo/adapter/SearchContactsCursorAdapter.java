@@ -3,7 +3,6 @@ package eu.ginlo_apps.ginlo.adapter;
 
 import android.app.Application;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,22 +11,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.graphics.ColorUtils;
-import androidx.core.graphics.drawable.RoundedBitmapDrawable;
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.gson.JsonObject;
 import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.ViewExtensionsKt;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ContactControllerBusiness;
+import eu.ginlo_apps.ginlo.controller.ImageController;
 import eu.ginlo_apps.ginlo.exception.LocalizedException;
 import eu.ginlo_apps.ginlo.greendao.Contact;
 import eu.ginlo_apps.ginlo.log.LogUtil;
 import eu.ginlo_apps.ginlo.model.Mandant;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
-import eu.ginlo_apps.ginlo.util.ImageLoader;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.StringUtil;
 import eu.ginlo_apps.ginlo.util.fts.FtsDatabaseHelper;
@@ -35,7 +32,7 @@ import net.sqlcipher.Cursor;
 
 public class SearchContactsCursorAdapter extends CursorRecycleViewAdapter<SearchContactsCursorAdapter.ViewHolder> {
     private final static String TAG = "SearchContactsCursorAdapter";
-    private ImageLoader mImageLoader;
+    private ImageController mImageController;
     private LayoutInflater mInflater;
 
     private final int mHighLevelColor;
@@ -47,10 +44,10 @@ public class SearchContactsCursorAdapter extends CursorRecycleViewAdapter<Search
     private View.OnClickListener mOnItemClickListener;
     private ContactsAdapter.ISelectedContacts mSelectedContacts;
 
-    public SearchContactsCursorAdapter(@NonNull final Context context, final Cursor cursor, final ImageLoader imageLoader) {
+    public SearchContactsCursorAdapter(@NonNull final Context context, final Cursor cursor, final ImageController imageController) {
         super(context, cursor);
 
-        mImageLoader = imageLoader;
+        mImageController = imageController;
 
         final ScreenDesignUtil screenDesignUtil = ScreenDesignUtil.getInstance();
         mHighLevelColor = screenDesignUtil.getHighColor((Application) getContext().getApplicationContext());
@@ -86,21 +83,9 @@ public class SearchContactsCursorAdapter extends CursorRecycleViewAdapter<Search
             if (viewHolder.profileImageView != null && !StringUtil.isNullOrEmpty(item.accountGuid)) {
                 if (isSelectedItem) {
                     viewHolder.profileImageView.setImageDrawable(mCheckDrawable);
-                } else if (mImageLoader != null) {
-                    mImageLoader.loadImage(item.accountGuid, viewHolder.profileImageView);
                 } else {
-                    Bitmap image = SimsMeApplication.getInstance().getChatImageController().getImageByGuid(item.accountGuid, ChatImageController.SIZE_ORIGINAL);
-
-                    int px = R.dimen.contact_item_multi_select_icon_diameter * (SimsMeApplication.getInstance().getResources().getDisplayMetrics().densityDpi / 160);
-                    Bitmap scaledBitmap = Bitmap.createScaledBitmap(image, px, px, false);
-
-                    RoundedBitmapDrawable dr = RoundedBitmapDrawableFactory.create(SimsMeApplication.getInstance().getResources(), scaledBitmap);
-
-                    dr.setCornerRadius(px / 2.0f);
-
-                    viewHolder.profileImageView.setImageDrawable(dr);
+                    mImageController.fillViewWithProfileImageByGuid(item.accountGuid, viewHolder.profileImageView, ImageUtil.SIZE_ORIGINAL, false);
                 }
-
                 viewHolder.profileImageView.setVisibility(View.VISIBLE);
             } else if (viewHolder.profileImageView != null) {
                 viewHolder.profileImageView.setVisibility(View.INVISIBLE);

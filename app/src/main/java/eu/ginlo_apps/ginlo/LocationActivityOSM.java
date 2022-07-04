@@ -31,7 +31,7 @@ import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 import java.util.ArrayList;
 
 import eu.ginlo_apps.ginlo.log.LogUtil;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.PermissionUtil;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
 import eu.ginlo_apps.ginlo.util.ScreenDesignUtil;
@@ -246,7 +246,7 @@ public class LocationActivityOSM
 
             final Bitmap placeHolder = ((BitmapDrawable) getDrawable(R.drawable.chat_location_placeholder)).getBitmap();
             // Convert placeHolder to jpeg ...
-            intent.putExtra(EXTRA_SCREENSHOT, BitmapUtil.compress(placeHolder, SCREENSHOT_QUALITY));
+            intent.putExtra(EXTRA_SCREENSHOT, ImageUtil.compress(placeHolder, SCREENSHOT_QUALITY));
             setResult(Activity.RESULT_OK, intent);
 
         } else {

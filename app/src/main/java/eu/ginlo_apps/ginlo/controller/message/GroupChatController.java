@@ -31,7 +31,6 @@ import eu.ginlo_apps.ginlo.R;
 import eu.ginlo_apps.ginlo.concurrent.manager.SerialExecutor;
 import eu.ginlo_apps.ginlo.context.SimsMeApplication;
 import eu.ginlo_apps.ginlo.controller.AccountController;
-import eu.ginlo_apps.ginlo.controller.ChatImageController;
 import eu.ginlo_apps.ginlo.controller.ChatOverviewController;
 import eu.ginlo_apps.ginlo.controller.ContactController;
 import eu.ginlo_apps.ginlo.controller.KeyController;
@@ -74,9 +73,9 @@ import eu.ginlo_apps.ginlo.model.constant.DataContainer;
 import eu.ginlo_apps.ginlo.model.constant.JsonConstants;
 import eu.ginlo_apps.ginlo.service.BackendService;
 import eu.ginlo_apps.ginlo.service.IBackendService;
-import eu.ginlo_apps.ginlo.util.BitmapUtil;
 import eu.ginlo_apps.ginlo.util.DateUtil;
 import eu.ginlo_apps.ginlo.util.GuidUtil;
+import eu.ginlo_apps.ginlo.util.ImageUtil;
 import eu.ginlo_apps.ginlo.util.JsonUtil;
 import eu.ginlo_apps.ginlo.util.MessageModelBuilder;
 import eu.ginlo_apps.ginlo.util.RuntimeConfig;
@@ -202,7 +201,7 @@ public class GroupChatController extends ChatController {
     void setGroupImage(final String chatGuid,
                        final byte[] imageBytes)
             throws LocalizedException {
-        mApplication.getChatImageController().saveImage(chatGuid, imageBytes);
+        mApplication.getImageController().saveProfileImageRaw(chatGuid, imageBytes);
     }
 
     void setGroupName(final String chatGuid,
@@ -1306,7 +1305,7 @@ public class GroupChatController extends ChatController {
                 if (mImage != null) {
                     img = mImage;
                 } else {
-                    img = mApp.getChatImageController().loadImage(mChat.getChatGuid());
+                    img = mApp.getImageController().loadProfileImageRaw(mChat.getChatGuid());
                 }
 
                 final String data = Base64.encodeToString(img, Base64.NO_WRAP);
@@ -1349,7 +1348,7 @@ public class GroupChatController extends ChatController {
                                     insertOrUpdateChat(mChat);
 
                                     if (mImage != null) {
-                                        mApp.getChatImageController().saveImage(mChat.getChatGuid(), mImage);
+                                        mApp.getImageController().saveProfileImageRaw(mChat.getChatGuid(), mImage);
                                     }
                                 } catch (final LocalizedException e) {
                                     LogUtil.w(TAG, e.getMessage(), e);
@@ -1541,7 +1540,7 @@ public class GroupChatController extends ChatController {
                                             try {
                                                 byte[] img = mImage;
                                                 if (img == null) {
-                                                    img = mApp.getChatImageController().loadImage(mChat.getChatGuid());
+                                                    img = mApp.getImageController().loadProfileImageRaw(mChat.getChatGuid());
                                                 }
                                                 privateInternalMessageController.broadcastGroupImageChange(mChat, addMembersNotSend, img);
                                             } catch (final LocalizedException e) {
@@ -1639,7 +1638,7 @@ public class GroupChatController extends ChatController {
             if (mImage != null) {
                 img = mImage;
             } else {
-                img = mApp.getChatImageController().loadImage(mChat.getChatGuid());
+                img = mApp.getImageController().loadProfileImageRaw(mChat.getChatGuid());
             }
 
             final String data = Base64.encodeToString(img, Base64.NO_WRAP);
@@ -1738,8 +1737,7 @@ public class GroupChatController extends ChatController {
         protected void onPostExecute(final Void aVoid) {
             if (!mHasError) {
                 if (mHasSaveImage) {
-                    final ChatImageController chatImageController = mApp.getChatImageController();
-                    chatImageController.removeFromCache(mChatGuid);
+                    mApp.getImageController().updateProfileImageInCache(mChatGuid);
                 }
 
                 mApp.getChatOverviewController().chatChanged(null, mChatGuid, null, ChatOverviewController.CHAT_CHANGED_REFRESH_CHAT);
@@ -1787,10 +1785,9 @@ public class GroupChatController extends ChatController {
                 final byte[] groupImageBytes;
 
                 if (mChatRoomImage != null) {
-                    final ChatImageController chatImageController = mApp.getChatImageController();
-                    final Bitmap bitmap = BitmapUtil.decodeByteArray(mChatRoomImage);
-                    final Bitmap scaledBitmap = chatImageController.getScaledImage(bitmap, ChatImageController.SIZE_PROFILE_BIG);
-                    groupImageBytes = BitmapUtil.compress(scaledBitmap, 50);
+                    final Bitmap bitmap = ImageUtil.decodeByteArray(mChatRoomImage);
+                    final Bitmap scaledBitmap = ImageUtil.getScaledImage(mApp.getResources(), bitmap, ImageUtil.SIZE_PROFILE_BIG);
+                    groupImageBytes = ImageUtil.compress(scaledBitmap, 50);
                 } else {
                     groupImageBytes = null;
                 }
@@ -1867,7 +1864,7 @@ public class GroupChatController extends ChatController {
                                             }
 
                                             if (groupImageBytes != null) {
-                                                mApp.getChatImageController().saveImage(chat.getChatGuid(), groupImageBytes);
+                                                mApp.getImageController().saveProfileImageRaw(chat.getChatGuid(), groupImageBytes);
                                             }
 
                                             final Date now = new Date();
@@ -2120,8 +2117,7 @@ public class GroupChatController extends ChatController {
                         final byte[] image = Base64.decode(groupImageAsBase64, Base64.NO_WRAP);
 
                         if (image != null) {
-                            final ChatImageController chatImageController = mApp.getChatImageController();
-                            chatImageController.saveImage(guid, image);
+                            mApp.getImageController().saveProfileImageRaw(guid, image);
                             mHasSaveImage = true;
                         }
                     }
